@@ -7,11 +7,13 @@
 
 import SwiftUI
 
+/// Main app entry point for Day One prototype with global styling
 @main
-struct DO_iPhone_ProtoApp: App {
+struct DayOnePrototypeApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            TimelineView()
+                .tint(.blue)
         }
     }
 }

@@ -54,7 +54,7 @@ struct TimelineView: View {
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(.tint, in: RoundedRectangle(cornerRadius: 12))
+                        .background(Color(hex: "44C0FF"), in: RoundedRectangle(cornerRadius: 12))
                         .foregroundStyle(.white)
                     }
                     .accessibilityLabel("Create new journal entry")
@@ -65,7 +65,7 @@ struct TimelineView: View {
             }
             .navigationTitle("Day One")
             .navigationBarTitleDisplayMode(.large)
-            .toolbarBackground(.blue.gradient, for: .navigationBar)
+            .toolbarBackground(LinearGradient(colors: [Color(hex: "44C0FF"), Color(hex: "44C0FF").opacity(0.8)], startPoint: .top, endPoint: .bottom), for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .sheet(isPresented: $viewModel.showingNewEntry) {

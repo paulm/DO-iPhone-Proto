@@ -12,8 +12,7 @@ import SwiftUI
 struct DayOnePrototypeApp: App {
     var body: some Scene {
         WindowGroup {
-            TimelineView()
-                .tint(.blue)
+            MainTabView()
         }
     }
 }

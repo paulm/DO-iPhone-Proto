@@ -6,34 +6,80 @@ struct EntryView: View {
     @State private var entryText = "This afternoon I walked a familiar trail near my house.\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam mattis, orci eu varius imperdiet, augue risus eleifend ex, eu sollicitudin enim erat maximus est."
     @State private var entryTitle = ""
     @State private var showingJournalingTools = false
+    @State private var showingEnhancedJournalingTools = false
+    @State private var showingContentFocusedJournalingTools = false
+    @State private var showingEntryChat = false
+    @State private var hasChatActivity = true // Simulating that this entry has chat activity
     @FocusState private var isTextFieldFocused: Bool
     
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Header with date and journal info
-                VStack(alignment: .leading, spacing: 4) {
+                // Date header
+                VStack(alignment: .leading, spacing: 0) {
                     Text("Mon, Feb 26, 2024 · 14:23")
                         .font(.subheadline)
                         .foregroundStyle(.white)
-                    
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+                .background(LinearGradient(colors: [Color(hex: "44C0FF"), Color(hex: "44C0FF").opacity(0.8)], startPoint: .top, endPoint: .bottom))
+                
+                // Journal info header
+                VStack(alignment: .leading, spacing: 0) {
                     HStack {
                         Text("Sample Journal")
-                            .foregroundStyle(.blue)
+                            .foregroundStyle(Color(hex: "44C0FF"))
                         Text(" · ")
-                            .foregroundStyle(.white.opacity(0.7))
+                            .foregroundStyle(.secondary)
                         Text("Sundance Resort")
-                            .foregroundStyle(.white.opacity(0.7))
+                            .foregroundStyle(.secondary)
                     }
                     .font(.subheadline)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 20)
-                .padding(.vertical, 16)
-                .background(.blue.gradient)
+                .padding(.vertical, 12)
+                .background(.white)
                 
                 // Content area
                 VStack(alignment: .leading, spacing: 16) {
+                    // Chat activity indicator
+                    if hasChatActivity {
+                        Button {
+                            showingEntryChat = true
+                        } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: "message.circle.fill")
+                                    .font(.caption)
+                                    .foregroundStyle(Color(hex: "44C0FF"))
+                                
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Entry Chat Session")
+                                        .font(.caption)
+                                        .fontWeight(.medium)
+                                        .foregroundStyle(.primary)
+                                    Text("Discussed themes, emotions, and reflections • 3 messages")
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(1)
+                                }
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Color(hex: "44C0FF").opacity(0.05))
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    
                     // Title field
                     TextField("Entry title", text: $entryTitle, prompt: Text("A Quiet Walk That Shifted Everything"))
                         .font(.title2)
@@ -66,9 +112,25 @@ struct EntryView: View {
                                     }
                                     
                                     Button {
-                                        // Photo action
+                                        showingEnhancedJournalingTools = true
                                     } label: {
-                                        Image(systemName: "photo")
+                                        Image(systemName: "sparkles")
+                                            .font(.title3)
+                                            .foregroundStyle(Color(hex: "44C0FF"))
+                                    }
+                                    
+                                    Button {
+                                        showingContentFocusedJournalingTools = true
+                                    } label: {
+                                        Image(systemName: "sparkles")
+                                            .font(.title3)
+                                            .foregroundStyle(.purple)
+                                    }
+                                    
+                                    Button {
+                                        showingEntryChat = true
+                                    } label: {
+                                        Image(systemName: "message.circle")
                                             .font(.title3)
                                     }
                                     
@@ -112,12 +174,21 @@ struct EntryView: View {
                     .accessibilityLabel("Save journal entry")
                 }
             }
-            .toolbarBackground(.blue.gradient, for: .navigationBar)
+            .toolbarBackground(LinearGradient(colors: [Color(hex: "44C0FF"), Color(hex: "44C0FF").opacity(0.8)], startPoint: .top, endPoint: .bottom), for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showingJournalingTools) {
                 JournalingToolsView()
+            }
+            .sheet(isPresented: $showingEnhancedJournalingTools) {
+                EnhancedJournalingToolsView()
+            }
+            .sheet(isPresented: $showingContentFocusedJournalingTools) {
+                ContentFocusedJournalingToolsView()
+            }
+            .sheet(isPresented: $showingEntryChat) {
+                EntryChatView(entryText: entryText, entryTitle: entryTitle.isEmpty ? "Untitled Entry" : entryTitle)
             }
         }
     }

@@ -28,7 +28,7 @@ struct MainTabView: View {
                     Text("More")
                 }
         }
-        .tint(Color(hex: "44C0FF"))
+        .tint(.black)
     }
 }
 

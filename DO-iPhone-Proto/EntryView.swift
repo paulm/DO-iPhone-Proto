@@ -3,8 +3,7 @@ import SwiftUI
 /// Modal sheet for creating new journal entries
 struct EntryView: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var entryText = "This afternoon I walked a familiar trail near my house.\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam mattis, orci eu varius imperdiet, augue risus eleifend ex, eu sollicitudin enim erat maximus est."
-    @State private var entryTitle = ""
+    @State private var entryText = "A Quiet Walk That Shifted Everything\n\nThis afternoon I walked a familiar trail near my house.\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam mattis, orci eu varius imperdiet, augue risus eleifend ex, eu sollicitudin enim erat maximus est."
     @State private var showingJournalingTools = false
     @State private var showingEnhancedJournalingTools = false
     @State private var showingContentFocusedJournalingTools = false
@@ -24,13 +23,13 @@ struct EntryView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
-                .background(LinearGradient(colors: [Color(hex: "44C0FF"), Color(hex: "44C0FF").opacity(0.8)], startPoint: .top, endPoint: .bottom))
+                .background(LinearGradient(colors: [Color(hex: "4EC3FE"), Color(hex: "4EC3FE").opacity(0.8)], startPoint: .top, endPoint: .bottom))
                 
                 // Journal info header
                 VStack(alignment: .leading, spacing: 0) {
                     HStack {
                         Text("Sample Journal")
-                            .foregroundStyle(Color(hex: "44C0FF"))
+                            .foregroundStyle(.black)
                         Text(" · ")
                             .foregroundStyle(.secondary)
                         Text("Sundance Resort")
@@ -53,7 +52,7 @@ struct EntryView: View {
                             HStack(spacing: 8) {
                                 Image(systemName: "message.circle.fill")
                                     .font(.caption)
-                                    .foregroundStyle(Color(hex: "44C0FF"))
+                                    .foregroundStyle(.black)
                                 
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text("Entry Chat Session")
@@ -74,19 +73,13 @@ struct EntryView: View {
                             }
                             .padding(.horizontal, 12)
                             .padding(.vertical, 8)
-                            .background(Color(hex: "44C0FF").opacity(0.05))
+                            .background(.black.opacity(0.05))
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                         }
                         .buttonStyle(.plain)
                     }
                     
-                    // Title field
-                    TextField("Entry title", text: $entryTitle, prompt: Text("A Quiet Walk That Shifted Everything"))
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .textFieldStyle(.plain)
-                    
-                    // Rich text editor
+                    // Combined text editor
                     TextEditor(text: $entryText)
                         .font(.body)
                         .focused($isTextFieldFocused)
@@ -116,7 +109,7 @@ struct EntryView: View {
                                     } label: {
                                         Image(systemName: "sparkles")
                                             .font(.title3)
-                                            .foregroundStyle(Color(hex: "44C0FF"))
+                                            .foregroundStyle(.black)
                                     }
                                     
                                     Button {
@@ -174,7 +167,7 @@ struct EntryView: View {
                     .accessibilityLabel("Save journal entry")
                 }
             }
-            .toolbarBackground(LinearGradient(colors: [Color(hex: "44C0FF"), Color(hex: "44C0FF").opacity(0.8)], startPoint: .top, endPoint: .bottom), for: .navigationBar)
+            .toolbarBackground(LinearGradient(colors: [Color(hex: "4EC3FE"), Color(hex: "4EC3FE").opacity(0.8)], startPoint: .top, endPoint: .bottom), for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .navigationBarTitleDisplayMode(.inline)
@@ -188,9 +181,15 @@ struct EntryView: View {
                 ContentFocusedJournalingToolsView()
             }
             .sheet(isPresented: $showingEntryChat) {
-                EntryChatView(entryText: entryText, entryTitle: entryTitle.isEmpty ? "Untitled Entry" : entryTitle)
+                EntryChatView(entryText: entryText, entryTitle: extractTitle(from: entryText))
             }
         }
+    }
+    
+    private func extractTitle(from text: String) -> String {
+        let lines = text.components(separatedBy: .newlines)
+        let firstLine = lines.first?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return firstLine.isEmpty ? "Untitled Entry" : firstLine
     }
 }
 

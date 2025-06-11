@@ -3,6 +3,7 @@ import SwiftUI
 /// Primary timeline view with navigation and entry creation
 struct TimelineView: View {
     @State private var viewModel = RootViewModel()
+    @State private var showingSettings = false
     
     var body: some View {
         NavigationStack {
@@ -68,8 +69,22 @@ struct TimelineView: View {
             .toolbarBackground(LinearGradient(colors: [Color(hex: "44C0FF"), Color(hex: "44C0FF").opacity(0.8)], startPoint: .top, endPoint: .bottom), for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showingSettings = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                            .foregroundStyle(.white)
+                    }
+                    .accessibilityLabel("Settings")
+                }
+            }
             .sheet(isPresented: $viewModel.showingNewEntry) {
                 EntryView()
+            }
+            .sheet(isPresented: $showingSettings) {
+                SettingsView()
             }
         }
     }

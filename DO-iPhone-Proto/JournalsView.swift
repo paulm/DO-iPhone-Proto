@@ -124,6 +124,8 @@ struct CoverTabView: View {
 }
 
 struct ListTabView: View {
+    @State private var showingEntryView = false
+    
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 0) {
@@ -135,44 +137,53 @@ struct ListTabView: View {
                         .padding(.horizontal)
                         .padding(.top, 20)
                     
-                    // Entry item
-                    HStack(alignment: .top, spacing: 16) {
-                        VStack(spacing: 4) {
-                            Text("WED")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Text("12")
-                                .font(.title2)
-                                .fontWeight(.medium)
-                        }
-                        .frame(width: 50)
-                        
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Had a wonderful lunch with Emily today.")
-                                .font(.headline)
-                                .fontWeight(.medium)
+                    // Entry item - now tappable
+                    Button(action: {
+                        showingEntryView = true
+                    }) {
+                        HStack(alignment: .top, spacing: 16) {
+                            VStack(spacing: 4) {
+                                Text("WED")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                Text("12")
+                                    .font(.title2)
+                                    .fontWeight(.medium)
+                            }
+                            .frame(width: 50)
                             
-                            Text("It's refreshing to step away from the daily grind and catch up with old friends. We talked about...")
-                                .font(.body)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(2)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Had a wonderful lunch with Emily today.")
+                                    .font(.headline)
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(.primary)
+                                
+                                Text("It's refreshing to step away from the daily grind and catch up with old friends. We talked about...")
+                                    .font(.body)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(2)
+                                
+                                Text("6:11 PM CDT")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .padding(.top, 4)
+                            }
                             
-                            Text("6:11 PM CDT")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .padding(.top, 4)
+                            Spacer()
                         }
-                        
-                        Spacer()
+                        .padding(.horizontal)
+                        .padding(.bottom, 20)
                     }
-                    .padding(.horizontal)
-                    .padding(.bottom, 20)
+                    .buttonStyle(PlainButtonStyle())
                 }
                 
                 Spacer(minLength: 100)
             }
         }
         .background(.white)
+        .sheet(isPresented: $showingEntryView) {
+            EntryView()
+        }
     }
 }
 

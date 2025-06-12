@@ -2,7 +2,6 @@ import SwiftUI
 
 /// Primary timeline view with navigation and entry creation
 struct TimelineView: View {
-    @State private var viewModel = RootViewModel()
     @State private var showingSettings = false
     
     var body: some View {
@@ -29,39 +28,6 @@ struct TimelineView: View {
                 
                 Spacer()
                 
-                // Action buttons
-                VStack(spacing: 16) {
-                    Button {
-                        // Timeline navigation placeholder
-                    } label: {
-                        HStack {
-                            Image(systemName: "calendar")
-                            Text("Timeline")
-                        }
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
-                    }
-                    .accessibilityLabel("View timeline")
-                    
-                    Button {
-                        viewModel.showingNewEntry = true
-                    } label: {
-                        HStack {
-                            Image(systemName: "square.and.pencil")
-                            Text("New Entry")
-                        }
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color(hex: "44C0FF"), in: RoundedRectangle(cornerRadius: 12))
-                        .foregroundStyle(.white)
-                    }
-                    .accessibilityLabel("Create new journal entry")
-                }
-                .padding(.horizontal, 40)
-                
                 Spacer()
             }
             .navigationTitle("Day One")
@@ -79,9 +45,6 @@ struct TimelineView: View {
                     }
                     .accessibilityLabel("Settings")
                 }
-            }
-            .sheet(isPresented: $viewModel.showingNewEntry) {
-                EntryView()
             }
             .sheet(isPresented: $showingSettings) {
                 SettingsView()

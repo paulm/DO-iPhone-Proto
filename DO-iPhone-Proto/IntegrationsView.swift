@@ -3,6 +3,10 @@ import SwiftUI
 struct IntegrationsView: View {
     var body: some View {
         List {
+            NavigationLink("Apple Health") {
+                AppleHealthIntegrationView()
+            }
+            
             NavigationLink("IFTTT") {
                 Text("IFTTT Integration")
                     .navigationTitle("IFTTT")

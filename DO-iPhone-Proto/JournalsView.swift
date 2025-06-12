@@ -4,6 +4,7 @@ import SwiftUI
 struct JournalsView: View {
     @State private var selectedTab = 1 // Default to List tab
     @State private var showingJournalSelector = false
+    @State private var showingSettings = false
     @State private var journalViewModel = JournalSelectionViewModel()
     
     var body: some View {
@@ -36,13 +37,18 @@ struct JournalsView: View {
                         }
                         
                         // Profile image placeholder
-                        Circle()
-                            .fill(.white.opacity(0.3))
-                            .frame(width: 40, height: 40)
-                            .overlay(
-                                Image(systemName: "person.fill")
-                                    .foregroundStyle(.white)
-                            )
+                        Button(action: {
+                            showingSettings = true
+                        }) {
+                            Circle()
+                                .fill(.white.opacity(0.3))
+                                .frame(width: 40, height: 40)
+                                .overlay(
+                                    Image(systemName: "person.fill")
+                                        .foregroundStyle(.white)
+                                )
+                        }
+                        .accessibilityLabel("Settings")
                     }
                     .padding(.horizontal)
                     .padding(.top, geometry.safeAreaInsets.top + 12)
@@ -101,6 +107,9 @@ struct JournalsView: View {
         }
         .sheet(isPresented: $showingJournalSelector) {
             JournalSelectorView(viewModel: journalViewModel)
+        }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
         }
     }
 }

@@ -219,13 +219,12 @@ struct JournalBookView: View {
                         VStack {
                             Spacer()
                             HStack {
-                                Text(journal.name.uppercased())
+                                Text(journal.name)
                                     .font(.body)
                                     .fontWeight(.bold)
-                                    .foregroundStyle(.white)
+                                    .foregroundStyle(.white.opacity(0.8))
                                     .multilineTextAlignment(.leading)
                                     .lineLimit(3)
-                                    .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
                                 Spacer()
                             }
                             .padding(.bottom, 8)

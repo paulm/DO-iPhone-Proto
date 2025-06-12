@@ -2,6 +2,7 @@ import SwiftUI
 
 struct JournalSelectorView: View {
     @Environment(\.dismiss) private var dismiss
+    let viewModel: JournalSelectionViewModel
     
     var body: some View {
         NavigationStack {
@@ -9,61 +10,16 @@ struct JournalSelectorView: View {
                 // Journal list
                 ScrollView {
                     LazyVStack(spacing: 8) {
-                        // All Entries
-                        JournalRow(
-                            color: .gray,
-                            title: "All Entries",
-                            entryCount: 238,
-                            isSelected: false
-                        )
-                        
-                        // Journal (Selected)
-                        JournalRow(
-                            color: Color(hex: "44C0FF"),
-                            title: "Journal",
-                            entryCount: 22,
-                            isSelected: true
-                        )
-                        
-                        // Travel
-                        JournalRow(
-                            color: .blue,
-                            title: "Travel",
-                            entryCount: 9,
-                            isSelected: false
-                        )
-                        
-                        // Family Memories
-                        JournalRow(
-                            color: .green,
-                            title: "Family Memories",
-                            entryCount: 4,
-                            isSelected: false
-                        )
-                        
-                        // WCEU
-                        JournalRow(
-                            color: Color(red: 0.7, green: 0.8, blue: 0.2),
-                            title: "WCEU",
-                            entryCount: 12,
-                            isSelected: false
-                        )
-                        
-                        // Notes
-                        JournalRow(
-                            color: .orange,
-                            title: "Notes",
-                            entryCount: 19,
-                            isSelected: false
-                        )
-                        
-                        // Prompts
-                        JournalRow(
-                            color: Color(red: 1.0, green: 0.6, blue: 0.2),
-                            title: "Prompts",
-                            entryCount: nil,
-                            isSelected: false
-                        )
+                        ForEach(Journal.allJournals) { journal in
+                            JournalRow(
+                                journal: journal,
+                                isSelected: journal.id == viewModel.selectedJournal.id,
+                                onSelect: {
+                                    viewModel.selectJournal(journal)
+                                    dismiss()
+                                }
+                            )
+                        }
                     }
                     .padding(.horizontal)
                     .padding(.top, 20)
@@ -100,29 +56,26 @@ struct JournalSelectorView: View {
 }
 
 struct JournalRow: View {
-    let color: Color
-    let title: String
-    let entryCount: Int?
+    let journal: Journal
     let isSelected: Bool
+    let onSelect: () -> Void
     
     var body: some View {
-        Button(action: {
-            // TODO: Select journal action
-        }) {
+        Button(action: onSelect) {
             HStack(spacing: 16) {
                 // Color square
                 RoundedRectangle(cornerRadius: 6)
-                    .fill(color)
+                    .fill(journal.color)
                     .frame(width: 32, height: 32)
                 
                 // Journal info
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
+                    Text(journal.name)
                         .font(.headline)
                         .fontWeight(.medium)
                         .foregroundStyle(.primary)
                     
-                    if let count = entryCount {
+                    if let count = journal.entryCount {
                         Text("\(count) entries")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
@@ -143,5 +96,5 @@ struct JournalRow: View {
 }
 
 #Preview {
-    JournalSelectorView()
+    JournalSelectorView(viewModel: JournalSelectionViewModel())
 }

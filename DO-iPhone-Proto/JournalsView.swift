@@ -4,6 +4,7 @@ import SwiftUI
 struct JournalsView: View {
     @State private var selectedTab = 1 // Default to List tab
     @State private var showingJournalSelector = false
+    @State private var journalViewModel = JournalSelectionViewModel()
     
     var body: some View {
         GeometryReader { geometry in
@@ -48,7 +49,7 @@ struct JournalsView: View {
                     
                     // Journal title and date range
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Journal")
+                        Text(journalViewModel.selectedJournal.name)
                             .font(.largeTitle)
                             .fontWeight(.bold)
                             .foregroundStyle(.white)
@@ -60,23 +61,22 @@ struct JournalsView: View {
                     .padding(.horizontal)
                     .padding(.bottom, 30)
                 }
-                .background(
-                    LinearGradient(
-                        colors: [Color(hex: "44C0FF"), Color(hex: "44C0FF").opacity(0.8)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
+                .background(journalViewModel.headerGradient)
             
-            // Tab navigation
-            HStack(spacing: 0) {
-                TabButton(title: "Cover", index: 0, selectedTab: $selectedTab)
-                TabButton(title: "List", index: 1, selectedTab: $selectedTab)
-                TabButton(title: "Calendar", index: 2, selectedTab: $selectedTab)
-                TabButton(title: "Media", index: 3, selectedTab: $selectedTab)
-                TabButton(title: "Map", index: 4, selectedTab: $selectedTab)
+            // Segmented control navigation
+            VStack(spacing: 0) {
+                Picker("View", selection: $selectedTab) {
+                    Text("Cover").tag(0)
+                    Text("List").tag(1)
+                    Text("Calendar").tag(2)
+                    Text("Media").tag(3)
+                    Text("Map").tag(4)
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
+                .padding(.vertical, 12)
+                .background(.white)
             }
-            .background(.white)
             
             // Content based on selected tab
             Group {
@@ -100,41 +100,11 @@ struct JournalsView: View {
             .ignoresSafeArea(edges: .top)
         }
         .sheet(isPresented: $showingJournalSelector) {
-            JournalSelectorView()
+            JournalSelectorView(viewModel: journalViewModel)
         }
     }
 }
 
-// MARK: - Tab Button Component
-struct TabButton: View {
-    let title: String
-    let index: Int
-    @Binding var selectedTab: Int
-    
-    var body: some View {
-        Button(action: {
-            selectedTab = index
-        }) {
-            VStack(spacing: 8) {
-                Text(title)
-                    .font(.system(size: 16, weight: selectedTab == index ? .medium : .regular))
-                    .foregroundStyle(selectedTab == index ? .black : .secondary)
-                
-                if selectedTab == index {
-                    Circle()
-                        .fill(.black)
-                        .frame(width: 4, height: 4)
-                } else {
-                    Circle()
-                        .fill(.clear)
-                        .frame(width: 4, height: 4)
-                }
-            }
-            .padding(.vertical, 12)
-            .frame(maxWidth: .infinity)
-        }
-    }
-}
 
 // MARK: - Tab Content Views
 struct CoverTabView: View {

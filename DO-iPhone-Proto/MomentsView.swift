@@ -1,24 +1,39 @@
 import SwiftUI
 
 // MARK: - Moment Data Models
+enum MomentType: String, CaseIterable {
+    case location = "location"
+    case event = "calendar"
+    case photo = "photo"
+    
+    var icon: String {
+        switch self {
+        case .location: return "location.fill"
+        case .event: return "calendar"
+        case .photo: return "photo.fill"
+        }
+    }
+}
+
 struct Moment: Identifiable, Hashable {
-    let id = UUID()
     let title: String
     let type: MomentType
     let time: String
     
-    enum MomentType: String, CaseIterable {
-        case location = "location"
-        case event = "calendar"
-        case photo = "photo"
-        
-        var icon: String {
-            switch self {
-            case .location: return "location.fill"
-            case .event: return "calendar"
-            case .photo: return "photo.fill"
-            }
-        }
+    // Use content-based ID for stable identification
+    var id: String {
+        "\(type.rawValue)-\(title)-\(time)"
+    }
+    
+    // Implement Hashable based on content, not UUID
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(title)
+        hasher.combine(type)
+        hasher.combine(time)
+    }
+    
+    static func == (lhs: Moment, rhs: Moment) -> Bool {
+        lhs.title == rhs.title && lhs.type == rhs.type && lhs.time == rhs.time
     }
 }
 
@@ -29,27 +44,35 @@ struct MomentsView: View {
     @Binding var selectedPhotos: Set<String>
     @State private var selectedMoments: Set<Moment> = []
     
-    private let allMoments: [Moment] = [
+    private static let allMomentsData: [(String, MomentType, String)] = [
         // Locations (chronological order)
-        Moment(title: "Home", type: .location, time: "6:00 AM"),
-        Moment(title: "Starbucks", type: .location, time: "8:15 AM"),
-        Moment(title: "Office", type: .location, time: "9:30 AM"),
-        Moment(title: "Gym", type: .location, time: "12:30 PM"),
-        Moment(title: "Park", type: .location, time: "5:30 PM"),
+        ("Home", .location, "6:00 AM"),
+        ("Starbucks", .location, "8:15 AM"),
+        ("Office", .location, "9:30 AM"),
+        ("Gym", .location, "12:30 PM"),
+        ("Park", .location, "5:30 PM"),
         
         // Events (chronological order)
-        Moment(title: "Team Meeting", type: .event, time: "10:00 AM"),
-        Moment(title: "Lunch with Sarah", type: .event, time: "1:00 PM"),
-        Moment(title: "Doctor Appointment", type: .event, time: "3:30 PM"),
-        Moment(title: "Yoga Class", type: .event, time: "6:00 PM"),
+        ("Team Meeting", .event, "10:00 AM"),
+        ("Lunch with Sarah", .event, "1:00 PM"),
+        ("Doctor Appointment", .event, "3:30 PM"),
+        ("Yoga Class", .event, "6:00 PM"),
         
         // Photos (chronological order)
-        Moment(title: "Morning Coffee", type: .photo, time: "7:45 AM"),
-        Moment(title: "Team Photo", type: .photo, time: "11:30 AM"),
-        Moment(title: "Lunch View", type: .photo, time: "1:15 PM"),
-        Moment(title: "Sunset Walk", type: .photo, time: "5:45 PM"),
-        Moment(title: "Evening Workout", type: .photo, time: "6:30 PM")
-    ].sorted { timeToMinutes($0.time) < timeToMinutes($1.time) }
+        ("Morning Coffee", .photo, "7:45 AM"),
+        ("Team Photo", .photo, "11:30 AM"),
+        ("Lunch View", .photo, "1:15 PM"),
+        ("Sunset Walk", .photo, "5:45 PM"),
+        ("Evening Workout", .photo, "6:30 PM")
+    ]
+    
+    private static let staticMoments: [Moment] = {
+        return allMomentsData.map { (title, type, time) in
+            Moment(title: title, type: type, time: time)
+        }.sorted { timeToMinutes($0.time) < timeToMinutes($1.time) }
+    }()
+    
+    private var allMoments: [Moment] { Self.staticMoments }
     
     var body: some View {
         NavigationStack {
@@ -64,18 +87,12 @@ struct MomentsView: View {
                 }
                 
                 List {
-                    ForEach(allMoments) { moment in
+                    ForEach(allMoments, id: \.id) { moment in
                         MomentRowView(
                             moment: moment,
-                            isSelected: selectedMoments.contains(moment),
+                            isSelected: isMomentSelected(moment),
                             onTap: {
-                                if selectedMoments.contains(moment) {
-                                    selectedMoments.remove(moment)
-                                    removeMomentFromBindings(moment)
-                                } else {
-                                    selectedMoments.insert(moment)
-                                    addMomentToBindings(moment)
-                                }
+                                toggleMomentSelection(moment)
                             }
                         )
                         .padding(.horizontal, 4)
@@ -103,42 +120,56 @@ struct MomentsView: View {
             .onAppear {
                 loadCurrentSelections()
             }
+            .onChange(of: selectedLocations) { _, _ in
+                loadCurrentSelections()
+            }
+            .onChange(of: selectedEvents) { _, _ in
+                loadCurrentSelections()
+            }
+            .onChange(of: selectedPhotos) { _, _ in
+                loadCurrentSelections()
+            }
+        }
+    }
+    
+    private func isMomentSelected(_ moment: Moment) -> Bool {
+        switch moment.type {
+        case .location:
+            return selectedLocations.contains(moment.title)
+        case .event:
+            return selectedEvents.contains(moment.title)
+        case .photo:
+            return selectedPhotos.contains(moment.title)
+        }
+    }
+    
+    private func toggleMomentSelection(_ moment: Moment) {
+        switch moment.type {
+        case .location:
+            if selectedLocations.contains(moment.title) {
+                selectedLocations.remove(moment.title)
+            } else {
+                selectedLocations.insert(moment.title)
+            }
+        case .event:
+            if selectedEvents.contains(moment.title) {
+                selectedEvents.remove(moment.title)
+            } else {
+                selectedEvents.insert(moment.title)
+            }
+        case .photo:
+            if selectedPhotos.contains(moment.title) {
+                selectedPhotos.remove(moment.title)
+            } else {
+                selectedPhotos.insert(moment.title)
+            }
         }
     }
     
     private func loadCurrentSelections() {
         selectedMoments = Set(allMoments.filter { moment in
-            switch moment.type {
-            case .location:
-                return selectedLocations.contains(moment.title)
-            case .event:
-                return selectedEvents.contains(moment.title)
-            case .photo:
-                return selectedPhotos.contains(moment.title)
-            }
+            isMomentSelected(moment)
         })
-    }
-    
-    private func addMomentToBindings(_ moment: Moment) {
-        switch moment.type {
-        case .location:
-            selectedLocations.insert(moment.title)
-        case .event:
-            selectedEvents.insert(moment.title)
-        case .photo:
-            selectedPhotos.insert(moment.title)
-        }
-    }
-    
-    private func removeMomentFromBindings(_ moment: Moment) {
-        switch moment.type {
-        case .location:
-            selectedLocations.remove(moment.title)
-        case .event:
-            selectedEvents.remove(moment.title)
-        case .photo:
-            selectedPhotos.remove(moment.title)
-        }
     }
 }
 

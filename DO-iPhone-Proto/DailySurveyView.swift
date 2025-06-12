@@ -2,10 +2,17 @@ import SwiftUI
 
 // MARK: - Survey Question Data Model
 struct SurveyQuestion: Identifiable, Codable {
-    let id = UUID()
+    let id: UUID
     var text: String
     var isEnabled: Bool
     var order: Int
+    
+    init(text: String, isEnabled: Bool, order: Int) {
+        self.id = UUID()
+        self.text = text
+        self.isEnabled = isEnabled
+        self.order = order
+    }
     
     static let defaultQuestions = [
         SurveyQuestion(text: "How are you feeling today?", isEnabled: true, order: 0),

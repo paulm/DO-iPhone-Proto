@@ -12,9 +12,9 @@ struct TodayView: View {
     @State private var surveyCompleted = false
     
     // Trackers state
-    @State private var moodRating = 3
-    @State private var energyRating = 3
-    @State private var stressRating = 3
+    @State private var moodRating = 0
+    @State private var energyRating = 0
+    @State private var stressRating = 0
     @State private var foodInput = ""
     @State private var prioritiesInput = ""
     @State private var mediaInput = ""

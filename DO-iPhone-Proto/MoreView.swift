@@ -2,6 +2,8 @@ import SwiftUI
 
 /// More tab view with Quick Start, On This Day, and Daily Prompt
 struct MoreView: View {
+    @State private var showingSettings = false
+    
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -9,7 +11,9 @@ struct MoreView: View {
                     // Profile section
                     HStack {
                         Spacer()
-                        Button(action: {}) {
+                        Button(action: {
+                            showingSettings = true
+                        }) {
                             Circle()
                                 .fill(.gray.opacity(0.3))
                                 .frame(width: 40, height: 40)
@@ -18,6 +22,7 @@ struct MoreView: View {
                                         .foregroundStyle(.gray)
                                 )
                         }
+                        .accessibilityLabel("Settings")
                     }
                     .padding(.horizontal)
                     .padding(.top, 20)
@@ -143,6 +148,9 @@ struct MoreView: View {
                 }
             }
             .navigationBarHidden(true)
+        }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
         }
     }
 }

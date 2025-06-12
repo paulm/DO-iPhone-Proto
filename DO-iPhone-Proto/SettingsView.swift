@@ -7,8 +7,16 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             List {
-                NavigationLink("Integrations") {
-                    IntegrationsView()
+                Section {
+                    NavigationLink("Bio") {
+                        BioSettingsView()
+                    }
+                }
+                
+                Section {
+                    NavigationLink("Integrations") {
+                        IntegrationsView()
+                    }
                 }
             }
             .navigationTitle("Settings")

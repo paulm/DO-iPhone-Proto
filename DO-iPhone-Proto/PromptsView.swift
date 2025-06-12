@@ -3,6 +3,7 @@ import SwiftUI
 /// Prompts tab view showing writing prompts gallery and packs
 struct PromptsView: View {
     @State private var selectedTab = 0
+    @State private var showingSettings = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -14,7 +15,9 @@ struct PromptsView: View {
                 
                 Spacer()
                 
-                Button(action: {}) {
+                Button(action: {
+                    showingSettings = true
+                }) {
                     Circle()
                         .fill(.gray.opacity(0.3))
                         .frame(width: 40, height: 40)
@@ -23,6 +26,7 @@ struct PromptsView: View {
                                 .foregroundStyle(.gray)
                         )
                 }
+                .accessibilityLabel("Settings")
             }
             .padding(.horizontal)
             .padding(.top, 20)
@@ -110,6 +114,9 @@ struct PromptsView: View {
                 }
                 .padding(.top, 24)
             }
+        }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
         }
     }
 }

@@ -139,51 +139,72 @@ struct ListTabView: View {
         ScrollView {
             LazyVStack(spacing: 0) {
                 // March 2025 Section
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 0) {
                     Text("March 2025")
                         .font(.title2)
                         .fontWeight(.medium)
                         .padding(.horizontal)
                         .padding(.top, 20)
+                        .padding(.bottom, 16)
                     
-                    // Entry item - now tappable
-                    Button(action: {
-                        showingEntryView = true
-                    }) {
-                        HStack(alignment: .top, spacing: 16) {
-                            VStack(spacing: 4) {
-                                Text("WED")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                Text("12")
-                                    .font(.title2)
-                                    .fontWeight(.medium)
-                            }
-                            .frame(width: 50)
-                            
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Had a wonderful lunch with Emily today.")
-                                    .font(.headline)
-                                    .fontWeight(.medium)
-                                    .foregroundStyle(.primary)
-                                
-                                Text("It's refreshing to step away from the daily grind and catch up with old friends. We talked about...")
-                                    .font(.body)
-                                    .foregroundStyle(.secondary)
-                                    .lineLimit(2)
-                                
-                                Text("6:11 PM CDT")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                    .padding(.top, 4)
-                            }
-                            
-                            Spacer()
-                        }
-                        .padding(.horizontal)
-                        .padding(.bottom, 20)
+                    VStack(spacing: 0) {
+                        EntryRow(
+                            day: "WED",
+                            date: "12",
+                            title: "Had a wonderful lunch with Emily today.",
+                            preview: "It's refreshing to step away from the daily grind and catch up with old friends. We talked about...",
+                            time: "6:11 PM CDT",
+                            showingEntryView: $showingEntryView
+                        )
+                        
+                        EntryRow(
+                            day: "TUE",
+                            date: "11",
+                            title: "Morning run through the park",
+                            preview: "Felt energized after a good night's sleep. The weather was perfect for running and I...",
+                            time: "7:45 AM CDT",
+                            showingEntryView: $showingEntryView
+                        )
+                        
+                        EntryRow(
+                            day: "MON",
+                            date: "10",
+                            title: "Started reading a new book",
+                            preview: "Picked up 'The Midnight Library' from the bookstore. Already hooked by the first chapter...",
+                            time: "9:30 PM CDT",
+                            showingEntryView: $showingEntryView
+                        )
                     }
-                    .buttonStyle(PlainButtonStyle())
+                }
+                
+                // February 2025 Section
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("February 2025")
+                        .font(.title2)
+                        .fontWeight(.medium)
+                        .padding(.horizontal)
+                        .padding(.top, 32)
+                        .padding(.bottom, 16)
+                    
+                    VStack(spacing: 0) {
+                        EntryRow(
+                            day: "SUN",
+                            date: "23",
+                            title: "Family dinner at Mom's house",
+                            preview: "Great evening with the whole family. Mom made her famous lasagna and we spent hours...",
+                            time: "8:15 PM CST",
+                            showingEntryView: $showingEntryView
+                        )
+                        
+                        EntryRow(
+                            day: "SAT",
+                            date: "15",
+                            title: "Weekend project completed",
+                            preview: "Finally finished organizing the garage. Found so many things I forgot I had...",
+                            time: "4:20 PM CST",
+                            showingEntryView: $showingEntryView
+                        )
+                    }
                 }
                 
                 Spacer(minLength: 100)
@@ -193,6 +214,67 @@ struct ListTabView: View {
         .sheet(isPresented: $showingEntryView) {
             EntryView()
         }
+    }
+}
+
+struct EntryRow: View {
+    let day: String
+    let date: String
+    let title: String
+    let preview: String
+    let time: String
+    @Binding var showingEntryView: Bool
+    
+    var body: some View {
+        Button(action: {
+            showingEntryView = true
+        }) {
+            HStack(alignment: .top, spacing: 12) {
+                VStack(spacing: 2) {
+                    Text(day)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    Text(date)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                }
+                .frame(width: 40)
+                
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(title)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                        .multilineTextAlignment(.leading)
+                    
+                    Text(preview)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                    
+                    Text(time)
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                        .padding(.top, 2)
+                }
+                
+                Spacer()
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 12)
+            .background(.white)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PlainButtonStyle())
+        .overlay(
+            Rectangle()
+                .fill(.gray.opacity(0.2))
+                .frame(height: 0.5)
+                .padding(.leading, 64),
+            alignment: .bottom
+        )
     }
 }
 

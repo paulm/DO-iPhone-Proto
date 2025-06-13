@@ -6,7 +6,7 @@ struct JournalsView: View {
     @State private var showingJournalSelector = false
     @State private var showingSettings = false
     @State private var journalViewModel = JournalSelectionViewModel()
-    @State private var experimentsManager = ExperimentsManager.shared
+    private var experimentsManager = ExperimentsManager.shared
     
     var body: some View {
         Group {
@@ -20,6 +20,8 @@ struct JournalsView: View {
                 )
             case .appleSettings:
                 JournalsTabSettingsStyleView()
+            case .variant2:
+                JournalsTabVariant2View()
             default:
                 JournalsViewOriginal(
                     selectedTab: $selectedTab,

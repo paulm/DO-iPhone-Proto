@@ -3,7 +3,7 @@ import SwiftUI
 /// More tab view with Quick Start, On This Day, and Daily Prompt
 struct MoreView: View {
     @State private var showingSettings = false
-    @State private var experimentsManager = ExperimentsManager.shared
+    private var experimentsManager = ExperimentsManager.shared
     
     var body: some View {
         Group {

@@ -4,7 +4,7 @@ import SwiftUI
 struct PromptsView: View {
     @State private var selectedTab = 0
     @State private var showingSettings = false
-    @State private var experimentsManager = ExperimentsManager.shared
+    private var experimentsManager = ExperimentsManager.shared
     
     var body: some View {
         Group {

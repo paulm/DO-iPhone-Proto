@@ -71,7 +71,7 @@ class ExperimentsManager {
         case .todayTab:
             return [.original, .appleSettings] // Settings-style variant
         case .journalsTab:
-            return [.original, .appleSettings] // Settings-style variant
+            return [.original, .appleSettings, .variant2] // Settings-style variant + Variant 2
         case .journalPicker, .entryView:
             return [.original] // Only original for now, will expand later
         }
@@ -81,7 +81,7 @@ class ExperimentsManager {
 // MARK: - Experiments Settings View
 
 struct ExperimentsView: View {
-    @State private var experimentsManager = ExperimentsManager.shared
+    private var experimentsManager = ExperimentsManager.shared
     
     var body: some View {
         NavigationStack {

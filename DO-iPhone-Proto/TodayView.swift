@@ -7,7 +7,7 @@ struct TodayView: View {
     @State private var showingDailySurvey = false
     @State private var showingMoments = false
     @State private var showingTrackers = false
-    @State private var experimentsManager = ExperimentsManager.shared
+    private var experimentsManager = ExperimentsManager.shared
     @State private var selectedDate = Date()
     @State private var surveyCompleted = false
     

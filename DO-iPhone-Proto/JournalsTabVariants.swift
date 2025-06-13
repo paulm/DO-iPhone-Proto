@@ -487,6 +487,396 @@ struct SearchPlaceholder: View {
     }
 }
 
+// MARK: - Journals Tab Variant 2
+
+struct JournalsTabVariant2View: View {
+    @State private var journalViewModel = JournalSelectionViewModel()
+    @State private var showingSettings = false
+    @State private var showingAllJournals = false
+    @State private var showingEntryView = false
+    @State private var selectedViewMode: JournalViewMode = .timeline
+    @State private var searchText = ""
+    
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 24) {
+                    searchSection
+                    recentJournalsSection
+                    recentEntriesSection
+                    viewSelectorSection
+                    statsSection
+                    
+                    Spacer(minLength: 40)
+                }
+            }
+            .navigationTitle("Journals")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    profileButton
+                }
+            }
+        }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
+        }
+        .sheet(isPresented: $showingAllJournals) {
+            JournalSelectorView(viewModel: journalViewModel)
+        }
+        .sheet(isPresented: $showingEntryView) {
+            EntryView()
+        }
+    }
+    
+    private var searchSection: some View {
+        HStack {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(.secondary)
+            
+            TextField("Search journals and entries...", text: $searchText)
+                .textFieldStyle(.plain)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(.gray.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
+        .padding(.horizontal)
+        .padding(.top, 20)
+    }
+    
+    private var recentJournalsSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("Recent Journals")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .padding(.horizontal)
+                
+                Spacer()
+                
+                Button("View All") {
+                    showingAllJournals = true
+                }
+                .font(.subheadline)
+                .foregroundStyle(Color(hex: "44C0FF"))
+                .padding(.horizontal)
+            }
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(sampleRecentJournals(), id: \.id) { journal in
+                        RecentJournalCard(journal: journal) {
+                            // TODO: Navigate to journal timeline
+                        }
+                    }
+                }
+                .padding(.horizontal)
+            }
+        }
+    }
+    
+    private var recentEntriesSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("Recent Entries")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .padding(.horizontal)
+                
+                Spacer()
+                
+                Button("View All") {
+                    // TODO: View all entries action
+                }
+                .font(.subheadline)
+                .foregroundStyle(Color(hex: "44C0FF"))
+                .padding(.horizontal)
+            }
+            
+            VStack(spacing: 0) {
+                let entries = sampleRecentEntries()
+                ForEach(Array(entries.prefix(3).enumerated()), id: \.offset) { index, entry in
+                    RecentEntryCard(entry: entry) {
+                        showingEntryView = true
+                    }
+                    
+                    if index < 2 && index < entries.count - 1 {
+                        Divider()
+                            .padding(.leading, 60)
+                    }
+                }
+            }
+            .background(.white, in: RoundedRectangle(cornerRadius: 12))
+            .padding(.horizontal)
+        }
+    }
+    
+    private var viewSelectorSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Browse")
+                .font(.title2)
+                .fontWeight(.bold)
+                .padding(.horizontal)
+            
+            HStack(spacing: 20) {
+                ForEach(JournalViewMode.allCases, id: \.self) { mode in
+                    ViewModeButton(
+                        mode: mode,
+                        isSelected: selectedViewMode == mode,
+                        action: { selectedViewMode = mode }
+                    )
+                }
+                
+                Spacer()
+            }
+            .padding(.horizontal)
+        }
+    }
+    
+    private var statsSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Overview")
+                .font(.title2)
+                .fontWeight(.bold)
+                .padding(.horizontal)
+            
+            LazyVGrid(columns: [
+                GridItem(.flexible()),
+                GridItem(.flexible()),
+                GridItem(.flexible())
+            ], spacing: 12) {
+                StatsCard(title: "Journals", value: "5", icon: "book.fill", color: .blue)
+                StatsCard(title: "Entries", value: "234", icon: "doc.text.fill", color: .green)
+                StatsCard(title: "Days", value: "89", icon: "calendar.circle.fill", color: .orange)
+                StatsCard(title: "Media", value: "67", icon: "photo.fill", color: .purple)
+                StatsCard(title: "Words", value: "12.5K", icon: "textformat", color: .red)
+                StatsCard(title: "Streak", value: "7", icon: "flame.fill", color: .yellow)
+            }
+            .padding(.horizontal)
+        }
+    }
+    
+    private var profileButton: some View {
+        Button(action: {
+            showingSettings = true
+        }) {
+            Circle()
+                .fill(.gray.opacity(0.2))
+                .frame(width: 32, height: 32)
+                .overlay(
+                    Image(systemName: "person.fill")
+                        .font(.caption)
+                        .foregroundStyle(.gray)
+                )
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+    
+    private func sampleRecentJournals() -> [RecentJournal] {
+        return [
+            RecentJournal(id: "1", name: "Daily Journal", color: .blue, lastUsed: Date()),
+            RecentJournal(id: "2", name: "Travel 2024", color: .green, lastUsed: Date()),
+            RecentJournal(id: "3", name: "Work Notes", color: .purple, lastUsed: Date()),
+            RecentJournal(id: "4", name: "Dreams", color: .pink, lastUsed: Date())
+        ]
+    }
+    
+    private func sampleRecentEntries() -> [JournalEntry] {
+        return [
+            JournalEntry(
+                id: "1",
+                title: "Had a wonderful lunch with Emily today.",
+                preview: "It's refreshing to step away from the daily grind and catch up with old friends. We talked about...",
+                date: "WED 12",
+                time: "6:11 PM CDT"
+            ),
+            JournalEntry(
+                id: "2",
+                title: "Morning run through the park",
+                preview: "Felt energized after a good night's sleep. The weather was perfect for running and I...",
+                date: "TUE 11",
+                time: "7:45 AM CDT"
+            ),
+            JournalEntry(
+                id: "3",
+                title: "Started reading a new book",
+                preview: "Picked up 'The Midnight Library' from the bookstore. Already hooked by the first chapter...",
+                date: "MON 10",
+                time: "9:30 PM CDT"
+            )
+        ]
+    }
+}
+
+enum JournalViewMode: String, CaseIterable {
+    case timeline = "Timeline"
+    case media = "Media"
+    case calendar = "Calendar"
+    case map = "Map"
+    
+    var icon: String {
+        switch self {
+        case .timeline:
+            return "list.bullet"
+        case .media:
+            return "photo.on.rectangle.angled"
+        case .calendar:
+            return "calendar"
+        case .map:
+            return "map"
+        }
+    }
+}
+
+struct RecentJournal {
+    let id: String
+    let name: String
+    let color: Color
+    let lastUsed: Date
+}
+
+struct RecentJournalCard: View {
+    let journal: RecentJournal
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(journal.color)
+                    .frame(width: 80, height: 60)
+                    .overlay(
+                        Image(systemName: "book.fill")
+                            .font(.title2)
+                            .foregroundStyle(.white)
+                    )
+                
+                Text(journal.name)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.primary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                    .frame(width: 80)
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+struct RecentEntryCard: View {
+    let entry: JournalEntry
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                // Date indicator
+                VStack(spacing: 2) {
+                    Text(String(entry.date.suffix(2)))
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.primary)
+                    
+                    Text(String(entry.date.prefix(3)))
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(width: 36, height: 36)
+                .background(.gray.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
+                
+                // Content
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(entry.title)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    Text(entry.preview)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    Text(entry.time)
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+struct ViewModeButton: View {
+    let mode: JournalViewMode
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                Circle()
+                    .fill(isSelected ? Color(hex: "44C0FF") : .gray.opacity(0.2))
+                    .frame(width: 50, height: 50)
+                    .overlay(
+                        Image(systemName: mode.icon)
+                            .font(.title3)
+                            .foregroundStyle(isSelected ? .white : .gray)
+                    )
+                
+                Text(mode.rawValue)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundStyle(isSelected ? Color(hex: "44C0FF") : .secondary)
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+struct StatsCard: View {
+    let title: String
+    let value: String
+    let icon: String
+    let color: Color
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.title2)
+                .foregroundStyle(color)
+            
+            Text(value)
+                .font(.title3)
+                .fontWeight(.bold)
+                .foregroundStyle(.primary)
+            
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 16)
+        .background(.gray.opacity(0.05), in: RoundedRectangle(cornerRadius: 12))
+    }
+}
+
 #Preview {
     JournalsTabSettingsStyleView()
+}
+
+#Preview("Variant 2") {
+    JournalsTabVariant2View()
 }

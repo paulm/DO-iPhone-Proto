@@ -82,30 +82,35 @@ struct JournalSelectorView: View {
                     }
                 }
             }
-            .navigationTitle("Journals")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("+ Add") {
-                        // TODO: Add new journal action
+                    Button("Cancel") {
+                        dismiss()
                     }
                     .foregroundStyle(.primary)
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    HStack(spacing: 16) {
+                    HStack(spacing: 24) {
+                        Button("+ Add") {
+                            // TODO: Add new journal action
+                        }
+                        .font(.subheadline)
+                        .foregroundStyle(.primary)
+                        
                         Button("Edit") {
                             // TODO: Edit journals action
                         }
+                        .font(.subheadline)
                         .foregroundStyle(.primary)
-                        
-                        Button {
-                            dismiss()
-                        } label: {
-                            Image(systemName: "xmark")
-                                .foregroundStyle(.primary)
-                        }
                     }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(.gray.opacity(0.1))
+                    )
                 }
             }
         }

@@ -5,7 +5,6 @@ struct TodayView: View {
     @State private var showingSettings = false
     @State private var showingDatePicker = false
     @State private var showingDailySurvey = false
-    @State private var showingBio = false
     @State private var showingMoments = false
     @State private var showingTrackers = false
     @State private var selectedDate = Date()
@@ -160,14 +159,6 @@ struct TodayView: View {
                         )
                     }
                     
-                    // Bio Section
-                    SectionCard(title: "Bio", icon: "person.circle") {
-                        Button("Update personal information") {
-                            showingBio = true
-                        }
-                        .foregroundStyle(Color(hex: "44C0FF"))
-                    }
-                    
                     Spacer(minLength: 40)
                 }
                 .padding(.horizontal)
@@ -200,9 +191,6 @@ struct TodayView: View {
             DailySurveyView(onCompletion: {
                 surveyCompleted = true
             })
-        }
-        .sheet(isPresented: $showingBio) {
-            BioSettingsView()
         }
         .sheet(isPresented: $showingMoments) {
             MomentsView(

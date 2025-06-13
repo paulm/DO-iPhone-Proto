@@ -61,7 +61,7 @@ struct JournalsView: View {
                             .foregroundStyle(.white)
                         
                         Text("2020 – 2025")
-                            .font(.title3)
+                            .font(.caption)
                             .foregroundStyle(.white.opacity(0.8))
                     }
                     .padding(.horizontal)
@@ -117,18 +117,188 @@ struct JournalsView: View {
 
 // MARK: - Tab Content Views
 struct CoverTabView: View {
+    @State private var showingEditView = false
+    
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
-                Text("Cover View")
-                    .font(.title)
-                    .padding()
-                Text("Journal cover, description, stats, and recently edited entries would appear here.")
-                    .padding()
-                    .foregroundStyle(.secondary)
+            VStack(spacing: 24) {
+                // Description Section
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Description")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    Text("Add a description...")
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(.horizontal)
+                .padding(.top, 24)
+                
+                // Stats Section
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Stats")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal)
+                    
+                    // Stats grid
+                    LazyVGrid(columns: [
+                        GridItem(.flexible()),
+                        GridItem(.flexible())
+                    ], spacing: 12) {
+                        // Streak stat (larger, spans full width)
+                        VStack(spacing: 8) {
+                            VStack(spacing: 4) {
+                                Text("STREAK")
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(.secondary)
+                                
+                                Text("0")
+                                    .font(.system(size: 48, weight: .bold))
+                                    .foregroundStyle(.primary)
+                                
+                                Text("Days")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(.primary)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 20)
+                            .background(.gray.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
+                        }
+                        .gridCellColumns(2)
+                        
+                        // Entries stat
+                        VStack(spacing: 8) {
+                            Text("ENTRIES")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.secondary)
+                            
+                            Text("0")
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundStyle(.primary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(.gray.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
+                        
+                        // Media stat
+                        VStack(spacing: 8) {
+                            Text("MEDIA")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.secondary)
+                            
+                            Text("0")
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundStyle(.primary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(.gray.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
+                        
+                        // Days stat
+                        VStack(spacing: 8) {
+                            Text("DAYS")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.secondary)
+                            
+                            Text("0")
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundStyle(.primary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(.gray.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
+                        
+                        // On This Day stat
+                        VStack(spacing: 8) {
+                            Text("ON THIS DAY")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.secondary)
+                            
+                            Text("0")
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundStyle(.primary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(.gray.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
+                    }
+                    .padding(.horizontal)
+                }
+                
+                // Edit Button
+                Button(action: {
+                    showingEditView = true
+                }) {
+                    Text("Edit")
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 12)
+                        .background(.gray.opacity(0.1), in: RoundedRectangle(cornerRadius: 20))
+                }
+                .padding(.top, 8)
+                
+                Spacer(minLength: 40)
             }
         }
-        .background(.gray.opacity(0.1))
+        .background(.white)
+        .sheet(isPresented: $showingEditView) {
+            EditJournalPlaceholder()
+        }
+    }
+}
+
+// Placeholder for edit journal functionality
+struct EditJournalPlaceholder: View {
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 20) {
+                Image(systemName: "square.and.pencil")
+                    .font(.system(size: 60))
+                    .foregroundStyle(.gray)
+                
+                Text("Edit Journal")
+                    .font(.title2)
+                    .fontWeight(.medium)
+                
+                Text("Journal editing functionality would be implemented here")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+            }
+            .padding()
+            .navigationTitle("Edit Journal")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Save") {
+                        dismiss()
+                    }
+                    .fontWeight(.semibold)
+                }
+            }
+        }
     }
 }
 

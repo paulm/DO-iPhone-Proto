@@ -18,6 +18,12 @@ struct SettingsView: View {
                         IntegrationsView()
                     }
                 }
+                
+                Section {
+                    NavigationLink("Experiments") {
+                        ExperimentsView()
+                    }
+                }
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.large)

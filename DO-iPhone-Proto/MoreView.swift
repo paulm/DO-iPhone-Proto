@@ -3,6 +3,25 @@ import SwiftUI
 /// More tab view with Quick Start, On This Day, and Daily Prompt
 struct MoreView: View {
     @State private var showingSettings = false
+    @State private var experimentsManager = ExperimentsManager.shared
+    
+    var body: some View {
+        Group {
+            switch experimentsManager.variant(for: .moreTab) {
+            case .original:
+                MoreTabOriginalView(showingSettings: $showingSettings)
+            case .variant1:
+                MoreTabSettingsStyleView()
+            default:
+                MoreTabOriginalView(showingSettings: $showingSettings)
+            }
+        }
+    }
+}
+
+/// Original More tab layout
+struct MoreTabOriginalView: View {
+    @Binding var showingSettings: Bool
     
     var body: some View {
         NavigationStack {
@@ -149,9 +168,9 @@ struct MoreView: View {
             }
             .navigationBarHidden(true)
         }
-        .sheet(isPresented: $showingSettings) {
-            SettingsView()
-        }
+            .sheet(isPresented: $showingSettings) {
+                SettingsView()
+            }
     }
 }
 

@@ -4,6 +4,26 @@ import SwiftUI
 struct PromptsView: View {
     @State private var selectedTab = 0
     @State private var showingSettings = false
+    @State private var experimentsManager = ExperimentsManager.shared
+    
+    var body: some View {
+        Group {
+            switch experimentsManager.variant(for: .promptsTab) {
+            case .original:
+                PromptsTabOriginalView(selectedTab: $selectedTab, showingSettings: $showingSettings)
+            case .variant1:
+                PromptsTabSettingsStyleView()
+            default:
+                PromptsTabOriginalView(selectedTab: $selectedTab, showingSettings: $showingSettings)
+            }
+        }
+    }
+}
+
+/// Original Prompts tab layout
+struct PromptsTabOriginalView: View {
+    @Binding var selectedTab: Int
+    @Binding var showingSettings: Bool
     
     var body: some View {
         VStack(spacing: 0) {
@@ -115,9 +135,9 @@ struct PromptsView: View {
                 .padding(.top, 24)
             }
         }
-        .sheet(isPresented: $showingSettings) {
-            SettingsView()
-        }
+            .sheet(isPresented: $showingSettings) {
+                SettingsView()
+            }
     }
 }
 

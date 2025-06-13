@@ -6,6 +6,38 @@ struct JournalsView: View {
     @State private var showingJournalSelector = false
     @State private var showingSettings = false
     @State private var journalViewModel = JournalSelectionViewModel()
+    @State private var experimentsManager = ExperimentsManager.shared
+    
+    var body: some View {
+        Group {
+            switch experimentsManager.variant(for: .journalsTab) {
+            case .original:
+                JournalsViewOriginal(
+                    selectedTab: $selectedTab,
+                    showingJournalSelector: $showingJournalSelector,
+                    showingSettings: $showingSettings,
+                    journalViewModel: journalViewModel
+                )
+            case .appleSettings:
+                JournalsTabSettingsStyleView()
+            default:
+                JournalsViewOriginal(
+                    selectedTab: $selectedTab,
+                    showingJournalSelector: $showingJournalSelector,
+                    showingSettings: $showingSettings,
+                    journalViewModel: journalViewModel
+                )
+            }
+        }
+    }
+}
+
+/// Original Journals tab layout
+struct JournalsViewOriginal: View {
+    @Binding var selectedTab: Int
+    @Binding var showingJournalSelector: Bool
+    @Binding var showingSettings: Bool
+    let journalViewModel: JournalSelectionViewModel
     
     var body: some View {
         GeometryReader { geometry in

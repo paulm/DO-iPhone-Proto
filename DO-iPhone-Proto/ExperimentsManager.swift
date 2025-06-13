@@ -15,7 +15,7 @@ enum AppSection: String, CaseIterable, Identifiable {
 
 enum ExperimentVariant: String, CaseIterable, Identifiable {
     case original = "Original"
-    case variant1 = "Variant 1"
+    case appleSettings = "Apple Settings"
     case variant2 = "Variant 2"
     case variant3 = "Variant 3"
     
@@ -43,16 +43,36 @@ class ExperimentsManager {
         variants[section] = variant
     }
     
+    // Global variant switching
+    func setGlobalVariant(_ variant: ExperimentVariant) {
+        for section in AppSection.allCases {
+            let availableVariants = availableVariants(for: section)
+            if availableVariants.contains(variant) {
+                variants[section] = variant
+            }
+        }
+    }
+    
+    func getGlobalVariant() -> ExperimentVariant? {
+        // Check if all sections that have multiple variants are set to the same variant
+        let sectionsWithVariants = AppSection.allCases.filter { availableVariants(for: $0).count > 1 }
+        let uniqueVariants = Set(sectionsWithVariants.map { variant(for: $0) })
+        
+        return uniqueVariants.count == 1 ? uniqueVariants.first : nil
+    }
+    
     // Get available variants for a section (can be customized per section)
     func availableVariants(for section: AppSection) -> [ExperimentVariant] {
         switch section {
         case .moreTab:
-            return [.original, .variant1] // Settings-style variant
+            return [.original, .appleSettings] // Settings-style variant
         case .promptsTab:
-            return [.original, .variant1] // Settings-style variant
+            return [.original, .appleSettings] // Settings-style variant
         case .todayTab:
-            return [.original, .variant1] // Settings-style variant
-        case .journalsTab, .journalPicker, .entryView:
+            return [.original, .appleSettings] // Settings-style variant
+        case .journalsTab:
+            return [.original, .appleSettings] // Settings-style variant
+        case .journalPicker, .entryView:
             return [.original] // Only original for now, will expand later
         }
     }
@@ -74,28 +94,60 @@ struct ExperimentsView: View {
                         .listRowSeparator(.hidden)
                 }
                 
-                ForEach(AppSection.allCases) { section in
-                    let availableVariants = experimentsManager.availableVariants(for: section)
+                // Global Controls Section
+                Section("Global Controls") {
+                    Text("Apply the same variant to all sections at once")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
                     
-                    if availableVariants.count > 1 {
-                        Section(section.rawValue) {
-                            ForEach(availableVariants) { variant in
-                                HStack {
-                                    Text(variant.rawValue)
-                                        .font(.body)
-                                    
-                                    Spacer()
-                                    
-                                    if experimentsManager.variant(for: section) == variant {
-                                        Image(systemName: "checkmark")
-                                            .foregroundStyle(Color(hex: "44C0FF"))
-                                            .font(.subheadline)
-                                            .fontWeight(.semibold)
+                    ForEach([ExperimentVariant.original, ExperimentVariant.appleSettings], id: \.self) { variant in
+                        HStack {
+                            Text(variant.rawValue)
+                                .font(.body)
+                            
+                            Spacer()
+                            
+                            if experimentsManager.getGlobalVariant() == variant {
+                                Image(systemName: "checkmark")
+                                    .foregroundStyle(Color(hex: "44C0FF"))
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                            }
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            experimentsManager.setGlobalVariant(variant)
+                        }
+                    }
+                }
+                
+                // Individual Section Controls
+                Section("Individual Section Controls") {
+                    ForEach(AppSection.allCases) { section in
+                        let availableVariants = experimentsManager.availableVariants(for: section)
+                        
+                        if availableVariants.count > 1 {
+                            DisclosureGroup(section.rawValue) {
+                                ForEach(availableVariants) { variant in
+                                    HStack {
+                                        Text(variant.rawValue)
+                                            .font(.body)
+                                        
+                                        Spacer()
+                                        
+                                        if experimentsManager.variant(for: section) == variant {
+                                            Image(systemName: "checkmark")
+                                                .foregroundStyle(Color(hex: "44C0FF"))
+                                                .font(.subheadline)
+                                                .fontWeight(.semibold)
+                                        }
                                     }
-                                }
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    experimentsManager.setVariant(variant, for: section)
+                                    .contentShape(Rectangle())
+                                    .onTapGesture {
+                                        experimentsManager.setVariant(variant, for: section)
+                                    }
                                 }
                             }
                         }

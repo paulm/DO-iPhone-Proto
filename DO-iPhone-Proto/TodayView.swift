@@ -70,7 +70,7 @@ struct TodayView: View {
                     selectedEvents: $selectedEvents,
                     selectedPhotos: $selectedPhotos
                 )
-            case .variant1:
+            case .appleSettings:
                 TodayTabSettingsStyleView()
             default:
                 TodayViewOriginal(

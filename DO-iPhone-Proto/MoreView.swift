@@ -10,7 +10,7 @@ struct MoreView: View {
             switch experimentsManager.variant(for: .moreTab) {
             case .original:
                 MoreTabOriginalView(showingSettings: $showingSettings)
-            case .variant1:
+            case .appleSettings:
                 MoreTabSettingsStyleView()
             default:
                 MoreTabOriginalView(showingSettings: $showingSettings)

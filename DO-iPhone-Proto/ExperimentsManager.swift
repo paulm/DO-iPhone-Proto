@@ -50,7 +50,9 @@ class ExperimentsManager {
             return [.original, .variant1] // Settings-style variant
         case .promptsTab:
             return [.original, .variant1] // Settings-style variant
-        case .todayTab, .journalsTab, .journalPicker, .entryView:
+        case .todayTab:
+            return [.original, .variant1] // Settings-style variant
+        case .journalsTab, .journalPicker, .entryView:
             return [.original] // Only original for now, will expand later
         }
     }

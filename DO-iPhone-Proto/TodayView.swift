@@ -7,6 +7,7 @@ struct TodayView: View {
     @State private var showingDailySurvey = false
     @State private var showingMoments = false
     @State private var showingTrackers = false
+    @State private var experimentsManager = ExperimentsManager.shared
     @State private var selectedDate = Date()
     @State private var surveyCompleted = false
     
@@ -23,6 +24,144 @@ struct TodayView: View {
     @State private var selectedLocations: Set<String> = []
     @State private var selectedEvents: Set<String> = []
     @State private var selectedPhotos: Set<String> = []
+    
+    private var dateRange: [Date] {
+        let calendar = Calendar.current
+        var dates: [Date] = []
+        
+        // Past 4 days (from -4 to -1)
+        for i in stride(from: -4, through: -1, by: 1) {
+            if let date = calendar.date(byAdding: .day, value: i, to: selectedDate) {
+                dates.append(date)
+            }
+        }
+        
+        // Current day
+        dates.append(selectedDate)
+        
+        // Tomorrow
+        if let tomorrow = calendar.date(byAdding: .day, value: 1, to: selectedDate) {
+            dates.append(tomorrow)
+        }
+        
+        return dates
+    }
+    
+    var body: some View {
+        Group {
+            switch experimentsManager.variant(for: .todayTab) {
+            case .original:
+                TodayViewOriginal(
+                    showingSettings: $showingSettings,
+                    showingDatePicker: $showingDatePicker,
+                    showingDailySurvey: $showingDailySurvey,
+                    showingMoments: $showingMoments,
+                    showingTrackers: $showingTrackers,
+                    selectedDate: $selectedDate,
+                    surveyCompleted: $surveyCompleted,
+                    moodRating: $moodRating,
+                    energyRating: $energyRating,
+                    stressRating: $stressRating,
+                    foodInput: $foodInput,
+                    prioritiesInput: $prioritiesInput,
+                    mediaInput: $mediaInput,
+                    peopleInput: $peopleInput,
+                    selectedLocations: $selectedLocations,
+                    selectedEvents: $selectedEvents,
+                    selectedPhotos: $selectedPhotos
+                )
+            case .variant1:
+                TodayTabSettingsStyleView()
+            default:
+                TodayViewOriginal(
+                    showingSettings: $showingSettings,
+                    showingDatePicker: $showingDatePicker,
+                    showingDailySurvey: $showingDailySurvey,
+                    showingMoments: $showingMoments,
+                    showingTrackers: $showingTrackers,
+                    selectedDate: $selectedDate,
+                    surveyCompleted: $surveyCompleted,
+                    moodRating: $moodRating,
+                    energyRating: $energyRating,
+                    stressRating: $stressRating,
+                    foodInput: $foodInput,
+                    prioritiesInput: $prioritiesInput,
+                    mediaInput: $mediaInput,
+                    peopleInput: $peopleInput,
+                    selectedLocations: $selectedLocations,
+                    selectedEvents: $selectedEvents,
+                    selectedPhotos: $selectedPhotos
+                )
+            }
+        }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
+        }
+        .sheet(isPresented: $showingDatePicker) {
+            NavigationStack {
+                DatePicker(
+                    "Select Date",
+                    selection: $selectedDate,
+                    displayedComponents: .date
+                )
+                .datePickerStyle(.graphical)
+                .padding()
+                .navigationTitle("Select Date")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("Done") {
+                            showingDatePicker = false
+                        }
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $showingDailySurvey) {
+            DailySurveyView(onCompletion: {
+                surveyCompleted = true
+            })
+        }
+        .sheet(isPresented: $showingMoments) {
+            MomentsView(
+                selectedLocations: $selectedLocations,
+                selectedEvents: $selectedEvents,
+                selectedPhotos: $selectedPhotos
+            )
+        }
+        .sheet(isPresented: $showingTrackers) {
+            TrackerView(
+                moodRating: $moodRating,
+                energyRating: $energyRating,
+                stressRating: $stressRating,
+                foodInput: $foodInput,
+                prioritiesInput: $prioritiesInput,
+                mediaInput: $mediaInput,
+                peopleInput: $peopleInput
+            )
+        }
+    }
+}
+
+/// Original Today tab layout
+struct TodayViewOriginal: View {
+    @Binding var showingSettings: Bool
+    @Binding var showingDatePicker: Bool
+    @Binding var showingDailySurvey: Bool
+    @Binding var showingMoments: Bool
+    @Binding var showingTrackers: Bool
+    @Binding var selectedDate: Date
+    @Binding var surveyCompleted: Bool
+    @Binding var moodRating: Int
+    @Binding var energyRating: Int
+    @Binding var stressRating: Int
+    @Binding var foodInput: String
+    @Binding var prioritiesInput: String
+    @Binding var mediaInput: String
+    @Binding var peopleInput: String
+    @Binding var selectedLocations: Set<String>
+    @Binding var selectedEvents: Set<String>
+    @Binding var selectedPhotos: Set<String>
     
     private var dateRange: [Date] {
         let calendar = Calendar.current
@@ -163,52 +302,6 @@ struct TodayView: View {
                 }
                 .padding(.horizontal)
             }
-        }
-        .sheet(isPresented: $showingSettings) {
-            SettingsView()
-        }
-        .sheet(isPresented: $showingDatePicker) {
-            NavigationStack {
-                DatePicker(
-                    "Select Date",
-                    selection: $selectedDate,
-                    displayedComponents: .date
-                )
-                .datePickerStyle(.graphical)
-                .padding()
-                .navigationTitle("Select Date")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button("Done") {
-                            showingDatePicker = false
-                        }
-                    }
-                }
-            }
-        }
-        .sheet(isPresented: $showingDailySurvey) {
-            DailySurveyView(onCompletion: {
-                surveyCompleted = true
-            })
-        }
-        .sheet(isPresented: $showingMoments) {
-            MomentsView(
-                selectedLocations: $selectedLocations,
-                selectedEvents: $selectedEvents,
-                selectedPhotos: $selectedPhotos
-            )
-        }
-        .sheet(isPresented: $showingTrackers) {
-            TrackerView(
-                moodRating: $moodRating,
-                energyRating: $energyRating,
-                stressRating: $stressRating,
-                foodInput: $foodInput,
-                prioritiesInput: $prioritiesInput,
-                mediaInput: $mediaInput,
-                peopleInput: $peopleInput
-            )
         }
     }
 }

@@ -10,24 +10,78 @@ struct JournalSelectorView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var viewMode: ViewMode = .compact
     let viewModel: JournalSelectionViewModel
+    private var experimentsManager = ExperimentsManager.shared
+    
+    init(viewModel: JournalSelectionViewModel) {
+        self.viewModel = viewModel
+    }
+    
+    var body: some View {
+        // All variants now use the same compact layout
+        JournalSelectorOriginalView(viewMode: $viewMode, viewModel: viewModel)
+    }
+}
+
+/// Original Journal Selector layout
+struct JournalSelectorOriginalView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var viewMode: ViewMode
+    let viewModel: JournalSelectionViewModel
+    
+    init(viewMode: Binding<ViewMode>, viewModel: JournalSelectionViewModel) {
+        self._viewMode = viewMode
+        self.viewModel = viewModel
+    }
     
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // View mode segmented control
-                VStack(spacing: 12) {
+                // Combined segmented control and buttons row
+                HStack(spacing: 12) {
+                    // View mode segmented control
                     Picker("View Mode", selection: $viewMode) {
                         Image(systemName: "line.3.horizontal.decrease").tag(ViewMode.compact)
                         Image(systemName: "list.bullet").tag(ViewMode.list)
                         Image(systemName: "square.grid.3x3").tag(ViewMode.grid)
                     }
                     .pickerStyle(.segmented)
-                    .padding(.horizontal)
+                    .frame(maxWidth: .infinity)
                     
-                    Divider()
+                    // Compact Add/Edit buttons
+                    HStack(spacing: 8) {
+                        Button("+ Add") {
+                            // TODO: Add new journal action
+                        }
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(.gray.opacity(0.1))
+                        )
+                        
+                        Button("Edit") {
+                            // TODO: Edit journals action
+                        }
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(.gray.opacity(0.1))
+                        )
+                    }
                 }
+                .padding(.horizontal)
                 .padding(.top, 12)
-                .background(.white)
+                .padding(.bottom, 8)
+                
+                Divider()
+                    .padding(.bottom, 8)
                 
                 // Journal content based on view mode
                 ScrollView {
@@ -46,7 +100,7 @@ struct JournalSelectorView: View {
                             }
                         }
                         .padding(.horizontal)
-                        .padding(.top, 16)
+                        .padding(.top, 8)
                         
                     case .list:
                         LazyVStack(spacing: 8) {
@@ -62,7 +116,7 @@ struct JournalSelectorView: View {
                             }
                         }
                         .padding(.horizontal)
-                        .padding(.top, 20)
+                        .padding(.top, 12)
                         
                     case .grid:
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 3), spacing: 20) {
@@ -78,7 +132,7 @@ struct JournalSelectorView: View {
                             }
                         }
                         .padding(.horizontal)
-                        .padding(.top, 20)
+                        .padding(.top, 12)
                     }
                 }
             }
@@ -89,28 +143,6 @@ struct JournalSelectorView: View {
                         dismiss()
                     }
                     .foregroundStyle(.primary)
-                }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    HStack(spacing: 24) {
-                        Button("+ Add") {
-                            // TODO: Add new journal action
-                        }
-                        .font(.subheadline)
-                        .foregroundStyle(.primary)
-                        
-                        Button("Edit") {
-                            // TODO: Edit journals action
-                        }
-                        .font(.subheadline)
-                        .foregroundStyle(.primary)
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(.gray.opacity(0.1))
-                    )
                 }
             }
         }

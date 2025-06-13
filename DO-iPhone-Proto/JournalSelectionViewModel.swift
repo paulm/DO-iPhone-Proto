@@ -1,11 +1,15 @@
 import SwiftUI
 
 // MARK: - Journal Data Model
-struct Journal: Identifiable, Equatable {
+struct Journal: Identifiable, Equatable, Hashable {
     let id = UUID()
     let name: String
     let color: Color
     let entryCount: Int?
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
     
     static let allJournals = [
         Journal(name: "All Entries", color: .gray, entryCount: 238),

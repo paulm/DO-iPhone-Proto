@@ -9,27 +9,20 @@ struct JournalsView: View {
     private var experimentsManager = ExperimentsManager.shared
     
     var body: some View {
-        Group {
-            switch experimentsManager.variant(for: .journalsTab) {
-            case .original:
-                JournalsViewOriginal(
-                    selectedTab: $selectedTab,
-                    showingJournalSelector: $showingJournalSelector,
-                    showingSettings: $showingSettings,
-                    journalViewModel: journalViewModel
-                )
-            case .appleSettings:
-                JournalsTabSettingsStyleView()
-            case .variant2:
-                JournalsTabVariant2View()
-            default:
-                JournalsViewOriginal(
-                    selectedTab: $selectedTab,
-                    showingJournalSelector: $showingJournalSelector,
-                    showingSettings: $showingSettings,
-                    journalViewModel: journalViewModel
-                )
-            }
+        switch experimentsManager.variant(for: .journalsTab) {
+        case .original:
+            JournalsViewOriginal(
+                selectedTab: $selectedTab,
+                showingJournalSelector: $showingJournalSelector,
+                showingSettings: $showingSettings,
+                journalViewModel: journalViewModel
+            )
+        case .appleSettings:
+            JournalsTabSettingsStyleView()
+        case .variant2:
+            JournalsTabVariant2View()
+        case .paged:
+            JournalsTabPagedView()
         }
     }
 }

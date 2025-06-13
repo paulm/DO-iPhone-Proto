@@ -877,6 +877,224 @@ struct StatsCard: View {
     JournalsTabSettingsStyleView()
 }
 
+// MARK: - Journals Tab Paged Variant
+
+struct JournalsTabPagedView: View {
+    @State private var journalViewModel = JournalSelectionViewModel()
+    @State private var showingSettings = false
+    @State private var viewMode: ViewMode = .list
+    @State private var selectedJournal: Journal?
+    
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                // Combined segmented control and buttons row
+                HStack(spacing: 12) {
+                    // View mode segmented control
+                    Picker("View Mode", selection: $viewMode) {
+                        Image(systemName: "line.3.horizontal.decrease").tag(ViewMode.compact)
+                        Image(systemName: "list.bullet").tag(ViewMode.list)
+                        Image(systemName: "square.grid.3x3").tag(ViewMode.grid)
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(maxWidth: .infinity)
+                    
+                    // Compact Add/Edit buttons
+                    HStack(spacing: 8) {
+                        Button("+ Add") {
+                            // TODO: Add new journal action
+                        }
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(.gray.opacity(0.1))
+                        )
+                        
+                        Button("Edit") {
+                            // TODO: Edit journals action
+                        }
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(.gray.opacity(0.1))
+                        )
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.top, 12)
+                .padding(.bottom, 8)
+                
+                Divider()
+                    .padding(.bottom, 8)
+                
+                // Journal content based on view mode
+                ScrollView {
+                    switch viewMode {
+                    case .compact:
+                        LazyVStack(spacing: 4) {
+                            ForEach(Journal.allJournals) { journal in
+                                CompactJournalRow(
+                                    journal: journal,
+                                    isSelected: journal.id == journalViewModel.selectedJournal.id,
+                                    onSelect: {
+                                        selectedJournal = journal
+                                        journalViewModel.selectJournal(journal)
+                                    }
+                                )
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.top, 8)
+                        
+                    case .list:
+                        LazyVStack(spacing: 8) {
+                            ForEach(Journal.allJournals) { journal in
+                                JournalRow(
+                                    journal: journal,
+                                    isSelected: journal.id == journalViewModel.selectedJournal.id,
+                                    onSelect: {
+                                        selectedJournal = journal
+                                        journalViewModel.selectJournal(journal)
+                                    }
+                                )
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.top, 12)
+                        
+                    case .grid:
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 3), spacing: 20) {
+                            ForEach(Journal.allJournals) { journal in
+                                JournalBookView(
+                                    journal: journal,
+                                    isSelected: journal.id == journalViewModel.selectedJournal.id,
+                                    onSelect: {
+                                        selectedJournal = journal
+                                        journalViewModel.selectJournal(journal)
+                                    }
+                                )
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.top, 12)
+                    }
+                }
+            }
+            .navigationTitle("Journals")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: {
+                        showingSettings = true
+                    }) {
+                        Circle()
+                            .fill(.gray.opacity(0.2))
+                            .frame(width: 32, height: 32)
+                            .overlay(
+                                Image(systemName: "person.fill")
+                                    .font(.caption)
+                                    .foregroundStyle(.gray)
+                            )
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+            }
+            .navigationDestination(item: $selectedJournal) { journal in
+                JournalDetailPagedView(journal: journal, journalViewModel: journalViewModel)
+            }
+        }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
+        }
+    }
+}
+
+struct JournalDetailPagedView: View {
+    let journal: Journal
+    let journalViewModel: JournalSelectionViewModel
+    @State private var selectedTab = 1 // Default to List tab
+    
+    var body: some View {
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                // Header section with journal gradient background
+                VStack(alignment: .leading, spacing: 12) {
+                    // Journal title and date range
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(journal.name)
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundStyle(.white)
+                        
+                        Text("2020 – 2025")
+                            .font(.caption)
+                            .foregroundStyle(.white.opacity(0.8))
+                    }
+                    .padding(.horizontal)
+                    .padding(.bottom, 30)
+                    .padding(.top, 20)
+                }
+                .background(
+                    LinearGradient(
+                        colors: [journal.color, journal.color.opacity(0.8)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+            
+                // Segmented control navigation
+                VStack(spacing: 0) {
+                    Picker("View", selection: $selectedTab) {
+                        Text("Cover").tag(0)
+                        Text("List").tag(1)
+                        Text("Calendar").tag(2)
+                        Text("Media").tag(3)
+                        Text("Map").tag(4)
+                    }
+                    .pickerStyle(.segmented)
+                    .padding(.horizontal)
+                    .padding(.vertical, 12)
+                    .background(.white)
+                }
+                
+                // Content based on selected tab
+                Group {
+                    switch selectedTab {
+                    case 0:
+                        CoverTabView()
+                    case 1:
+                        ListTabView()
+                    case 2:
+                        CalendarTabView()
+                    case 3:
+                        MediaTabView()
+                    case 4:
+                        MapTabView()
+                    default:
+                        ListTabView()
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .navigationTitle("")
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(false)
+    }
+}
+
 #Preview("Variant 2") {
     JournalsTabVariant2View()
+}
+
+#Preview("Paged") {
+    JournalsTabPagedView()
 }

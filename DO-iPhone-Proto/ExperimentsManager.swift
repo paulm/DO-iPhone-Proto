@@ -17,7 +17,7 @@ enum ExperimentVariant: String, CaseIterable, Identifiable {
     case original = "Original"
     case appleSettings = "Apple Settings"
     case variant2 = "Variant 2"
-    case variant3 = "Variant 3"
+    case paged = "Paged"
     
     var id: String { rawValue }
 }
@@ -71,8 +71,10 @@ class ExperimentsManager {
         case .todayTab:
             return [.original, .appleSettings] // Settings-style variant
         case .journalsTab:
-            return [.original, .appleSettings, .variant2] // Settings-style variant + Variant 2
-        case .journalPicker, .entryView:
+            return [.original, .appleSettings, .variant2, .paged] // All variants
+        case .journalPicker:
+            return [.original] // All use compact layout now
+        case .entryView:
             return [.original] // Only original for now, will expand later
         }
     }

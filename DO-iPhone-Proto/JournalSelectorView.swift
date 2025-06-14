@@ -185,6 +185,19 @@ struct CompactJournalRow: View {
             )
         }
         .buttonStyle(PlainButtonStyle())
+        .contextMenu {
+            Button(action: {
+                // TODO: Edit journal action
+            }) {
+                Label("Edit Journal", systemImage: "pencil")
+            }
+            
+            Button(action: {
+                // TODO: New entry action
+            }) {
+                Label("New Entry", systemImage: "plus")
+            }
+        }
     }
 }
 
@@ -225,6 +238,19 @@ struct JournalRow: View {
             )
         }
         .buttonStyle(PlainButtonStyle())
+        .contextMenu {
+            Button(action: {
+                // TODO: Edit journal action
+            }) {
+                Label("Edit Journal", systemImage: "pencil")
+            }
+            
+            Button(action: {
+                // TODO: New entry action
+            }) {
+                Label("New Entry", systemImage: "plus")
+            }
+        }
     }
 }
 
@@ -285,6 +311,19 @@ struct JournalBookView: View {
             }
         }
         .buttonStyle(PlainButtonStyle())
+        .contextMenu {
+            Button(action: {
+                // TODO: Edit journal action
+            }) {
+                Label("Edit Journal", systemImage: "pencil")
+            }
+            
+            Button(action: {
+                // TODO: New entry action
+            }) {
+                Label("New Entry", systemImage: "plus")
+            }
+        }
     }
 }
 

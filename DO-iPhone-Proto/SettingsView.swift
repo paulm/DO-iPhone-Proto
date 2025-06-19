@@ -20,6 +20,12 @@ struct SettingsView: View {
                 }
                 
                 Section {
+                    NavigationLink("Labs") {
+                        LabsSettingsView()
+                    }
+                }
+                
+                Section {
                     NavigationLink("Experiments") {
                         ExperimentsView()
                     }

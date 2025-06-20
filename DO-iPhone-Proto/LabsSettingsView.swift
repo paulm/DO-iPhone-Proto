@@ -41,7 +41,7 @@ struct LabsSettingsView: View {
                 Section {
                     VStack(spacing: 16) {
                         RoundedRectangle(cornerRadius: 16)
-                            .fill(.purple)
+                            .fill(Color(hex: "44C0FF"))
                             .frame(width: 80, height: 80)
                             .overlay(
                                 Image(systemName: "flask.fill")
@@ -82,6 +82,7 @@ struct LabsSettingsView: View {
                         
                         Toggle("", isOn: $dayOneLabsEnabled)
                             .labelsHidden()
+                            .tint(Color(hex: "44C0FF"))
                             .onChange(of: dayOneLabsEnabled) { oldValue, newValue in
                                 if newValue && !oldValue && !isEnablingFromConfirmation {
                                     showingLabsConfirmation = true
@@ -109,6 +110,7 @@ struct LabsSettingsView: View {
                         
                         Toggle("", isOn: $promptPacks)
                             .labelsHidden()
+                            .tint(Color(hex: "44C0FF"))
                             .disabled(!dayOneLabsEnabled)
                     }
                 } header: {
@@ -137,6 +139,7 @@ struct LabsSettingsView: View {
                         
                         Toggle("", isOn: $aiFeatures)
                             .labelsHidden()
+                            .tint(Color(hex: "44C0FF"))
                             .disabled(!dayOneLabsEnabled)
                             .onChange(of: aiFeatures) { oldValue, newValue in
                                 if !newValue {
@@ -173,6 +176,7 @@ struct LabsSettingsView: View {
                         
                         Toggle("", isOn: $aiEntrySummary)
                             .labelsHidden()
+                            .tint(Color(hex: "44C0FF"))
                             .disabled(!dayOneLabsEnabled || !aiFeatures)
                     }
                     
@@ -185,6 +189,7 @@ struct LabsSettingsView: View {
                         
                         Toggle("", isOn: $aiImageGeneration)
                             .labelsHidden()
+                            .tint(Color(hex: "44C0FF"))
                             .disabled(!dayOneLabsEnabled || !aiFeatures)
                     }
                     
@@ -197,6 +202,7 @@ struct LabsSettingsView: View {
                         
                         Toggle("", isOn: $aiMultiEntrySummary)
                             .labelsHidden()
+                            .tint(Color(hex: "44C0FF"))
                             .disabled(!dayOneLabsEnabled || !aiFeatures)
                     }
                     
@@ -209,6 +215,7 @@ struct LabsSettingsView: View {
                         
                         Toggle("", isOn: $aiTitleSuggestions)
                             .labelsHidden()
+                            .tint(Color(hex: "44C0FF"))
                             .disabled(!dayOneLabsEnabled || !aiFeatures)
                     }
                     
@@ -221,6 +228,7 @@ struct LabsSettingsView: View {
                         
                         Toggle("", isOn: $goDeeper)
                             .labelsHidden()
+                            .tint(Color(hex: "44C0FF"))
                             .disabled(!dayOneLabsEnabled || !aiFeatures)
                     }
                 } footer: {
@@ -237,8 +245,6 @@ struct LabsSettingsView: View {
                 }
             }
             .listStyle(.insetGrouped)
-            .navigationTitle("Labs")
-            .navigationBarTitleDisplayMode(.large)
         }
         .sheet(isPresented: $showingLabsConfirmation) {
             LabsConfirmationView(
@@ -258,33 +264,6 @@ struct LabsConfirmationView: View {
     var body: some View {
         NavigationStack {
             List {
-                // Header Section with Icon
-                Section {
-                    HStack(spacing: 16) {
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(.purple)
-                            .frame(width: 60, height: 60)
-                            .overlay(
-                                Image(systemName: "flask.fill")
-                                    .font(.title2)
-                                    .foregroundStyle(.white)
-                            )
-                        
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Enable Labs")
-                                .font(.headline)
-                                .fontWeight(.medium)
-                            
-                            Text("Access experimental features")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                        }
-                        
-                        Spacer()
-                    }
-                    .padding(.vertical, 8)
-                }
-                
                 // Privacy Section
                 Section {
                     VStack(alignment: .leading, spacing: 12) {
@@ -304,17 +283,11 @@ struct LabsConfirmationView: View {
                         }
                         
                         Text("Labs features are built with the same security and privacy standards Day One is known for. Your personal journal data remains protected.")
-                            .font(.body)
+                            .font(.footnote)
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     .padding(.vertical, 8)
-                } footer: {
-                    Button("Visit our FAQs") {
-                        // TODO: Open FAQ URL
-                    }
-                    .font(.body)
-                    .padding(.top, 4)
                 }
                 
                 // Labs Features Section
@@ -336,39 +309,65 @@ struct LabsConfirmationView: View {
                         }
                         
                         Text("Labs features are experimental and may change, be discontinued, or require a subscription. Your feedback helps us decide what becomes permanent.")
-                            .font(.body)
+                            .font(.footnote)
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     .padding(.vertical, 8)
                 }
                 
-                // Action Buttons Section
+                // Enable Labs Section
                 Section {
-                    VStack(spacing: 12) {
+                    VStack(spacing: 16) {
+                        HStack(spacing: 16) {
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(.purple)
+                                .frame(width: 60, height: 60)
+                                .overlay(
+                                    Image(systemName: "flask.fill")
+                                        .font(.title2)
+                                        .foregroundStyle(.white)
+                                )
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Enable Labs")
+                                    .font(.headline)
+                                    .fontWeight(.medium)
+                                
+                                Text("Access experimental features")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                
+                                Button("Visit our FAQs") {
+                                    // TODO: Open FAQ URL
+                                }
+                                .font(.footnote)
+                                .padding(.top, 4)
+                            }
+                            
+                            Spacer()
+                        }
+                        
                         Button("Enable Labs") {
                             isEnablingFromConfirmation = true
                             labsEnabled = true
                             isPresented = false
                         }
                         .buttonStyle(.borderedProminent)
-                        .frame(maxWidth: .infinity)
-                        
-                        Button("Cancel") {
-                            isPresented = false
-                        }
-                        .buttonStyle(.bordered)
+                        .controlSize(.large)
+                        .tint(Color(hex: "44C0FF"))
                         .frame(maxWidth: .infinity)
                     }
                     .padding(.vertical, 8)
                 }
+                
             }
             .listStyle(.insetGrouped)
             .navigationTitle("Day One Labs")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
                         isPresented = false
                     }
                 }

@@ -13,6 +13,11 @@ struct LabsSettingsView: View {
     @State private var promptPacksAvailability: LabsAvailability = .open
     @State private var aiFeatureAvailability: LabsAvailability = .open
     
+    // Notification request states
+    @State private var labsNotificationRequested = false
+    @State private var promptPacksNotificationRequested = false
+    @State private var aiFeatureNotificationRequested = false
+    
     // Individual Labs feature toggles
     @State private var promptPacks = false
     @State private var aiFeatures = false
@@ -128,6 +133,27 @@ struct LabsSettingsView: View {
                             Spacer()
                         }
                         .padding(.vertical, 8)
+                        
+                        // Notify Me row
+                        Button {
+                            labsNotificationRequested = true
+                        } label: {
+                            HStack {
+                                if labsNotificationRequested {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundStyle(.green)
+                                        Text("We'll notify you when Labs opens up")
+                                            .foregroundStyle(.primary)
+                                    }
+                                } else {
+                                    Text("Notify Me")
+                                        .foregroundStyle(.blue)
+                                }
+                                Spacer()
+                            }
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
                 
@@ -167,6 +193,27 @@ struct LabsSettingsView: View {
                             Spacer()
                         }
                         .padding(.vertical, 8)
+                        
+                        // Notify Me row
+                        Button {
+                            promptPacksNotificationRequested = true
+                        } label: {
+                            HStack {
+                                if promptPacksNotificationRequested {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundStyle(.green)
+                                        Text("We'll notify you when Prompt Packs opens up")
+                                            .foregroundStyle(.primary)
+                                    }
+                                } else {
+                                    Text("Notify Me")
+                                        .foregroundStyle(.blue)
+                                }
+                                Spacer()
+                            }
+                        }
+                        .buttonStyle(.plain)
                     }
                 } header: {
                     Text("Features")
@@ -224,6 +271,27 @@ struct LabsSettingsView: View {
                             Spacer()
                         }
                         .padding(.vertical, 8)
+                        
+                        // Notify Me row
+                        Button {
+                            aiFeatureNotificationRequested = true
+                        } label: {
+                            HStack {
+                                if aiFeatureNotificationRequested {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundStyle(.green)
+                                        Text("We'll notify you when AI Features opens up")
+                                            .foregroundStyle(.primary)
+                                    }
+                                } else {
+                                    Text("Notify Me")
+                                        .foregroundStyle(.blue)
+                                }
+                                Spacer()
+                            }
+                        }
+                        .buttonStyle(.plain)
                     }
                 } header: {
                     Text("AI Features")
@@ -330,6 +398,7 @@ struct LabsSettingsView: View {
                         Section("Labs") {
                             Button {
                                 labsAvailability = .open
+                                labsNotificationRequested = false
                             } label: {
                                 HStack {
                                     Text("Available")
@@ -354,6 +423,7 @@ struct LabsSettingsView: View {
                         Section("Prompt Packs") {
                             Button {
                                 promptPacksAvailability = .open
+                                promptPacksNotificationRequested = false
                             } label: {
                                 HStack {
                                     Text("Available")
@@ -378,6 +448,7 @@ struct LabsSettingsView: View {
                         Section("AI Features") {
                             Button {
                                 aiFeatureAvailability = .open
+                                aiFeatureNotificationRequested = false
                             } label: {
                                 HStack {
                                     Text("Available")

@@ -1,9 +1,17 @@
 import SwiftUI
 
+enum LabsAvailability {
+    case open
+    case full
+}
+
 struct LabsSettingsView: View {
     @State private var showingLabsConfirmation = false
     @State private var dayOneLabsEnabled = false
     @State private var isEnablingFromConfirmation = false
+    @State private var labsAvailability: LabsAvailability = .open
+    @State private var promptPacksAvailability: LabsAvailability = .open
+    @State private var aiFeatureAvailability: LabsAvailability = .open
     
     // Individual Labs feature toggles
     @State private var promptPacks = false
@@ -83,6 +91,7 @@ struct LabsSettingsView: View {
                         Toggle("", isOn: $dayOneLabsEnabled)
                             .labelsHidden()
                             .tint(Color(hex: "44C0FF"))
+                            .disabled(labsAvailability == .full)
                             .onChange(of: dayOneLabsEnabled) { oldValue, newValue in
                                 if newValue && !oldValue && !isEnablingFromConfirmation {
                                     showingLabsConfirmation = true
@@ -96,6 +105,29 @@ struct LabsSettingsView: View {
                                     isEnablingFromConfirmation = false
                                 }
                             }
+                    }
+                    
+                    // Warning row when Labs is full
+                    if labsAvailability == .full {
+                        HStack(spacing: 12) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.orange)
+                                .font(.body)
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Labs is currently full")
+                                    .font(.body)
+                                    .fontWeight(.medium)
+                                
+                                Text("Get notified by email when we open up additional Labs slots.")
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            
+                            Spacer()
+                        }
+                        .padding(.vertical, 8)
                     }
                 }
                 
@@ -111,7 +143,30 @@ struct LabsSettingsView: View {
                         Toggle("", isOn: $promptPacks)
                             .labelsHidden()
                             .tint(Color(hex: "44C0FF"))
-                            .disabled(!dayOneLabsEnabled)
+                            .disabled(!dayOneLabsEnabled || promptPacksAvailability == .full)
+                    }
+                    
+                    // Warning row when Prompt Packs is full
+                    if promptPacksAvailability == .full {
+                        HStack(spacing: 12) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.orange)
+                                .font(.body)
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Prompt Packs is currently full")
+                                    .font(.body)
+                                    .fontWeight(.medium)
+                                
+                                Text("Get notified by email when we open up additional Prompt Packs slots.")
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            
+                            Spacer()
+                        }
+                        .padding(.vertical, 8)
                     }
                 } header: {
                     Text("Features")
@@ -140,12 +195,35 @@ struct LabsSettingsView: View {
                         Toggle("", isOn: $aiFeatures)
                             .labelsHidden()
                             .tint(Color(hex: "44C0FF"))
-                            .disabled(!dayOneLabsEnabled)
+                            .disabled(!dayOneLabsEnabled || aiFeatureAvailability == .full)
                             .onChange(of: aiFeatures) { oldValue, newValue in
                                 if !newValue {
                                     disableAISubFeatures()
                                 }
                             }
+                    }
+                    
+                    // Warning row when AI Features is full
+                    if aiFeatureAvailability == .full {
+                        HStack(spacing: 12) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.orange)
+                                .font(.body)
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("AI Features is currently full")
+                                    .font(.body)
+                                    .fontWeight(.medium)
+                                
+                                Text("Get notified by email when we open up additional AI Features slots.")
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            
+                            Spacer()
+                        }
+                        .padding(.vertical, 8)
                     }
                 } header: {
                     Text("AI Features")
@@ -170,66 +248,66 @@ struct LabsSettingsView: View {
                     HStack {
                         Text("AI Entry Summary")
                             .font(.body)
-                            .foregroundStyle(!dayOneLabsEnabled || !aiFeatures ? .secondary : .primary)
+                            .foregroundStyle(!dayOneLabsEnabled || !aiFeatures || aiFeatureAvailability == .full ? .secondary : .primary)
                         
                         Spacer()
                         
                         Toggle("", isOn: $aiEntrySummary)
                             .labelsHidden()
                             .tint(Color(hex: "44C0FF"))
-                            .disabled(!dayOneLabsEnabled || !aiFeatures)
+                            .disabled(!dayOneLabsEnabled || !aiFeatures || aiFeatureAvailability == .full)
                     }
                     
                     HStack {
                         Text("AI Image Generation")
                             .font(.body)
-                            .foregroundStyle(!dayOneLabsEnabled || !aiFeatures ? .secondary : .primary)
+                            .foregroundStyle(!dayOneLabsEnabled || !aiFeatures || aiFeatureAvailability == .full ? .secondary : .primary)
                         
                         Spacer()
                         
                         Toggle("", isOn: $aiImageGeneration)
                             .labelsHidden()
                             .tint(Color(hex: "44C0FF"))
-                            .disabled(!dayOneLabsEnabled || !aiFeatures)
+                            .disabled(!dayOneLabsEnabled || !aiFeatures || aiFeatureAvailability == .full)
                     }
                     
                     HStack {
                         Text("AI Multi Entry Summary")
                             .font(.body)
-                            .foregroundStyle(!dayOneLabsEnabled || !aiFeatures ? .secondary : .primary)
+                            .foregroundStyle(!dayOneLabsEnabled || !aiFeatures || aiFeatureAvailability == .full ? .secondary : .primary)
                         
                         Spacer()
                         
                         Toggle("", isOn: $aiMultiEntrySummary)
                             .labelsHidden()
                             .tint(Color(hex: "44C0FF"))
-                            .disabled(!dayOneLabsEnabled || !aiFeatures)
+                            .disabled(!dayOneLabsEnabled || !aiFeatures || aiFeatureAvailability == .full)
                     }
                     
                     HStack {
                         Text("AI Title Suggestions")
                             .font(.body)
-                            .foregroundStyle(!dayOneLabsEnabled || !aiFeatures ? .secondary : .primary)
+                            .foregroundStyle(!dayOneLabsEnabled || !aiFeatures || aiFeatureAvailability == .full ? .secondary : .primary)
                         
                         Spacer()
                         
                         Toggle("", isOn: $aiTitleSuggestions)
                             .labelsHidden()
                             .tint(Color(hex: "44C0FF"))
-                            .disabled(!dayOneLabsEnabled || !aiFeatures)
+                            .disabled(!dayOneLabsEnabled || !aiFeatures || aiFeatureAvailability == .full)
                     }
                     
                     HStack {
                         Text("Go Deeper")
                             .font(.body)
-                            .foregroundStyle(!dayOneLabsEnabled || !aiFeatures ? .secondary : .primary)
+                            .foregroundStyle(!dayOneLabsEnabled || !aiFeatures || aiFeatureAvailability == .full ? .secondary : .primary)
                         
                         Spacer()
                         
                         Toggle("", isOn: $goDeeper)
                             .labelsHidden()
                             .tint(Color(hex: "44C0FF"))
-                            .disabled(!dayOneLabsEnabled || !aiFeatures)
+                            .disabled(!dayOneLabsEnabled || !aiFeatures || aiFeatureAvailability == .full)
                     }
                 } footer: {
                     VStack(alignment: .leading, spacing: 8) {
@@ -243,8 +321,89 @@ struct LabsSettingsView: View {
                         .padding(.top, 4)
                     }
                 }
+                
             }
             .listStyle(.insetGrouped)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Menu {
+                        Section("Labs") {
+                            Button {
+                                labsAvailability = .open
+                            } label: {
+                                HStack {
+                                    Text("Available")
+                                    if labsAvailability == .open {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                labsAvailability = .full
+                            } label: {
+                                HStack {
+                                    Text("Full")
+                                    if labsAvailability == .full {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        }
+                        
+                        Section("Prompt Packs") {
+                            Button {
+                                promptPacksAvailability = .open
+                            } label: {
+                                HStack {
+                                    Text("Available")
+                                    if promptPacksAvailability == .open {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                promptPacksAvailability = .full
+                            } label: {
+                                HStack {
+                                    Text("Full")
+                                    if promptPacksAvailability == .full {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        }
+                        
+                        Section("AI Features") {
+                            Button {
+                                aiFeatureAvailability = .open
+                            } label: {
+                                HStack {
+                                    Text("Available")
+                                    if aiFeatureAvailability == .open {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                aiFeatureAvailability = .full
+                            } label: {
+                                HStack {
+                                    Text("Full")
+                                    if aiFeatureAvailability == .full {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .font(.title3)
+                    }
+                }
+            }
         }
         .sheet(isPresented: $showingLabsConfirmation) {
             LabsConfirmationView(

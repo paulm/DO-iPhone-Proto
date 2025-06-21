@@ -50,6 +50,26 @@ struct LabsSettingsView: View {
     var body: some View {
         NavigationStack {
             List {
+                // Share Feedback Section
+                Section {
+                    Button {
+                        // TODO: Implement share feedback action
+                    } label: {
+                        HStack {
+                            Text("Share Feedback")
+                                .font(.body)
+                                .foregroundStyle(Color(hex: "44C0FF"))
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+                
                 // Header Section with Icon  
                 Section {
                     VStack(spacing: 16) {

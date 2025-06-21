@@ -23,6 +23,14 @@ class BioData {
     var bodyType = ""
     var ethnicity = ""
     
+    // Health data
+    var medicalConditions = ""
+    var medications = ""
+    var allergies = ""
+    var fitnessGoals = ""
+    var sleepHours = ""
+    var activityLevel = ""
+    
     static let shared = BioData()
     
     private init() {}
@@ -78,6 +86,10 @@ struct BioSettingsView: View {
                         
                         NavigationLink("Physical Attributes") {
                             BioPhysicalAttributesView()
+                        }
+                        
+                        NavigationLink("Health Data") {
+                            BioHealthDataView()
                         }
                     }
                     
@@ -312,6 +324,93 @@ struct BioFormRow: View {
         }
         .padding()
         .background(.white)
+    }
+}
+
+struct BioHealthDataView: View {
+    @State private var bioData = BioData.shared
+    
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                // Apple Health Integration Section
+                VStack(spacing: 0) {
+                    NavigationLink(destination: AppleHealthIntegrationView()) {
+                        HStack(spacing: 12) {
+                            // Apple Health Icon
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color.red, Color.pink, Color.orange],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 32, height: 32)
+                                .overlay(
+                                    Image(systemName: "heart.fill")
+                                        .font(.system(size: 16, weight: .medium))
+                                        .foregroundStyle(.white)
+                                )
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Apple Health")
+                                    .font(.body)
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(.primary)
+                                
+                                Text("Connect your health data")
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding()
+                        .background(.white)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .background(.white, in: RoundedRectangle(cornerRadius: 12))
+                .padding(.horizontal)
+                .padding(.top, 20)
+                
+                // Health Information Form
+                VStack(spacing: 0) {
+                    BioFormRow(title: "Medical Conditions", text: $bioData.medicalConditions, isMultiLine: true)
+                    
+                    Divider().padding(.leading, 16)
+                    
+                    BioFormRow(title: "Current Medications", text: $bioData.medications, isMultiLine: true)
+                    
+                    Divider().padding(.leading, 16)
+                    
+                    BioFormRow(title: "Allergies", text: $bioData.allergies, isMultiLine: true)
+                    
+                    Divider().padding(.leading, 16)
+                    
+                    BioFormRow(title: "Fitness Goals", text: $bioData.fitnessGoals, isMultiLine: true)
+                    
+                    Divider().padding(.leading, 16)
+                    
+                    BioFormRow(title: "Sleep Hours (typical)", text: $bioData.sleepHours, isMultiLine: false)
+                    
+                    Divider().padding(.leading, 16)
+                    
+                    BioFormRow(title: "Activity Level", text: $bioData.activityLevel, isMultiLine: false)
+                }
+                .background(.white, in: RoundedRectangle(cornerRadius: 12))
+                .padding(.horizontal)
+                
+                Spacer(minLength: 40)
+            }
+        }
+        .navigationTitle("Health Data")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

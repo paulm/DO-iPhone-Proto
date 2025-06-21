@@ -31,6 +31,64 @@ class BioData {
     var sleepHours = ""
     var activityLevel = ""
     
+    // Enhanced Health Data
+    // Vital Signs & Measurements
+    var bloodPressure = ""
+    var restingHeartRate = ""
+    var bloodSugar = ""
+    var cholesterol = ""
+    var bmi = ""
+    
+    // Lifestyle & Habits
+    var smokingStatus = ""
+    var alcoholConsumption = ""
+    var caffeineIntake = ""
+    var stressLevel = ""
+    var exerciseFrequency = ""
+    var waterIntake = ""
+    
+    // Medical History
+    var familyMedicalHistory = ""
+    var previousSurgeries = ""
+    var chronicConditions = ""
+    var mentalHealthHistory = ""
+    var recentIllnesses = ""
+    
+    // Wellness Indicators
+    var energyLevel = ""
+    var moodPatterns = ""
+    var painLevels = ""
+    var sleepQuality = ""
+    var digestiveHealth = ""
+    
+    // Preventive Care
+    var lastPhysicalExam = ""
+    var vaccinationStatus = ""
+    var screeningTests = ""
+    var dentalHealth = ""
+    
+    // Women's Health (optional)
+    var menstrualCycle = ""
+    var pregnancyHistory = ""
+    var menopauseStatus = ""
+    
+    // Mental Health
+    var anxietyLevels = ""
+    var depressionIndicators = ""
+    var therapyCounseling = ""
+    
+    // Environmental Factors
+    var workStress = ""
+    var airQuality = ""
+    var sunExposure = ""
+    
+    // Symptoms Tracking
+    var headacheFrequency = ""
+    var jointPain = ""
+    var skinConditions = ""
+    var visionHearing = ""
+    var memoryCognitive = ""
+    
     static let shared = BioData()
     
     private init() {}
@@ -90,6 +148,10 @@ struct BioSettingsView: View {
                         
                         NavigationLink("Health Data") {
                             BioHealthDataView()
+                        }
+                        
+                        NavigationLink("Enhanced Health Data") {
+                            BioEnhancedHealthDataView()
                         }
                     }
                     
@@ -410,6 +472,215 @@ struct BioHealthDataView: View {
             }
         }
         .navigationTitle("Health Data")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+struct BioEnhancedHealthDataView: View {
+    @State private var bioData = BioData.shared
+    
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 24) {
+                // Introduction
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Comprehensive health information helps AI provide personalized insights and recommendations")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal)
+                }
+                .padding(.top, 8)
+                
+                // Vital Signs & Measurements
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Vital Signs & Measurements")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .padding(.horizontal)
+                    
+                    VStack(spacing: 0) {
+                        BioFormRow(title: "Blood Pressure", text: $bioData.bloodPressure, isMultiLine: false)
+                        Divider().padding(.leading, 16)
+                        BioFormRow(title: "Resting Heart Rate", text: $bioData.restingHeartRate, isMultiLine: false)
+                        Divider().padding(.leading, 16)
+                        BioFormRow(title: "Blood Sugar", text: $bioData.bloodSugar, isMultiLine: false)
+                        Divider().padding(.leading, 16)
+                        BioFormRow(title: "Cholesterol", text: $bioData.cholesterol, isMultiLine: false)
+                        Divider().padding(.leading, 16)
+                        BioFormRow(title: "BMI", text: $bioData.bmi, isMultiLine: false)
+                    }
+                    .background(.white, in: RoundedRectangle(cornerRadius: 12))
+                    .padding(.horizontal)
+                }
+                
+                // Lifestyle & Habits
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Lifestyle & Habits")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .padding(.horizontal)
+                    
+                    VStack(spacing: 0) {
+                        BioFormRow(title: "Smoking Status", text: $bioData.smokingStatus, isMultiLine: false)
+                        Divider().padding(.leading, 16)
+                        BioFormRow(title: "Alcohol Consumption", text: $bioData.alcoholConsumption, isMultiLine: false)
+                        Divider().padding(.leading, 16)
+                        BioFormRow(title: "Caffeine Intake", text: $bioData.caffeineIntake, isMultiLine: false)
+                        Divider().padding(.leading, 16)
+                        BioFormRow(title: "Stress Level (1-10)", text: $bioData.stressLevel, isMultiLine: false)
+                        Divider().padding(.leading, 16)
+                        BioFormRow(title: "Exercise Frequency", text: $bioData.exerciseFrequency, isMultiLine: false)
+                        Divider().padding(.leading, 16)
+                        BioFormRow(title: "Water Intake", text: $bioData.waterIntake, isMultiLine: false)
+                    }
+                    .background(.white, in: RoundedRectangle(cornerRadius: 12))
+                    .padding(.horizontal)
+                }
+                
+                // Medical History
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Medical History")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .padding(.horizontal)
+                    
+                    VStack(spacing: 0) {
+                        BioFormRow(title: "Family Medical History", text: $bioData.familyMedicalHistory, isMultiLine: true)
+                        Divider().padding(.leading, 16)
+                        BioFormRow(title: "Previous Surgeries", text: $bioData.previousSurgeries, isMultiLine: true)
+                        Divider().padding(.leading, 16)
+                        BioFormRow(title: "Chronic Conditions", text: $bioData.chronicConditions, isMultiLine: true)
+                        Divider().padding(.leading, 16)
+                        BioFormRow(title: "Mental Health History", text: $bioData.mentalHealthHistory, isMultiLine: true)
+                        Divider().padding(.leading, 16)
+                        BioFormRow(title: "Recent Illnesses", text: $bioData.recentIllnesses, isMultiLine: true)
+                    }
+                    .background(.white, in: RoundedRectangle(cornerRadius: 12))
+                    .padding(.horizontal)
+                }
+                
+                // Wellness Indicators
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Wellness Indicators")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .padding(.horizontal)
+                    
+                    VStack(spacing: 0) {
+                        BioFormRow(title: "Energy Level (1-10)", text: $bioData.energyLevel, isMultiLine: false)
+                        Divider().padding(.leading, 16)
+                        BioFormRow(title: "Mood Patterns", text: $bioData.moodPatterns, isMultiLine: true)
+                        Divider().padding(.leading, 16)
+                        BioFormRow(title: "Pain Levels (1-10)", text: $bioData.painLevels, isMultiLine: false)
+                        Divider().padding(.leading, 16)
+                        BioFormRow(title: "Sleep Quality (1-10)", text: $bioData.sleepQuality, isMultiLine: false)
+                        Divider().padding(.leading, 16)
+                        BioFormRow(title: "Digestive Health", text: $bioData.digestiveHealth, isMultiLine: true)
+                    }
+                    .background(.white, in: RoundedRectangle(cornerRadius: 12))
+                    .padding(.horizontal)
+                }
+                
+                // Preventive Care
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Preventive Care")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .padding(.horizontal)
+                    
+                    VStack(spacing: 0) {
+                        BioFormRow(title: "Last Physical Exam", text: $bioData.lastPhysicalExam, isMultiLine: false)
+                        Divider().padding(.leading, 16)
+                        BioFormRow(title: "Vaccination Status", text: $bioData.vaccinationStatus, isMultiLine: true)
+                        Divider().padding(.leading, 16)
+                        BioFormRow(title: "Screening Tests", text: $bioData.screeningTests, isMultiLine: true)
+                        Divider().padding(.leading, 16)
+                        BioFormRow(title: "Dental Health", text: $bioData.dentalHealth, isMultiLine: true)
+                    }
+                    .background(.white, in: RoundedRectangle(cornerRadius: 12))
+                    .padding(.horizontal)
+                }
+                
+                // Women's Health
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Women's Health")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .padding(.horizontal)
+                    
+                    VStack(spacing: 0) {
+                        BioFormRow(title: "Menstrual Cycle", text: $bioData.menstrualCycle, isMultiLine: true)
+                        Divider().padding(.leading, 16)
+                        BioFormRow(title: "Pregnancy History", text: $bioData.pregnancyHistory, isMultiLine: true)
+                        Divider().padding(.leading, 16)
+                        BioFormRow(title: "Menopause Status", text: $bioData.menopauseStatus, isMultiLine: false)
+                    }
+                    .background(.white, in: RoundedRectangle(cornerRadius: 12))
+                    .padding(.horizontal)
+                }
+                
+                // Mental Health
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Mental Health")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .padding(.horizontal)
+                    
+                    VStack(spacing: 0) {
+                        BioFormRow(title: "Anxiety Levels (1-10)", text: $bioData.anxietyLevels, isMultiLine: false)
+                        Divider().padding(.leading, 16)
+                        BioFormRow(title: "Depression Indicators", text: $bioData.depressionIndicators, isMultiLine: true)
+                        Divider().padding(.leading, 16)
+                        BioFormRow(title: "Therapy/Counseling", text: $bioData.therapyCounseling, isMultiLine: true)
+                    }
+                    .background(.white, in: RoundedRectangle(cornerRadius: 12))
+                    .padding(.horizontal)
+                }
+                
+                // Environmental Factors
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Environmental Factors")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .padding(.horizontal)
+                    
+                    VStack(spacing: 0) {
+                        BioFormRow(title: "Work Stress (1-10)", text: $bioData.workStress, isMultiLine: false)
+                        Divider().padding(.leading, 16)
+                        BioFormRow(title: "Air Quality", text: $bioData.airQuality, isMultiLine: false)
+                        Divider().padding(.leading, 16)
+                        BioFormRow(title: "Sun Exposure", text: $bioData.sunExposure, isMultiLine: false)
+                    }
+                    .background(.white, in: RoundedRectangle(cornerRadius: 12))
+                    .padding(.horizontal)
+                }
+                
+                // Symptoms Tracking
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Symptoms Tracking")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .padding(.horizontal)
+                    
+                    VStack(spacing: 0) {
+                        BioFormRow(title: "Headache Frequency", text: $bioData.headacheFrequency, isMultiLine: false)
+                        Divider().padding(.leading, 16)
+                        BioFormRow(title: "Joint Pain/Stiffness", text: $bioData.jointPain, isMultiLine: true)
+                        Divider().padding(.leading, 16)
+                        BioFormRow(title: "Skin Conditions", text: $bioData.skinConditions, isMultiLine: true)
+                        Divider().padding(.leading, 16)
+                        BioFormRow(title: "Vision/Hearing Changes", text: $bioData.visionHearing, isMultiLine: true)
+                        Divider().padding(.leading, 16)
+                        BioFormRow(title: "Memory/Cognitive Concerns", text: $bioData.memoryCognitive, isMultiLine: true)
+                    }
+                    .background(.white, in: RoundedRectangle(cornerRadius: 12))
+                    .padding(.horizontal)
+                }
+                
+                Spacer(minLength: 40)
+            }
+        }
+        .navigationTitle("Enhanced Health Data")
         .navigationBarTitleDisplayMode(.inline)
     }
 }

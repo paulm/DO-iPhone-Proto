@@ -72,6 +72,36 @@ struct TodayView: View {
                 )
             case .appleSettings:
                 TodayTabSettingsStyleView()
+            case .v1i1:
+                TodayViewV1i1(
+                    showingSettings: $showingSettings,
+                    showingDatePicker: $showingDatePicker,
+                    showingMoments: $showingMoments,
+                    selectedDate: $selectedDate,
+                    selectedLocations: $selectedLocations,
+                    selectedEvents: $selectedEvents,
+                    selectedPhotos: $selectedPhotos
+                )
+            case .v1i2:
+                TodayViewV1i2(
+                    showingSettings: $showingSettings,
+                    showingDatePicker: $showingDatePicker,
+                    showingDailySurvey: $showingDailySurvey,
+                    showingMoments: $showingMoments,
+                    showingTrackers: $showingTrackers,
+                    selectedDate: $selectedDate,
+                    surveyCompleted: $surveyCompleted,
+                    moodRating: $moodRating,
+                    energyRating: $energyRating,
+                    stressRating: $stressRating,
+                    foodInput: $foodInput,
+                    prioritiesInput: $prioritiesInput,
+                    mediaInput: $mediaInput,
+                    peopleInput: $peopleInput,
+                    selectedLocations: $selectedLocations,
+                    selectedEvents: $selectedEvents,
+                    selectedPhotos: $selectedPhotos
+                )
             default:
                 TodayViewOriginal(
                     showingSettings: $showingSettings,
@@ -108,13 +138,13 @@ struct TodayView: View {
                 .padding()
                 .navigationTitle("Select Date")
                 .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
+                .toolbar(content: {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button("Done") {
                             showingDatePicker = false
                         }
                     }
-                }
+                })
             }
         }
         .sheet(isPresented: $showingDailySurvey) {
@@ -302,6 +332,634 @@ struct TodayViewOriginal: View {
                 }
                 .padding(.horizontal)
             }
+        }
+    }
+}
+
+/// V1i1 Today tab layout - Copy of Original with Daily Chat section, no Daily Survey or Trackers
+struct TodayViewV1i1: View {
+    @Binding var showingSettings: Bool
+    @Binding var showingDatePicker: Bool
+    @Binding var showingMoments: Bool
+    @Binding var selectedDate: Date
+    @Binding var selectedLocations: Set<String>
+    @Binding var selectedEvents: Set<String>
+    @Binding var selectedPhotos: Set<String>
+    
+    @State private var showingDailyChat = false
+    @State private var chatStarted = false
+    @State private var momentsOpened = false
+    
+    private var dateRange: [Date] {
+        let calendar = Calendar.current
+        var dates: [Date] = []
+        
+        // Past 4 days (from -4 to -1)
+        for i in stride(from: -4, through: -1, by: 1) {
+            if let date = calendar.date(byAdding: .day, value: i, to: selectedDate) {
+                dates.append(date)
+            }
+        }
+        
+        // Current day
+        dates.append(selectedDate)
+        
+        // Tomorrow
+        if let tomorrow = calendar.date(byAdding: .day, value: 1, to: selectedDate) {
+            dates.append(tomorrow)
+        }
+        
+        return dates
+    }
+    
+    private var currentDayName: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE"
+        return formatter.string(from: selectedDate)
+    }
+    
+    private var totalSelectedMoments: Int {
+        selectedLocations.count + selectedEvents.count + selectedPhotos.count
+    }
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header with profile button
+            HStack {
+                Text(selectedDate, style: .date)
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                
+                Spacer()
+                
+                Button(action: {
+                    showingSettings = true
+                }) {
+                    Circle()
+                        .fill(.gray.opacity(0.3))
+                        .frame(width: 40, height: 40)
+                        .overlay(
+                            Image(systemName: "person.fill")
+                                .foregroundStyle(.gray)
+                        )
+                }
+                .accessibilityLabel("Settings")
+            }
+            .padding(.horizontal)
+            .padding(.top, 20)
+            
+            // Date picker row
+            HStack(spacing: 16) {
+                // Calendar icon
+                Button(action: {
+                    showingDatePicker = true
+                }) {
+                    Image(systemName: "calendar")
+                        .font(.title2)
+                        .foregroundStyle(.primary)
+                }
+                .accessibilityLabel("Open date picker")
+                
+                // Date circles
+                HStack(spacing: 12) {
+                    ForEach(Array(dateRange.enumerated()), id: \.offset) { index, date in
+                        DateCircle(
+                            date: date,
+                            isSelected: Calendar.current.isDate(date, inSameDayAs: selectedDate),
+                            isFuture: date > Date(),
+                            onTap: {
+                                selectedDate = date
+                            }
+                        )
+                    }
+                }
+                
+                Spacer()
+            }
+            .padding(.horizontal)
+            .padding(.top, 24)
+            
+            // Content sections
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Daily Chat Section
+                    Button(action: {
+                        showingDailyChat = true
+                    }) {
+                        VStack(spacing: 20) {
+                            // Blue chat bubble icon
+                            Image(systemName: "bubble.left.and.bubble.right.fill")
+                                .font(.system(size: 50))
+                                .foregroundStyle(Color(hex: "44C0FF"))
+                            
+                            // Title
+                            Text("Daily Chat")
+                                .font(.title2)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.primary)
+                            
+                            // Status message
+                            if chatStarted {
+                                Text("12 messages")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            } else {
+                                Text("Tap to start your \(currentDayName) chat...")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                    .multilineTextAlignment(.center)
+                            }
+                            
+                            // Action button
+                            if chatStarted {
+                                Button("Generate Entry") {
+                                    // TODO: Implement generate entry functionality
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .tint(Color(hex: "44C0FF"))
+                            } else {
+                                Button("Start Chat") {
+                                    showingDailyChat = true
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .tint(Color(hex: "44C0FF"))
+                            }
+                        }
+                        .padding(.vertical, 24)
+                        .padding(.horizontal, 20)
+                        .frame(maxWidth: .infinity)
+                        .background(.gray.opacity(0.05), in: RoundedRectangle(cornerRadius: 12))
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .padding(.horizontal)
+                    
+                    // Moments Section
+                    Button(action: {
+                        showingMoments = true
+                    }) {
+                        VStack(spacing: 20) {
+                            // Sparkles icon
+                            Image(systemName: "sparkles")
+                                .font(.system(size: 50))
+                                .foregroundStyle(Color(hex: "44C0FF"))
+                            
+                            // Title
+                            Text("Moments")
+                                .font(.title2)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.primary)
+                            
+                            // Status message
+                            if momentsOpened {
+                                if totalSelectedMoments == 0 {
+                                    Text("No moments selected")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                } else {
+                                    Text("\(totalSelectedMoments) moment\(totalSelectedMoments == 1 ? "" : "s") selected")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                }
+                            } else {
+                                Text("Capture meaningful moments from your day")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                    .multilineTextAlignment(.center)
+                            }
+                            
+                            // Action button
+                            Button("Select Moments") {
+                                showingMoments = true
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(Color(hex: "44C0FF"))
+                        }
+                        .padding(.vertical, 24)
+                        .padding(.horizontal, 20)
+                        .frame(maxWidth: .infinity)
+                        .background(.gray.opacity(0.05), in: RoundedRectangle(cornerRadius: 12))
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .padding(.horizontal)
+                    
+                    Spacer(minLength: 40)
+                }
+                .padding(.horizontal)
+            }
+        }
+        .sheet(isPresented: $showingDailyChat) {
+            DailyChatView(onChatStarted: {
+                chatStarted = true
+            })
+        }
+        .sheet(isPresented: $showingMoments) {
+            MomentsView(
+                selectedLocations: $selectedLocations,
+                selectedEvents: $selectedEvents,
+                selectedPhotos: $selectedPhotos
+            )
+            .onAppear {
+                momentsOpened = true
+            }
+        }
+    }
+}
+
+/// V1i2 Today tab layout - Same header as v1i1 with Daily Activities section
+struct TodayViewV1i2: View {
+    @Binding var showingSettings: Bool
+    @Binding var showingDatePicker: Bool
+    @Binding var showingDailySurvey: Bool
+    @Binding var showingMoments: Bool
+    @Binding var showingTrackers: Bool
+    @Binding var selectedDate: Date
+    @Binding var surveyCompleted: Bool
+    
+    @State private var showingDailyChat = false
+    @State private var chatCompleted = false
+    @State private var momentsCompleted = false
+    @State private var trackersCompleted = false
+    @State private var showingProfileMenu = false
+    
+    // Show/hide toggles for Daily Activities
+    @State private var showChat = true
+    @State private var showMoments = true
+    @State private var showTrackers = true
+    @Binding var moodRating: Int
+    @Binding var energyRating: Int
+    @Binding var stressRating: Int
+    @Binding var foodInput: String
+    @Binding var prioritiesInput: String
+    @Binding var mediaInput: String
+    @Binding var peopleInput: String
+    @Binding var selectedLocations: Set<String>
+    @Binding var selectedEvents: Set<String>
+    @Binding var selectedPhotos: Set<String>
+    
+    private var dateRange: [Date] {
+        let calendar = Calendar.current
+        var dates: [Date] = []
+        
+        // Past 4 days (from -4 to -1)
+        for i in stride(from: -4, through: -1, by: 1) {
+            if let date = calendar.date(byAdding: .day, value: i, to: selectedDate) {
+                dates.append(date)
+            }
+        }
+        
+        // Current day
+        dates.append(selectedDate)
+        
+        // Tomorrow
+        if let tomorrow = calendar.date(byAdding: .day, value: 1, to: selectedDate) {
+            dates.append(tomorrow)
+        }
+        
+        return dates
+    }
+    
+    private var momentsSummaryText: String {
+        let totalMoments = selectedLocations.count + selectedEvents.count + selectedPhotos.count
+        if totalMoments == 0 {
+            return "No moments selected"
+        } else {
+            return "\(totalMoments) moment\(totalMoments == 1 ? "" : "s") selected"
+        }
+    }
+    
+    private var trackersSummaryText: String {
+        let completedCount = [
+            moodRating > 0 ? 1 : 0,
+            energyRating > 0 ? 1 : 0,
+            stressRating > 0 ? 1 : 0,
+            !foodInput.isEmpty ? 1 : 0,
+            !prioritiesInput.isEmpty ? 1 : 0,
+            !mediaInput.isEmpty ? 1 : 0,
+            !peopleInput.isEmpty ? 1 : 0
+        ].reduce(0, +)
+        
+        return "\(completedCount) of 7 completed"
+    }
+    
+    private var hasSelectedMoments: Bool {
+        !selectedLocations.isEmpty || !selectedEvents.isEmpty || !selectedPhotos.isEmpty
+    }
+    
+    private var hasTrackerData: Bool {
+        moodRating > 0 || energyRating > 0 || stressRating > 0 || 
+        !foodInput.isEmpty || !prioritiesInput.isEmpty || !mediaInput.isEmpty || !peopleInput.isEmpty
+    }
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header and date picker section with gray background
+            VStack(spacing: 0) {
+                // Header with profile button
+                HStack {
+                    Text(selectedDate, style: .date)
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                    
+                    Spacer()
+                    
+                    Menu {
+                        Button("Settings") {
+                            showingSettings = true
+                        }
+                        
+                        Section("Show") {
+                            Button {
+                                showChat.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Chat")
+                                    if showChat {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showMoments.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Moments")
+                                    if showMoments {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showTrackers.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Trackers")
+                                    if showTrackers {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        }
+                    } label: {
+                        Circle()
+                            .fill(.gray.opacity(0.3))
+                            .frame(width: 40, height: 40)
+                            .overlay(
+                                Image(systemName: "person.fill")
+                                    .foregroundStyle(.gray)
+                            )
+                    }
+                    .accessibilityLabel("Profile Menu")
+                }
+                .padding(.horizontal)
+                .padding(.top, 20)
+                
+                // Date picker row
+                HStack(spacing: 16) {
+                    // Calendar icon
+                    Button(action: {
+                        showingDatePicker = true
+                    }) {
+                        Image(systemName: "calendar")
+                            .font(.title2)
+                            .foregroundStyle(.primary)
+                    }
+                    .accessibilityLabel("Open date picker")
+                    
+                    // Date circles
+                    HStack(spacing: 12) {
+                        ForEach(Array(dateRange.enumerated()), id: \.offset) { index, date in
+                            DateCircle(
+                                date: date,
+                                isSelected: Calendar.current.isDate(date, inSameDayAs: selectedDate),
+                                isFuture: date > Date(),
+                                onTap: {
+                                    selectedDate = date
+                                }
+                            )
+                        }
+                    }
+                    
+                    Spacer()
+                }
+                .padding(.horizontal)
+                .padding(.top, 16)
+                .padding(.bottom, 20)
+            }
+            .background(Color(UIColor.systemGroupedBackground))
+            
+            // Content with Daily Activities
+            List {
+                // Daily Activities Section
+                Section("Daily Activities") {
+                    if showChat {
+                        TodayActivityRowWithCheckbox(
+                            icon: "bubble.left.and.bubble.right.fill",
+                            iconColor: .blue,
+                            title: "Daily Chat",
+                            subtitle: chatCompleted ? "Chat completed for today" : "Answer questions to auto compose your daily journal entry",
+                            isCompleted: chatCompleted,
+                            action: { showingDailyChat = true }
+                        )
+                        
+                        // Daily Chat additional options (shown only when completed)
+                        if chatCompleted {
+                            HStack(spacing: 16) {
+                                Button("Resume Chat") {
+                                    showingDailyChat = true
+                                }
+                                .font(.subheadline)
+                                .foregroundStyle(.blue)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 8)
+                                .background(Color.blue.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
+                                
+                                Button("View Entry") {
+                                    // TODO: Implement view entry functionality
+                                }
+                                .font(.subheadline)
+                                .foregroundStyle(.blue)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 8)
+                                .background(Color.blue.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.bottom, 8)
+                        }
+                    }
+                    
+                    if showMoments {
+                        TodayActivityRowWithCheckbox(
+                            icon: "sparkles",
+                            iconColor: .purple,
+                            title: "Moments",
+                            subtitle: hasSelectedMoments ? "Moments completed for today" : "Capture meaningful moments from your day",
+                            isCompleted: hasSelectedMoments,
+                            action: { 
+                                showingMoments = true
+                            }
+                        )
+                    }
+                    
+                    if showTrackers {
+                        TodayActivityRowWithCheckbox(
+                            icon: "chart.line.uptrend.xyaxis",
+                            iconColor: .orange,
+                            title: "Trackers",
+                            subtitle: hasTrackerData ? "Trackers completed for today" : "Track your mood, energy, and daily activities",
+                            isCompleted: hasTrackerData,
+                            action: { 
+                                showingTrackers = true
+                            }
+                        )
+                    }
+                }
+            }
+            .listStyle(.insetGrouped)
+        }
+        .sheet(isPresented: $showingDailyChat) {
+            DailyChatView(onChatStarted: {
+                chatCompleted = true
+            })
+        }
+        .sheet(isPresented: $showingMoments) {
+            MomentsView(
+                selectedLocations: $selectedLocations,
+                selectedEvents: $selectedEvents,
+                selectedPhotos: $selectedPhotos
+            )
+        }
+        .sheet(isPresented: $showingTrackers) {
+            TrackerView(
+                moodRating: $moodRating,
+                energyRating: $energyRating,
+                stressRating: $stressRating,
+                foodInput: $foodInput,
+                prioritiesInput: $prioritiesInput,
+                mediaInput: $mediaInput,
+                peopleInput: $peopleInput
+            )
+        }
+        .onChange(of: selectedDate) { oldValue, newValue in
+            // Reset daily activities state when date changes
+            chatCompleted = false
+            
+            // Clear moments data
+            selectedLocations.removeAll()
+            selectedEvents.removeAll()
+            selectedPhotos.removeAll()
+            
+            // Clear tracker data
+            moodRating = 0
+            energyRating = 0
+            stressRating = 0
+            foodInput = ""
+            prioritiesInput = ""
+            mediaInput = ""
+            peopleInput = ""
+        }
+    }
+}
+
+// Custom row component with checkbox for Daily Activities
+struct TodayActivityRowWithCheckbox: View {
+    let icon: String
+    let iconColor: Color
+    let title: String
+    let subtitle: String
+    let isCompleted: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                // Icon with colored background
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(iconColor)
+                    .frame(width: 32, height: 32)
+                    .overlay(
+                        Image(systemName: icon)
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundStyle(.white)
+                    )
+                
+                // Content
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    Text(subtitle)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                
+                Spacer()
+                
+                if isCompleted {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
+                        .font(.title3)
+                } else {
+                    Image(systemName: "circle")
+                        .foregroundStyle(.secondary.opacity(0.5))
+                        .font(.title3)
+                }
+            }
+            .padding(.vertical, 4)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+// Daily Chat View (placeholder for now)
+struct DailyChatView: View {
+    @Environment(\.dismiss) private var dismiss
+    let onChatStarted: () -> Void
+    
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 20) {
+                Image(systemName: "bubble.left.and.bubble.right.fill")
+                    .font(.system(size: 60))
+                    .foregroundStyle(Color(hex: "44C0FF"))
+                
+                Text("Daily Chat")
+                    .font(.title2)
+                    .fontWeight(.medium)
+                
+                Text("Chat interface would be implemented here")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+                
+                Button("Start Chat (Demo)") {
+                    onChatStarted()
+                    dismiss()
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Color(hex: "44C0FF"))
+                .padding(.top, 20)
+            }
+            .padding()
+            .navigationTitle("Daily Chat")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .onAppear {
+            // Mark chat as started when the view appears
+            onChatStarted()
         }
     }
 }

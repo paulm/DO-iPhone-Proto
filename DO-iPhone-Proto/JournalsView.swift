@@ -23,6 +23,14 @@ struct JournalsView: View {
             JournalsTabVariant2View()
         case .paged:
             JournalsTabPagedView()
+        default:
+            // Fallback to original for any unsupported variants
+            JournalsViewOriginal(
+                selectedTab: $selectedTab,
+                showingJournalSelector: $showingJournalSelector,
+                showingSettings: $showingSettings,
+                journalViewModel: journalViewModel
+            )
         }
     }
 }

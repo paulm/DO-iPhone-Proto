@@ -18,6 +18,8 @@ enum ExperimentVariant: String, CaseIterable, Identifiable {
     case appleSettings = "Apple Settings"
     case variant2 = "Variant 2"
     case paged = "Paged"
+    case v1i1 = "v1i1"
+    case v1i2 = "v1i2"
     
     var id: String { rawValue }
 }
@@ -33,6 +35,9 @@ class ExperimentsManager {
         for section in AppSection.allCases {
             variants[section] = .original
         }
+        
+        // Set Today tab to use v1i2 as default
+        variants[.todayTab] = .v1i2
     }
     
     func variant(for section: AppSection) -> ExperimentVariant {
@@ -69,7 +74,7 @@ class ExperimentsManager {
         case .promptsTab:
             return [.original, .appleSettings] // Settings-style variant
         case .todayTab:
-            return [.original, .appleSettings] // Settings-style variant
+            return [.original, .appleSettings, .v1i1, .v1i2] // Settings-style variant
         case .journalsTab:
             return [.original, .appleSettings, .variant2, .paged] // All variants
         case .journalPicker:

@@ -650,6 +650,21 @@ struct TodayViewV1i2: View {
         !foodInput.isEmpty || !prioritiesInput.isEmpty || !mediaInput.isEmpty || !peopleInput.isEmpty
     }
     
+    private var currentDayName: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE"
+        return formatter.string(from: selectedDate)
+    }
+    
+    private var dailyChatTitle: String {
+        return "\(currentDayName) Chat"
+    }
+    
+    private var chatInteractionsText: String {
+        let interactionCount = Int.random(in: 1...55)
+        return "\(interactionCount) interactions"
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
             // Header and date picker section with gray background
@@ -751,45 +766,58 @@ struct TodayViewV1i2: View {
             
             // Content with Daily Activities
             List {
-                // Daily Activities Section
-                Section("Daily Activities") {
-                    if showChat {
+                // Daily Chat Section
+                if showChat {
+                    Section("Daily Chat") {
                         TodayActivityRowWithCheckbox(
                             icon: "bubble.left.and.bubble.right.fill",
                             iconColor: .blue,
-                            title: "Daily Chat",
-                            subtitle: chatCompleted ? "Chat completed for today" : "Answer questions to auto compose your daily journal entry",
+                            title: dailyChatTitle,
+                            subtitle: chatCompleted ? chatInteractionsText : "Share details or answer questions via chat to auto compose your daily entry.",
                             isCompleted: chatCompleted,
                             action: { showingDailyChat = true }
                         )
                         
                         // Daily Chat additional options (shown only when completed)
                         if chatCompleted {
-                            HStack(spacing: 16) {
-                                Button("Resume Chat") {
-                                    showingDailyChat = true
-                                }
-                                .font(.subheadline)
-                                .foregroundStyle(.blue)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 8)
-                                .background(Color.blue.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
+                            // Chat summary
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Discussed morning routine, work goals, and evening plans for a productive day.")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                    .italic()
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.horizontal, 16)
                                 
-                                Button("View Entry") {
-                                    // TODO: Implement view entry functionality
+                                HStack(spacing: 16) {
+                                    Button("Resume Chat") {
+                                        showingDailyChat = true
+                                    }
+                                    .font(.subheadline)
+                                    .foregroundStyle(.blue)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 8)
+                                    .background(Color.blue.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
+                                    
+                                    Button("View Entry") {
+                                        // TODO: Implement view entry functionality
+                                    }
+                                    .font(.subheadline)
+                                    .foregroundStyle(.blue)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 8)
+                                    .background(Color.blue.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
                                 }
-                                .font(.subheadline)
-                                .foregroundStyle(.blue)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 8)
-                                .background(Color.blue.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
+                                .padding(.horizontal, 16)
                             }
-                            .padding(.horizontal, 16)
                             .padding(.bottom, 8)
                         }
                     }
-                    
-                    if showMoments {
+                }
+                
+                // Daily Moments Section
+                if showMoments {
+                    Section("Daily Moments") {
                         TodayActivityRowWithCheckbox(
                             icon: "sparkles",
                             iconColor: .purple,
@@ -801,8 +829,11 @@ struct TodayViewV1i2: View {
                             }
                         )
                     }
-                    
-                    if showTrackers {
+                }
+                
+                // Daily Trackers Section
+                if showTrackers {
+                    Section("Daily Trackers") {
                         TodayActivityRowWithCheckbox(
                             icon: "chart.line.uptrend.xyaxis",
                             iconColor: .orange,
@@ -956,10 +987,6 @@ struct DailyChatView: View {
                     }
                 }
             }
-        }
-        .onAppear {
-            // Mark chat as started when the view appears
-            onChatStarted()
         }
     }
 }

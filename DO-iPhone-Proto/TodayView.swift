@@ -477,6 +477,15 @@ struct TodayViewV1i1: View {
                                 }
                                 .buttonStyle(.borderedProminent)
                                 .tint(Color(hex: "44C0FF"))
+                                
+                                // Selected locations display
+                                if !selectedLocations.isEmpty {
+                                    Text(Array(selectedLocations).joined(separator: ", "))
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                        .multilineTextAlignment(.center)
+                                        .padding(.top, 8)
+                                }
                             } else {
                                 Button("Start Chat") {
                                     showingDailyChat = true
@@ -782,64 +791,110 @@ struct TodayViewV1i2: View {
             // Content with Daily Activities
             List {
                 // Generated Journal Entry Preview (separate section)
-                if showChat && (chatCompleted || isGeneratingPreview) {
-                    Section {
+                Section("Daily Summary") {
                         HStack {
                             VStack(alignment: .leading, spacing: 6) {
                                 if isGeneratingPreview {
                                     // Loading state
-                                    HStack(spacing: 8) {
-                                        Text("Generating entry...")
-                                            .font(.subheadline)
-                                            .fontWeight(.bold)
-                                            .foregroundStyle(.secondary)
-                                            .multilineTextAlignment(.leading)
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        HStack(spacing: 8) {
+                                            Text("Generating entry...")
+                                                .font(.subheadline)
+                                                .fontWeight(.bold)
+                                                .foregroundStyle(.secondary)
+                                                .multilineTextAlignment(.leading)
+                                            
+                                            ProgressView()
+                                                .scaleEffect(0.8)
+                                        }
                                         
-                                        ProgressView()
-                                            .scaleEffect(0.8)
-                                    }
-                                    
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        // Placeholder lines with shimmer effect
-                                        RoundedRectangle(cornerRadius: 4)
-                                            .fill(.gray.opacity(0.3))
-                                            .frame(height: 16)
-                                            .frame(maxWidth: .infinity)
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            // Placeholder lines with shimmer effect
+                                            RoundedRectangle(cornerRadius: 4)
+                                                .fill(.gray.opacity(0.3))
+                                                .frame(height: 16)
+                                                .frame(maxWidth: .infinity)
+                                            
+                                            RoundedRectangle(cornerRadius: 4)
+                                                .fill(.gray.opacity(0.3))
+                                                .frame(height: 16)
+                                                .frame(maxWidth: .infinity)
+                                            
+                                            RoundedRectangle(cornerRadius: 4)
+                                                .fill(.gray.opacity(0.3))
+                                                .frame(height: 16)
+                                                .frame(maxWidth: 0.7 * UIScreen.main.bounds.width)
+                                            
+                                            RoundedRectangle(cornerRadius: 4)
+                                                .fill(.gray.opacity(0.3))
+                                                .frame(height: 16)
+                                                .frame(maxWidth: 0.9 * UIScreen.main.bounds.width)
+                                        }
                                         
-                                        RoundedRectangle(cornerRadius: 4)
-                                            .fill(.gray.opacity(0.3))
-                                            .frame(height: 16)
-                                            .frame(maxWidth: .infinity)
-                                        
-                                        RoundedRectangle(cornerRadius: 4)
-                                            .fill(.gray.opacity(0.3))
-                                            .frame(height: 16)
-                                            .frame(maxWidth: 0.7 * UIScreen.main.bounds.width)
-                                        
-                                        RoundedRectangle(cornerRadius: 4)
-                                            .fill(.gray.opacity(0.3))
-                                            .frame(height: 16)
-                                            .frame(maxWidth: 0.9 * UIScreen.main.bounds.width)
+                                        // Show selected locations even during loading
+                                        if !selectedLocations.isEmpty {
+                                            VStack(alignment: .leading, spacing: 2) {
+                                                Text("Locations:")
+                                                    .font(.caption)
+                                                    .fontWeight(.medium)
+                                                    .foregroundStyle(.primary)
+                                                
+                                                Text(Array(selectedLocations).joined(separator: ", "))
+                                                    .font(.caption)
+                                                    .foregroundStyle(.secondary)
+                                                    .multilineTextAlignment(.leading)
+                                            }
+                                        }
                                     }
                                 } else {
                                     // Actual content
-                                    Text("Morning Reflections and Evening Plans")
-                                        .font(.subheadline)
-                                        .fontWeight(.bold)
-                                        .foregroundStyle(.primary)
-                                        .multilineTextAlignment(.leading)
-                                    
-                                    Text("Today I started with my usual morning routine, feeling energized and ready to tackle the day ahead. I spent some time thinking about my work goals and how I want to approach the various projects I have on my plate. The conversation helped me organize my thoughts around what's most important right now. As I look toward the evening, I'm planning to wind down with some reading and prepare for tomorrow's meetings.")
-                                        .font(.subheadline)
-                                        .foregroundStyle(.secondary)
-                                        .lineLimit(4)
-                                        .multilineTextAlignment(.leading)
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        // Show placeholder if nothing is available
+                                        if !chatCompleted && selectedLocations.isEmpty {
+                                            Text("Interact to populate")
+                                                .font(.subheadline)
+                                                .foregroundStyle(.tertiary)
+                                                .multilineTextAlignment(.leading)
+                                        } else {
+                                            // Chat summary section
+                                            if chatCompleted {
+                                                VStack(alignment: .leading, spacing: 4) {
+                                                    Text("Morning Reflections and Evening Plans")
+                                                        .font(.subheadline)
+                                                        .fontWeight(.bold)
+                                                        .foregroundStyle(.primary)
+                                                        .multilineTextAlignment(.leading)
+                                                    
+                                                    Text("Today I started with my usual morning routine, feeling energized and ready to tackle the day ahead. I spent some time thinking about my work goals and how I want to approach the various projects I have on my plate. The conversation helped me organize my thoughts around what's most important right now. As I look toward the evening, I'm planning to wind down with some reading and prepare for tomorrow's meetings.")
+                                                        .font(.subheadline)
+                                                        .foregroundStyle(.secondary)
+                                                        .lineLimit(4)
+                                                        .multilineTextAlignment(.leading)
+                                                }
+                                            }
+                                            
+                                            // Selected locations section
+                                            if !selectedLocations.isEmpty {
+                                                VStack(alignment: .leading, spacing: 2) {
+                                                    Text("Locations:")
+                                                        .font(.caption)
+                                                        .fontWeight(.medium)
+                                                        .foregroundStyle(.primary)
+                                                    
+                                                    Text(Array(selectedLocations).joined(separator: ", "))
+                                                        .font(.caption)
+                                                        .foregroundStyle(.secondary)
+                                                        .multilineTextAlignment(.leading)
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                             
                             Spacer()
                             
-                            if !isGeneratingPreview {
+                            if !isGeneratingPreview && (chatCompleted || !selectedLocations.isEmpty) {
                                 Image(systemName: "chevron.right")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
@@ -848,7 +903,6 @@ struct TodayViewV1i2: View {
                         .padding(.vertical, 8)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                }
                 
                 // Daily Chat Section
                 if showChat {

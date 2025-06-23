@@ -580,6 +580,7 @@ struct TodayViewV1i2: View {
     @State private var momentsCompleted = false
     @State private var trackersCompleted = false
     @State private var showingProfileMenu = false
+    @State private var isGeneratingPreview = false
     
     // Show/hide toggles for Daily Activities
     @State private var showChat = true
@@ -771,6 +772,75 @@ struct TodayViewV1i2: View {
             
             // Content with Daily Activities
             List {
+                // Generated Journal Entry Preview (separate section)
+                if showChat && (chatCompleted || isGeneratingPreview) {
+                    Section {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 6) {
+                                if isGeneratingPreview {
+                                    // Loading state
+                                    HStack(spacing: 8) {
+                                        Text("Generating entry...")
+                                            .font(.subheadline)
+                                            .fontWeight(.bold)
+                                            .foregroundStyle(.secondary)
+                                            .multilineTextAlignment(.leading)
+                                        
+                                        ProgressView()
+                                            .scaleEffect(0.8)
+                                    }
+                                    
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        // Placeholder lines with shimmer effect
+                                        RoundedRectangle(cornerRadius: 4)
+                                            .fill(.gray.opacity(0.3))
+                                            .frame(height: 16)
+                                            .frame(maxWidth: .infinity)
+                                        
+                                        RoundedRectangle(cornerRadius: 4)
+                                            .fill(.gray.opacity(0.3))
+                                            .frame(height: 16)
+                                            .frame(maxWidth: .infinity)
+                                        
+                                        RoundedRectangle(cornerRadius: 4)
+                                            .fill(.gray.opacity(0.3))
+                                            .frame(height: 16)
+                                            .frame(maxWidth: 0.7 * UIScreen.main.bounds.width)
+                                        
+                                        RoundedRectangle(cornerRadius: 4)
+                                            .fill(.gray.opacity(0.3))
+                                            .frame(height: 16)
+                                            .frame(maxWidth: 0.9 * UIScreen.main.bounds.width)
+                                    }
+                                } else {
+                                    // Actual content
+                                    Text("Morning Reflections and Evening Plans")
+                                        .font(.subheadline)
+                                        .fontWeight(.bold)
+                                        .foregroundStyle(.primary)
+                                        .multilineTextAlignment(.leading)
+                                    
+                                    Text("Today I started with my usual morning routine, feeling energized and ready to tackle the day ahead. I spent some time thinking about my work goals and how I want to approach the various projects I have on my plate. The conversation helped me organize my thoughts around what's most important right now. As I look toward the evening, I'm planning to wind down with some reading and prepare for tomorrow's meetings.")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(4)
+                                        .multilineTextAlignment(.leading)
+                                }
+                            }
+                            
+                            Spacer()
+                            
+                            if !isGeneratingPreview {
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .padding(.vertical, 8)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+                
                 // Daily Chat Section
                 if showChat {
                     Section("Daily Chat") {
@@ -784,32 +854,6 @@ struct TodayViewV1i2: View {
                             action: { showingDailyChat = true },
                             resumeAction: { showingDailyChat = true }
                         )
-                        
-                        // Daily Chat additional options (shown only when completed)
-                        if chatCompleted {
-                            // Chat summary
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Discussed morning routine, work goals, and evening plans for a productive day.")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                                    .italic()
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(.horizontal, 16)
-                                
-                                HStack(spacing: 16) {
-                                    Button("View Entry") {
-                                        // TODO: Implement view entry functionality
-                                    }
-                                    .font(.subheadline)
-                                    .foregroundStyle(.blue)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 8)
-                                    .background(Color.blue.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
-                                }
-                                .padding(.horizontal, 16)
-                            }
-                            .padding(.bottom, 8)
-                        }
                     }
                 }
                 
@@ -849,7 +893,14 @@ struct TodayViewV1i2: View {
         }
         .sheet(isPresented: $showingDailyChat) {
             DailyChatView(onChatStarted: {
-                chatCompleted = true
+                // Start loading state when chat is first interacted with
+                isGeneratingPreview = true
+                
+                // Simulate AI processing delay
+                DispatchQueue.main.asyncAfter(deadline: .now() + Double.random(in: 2.0...4.0)) {
+                    isGeneratingPreview = false
+                    chatCompleted = true
+                }
             })
         }
         .sheet(isPresented: $showingMoments) {
@@ -873,6 +924,7 @@ struct TodayViewV1i2: View {
         .onChange(of: selectedDate) { oldValue, newValue in
             // Reset daily activities state when date changes
             chatCompleted = false
+            isGeneratingPreview = false
             
             // Clear moments data
             selectedLocations.removeAll()

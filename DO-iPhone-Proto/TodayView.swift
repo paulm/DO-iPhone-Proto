@@ -1084,6 +1084,8 @@ struct DailyChatView: View {
                                 }
                                 .buttonStyle(PlainButtonStyle())
                             }
+                            .padding(2)
+                            .background(.white, in: RoundedRectangle(cornerRadius: 18))
                         }
                         
                         Spacer()

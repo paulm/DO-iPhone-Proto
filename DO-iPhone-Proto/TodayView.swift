@@ -831,26 +831,31 @@ struct TodayViewV1i2: View {
                                                 .frame(maxWidth: 0.9 * UIScreen.main.bounds.width)
                                         }
                                         
-                                        // Show selected locations even during loading
-                                        if !selectedLocations.isEmpty {
+                                        // Show selected locations and events even during loading
+                                        if !selectedLocations.isEmpty || !selectedEvents.isEmpty {
                                             VStack(alignment: .leading, spacing: 2) {
-                                                Text("Locations:")
-                                                    .font(.caption)
-                                                    .fontWeight(.medium)
-                                                    .foregroundStyle(.primary)
+                                                if !selectedLocations.isEmpty {
+                                                    Text("Locations: ") +
+                                                    Text(Array(selectedLocations).joined(separator: ", "))
+                                                        .foregroundStyle(.secondary)
+                                                }
                                                 
-                                                Text(Array(selectedLocations).joined(separator: ", "))
-                                                    .font(.caption)
-                                                    .foregroundStyle(.secondary)
-                                                    .multilineTextAlignment(.leading)
+                                                if !selectedEvents.isEmpty {
+                                                    Text("Events: ") +
+                                                    Text(Array(selectedEvents).joined(separator: ", "))
+                                                        .foregroundStyle(.secondary)
+                                                }
                                             }
+                                            .font(.caption)
+                                            .foregroundStyle(.primary)
+                                            .fontWeight(.medium)
                                         }
                                     }
                                 } else {
                                     // Actual content
                                     VStack(alignment: .leading, spacing: 8) {
                                         // Show placeholder if nothing is available
-                                        if !chatCompleted && selectedLocations.isEmpty {
+                                        if !chatCompleted && selectedLocations.isEmpty && selectedEvents.isEmpty {
                                             Text("Interact to populate")
                                                 .font(.subheadline)
                                                 .foregroundStyle(.tertiary)
@@ -873,19 +878,24 @@ struct TodayViewV1i2: View {
                                                 }
                                             }
                                             
-                                            // Selected locations section
-                                            if !selectedLocations.isEmpty {
+                                            // Selected locations and events section
+                                            if !selectedLocations.isEmpty || !selectedEvents.isEmpty {
                                                 VStack(alignment: .leading, spacing: 2) {
-                                                    Text("Locations:")
-                                                        .font(.caption)
-                                                        .fontWeight(.medium)
-                                                        .foregroundStyle(.primary)
+                                                    if !selectedLocations.isEmpty {
+                                                        Text("Locations: ") +
+                                                        Text(Array(selectedLocations).joined(separator: ", "))
+                                                            .foregroundStyle(.secondary)
+                                                    }
                                                     
-                                                    Text(Array(selectedLocations).joined(separator: ", "))
-                                                        .font(.caption)
-                                                        .foregroundStyle(.secondary)
-                                                        .multilineTextAlignment(.leading)
+                                                    if !selectedEvents.isEmpty {
+                                                        Text("Events: ") +
+                                                        Text(Array(selectedEvents).joined(separator: ", "))
+                                                            .foregroundStyle(.secondary)
+                                                    }
                                                 }
+                                                .font(.caption)
+                                                .foregroundStyle(.primary)
+                                                .fontWeight(.medium)
                                             }
                                         }
                                     }
@@ -894,7 +904,7 @@ struct TodayViewV1i2: View {
                             
                             Spacer()
                             
-                            if !isGeneratingPreview && (chatCompleted || !selectedLocations.isEmpty) {
+                            if !isGeneratingPreview && (chatCompleted || !selectedLocations.isEmpty || !selectedEvents.isEmpty) {
                                 Image(systemName: "chevron.right")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)

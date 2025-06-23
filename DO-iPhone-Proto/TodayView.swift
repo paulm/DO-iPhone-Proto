@@ -947,37 +947,181 @@ struct TodayActivityRowWithCheckbox: View {
     }
 }
 
-// Daily Chat View (placeholder for now)
+// Daily Chat View
 struct DailyChatView: View {
     @Environment(\.dismiss) private var dismiss
     let onChatStarted: () -> Void
     
+    @State private var chatText = ""
+    @State private var isLogDetailsMode = false
+    @State private var messages: [DailyChatMessage] = []
+    @State private var isThinking = false
+    @FocusState private var isTextFieldFocused: Bool
+    
+    private var placeholderText: String {
+        isLogDetailsMode ? "Log any details about this day" : "Chat about your day"
+    }
+    
+    private var showHeaderContent: Bool {
+        messages.isEmpty
+    }
+    
+    private let aiResponses = [
+        "That sounds like a great way to spend your day! How did that make you feel?",
+        "Thanks for sharing that with me. I can tell this was meaningful to you. What was the most memorable part about it?",
+        "Interesting! I'd love to hear more about that experience. It sounds like it had quite an impact on your day.",
+        "That's wonderful that you took the time to do that. Sometimes the simple moments can be the most rewarding ones, don't you think?"
+    ]
+    
     var body: some View {
         NavigationStack {
-            VStack(spacing: 20) {
-                Image(systemName: "bubble.left.and.bubble.right.fill")
-                    .font(.system(size: 60))
-                    .foregroundStyle(Color(hex: "44C0FF"))
-                
-                Text("Daily Chat")
-                    .font(.title2)
-                    .fontWeight(.medium)
-                
-                Text("Chat interface would be implemented here")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
-                
-                Button("Start Chat (Demo)") {
-                    onChatStarted()
-                    dismiss()
+            VStack(spacing: 0) {
+                // Header content (disappears when user has messages)
+                if showHeaderContent {
+                    VStack(spacing: 20) {
+                        Image(systemName: "bubble.left.and.bubble.right.fill")
+                            .font(.system(size: 60))
+                            .foregroundStyle(Color(hex: "44C0FF"))
+                        
+                        Text("Daily Chat")
+                            .font(.title2)
+                            .fontWeight(.medium)
+                    }
+                    .padding(.top, 40)
+                    .transition(.opacity)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(Color(hex: "44C0FF"))
-                .padding(.top, 20)
+                
+                // Chat messages area
+                if !messages.isEmpty || isThinking {
+                    ScrollViewReader { proxy in
+                        ScrollView {
+                            LazyVStack(spacing: 12) {
+                                ForEach(messages) { message in
+                                    DailyChatBubbleView(message: message)
+                                        .id(message.id)
+                                }
+                                
+                                // Thinking indicator
+                                if isThinking {
+                                    HStack {
+                                        ThinkingIndicatorView()
+                                        Spacer()
+                                    }
+                                    .padding(.horizontal, 16)
+                                    .id("thinking")
+                                }
+                            }
+                            .padding(.vertical, 16)
+                        }
+                        .onChange(of: messages.count) { _, _ in
+                            if let lastMessage = messages.last {
+                                withAnimation(.easeOut(duration: 0.3)) {
+                                    proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                                }
+                            }
+                        }
+                        .onChange(of: isThinking) { _, newValue in
+                            if newValue {
+                                withAnimation(.easeOut(duration: 0.3)) {
+                                    proxy.scrollTo("thinking", anchor: .bottom)
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Spacer()
+                }
+                
+                // Chat input area
+                VStack(spacing: 0) {
+                    // Text input field
+                    TextField(placeholderText, text: $chatText, axis: .vertical)
+                        .focused($isTextFieldFocused)
+                        .textFieldStyle(.plain)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(Color(.systemBackground))
+                        .lineLimit(1...6)
+                    
+                    // Keyboard accessory toolbar
+                    HStack {
+                        // Chat mode toggle buttons
+                        HStack(spacing: 8) {
+                            Text("Mode:")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                            
+                            HStack(spacing: 4) {
+                                Button(action: {
+                                    isLogDetailsMode = false
+                                }) {
+                                    Text("Chat")
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(
+                                            !isLogDetailsMode ? Color(hex: "44C0FF") : Color.clear,
+                                            in: RoundedRectangle(cornerRadius: 16)
+                                        )
+                                        .foregroundStyle(!isLogDetailsMode ? .white : .secondary)
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                
+                                Button(action: {
+                                    isLogDetailsMode = true
+                                }) {
+                                    Text("Log")
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(
+                                            isLogDetailsMode ? Color(hex: "44C0FF") : Color.clear,
+                                            in: RoundedRectangle(cornerRadius: 16)
+                                        )
+                                        .foregroundStyle(isLogDetailsMode ? .white : .secondary)
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                            }
+                        }
+                        
+                        Spacer()
+                        
+                        // Audio and submit buttons
+                        HStack(spacing: 12) {
+                            Button(action: {
+                                // TODO: Audio chat functionality
+                            }) {
+                                Image(systemName: "mic.fill")
+                                    .font(.system(size: 16))
+                                    .foregroundStyle(.secondary)
+                                    .frame(width: 32, height: 32)
+                                    .background(Color(.systemGray5), in: Circle())
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            
+                            Button(action: {
+                                sendMessage()
+                            }) {
+                                Image(systemName: "arrow.up")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundStyle(.white)
+                                    .frame(width: 32, height: 32)
+                                    .background(
+                                        chatText.isEmpty ? Color.gray : Color(hex: "44C0FF"),
+                                        in: Circle()
+                                    )
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .disabled(chatText.isEmpty || isThinking)
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(Color(.systemGroupedBackground))
+                }
             }
-            .padding()
             .navigationTitle("Daily Chat")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -986,6 +1130,109 @@ struct DailyChatView: View {
                         dismiss()
                     }
                 }
+            }
+            .onAppear {
+                // Auto-focus text field when view appears
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    isTextFieldFocused = true
+                }
+            }
+        }
+    }
+    
+    private func sendMessage() {
+        let userMessage = DailyChatMessage(content: chatText, isUser: true)
+        messages.append(userMessage)
+        
+        chatText = ""
+        
+        // Trigger onChatStarted callback if this is the first message
+        if messages.count == 1 {
+            onChatStarted()
+        }
+        
+        // Only show AI response in Chat mode, not in Log details mode
+        if !isLogDetailsMode {
+            // Show thinking indicator
+            isThinking = true
+            
+            // Simulate AI response after a delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double.random(in: 1.5...3.0)) {
+                isThinking = false
+                let aiResponse = aiResponses.randomElement() ?? aiResponses[0]
+                let aiMessage = DailyChatMessage(content: aiResponse, isUser: false)
+                withAnimation(.easeIn(duration: 0.3)) {
+                    messages.append(aiMessage)
+                }
+            }
+        }
+    }
+}
+
+// Daily Chat Message Model
+struct DailyChatMessage: Identifiable, Equatable {
+    let id = UUID()
+    let content: String
+    let isUser: Bool
+    let timestamp = Date()
+}
+
+// Daily Chat Bubble View
+struct DailyChatBubbleView: View {
+    let message: DailyChatMessage
+    
+    var body: some View {
+        HStack {
+            if message.isUser {
+                Spacer(minLength: 50)
+                
+                Text(message.content)
+                    .font(.body)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(Color(hex: "44C0FF"), in: RoundedRectangle(cornerRadius: 18))
+            } else {
+                Text(message.content)
+                    .font(.body)
+                    .foregroundStyle(.primary)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(Color(.systemGray5), in: RoundedRectangle(cornerRadius: 18))
+                
+                Spacer(minLength: 50)
+            }
+        }
+        .padding(.horizontal, 16)
+    }
+}
+
+// Thinking Indicator View
+struct ThinkingIndicatorView: View {
+    @State private var animationOffset: CGFloat = 0
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            HStack(spacing: 4) {
+                ForEach(0..<3) { index in
+                    Circle()
+                        .fill(Color(.systemGray3))
+                        .frame(width: 8, height: 8)
+                        .scaleEffect(1.0 + 0.3 * sin(animationOffset + Double(index) * 0.5))
+                        .animation(
+                            Animation.easeInOut(duration: 1.0).repeatForever(),
+                            value: animationOffset
+                        )
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Color(.systemGray5), in: RoundedRectangle(cornerRadius: 18))
+        }
+        .onAppear {
+            animationOffset = 0
+            withAnimation {
+                animationOffset = .pi * 2
             }
         }
     }

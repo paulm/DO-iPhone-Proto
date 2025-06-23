@@ -665,6 +665,11 @@ struct TodayViewV1i2: View {
         return "\(interactionCount) interactions"
     }
     
+    private var chatSubtitleWithResume: String {
+        let interactionCount = Int.random(in: 1...55)
+        return "\(interactionCount) interactions Resume"
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
             // Header and date picker section with gray background
@@ -769,13 +774,15 @@ struct TodayViewV1i2: View {
                 // Daily Chat Section
                 if showChat {
                     Section("Daily Chat") {
-                        TodayActivityRowWithCheckbox(
+                        TodayActivityRowWithChatResume(
                             icon: "bubble.left.and.bubble.right.fill",
                             iconColor: .blue,
                             title: dailyChatTitle,
                             subtitle: chatCompleted ? chatInteractionsText : "Share details or answer questions via chat to auto compose your daily entry.",
                             isCompleted: chatCompleted,
-                            action: { showingDailyChat = true }
+                            showResume: chatCompleted,
+                            action: { showingDailyChat = true },
+                            resumeAction: { showingDailyChat = true }
                         )
                         
                         // Daily Chat additional options (shown only when completed)
@@ -790,15 +797,6 @@ struct TodayViewV1i2: View {
                                     .padding(.horizontal, 16)
                                 
                                 HStack(spacing: 16) {
-                                    Button("Resume Chat") {
-                                        showingDailyChat = true
-                                    }
-                                    .font(.subheadline)
-                                    .foregroundStyle(.blue)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 8)
-                                    .background(Color.blue.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
-                                    
                                     Button("View Entry") {
                                         // TODO: Implement view entry functionality
                                     }
@@ -927,6 +925,79 @@ struct TodayActivityRowWithCheckbox: View {
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                
+                Spacer()
+                
+                if isCompleted {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
+                        .font(.title3)
+                } else {
+                    Image(systemName: "circle")
+                        .foregroundStyle(.secondary.opacity(0.5))
+                        .font(.title3)
+                }
+            }
+            .padding(.vertical, 4)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+// Custom row component with chat resume functionality
+struct TodayActivityRowWithChatResume: View {
+    let icon: String
+    let iconColor: Color
+    let title: String
+    let subtitle: String
+    let isCompleted: Bool
+    let showResume: Bool
+    let action: () -> Void
+    let resumeAction: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                // Icon with colored background
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(iconColor)
+                    .frame(width: 32, height: 32)
+                    .overlay(
+                        Image(systemName: icon)
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundStyle(.white)
+                    )
+                
+                // Content
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    if showResume {
+                        HStack(spacing: 4) {
+                            Text(subtitle)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                            
+                            Button(action: resumeAction) {
+                                Text("Resume")
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color(hex: "44C0FF"))
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            
+                            Spacer()
+                        }
+                    } else {
+                        Text(subtitle)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
                 }
                 
                 Spacer()

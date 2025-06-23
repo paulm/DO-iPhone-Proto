@@ -585,7 +585,7 @@ struct TodayViewV1i2: View {
     // Show/hide toggles for Daily Activities
     @State private var showChat = true
     @State private var showMoments = true
-    @State private var showTrackers = true
+    @State private var showTrackers = false
     @Binding var moodRating: Int
     @Binding var energyRating: Int
     @Binding var stressRating: Int
@@ -646,6 +646,15 @@ struct TodayViewV1i2: View {
         !selectedLocations.isEmpty || !selectedEvents.isEmpty || !selectedPhotos.isEmpty
     }
     
+    private var momentsCountText: String {
+        let totalSelected = selectedLocations.count + selectedEvents.count + selectedPhotos.count
+        if totalSelected == 0 {
+            return "Capture meaningful moments from your day"
+        } else {
+            return "\(totalSelected) selected."
+        }
+    }
+    
     private var hasTrackerData: Bool {
         moodRating > 0 || energyRating > 0 || stressRating > 0 || 
         !foodInput.isEmpty || !prioritiesInput.isEmpty || !mediaInput.isEmpty || !peopleInput.isEmpty
@@ -663,7 +672,7 @@ struct TodayViewV1i2: View {
     
     private var chatInteractionsText: String {
         let interactionCount = Int.random(in: 1...55)
-        return "\(interactionCount) interactions"
+        return "\(interactionCount) interactions."
     }
     
     private var chatSubtitleWithResume: String {
@@ -860,11 +869,11 @@ struct TodayViewV1i2: View {
                 // Daily Moments Section
                 if showMoments {
                     Section("Daily Moments") {
-                        TodayActivityRowWithCheckbox(
+                        TodayActivityRowWithMomentsSubtitle(
                             icon: "sparkles",
                             iconColor: .purple,
                             title: "Moments",
-                            subtitle: hasSelectedMoments ? "Moments completed for today" : "Capture meaningful moments from your day",
+                            selectedCount: selectedLocations.count + selectedEvents.count + selectedPhotos.count,
                             isCompleted: hasSelectedMoments,
                             action: { 
                                 showingMoments = true
@@ -1449,6 +1458,64 @@ struct MomentsSummarySection: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+// Custom row component with moments-specific subtitle formatting
+struct TodayActivityRowWithMomentsSubtitle: View {
+    let icon: String
+    let iconColor: Color
+    let title: String
+    let selectedCount: Int
+    let isCompleted: Bool
+    let action: () -> Void
+    
+    private var subtitleText: Text {
+        if selectedCount == 0 {
+            return Text("Capture meaningful moments from your day")
+                .foregroundStyle(.secondary)
+        } else {
+            return Text("\(selectedCount) selected. ")
+                .foregroundStyle(.secondary) +
+            Text("Select more")
+                .foregroundStyle(Color(hex: "44C0FF"))
+        }
+    }
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(iconColor.opacity(0.15))
+                        .frame(width: 32, height: 32)
+                    
+                    Image(systemName: icon)
+                        .foregroundStyle(iconColor)
+                        .font(.system(size: 16, weight: .medium))
+                }
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    subtitleText
+                        .font(.subheadline)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                
+                Spacer()
+                
+                Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(isCompleted ? .green : .secondary)
+                    .font(.title3)
+            }
+            .padding(.vertical, 4)
         }
         .buttonStyle(PlainButtonStyle())
     }

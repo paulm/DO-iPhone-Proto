@@ -9,6 +9,7 @@ enum AppSection: String, CaseIterable, Identifiable {
     case moreTab = "More Tab"
     case journalPicker = "Journal Picker"
     case entryView = "Entry View"
+    case momentsModal = "Moments Modal"
     
     var id: String { rawValue }
 }
@@ -20,6 +21,7 @@ enum ExperimentVariant: String, CaseIterable, Identifiable {
     case paged = "Paged"
     case v1i1 = "v1i1"
     case v1i2 = "v1i2"
+    case grid = "Grid"
     
     var id: String { rawValue }
 }
@@ -38,6 +40,9 @@ class ExperimentsManager {
         
         // Set Today tab to use v1i2 as default
         variants[.todayTab] = .v1i2
+        
+        // Set Moments modal to use grid as default
+        variants[.momentsModal] = .grid
     }
     
     func variant(for section: AppSection) -> ExperimentVariant {
@@ -81,6 +86,8 @@ class ExperimentsManager {
             return [.original] // All use compact layout now
         case .entryView:
             return [.original] // Only original for now, will expand later
+        case .momentsModal:
+            return [.original, .grid] // List and Grid variants
         }
     }
 }
@@ -133,37 +140,46 @@ struct ExperimentsView: View {
                 // Individual Section Controls
                 Section("Individual Section Controls") {
                     ForEach(AppSection.allCases) { section in
-                        let availableVariants = experimentsManager.availableVariants(for: section)
-                        
-                        if availableVariants.count > 1 {
-                            DisclosureGroup(section.rawValue) {
-                                ForEach(availableVariants) { variant in
-                                    HStack {
-                                        Text(variant.rawValue)
-                                            .font(.body)
-                                        
-                                        Spacer()
-                                        
-                                        if experimentsManager.variant(for: section) == variant {
-                                            Image(systemName: "checkmark")
-                                                .foregroundStyle(Color(hex: "44C0FF"))
-                                                .font(.subheadline)
-                                                .fontWeight(.semibold)
-                                        }
-                                    }
-                                    .contentShape(Rectangle())
-                                    .onTapGesture {
-                                        experimentsManager.setVariant(variant, for: section)
-                                    }
-                                }
-                            }
-                        }
+                        ExperimentSectionRow(section: section, experimentsManager: experimentsManager)
                     }
                 }
             }
             .listStyle(.insetGrouped)
             .navigationTitle("Experiments")
             .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+}
+
+struct ExperimentSectionRow: View {
+    let section: AppSection
+    let experimentsManager: ExperimentsManager
+    
+    var body: some View {
+        let availableVariants = experimentsManager.availableVariants(for: section)
+        
+        if availableVariants.count > 1 {
+            DisclosureGroup(section.rawValue) {
+                ForEach(availableVariants) { variant in
+                    HStack {
+                        Text(variant.rawValue)
+                            .font(.body)
+                        
+                        Spacer()
+                        
+                        if experimentsManager.variant(for: section) == variant {
+                            Image(systemName: "checkmark")
+                                .foregroundStyle(Color(hex: "44C0FF"))
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                        }
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        experimentsManager.setVariant(variant, for: section)
+                    }
+                }
+            }
         }
     }
 }

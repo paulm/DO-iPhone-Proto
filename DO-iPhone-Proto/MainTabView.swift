@@ -7,46 +7,68 @@ struct MainTabView: View {
     private var experimentsManager = ExperimentsManager.shared
     
     var body: some View {
-        TabView(selection: Binding(
-            get: { selectedTab },
-            set: { newValue in
-                if selectedTab == newValue {
-                    // Same tab selected again - cycle experiment
-                    handleTabReselection(for: newValue)
-                } else {
-                    selectedTab = newValue
+        ZStack {
+            TabView(selection: Binding(
+                get: { selectedTab },
+                set: { newValue in
+                    if selectedTab == newValue {
+                        // Same tab selected again - cycle experiment
+                        handleTabReselection(for: newValue)
+                    } else {
+                        selectedTab = newValue
+                    }
+                }
+            )) {
+                TimelineView()
+                    .tabItem {
+                        Image(systemName: "calendar")
+                        Text("Today")
+                    }
+                    .tag(0)
+                
+                JournalsView()
+                    .tabItem {
+                        Image(systemName: "book")
+                        Text("Journals")
+                    }
+                    .tag(1)
+                
+                PromptsView()
+                    .tabItem {
+                        Image(systemName: "bubble.left.and.bubble.right")
+                        Text("Prompts")
+                    }
+                    .tag(2)
+                
+                MoreView()
+                    .tabItem {
+                        Image(systemName: "ellipsis")
+                        Text("More")
+                    }
+                    .tag(3)
+            }
+            .tint(.black)
+            
+            // Floating Action Button - only show on Today and Journals tabs
+            if selectedTab == 0 || selectedTab == 1 {
+                VStack {
+                    Spacer()
+                    HStack(spacing: 12) {
+                        Spacer()
+                        DailyChatFAB {
+                            // Send notification to trigger Daily Chat
+                            NotificationCenter.default.post(name: NSNotification.Name("TriggerDailyChat"), object: nil)
+                        }
+                        FloatingActionButton {
+                            // FAB action - will be defined later
+                            print("FAB tapped on tab \(selectedTab)")
+                        }
+                    }
+                    .padding(.trailing, 16)
+                    .padding(.bottom, 90) // Position above tab bar
                 }
             }
-        )) {
-            TimelineView()
-                .tabItem {
-                    Image(systemName: "calendar")
-                    Text("Today")
-                }
-                .tag(0)
-            
-            JournalsView()
-                .tabItem {
-                    Image(systemName: "book")
-                    Text("Journals")
-                }
-                .tag(1)
-            
-            PromptsView()
-                .tabItem {
-                    Image(systemName: "bubble.left.and.bubble.right")
-                    Text("Prompts")
-                }
-                .tag(2)
-            
-            MoreView()
-                .tabItem {
-                    Image(systemName: "ellipsis")
-                    Text("More")
-                }
-                .tag(3)
         }
-        .tint(.black)
     }
     
     private func handleTabReselection(for tabIndex: Int) {
@@ -85,6 +107,40 @@ struct MainTabView: View {
         }
     }
 }
+
+struct FloatingActionButton: View {
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "plus")
+                .font(.system(size: 24, weight: .medium))
+                .foregroundColor(.white)
+                .frame(width: 56, height: 56)
+        }
+        .background(Color(hex: "44C0FF"))
+        .clipShape(Circle())
+        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+    }
+}
+
+struct DailyChatFAB: View {
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Text("Daily Chat")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(.white)
+                .frame(height: 56)
+                .padding(.horizontal, 20)
+        }
+        .background(Color(hex: "44C0FF"))
+        .clipShape(RoundedRectangle(cornerRadius: 28))
+        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+    }
+}
+
 
 #Preview {
     MainTabView()

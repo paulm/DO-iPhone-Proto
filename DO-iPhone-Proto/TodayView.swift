@@ -589,6 +589,11 @@ struct TodayViewV1i2: View {
     @State private var showingProfileMenu = false
     @State private var isGeneratingPreview = false
     
+    // Today Insights state
+    @State private var showingWeather = false
+    @State private var showingEntries = false
+    @State private var showingOnThisDay = false
+    
     // Show/hide toggles for Daily Activities
     @State private var showChat = true
     @State private var showMoments = true
@@ -688,8 +693,9 @@ struct TodayViewV1i2: View {
     }
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Header and date picker section with gray background
+        NavigationStack {
+            VStack(spacing: 0) {
+                // Header and date picker section with gray background
             VStack(spacing: 0) {
                 // Header with profile button
                 HStack {
@@ -969,6 +975,33 @@ struct TodayViewV1i2: View {
                         )
                     }
                 }
+                
+                // Today Insights Section
+                Section("Today Insights") {
+                    HStack(spacing: 0) {
+                        TodayInsightItem(
+                            icon: "cloud.sun",
+                            title: "72°F Sunny",
+                            detail: "Alpine, Utah",
+                            action: { showingWeather = true }
+                        )
+                        
+                        TodayInsightItem(
+                            icon: "square.and.pencil",
+                            title: "3 entries",
+                            detail: "Today",
+                            action: { showingEntries = true }
+                        )
+                        
+                        TodayInsightItem(
+                            icon: "calendar.badge.clock",
+                            title: "2 memories",
+                            detail: "On This Day",
+                            action: { showingOnThisDay = true }
+                        )
+                    }
+                    .padding(.vertical, 8)
+                }
             }
             .listStyle(.insetGrouped)
         }
@@ -1023,6 +1056,22 @@ struct TodayViewV1i2: View {
             prioritiesInput = ""
             mediaInput = ""
             peopleInput = ""
+        }
+        .sheet(isPresented: $showingWeather) {
+            NavigationStack {
+                WeatherView()
+            }
+        }
+        .sheet(isPresented: $showingEntries) {
+            NavigationStack {
+                EntriesView()
+            }
+        }
+        .sheet(isPresented: $showingOnThisDay) {
+            NavigationStack {
+                OnThisDayView()
+            }
+        }
         }
     }
 }
@@ -1744,6 +1793,171 @@ struct TodayActivityRowWithMomentsSubtitle: View {
             .padding(.vertical, 4)
         }
         .buttonStyle(PlainButtonStyle())
+    }
+}
+
+// Placeholder Views for Today Insights
+struct WeatherView: View {
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        VStack {
+            Image(systemName: "cloud.sun")
+                .font(.system(size: 80))
+                .foregroundStyle(Color(hex: "44C0FF"))
+                .padding()
+            
+            Text("Weather")
+                .font(.largeTitle)
+                .fontWeight(.bold)
+            
+            Text("Weather information will be displayed here")
+                .font(.body)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding()
+            
+            Spacer()
+        }
+        .navigationTitle("Weather")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Done") {
+                    dismiss()
+                }
+            }
+        }
+    }
+}
+
+struct EntriesView: View {
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        VStack {
+            Image(systemName: "square.and.pencil")
+                .font(.system(size: 80))
+                .foregroundStyle(Color(hex: "44C0FF"))
+                .padding()
+            
+            Text("Entries")
+                .font(.largeTitle)
+                .fontWeight(.bold)
+            
+            Text("Journal entries will be displayed here")
+                .font(.body)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding()
+            
+            Spacer()
+        }
+        .navigationTitle("Entries")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Done") {
+                    dismiss()
+                }
+            }
+        }
+    }
+}
+
+struct OnThisDayView: View {
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        VStack {
+            Image(systemName: "calendar.badge.clock")
+                .font(.system(size: 80))
+                .foregroundStyle(Color(hex: "44C0FF"))
+                .padding()
+            
+            Text("On This Day")
+                .font(.largeTitle)
+                .fontWeight(.bold)
+            
+            Text("Memories from this day in previous years will be displayed here")
+                .font(.body)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding()
+            
+            Spacer()
+        }
+        .navigationTitle("On This Day")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Done") {
+                    dismiss()
+                }
+            }
+        }
+    }
+}
+
+// Today Insight Item Component
+struct TodayInsightItem: View {
+    let icon: String
+    let title: String
+    let detail: String
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 32, weight: .light))
+                    .foregroundStyle(Color(hex: "44C0FF"))
+                    .frame(height: 40)
+                
+                VStack(spacing: 2) {
+                    Text(title)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                    
+                    Text(detail)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+// TodayInsightItem without action for NavigationLink usage
+struct TodayInsightItemView: View {
+    let icon: String
+    let title: String
+    let detail: String
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 32, weight: .light))
+                .foregroundStyle(Color(hex: "44C0FF"))
+                .frame(height: 40)
+            
+            VStack(spacing: 2) {
+                Text(title)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.primary)
+                
+                Text(detail)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
     }
 }
 

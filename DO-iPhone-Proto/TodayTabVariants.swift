@@ -23,6 +23,7 @@ struct TodayTabSettingsStyleView: View {
     @State private var selectedLocations: Set<String> = []
     @State private var selectedEvents: Set<String> = []
     @State private var selectedPhotos: Set<String> = []
+    @State private var selectedHealth: Set<String> = []
     
     private var todayDateString: String {
         let formatter = DateFormatter()
@@ -33,7 +34,7 @@ struct TodayTabSettingsStyleView: View {
     private var completedActivitiesCount: Int {
         var count = 0
         if surveyCompleted { count += 1 }
-        if !selectedLocations.isEmpty || !selectedEvents.isEmpty || !selectedPhotos.isEmpty { count += 1 }
+        if !selectedLocations.isEmpty || !selectedEvents.isEmpty || !selectedPhotos.isEmpty || !selectedHealth.isEmpty { count += 1 }
         if moodRating > 0 || energyRating > 0 || stressRating > 0 || 
            !foodInput.isEmpty || !prioritiesInput.isEmpty || !mediaInput.isEmpty || !peopleInput.isEmpty { count += 1 }
         return count
@@ -185,7 +186,8 @@ struct TodayTabSettingsStyleView: View {
                 MomentsView(
                     selectedLocations: $selectedLocations,
                     selectedEvents: $selectedEvents,
-                    selectedPhotos: $selectedPhotos
+                    selectedPhotos: $selectedPhotos,
+                    selectedHealth: $selectedHealth
                 )
             }
             .sheet(isPresented: $showingTrackers) {

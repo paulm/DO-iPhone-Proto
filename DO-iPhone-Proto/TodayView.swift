@@ -24,6 +24,7 @@ struct TodayView: View {
     @State private var selectedLocations: Set<String> = []
     @State private var selectedEvents: Set<String> = []
     @State private var selectedPhotos: Set<String> = []
+    @State private var selectedHealth: Set<String> = []
     
     private var dateRange: [Date] {
         let calendar = Calendar.current
@@ -68,7 +69,8 @@ struct TodayView: View {
                     peopleInput: $peopleInput,
                     selectedLocations: $selectedLocations,
                     selectedEvents: $selectedEvents,
-                    selectedPhotos: $selectedPhotos
+                    selectedPhotos: $selectedPhotos,
+                    selectedHealth: $selectedHealth
                 )
             case .appleSettings:
                 TodayTabSettingsStyleView()
@@ -80,7 +82,8 @@ struct TodayView: View {
                     selectedDate: $selectedDate,
                     selectedLocations: $selectedLocations,
                     selectedEvents: $selectedEvents,
-                    selectedPhotos: $selectedPhotos
+                    selectedPhotos: $selectedPhotos,
+                    selectedHealth: $selectedHealth
                 )
             case .v1i2:
                 TodayViewV1i2(
@@ -100,7 +103,8 @@ struct TodayView: View {
                     peopleInput: $peopleInput,
                     selectedLocations: $selectedLocations,
                     selectedEvents: $selectedEvents,
-                    selectedPhotos: $selectedPhotos
+                    selectedPhotos: $selectedPhotos,
+                    selectedHealth: $selectedHealth
                 )
             default:
                 TodayViewOriginal(
@@ -120,7 +124,8 @@ struct TodayView: View {
                     peopleInput: $peopleInput,
                     selectedLocations: $selectedLocations,
                     selectedEvents: $selectedEvents,
-                    selectedPhotos: $selectedPhotos
+                    selectedPhotos: $selectedPhotos,
+                    selectedHealth: $selectedHealth
                 )
             }
         }
@@ -156,7 +161,8 @@ struct TodayView: View {
             MomentsView(
                 selectedLocations: $selectedLocations,
                 selectedEvents: $selectedEvents,
-                selectedPhotos: $selectedPhotos
+                selectedPhotos: $selectedPhotos,
+                selectedHealth: $selectedHealth
             )
         }
         .sheet(isPresented: $showingTrackers) {
@@ -192,6 +198,7 @@ struct TodayViewOriginal: View {
     @Binding var selectedLocations: Set<String>
     @Binding var selectedEvents: Set<String>
     @Binding var selectedPhotos: Set<String>
+    @Binding var selectedHealth: Set<String>
     
     private var dateRange: [Date] {
         let calendar = Calendar.current
@@ -345,6 +352,7 @@ struct TodayViewV1i1: View {
     @Binding var selectedLocations: Set<String>
     @Binding var selectedEvents: Set<String>
     @Binding var selectedPhotos: Set<String>
+    @Binding var selectedHealth: Set<String>
     
     @State private var showingDailyChat = false
     @State private var chatStarted = false
@@ -562,7 +570,8 @@ struct TodayViewV1i1: View {
             MomentsView(
                 selectedLocations: $selectedLocations,
                 selectedEvents: $selectedEvents,
-                selectedPhotos: $selectedPhotos
+                selectedPhotos: $selectedPhotos,
+                selectedHealth: $selectedHealth
             )
             .onAppear {
                 momentsOpened = true
@@ -609,6 +618,7 @@ struct TodayViewV1i2: View {
     @Binding var selectedLocations: Set<String>
     @Binding var selectedEvents: Set<String>
     @Binding var selectedPhotos: Set<String>
+    @Binding var selectedHealth: Set<String>
     
     private var dateRange: [Date] {
         let calendar = Calendar.current
@@ -656,11 +666,11 @@ struct TodayViewV1i2: View {
     }
     
     private var hasSelectedMoments: Bool {
-        !selectedLocations.isEmpty || !selectedEvents.isEmpty || !selectedPhotos.isEmpty
+        !selectedLocations.isEmpty || !selectedEvents.isEmpty || !selectedPhotos.isEmpty || !selectedHealth.isEmpty
     }
     
     private var momentsCountText: String {
-        let totalSelected = selectedLocations.count + selectedEvents.count + selectedPhotos.count
+        let totalSelected = selectedLocations.count + selectedEvents.count + selectedPhotos.count + selectedHealth.count
         if totalSelected == 0 {
             return "Capture meaningful moments from your day"
         } else {
@@ -847,8 +857,8 @@ struct TodayViewV1i2: View {
                                                 .frame(maxWidth: 0.9 * UIScreen.main.bounds.width)
                                         }
                                         
-                                        // Show selected locations and events even during loading
-                                        if !selectedLocations.isEmpty || !selectedEvents.isEmpty {
+                                        // Show selected locations, events, and health even during loading
+                                        if !selectedLocations.isEmpty || !selectedEvents.isEmpty || !selectedHealth.isEmpty {
                                             VStack(alignment: .leading, spacing: 2) {
                                                 if !selectedLocations.isEmpty {
                                                     Text("Locations: ") +
@@ -861,6 +871,12 @@ struct TodayViewV1i2: View {
                                                     Text(Array(selectedEvents).joined(separator: ", "))
                                                         .foregroundStyle(.secondary)
                                                 }
+                                                
+                                                if !selectedHealth.isEmpty {
+                                                    Text("Health: ") +
+                                                    Text(Array(selectedHealth).joined(separator: ", "))
+                                                        .foregroundStyle(.secondary)
+                                                }
                                             }
                                             .font(.caption)
                                             .foregroundStyle(.primary)
@@ -871,7 +887,7 @@ struct TodayViewV1i2: View {
                                     // Actual content
                                     VStack(alignment: .leading, spacing: 8) {
                                         // Show placeholder if nothing is available
-                                        if !chatCompleted && selectedLocations.isEmpty && selectedEvents.isEmpty {
+                                        if !chatCompleted && selectedLocations.isEmpty && selectedEvents.isEmpty && selectedHealth.isEmpty {
                                             Text("Interact to populate")
                                                 .font(.subheadline)
                                                 .foregroundStyle(.tertiary)
@@ -894,8 +910,8 @@ struct TodayViewV1i2: View {
                                                 }
                                             }
                                             
-                                            // Selected locations and events section
-                                            if !selectedLocations.isEmpty || !selectedEvents.isEmpty {
+                                            // Selected locations, events, and health section
+                                            if !selectedLocations.isEmpty || !selectedEvents.isEmpty || !selectedHealth.isEmpty {
                                                 VStack(alignment: .leading, spacing: 2) {
                                                     if !selectedLocations.isEmpty {
                                                         Text("Locations: ") +
@@ -906,6 +922,12 @@ struct TodayViewV1i2: View {
                                                     if !selectedEvents.isEmpty {
                                                         Text("Events: ") +
                                                         Text(Array(selectedEvents).joined(separator: ", "))
+                                                            .foregroundStyle(.secondary)
+                                                    }
+                                                    
+                                                    if !selectedHealth.isEmpty {
+                                                        Text("Health: ") +
+                                                        Text(Array(selectedHealth).joined(separator: ", "))
                                                             .foregroundStyle(.secondary)
                                                     }
                                                 }
@@ -962,7 +984,7 @@ struct TodayViewV1i2: View {
                             icon: "sparkles",
                             iconColor: .purple,
                             title: "Moments",
-                            selectedCount: selectedLocations.count + selectedEvents.count + selectedPhotos.count,
+                            selectedCount: selectedLocations.count + selectedEvents.count + selectedPhotos.count + selectedHealth.count,
                             isCompleted: hasSelectedMoments,
                             selectedDate: selectedDate,
                             action: { 
@@ -1038,7 +1060,8 @@ struct TodayViewV1i2: View {
             MomentsView(
                 selectedLocations: $selectedLocations,
                 selectedEvents: $selectedEvents,
-                selectedPhotos: $selectedPhotos
+                selectedPhotos: $selectedPhotos,
+                selectedHealth: $selectedHealth
             )
         }
         .sheet(isPresented: $showingTrackers) {

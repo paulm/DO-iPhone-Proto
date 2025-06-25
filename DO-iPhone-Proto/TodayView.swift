@@ -598,6 +598,7 @@ struct TodayViewV1i2: View {
     @State private var showChat = true
     @State private var showMoments = true
     @State private var showTrackers = false
+    @State private var showInsights = false
     @Binding var moodRating: Int
     @Binding var energyRating: Int
     @Binding var stressRating: Int
@@ -739,6 +740,17 @@ struct TodayViewV1i2: View {
                                 HStack {
                                     Text("Trackers")
                                     if showTrackers {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showInsights.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Today Insights")
+                                    if showInsights {
                                         Image(systemName: "checkmark")
                                     }
                                 }
@@ -977,7 +989,8 @@ struct TodayViewV1i2: View {
                 }
                 
                 // Today Insights Section
-                Section("Today Insights") {
+                if showInsights {
+                    Section("Today Insights") {
                     HStack(spacing: 0) {
                         TodayInsightItem(
                             icon: "cloud.sun",
@@ -1000,7 +1013,8 @@ struct TodayViewV1i2: View {
                             action: { showingOnThisDay = true }
                         )
                     }
-                    .padding(.vertical, 8)
+                    .padding(.vertical, 4)
+                    }
                 }
             }
             .listStyle(.insetGrouped)
@@ -1747,7 +1761,7 @@ struct TodayActivityRowWithMomentsSubtitle: View {
     
     private var subtitleText: Text {
         if selectedCount == 0 {
-            return Text("Select moments from ")
+            return Text("Select media, places, and events from ")
                 .foregroundStyle(.secondary) +
             Text(relativeDateText)
                 .foregroundStyle(Color(hex: "44C0FF"))
@@ -1908,11 +1922,11 @@ struct TodayInsightItem: View {
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 8) {
+            VStack(spacing: 6) {
                 Image(systemName: icon)
-                    .font(.system(size: 32, weight: .light))
+                    .font(.system(size: 24, weight: .light))
                     .foregroundStyle(Color(hex: "44C0FF"))
-                    .frame(height: 40)
+                    .frame(height: 28)
                 
                 VStack(spacing: 2) {
                     Text(title)
@@ -1926,7 +1940,7 @@ struct TodayInsightItem: View {
                 }
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
+            .padding(.vertical, 4)
         }
         .buttonStyle(PlainButtonStyle())
     }

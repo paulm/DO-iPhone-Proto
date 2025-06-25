@@ -597,6 +597,8 @@ struct TodayViewV1i2: View {
     @State private var trackersCompleted = false
     @State private var showingProfileMenu = false
     @State private var isGeneratingPreview = false
+    @State private var summaryGenerated = false
+    @State private var hasInteractedWithChat = false
     
     // Today Insights state
     @State private var showingWeather = false
@@ -887,14 +889,31 @@ struct TodayViewV1i2: View {
                                     // Actual content
                                     VStack(alignment: .leading, spacing: 8) {
                                         // Show placeholder if nothing is available
-                                        if !chatCompleted && selectedLocations.isEmpty && selectedEvents.isEmpty && selectedHealth.isEmpty {
+                                        if !hasInteractedWithChat && selectedLocations.isEmpty && selectedEvents.isEmpty && selectedHealth.isEmpty {
                                             Text("Interact to populate")
                                                 .font(.subheadline)
                                                 .foregroundStyle(.tertiary)
                                                 .multilineTextAlignment(.leading)
                                         } else {
+                                            // Generate Entry button section
+                                            if hasInteractedWithChat && !summaryGenerated {
+                                                Button(action: {
+                                                    generateSummary()
+                                                }) {
+                                                    HStack {
+                                                        Image(systemName: "wand.and.stars")
+                                                            .font(.caption)
+                                                        Text("Generate Entry")
+                                                            .font(.subheadline)
+                                                            .fontWeight(.medium)
+                                                    }
+                                                    .foregroundColor(.blue)
+                                                }
+                                                .buttonStyle(.plain)
+                                            }
+                                            
                                             // Chat summary section
-                                            if chatCompleted {
+                                            if summaryGenerated {
                                                 VStack(alignment: .leading, spacing: 4) {
                                                     Text("Morning Reflections and Evening Plans")
                                                         .font(.subheadline)
@@ -1045,14 +1064,9 @@ struct TodayViewV1i2: View {
             DailyChatView(
                 initialLogMode: openChatInLogMode,
                 onChatStarted: {
-                    // Start loading state when chat is first interacted with
-                    isGeneratingPreview = true
-                    
-                    // Simulate AI processing delay
-                    DispatchQueue.main.asyncAfter(deadline: .now() + Double.random(in: 2.0...4.0)) {
-                        isGeneratingPreview = false
-                        chatCompleted = true
-                    }
+                    // Mark that user has interacted with chat
+                    hasInteractedWithChat = true
+                    chatCompleted = true
                 }
             )
         }
@@ -1079,6 +1093,8 @@ struct TodayViewV1i2: View {
             // Reset daily activities state when date changes
             chatCompleted = false
             isGeneratingPreview = false
+            summaryGenerated = false
+            hasInteractedWithChat = false
             
             // Clear moments data
             selectedLocations.removeAll()
@@ -1109,6 +1125,17 @@ struct TodayViewV1i2: View {
                 OnThisDayView()
             }
         }
+        }
+    }
+    
+    private func generateSummary() {
+        // Start loading state
+        isGeneratingPreview = true
+        
+        // Simulate AI processing delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + Double.random(in: 2.0...4.0)) {
+            isGeneratingPreview = false
+            summaryGenerated = true
         }
     }
 }

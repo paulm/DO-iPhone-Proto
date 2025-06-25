@@ -447,16 +447,10 @@ struct TodayViewV1i1: View {
                         showingDailyChat = true
                     }) {
                         VStack(spacing: 20) {
-                            // Blue chat bubble icon
+                            // Blue chat bubble icon (centered)
                             Image(systemName: "bubble.left.and.bubble.right.fill")
                                 .font(.system(size: 50))
                                 .foregroundStyle(Color(hex: "44C0FF"))
-                            
-                            // Title
-                            Text("Daily Chat")
-                                .font(.title2)
-                                .fontWeight(.medium)
-                                .foregroundStyle(.primary)
                             
                             // Status message
                             if chatStarted {
@@ -557,9 +551,12 @@ struct TodayViewV1i1: View {
             }
         }
         .sheet(isPresented: $showingDailyChat) {
-            DailyChatView(onChatStarted: {
-                chatStarted = true
-            })
+            DailyChatView(
+                initialLogMode: false,
+                onChatStarted: {
+                    chatStarted = true
+                }
+            )
         }
         .sheet(isPresented: $showingMoments) {
             MomentsView(
@@ -586,6 +583,7 @@ struct TodayViewV1i2: View {
     
     @State private var showingDailyChat = false
     @State private var chatCompleted = false
+    @State private var openChatInLogMode = false
     @State private var momentsCompleted = false
     @State private var trackersCompleted = false
     @State private var showingProfileMenu = false
@@ -917,15 +915,24 @@ struct TodayViewV1i2: View {
                 // Daily Chat Section
                 if showChat {
                     Section("Daily Chat") {
-                        TodayActivityRowWithChatResume(
+                        TodayActivityRowWithChatResumeV2(
                             icon: "bubble.left.and.bubble.right.fill",
                             iconColor: .blue,
                             title: dailyChatTitle,
-                            subtitle: chatCompleted ? chatInteractionsText : "Share details or answer questions via chat to auto compose your daily entry.",
+                            subtitle: chatCompleted ? chatInteractionsText : "",
                             isCompleted: chatCompleted,
                             showResume: chatCompleted,
+                            showDefaultContent: !chatCompleted,
                             action: { showingDailyChat = true },
-                            resumeAction: { showingDailyChat = true }
+                            resumeAction: { showingDailyChat = true },
+                            beginChatAction: { 
+                                openChatInLogMode = false
+                                showingDailyChat = true 
+                            },
+                            logHighlightsAction: { 
+                                openChatInLogMode = true
+                                showingDailyChat = true
+                            }
                         )
                     }
                 }
@@ -939,6 +946,7 @@ struct TodayViewV1i2: View {
                             title: "Moments",
                             selectedCount: selectedLocations.count + selectedEvents.count + selectedPhotos.count,
                             isCompleted: hasSelectedMoments,
+                            selectedDate: selectedDate,
                             action: { 
                                 showingMoments = true
                             }
@@ -965,16 +973,19 @@ struct TodayViewV1i2: View {
             .listStyle(.insetGrouped)
         }
         .sheet(isPresented: $showingDailyChat) {
-            DailyChatView(onChatStarted: {
-                // Start loading state when chat is first interacted with
-                isGeneratingPreview = true
-                
-                // Simulate AI processing delay
-                DispatchQueue.main.asyncAfter(deadline: .now() + Double.random(in: 2.0...4.0)) {
-                    isGeneratingPreview = false
-                    chatCompleted = true
+            DailyChatView(
+                initialLogMode: openChatInLogMode,
+                onChatStarted: {
+                    // Start loading state when chat is first interacted with
+                    isGeneratingPreview = true
+                    
+                    // Simulate AI processing delay
+                    DispatchQueue.main.asyncAfter(deadline: .now() + Double.random(in: 2.0...4.0)) {
+                        isGeneratingPreview = false
+                        chatCompleted = true
+                    }
                 }
-            })
+            )
         }
         .sheet(isPresented: $showingMoments) {
             MomentsView(
@@ -1050,6 +1061,104 @@ struct TodayActivityRowWithCheckbox: View {
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                
+                Spacer()
+                
+                if isCompleted {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
+                        .font(.title3)
+                } else {
+                    Image(systemName: "circle")
+                        .foregroundStyle(.secondary.opacity(0.5))
+                        .font(.title3)
+                }
+            }
+            .padding(.vertical, 4)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+// Custom row component with chat resume functionality (V2 with hyperlinks)
+struct TodayActivityRowWithChatResumeV2: View {
+    let icon: String
+    let iconColor: Color
+    let title: String
+    let subtitle: String
+    let isCompleted: Bool
+    let showResume: Bool
+    let showDefaultContent: Bool
+    let action: () -> Void
+    let resumeAction: () -> Void
+    let beginChatAction: () -> Void
+    let logHighlightsAction: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                // Icon with colored background
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(iconColor)
+                    .frame(width: 32, height: 32)
+                    .overlay(
+                        Image(systemName: icon)
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundStyle(.white)
+                    )
+                
+                // Content
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    if showResume {
+                        HStack(spacing: 4) {
+                            Text(subtitle)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                            
+                            Button(action: resumeAction) {
+                                Text("Resume")
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color(hex: "44C0FF"))
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            
+                            Spacer()
+                        }
+                    } else if showDefaultContent {
+                        HStack(spacing: 4) {
+                            Button(action: logHighlightsAction) {
+                                Text("Log Highlights")
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color(hex: "44C0FF"))
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            
+                            Text(" or ")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                            
+                            Button(action: beginChatAction) {
+                                Text("Begin Chat")
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color(hex: "44C0FF"))
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            
+                            Spacer()
+                        }
+                    } else {
+                        Text(subtitle)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
                 }
                 
                 Spacer()
@@ -1146,6 +1255,7 @@ struct TodayActivityRowWithChatResume: View {
 // Daily Chat View
 struct DailyChatView: View {
     @Environment(\.dismiss) private var dismiss
+    let initialLogMode: Bool
     let onChatStarted: () -> Void
     
     @State private var chatText = ""
@@ -1174,16 +1284,15 @@ struct DailyChatView: View {
             VStack(spacing: 0) {
                 // Header content (disappears when user has messages)
                 if showHeaderContent {
-                    VStack(spacing: 20) {
+                    VStack {
+                        Spacer()
+                        
                         Image(systemName: "bubble.left.and.bubble.right.fill")
                             .font(.system(size: 60))
                             .foregroundStyle(Color(hex: "44C0FF"))
                         
-                        Text("Daily Chat")
-                            .font(.title2)
-                            .fontWeight(.medium)
+                        Spacer()
                     }
-                    .padding(.top, 40)
                     .transition(.opacity)
                 }
                 
@@ -1330,6 +1439,15 @@ struct DailyChatView: View {
                 }
             }
             .onAppear {
+                // Set initial log mode
+                isLogDetailsMode = initialLogMode
+                
+                // Auto-insert first AI question if in chat mode and no messages yet
+                if !initialLogMode && messages.isEmpty {
+                    let initialMessage = DailyChatMessage(content: "How's your morning going?", isUser: false)
+                    messages.append(initialMessage)
+                }
+                
                 // Auto-focus text field when view appears
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     isTextFieldFocused = true
@@ -1534,12 +1652,56 @@ struct TodayActivityRowWithMomentsSubtitle: View {
     let title: String
     let selectedCount: Int
     let isCompleted: Bool
+    let selectedDate: Date
     let action: () -> Void
+    
+    private var dayOfWeek: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE"
+        return formatter.string(from: selectedDate)
+    }
+    
+    private var dynamicTitle: String {
+        return "\(dayOfWeek) Moments"
+    }
+    
+    private var relativeDateText: String {
+        let calendar = Calendar.current
+        let now = Date()
+        
+        if calendar.isDateInToday(selectedDate) {
+            return "Today"
+        } else if calendar.isDateInYesterday(selectedDate) {
+            return "Yesterday"
+        } else if calendar.isDateInTomorrow(selectedDate) {
+            return "Tomorrow"
+        } else {
+            let components = calendar.dateComponents([.day, .weekOfYear, .month, .year], from: selectedDate, to: now)
+            
+            if let days = components.day, abs(days) < 7 {
+                let dayText = abs(days) == 1 ? "Day" : "Days"
+                return abs(days) == 2 ? "Two Days Ago" : "\(abs(days)) \(dayText) Ago"
+            } else if let weeks = components.weekOfYear, abs(weeks) < 5 {
+                let weekText = abs(weeks) == 1 ? "Week" : "Weeks"
+                return abs(weeks) == 1 ? "A Week Ago" : "\(abs(weeks)) \(weekText) Ago"
+            } else if let months = components.month, abs(months) < 12 {
+                let monthText = abs(months) == 1 ? "Month" : "Months"
+                return abs(months) == 1 ? "A Month Ago" : "\(abs(months)) \(monthText) Ago"
+            } else if let years = components.year {
+                let yearText = abs(years) == 1 ? "Year" : "Years"
+                return abs(years) == 1 ? "A Year Ago" : "\(abs(years)) \(yearText) Ago"
+            }
+        }
+        
+        return dayOfWeek
+    }
     
     private var subtitleText: Text {
         if selectedCount == 0 {
-            return Text("Capture meaningful moments from your day")
-                .foregroundStyle(.secondary)
+            return Text("Select moments from ")
+                .foregroundStyle(.secondary) +
+            Text(relativeDateText)
+                .foregroundStyle(Color(hex: "44C0FF"))
         } else {
             return Text("\(selectedCount) selected. ")
                 .foregroundStyle(.secondary) +
@@ -1562,7 +1724,7 @@ struct TodayActivityRowWithMomentsSubtitle: View {
                 }
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
+                    Text(dynamicTitle)
                         .font(.body)
                         .fontWeight(.medium)
                         .foregroundStyle(.primary)

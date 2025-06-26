@@ -81,7 +81,7 @@ class ExperimentsManager {
         case .todayTab:
             return [.appleSettings, .v1i2] // Clean, focused variants
         case .journalsTab:
-            return [.original, .appleSettings, .variant2, .paged] // All variants
+            return [.original, .appleSettings, .paged] // All variants except variant2
         case .journalPicker:
             return [.original] // All use compact layout now
         case .entryView:

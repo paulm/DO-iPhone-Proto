@@ -19,8 +19,6 @@ struct JournalsView: View {
             )
         case .appleSettings:
             JournalsTabSettingsStyleView()
-        case .variant2:
-            JournalsTabVariant2View()
         case .paged:
             JournalsTabPagedView()
         default:

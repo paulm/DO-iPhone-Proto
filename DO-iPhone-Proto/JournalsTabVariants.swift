@@ -1036,6 +1036,7 @@ struct JournalDetailPagedView: View {
     let journal: Journal
     let journalViewModel: JournalSelectionViewModel
     @State private var showingSheet = false
+    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         ZStack {
@@ -1064,6 +1065,12 @@ struct JournalDetailPagedView: View {
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 showingSheet = true
+            }
+        }
+        .onChange(of: showingSheet) { _, newValue in
+            if !newValue {
+                // When sheet is dismissed, navigate back
+                dismiss()
             }
         }
         .overlay(
@@ -1104,12 +1111,29 @@ struct PagedNativeSheetView: UIViewControllerRepresentable {
                 sheet.preferredCornerRadius = 20
                 sheet.prefersEdgeAttachedInCompactHeight = true
                 sheet.widthFollowsPreferredContentSizeWhenEdgeAttached = true
+                sheet.delegate = context.coordinator
             }
             
             contentHostingController.isModalInPresentation = false
             uiViewController.present(contentHostingController, animated: true)
         } else if !isPresented && uiViewController.presentedViewController != nil {
             uiViewController.dismiss(animated: true)
+        }
+    }
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(isPresented: $isPresented)
+    }
+    
+    class Coordinator: NSObject, UISheetPresentationControllerDelegate {
+        @Binding var isPresented: Bool
+        
+        init(isPresented: Binding<Bool>) {
+            self._isPresented = isPresented
+        }
+        
+        func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
+            isPresented = false
         }
     }
 }

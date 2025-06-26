@@ -43,6 +43,9 @@ class ExperimentsManager {
         
         // Set Moments modal to use grid as default
         variants[.momentsModal] = .grid
+        
+        // Set Journals tab to use paged as default
+        variants[.journalsTab] = .paged
     }
     
     func variant(for section: AppSection) -> ExperimentVariant {

@@ -1035,74 +1035,129 @@ struct JournalsTabPagedView: View {
 struct JournalDetailPagedView: View {
     let journal: Journal
     let journalViewModel: JournalSelectionViewModel
-    @State private var selectedTab = 1 // Default to List tab
+    @State private var showingSheet = false
     
     var body: some View {
-        GeometryReader { geometry in
-            VStack(spacing: 0) {
-                // Header section with journal gradient background
-                VStack(alignment: .leading, spacing: 12) {
-                    // Journal title and date range
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(journal.name)
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .foregroundStyle(.white)
-                        
-                        Text("2020 – 2025")
-                            .font(.caption)
-                            .foregroundStyle(.white.opacity(0.8))
-                    }
-                    .padding(.horizontal)
-                    .padding(.bottom, 30)
-                    .padding(.top, 20)
-                }
-                .background(
-                    LinearGradient(
-                        colors: [journal.color, journal.color.opacity(0.8)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
+        ZStack {
+            // Full screen journal color background
+            journal.color
+                .ignoresSafeArea()
             
-                // Segmented control navigation
-                VStack(spacing: 0) {
-                    Picker("View", selection: $selectedTab) {
-                        Text("Cover").tag(0)
-                        Text("List").tag(1)
-                        Text("Calendar").tag(2)
-                        Text("Media").tag(3)
-                        Text("Map").tag(4)
-                    }
-                    .pickerStyle(.segmented)
-                    .padding(.horizontal)
-                    .padding(.vertical, 12)
-                    .background(.white)
+            VStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(journal.name)
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .foregroundStyle(.white)
+                    
+                    Text("2020 – 2025")
+                        .font(.headline)
+                        .foregroundStyle(.white.opacity(0.8))
                 }
+                .padding(.horizontal)
+                .padding(.top, 100)
                 
-                // Content based on selected tab
-                Group {
-                    switch selectedTab {
-                    case 0:
-                        CoverTabView()
-                    case 1:
-                        ListTabView()
-                    case 2:
-                        CalendarTabView()
-                    case 3:
-                        MediaTabView()
-                    case 4:
-                        MapTabView()
-                    default:
-                        ListTabView()
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                Spacer()
             }
         }
-        .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(false)
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                showingSheet = true
+            }
+        }
+        .overlay(
+            PagedNativeSheetView(isPresented: $showingSheet, journal: journal)
+        )
+    }
+}
+
+// MARK: - Paged UIKit Sheet Wrapper
+
+struct PagedNativeSheetView: UIViewControllerRepresentable {
+    @Binding var isPresented: Bool
+    let journal: Journal
+    
+    func makeUIViewController(context: Context) -> UIViewController {
+        let hostingController = UIViewController()
+        return hostingController
+    }
+    
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
+        if isPresented && uiViewController.presentedViewController == nil {
+            let sheetContent = PagedJournalSheetContent(journal: journal)
+            let contentHostingController = UIHostingController(rootView: sheetContent)
+            
+            if let sheet = contentHostingController.sheetPresentationController {
+                // Configure the sheet
+                sheet.detents = [
+                    .custom { context in
+                        // 300pt from top
+                        return context.maximumDetentValue - 300
+                    },
+                    .large()
+                ]
+                sheet.selectedDetentIdentifier = .init("custom")
+                sheet.largestUndimmedDetentIdentifier = .large
+                sheet.prefersScrollingExpandsWhenScrolledToEdge = true
+                sheet.prefersGrabberVisible = true
+                sheet.preferredCornerRadius = 20
+                sheet.prefersEdgeAttachedInCompactHeight = true
+                sheet.widthFollowsPreferredContentSizeWhenEdgeAttached = true
+            }
+            
+            contentHostingController.isModalInPresentation = false
+            uiViewController.present(contentHostingController, animated: true)
+        } else if !isPresented && uiViewController.presentedViewController != nil {
+            uiViewController.dismiss(animated: true)
+        }
+    }
+}
+
+// MARK: - Paged Sheet Content
+
+struct PagedJournalSheetContent: View {
+    let journal: Journal
+    @State private var selectedTab = 1
+    @State private var showingEntryView = false
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Segmented control
+            Picker("View", selection: $selectedTab) {
+                Text("Cover").tag(0)
+                Text("List").tag(1)
+                Text("Calendar").tag(2)
+                Text("Media").tag(3)
+                Text("Map").tag(4)
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal)
+            .padding(.vertical, 12)
+            .background(Color(UIColor.systemBackground))
+            
+            // Content based on selected tab
+            Group {
+                switch selectedTab {
+                case 0:
+                    CoverTabView()
+                case 1:
+                    ListTabView()
+                case 2:
+                    CalendarTabView()
+                case 3:
+                    MediaTabView()
+                case 4:
+                    MapTabView()
+                default:
+                    ListTabView()
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .sheet(isPresented: $showingEntryView) {
+            EntryView()
+        }
     }
 }
 

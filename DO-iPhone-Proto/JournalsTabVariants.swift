@@ -1039,6 +1039,7 @@ struct JournalDetailPagedView: View {
     @State private var showingSheet = false
     @State private var showingEntryView = false
     @State private var showFAB = false
+    @AppStorage("journalImageEnabled") private var imageEnabled = false
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -1046,6 +1047,19 @@ struct JournalDetailPagedView: View {
             // Full screen journal color background
             journal.color
                 .ignoresSafeArea()
+            
+            // Bike image overlay when enabled
+            if imageEnabled {
+                VStack {
+                    Image("bike")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(maxWidth: .infinity)
+                        .ignoresSafeArea()
+                    
+                    Spacer()
+                }
+            }
             
             VStack(alignment: .leading) {
                 HStack(alignment: .top) {
@@ -1204,7 +1218,7 @@ struct PagedJournalSheetContent: View {
             Group {
                 switch selectedTab {
                 case 0:
-                    CoverTabView()
+                    PagedCoverTabView()
                 case 1:
                     ListTabView()
                 case 2:
@@ -1221,6 +1235,131 @@ struct PagedJournalSheetContent: View {
         }
         .sheet(isPresented: $showingEntryView) {
             EntryView()
+        }
+    }
+}
+
+// MARK: - Paged Cover Tab View
+struct PagedCoverTabView: View {
+    @State private var showingEditView = false
+    @AppStorage("journalImageEnabled") private var imageEnabled = false
+    
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 24) {
+                // Description Section
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Description")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    Text("Add a description...")
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(.horizontal)
+                .padding(.top, 24)
+                
+                // Stats Section
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Stats")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal)
+                    
+                    LazyVGrid(columns: [
+                        GridItem(.flexible()),
+                        GridItem(.flexible()),
+                        GridItem(.flexible())
+                    ], spacing: 12) {
+                        StatsCard(title: "Journals", value: "5", icon: "book.fill", color: .blue)
+                        StatsCard(title: "Entries", value: "234", icon: "doc.text.fill", color: .green)
+                        StatsCard(title: "Days", value: "89", icon: "calendar.circle.fill", color: .orange)
+                        StatsCard(title: "Media", value: "67", icon: "photo.fill", color: .purple)
+                        StatsCard(title: "Words", value: "12.5K", icon: "textformat", color: .red)
+                        StatsCard(title: "Streak", value: "7", icon: "flame.fill", color: .yellow)
+                    }
+                    .padding(.horizontal)
+                }
+                
+                // Edit Button
+                Button(action: {
+                    showingEditView = true
+                }) {
+                    Text("Edit")
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 12)
+                        .background(.gray.opacity(0.1), in: RoundedRectangle(cornerRadius: 20))
+                }
+                .padding(.top, 8)
+                
+                Spacer(minLength: 40)
+            }
+        }
+        .background(.white)
+        .sheet(isPresented: $showingEditView) {
+            PagedEditJournalView(imageEnabled: $imageEnabled)
+        }
+    }
+}
+
+// MARK: - Paged Edit Journal View
+struct PagedEditJournalView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var imageEnabled: Bool
+    
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Journal Settings") {
+                    HStack {
+                        Text("Name")
+                        Spacer()
+                        Text("Daily Journal")
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    HStack {
+                        Text("Color")
+                        Spacer()
+                        Circle()
+                            .fill(Color.blue)
+                            .frame(width: 24, height: 24)
+                    }
+                }
+                
+                Section("Appearance") {
+                    Toggle("Image", isOn: $imageEnabled)
+                }
+                
+                Section {
+                    Text("Journal editing functionality would be implemented here")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .navigationTitle("Edit Journal")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Save") {
+                        dismiss()
+                    }
+                    .fontWeight(.semibold)
+                }
+            }
         }
     }
 }

@@ -1045,21 +1045,22 @@ struct JournalDetailPagedView: View {
                 .ignoresSafeArea()
             
             VStack(alignment: .leading) {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 0) {
                     Text(journal.name)
-                        .font(.largeTitle)
+                        .font(.title)
                         .fontWeight(.bold)
                         .foregroundStyle(.white)
                     
                     Text("2020 – 2025")
-                        .font(.headline)
+                        .font(.caption)
                         .foregroundStyle(.white.opacity(0.8))
                 }
-                .padding(.horizontal)
+                .padding(.leading, 18)
                 .padding(.top, 100)
                 
                 Spacer()
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
@@ -1099,8 +1100,8 @@ struct PagedNativeSheetView: UIViewControllerRepresentable {
                 // Configure the sheet
                 sheet.detents = [
                     .custom { context in
-                        // 300pt from top
-                        return context.maximumDetentValue - 300
+                        // 230pt from top
+                        return context.maximumDetentValue - 200
                     },
                     .large()
                 ]

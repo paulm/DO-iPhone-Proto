@@ -8,6 +8,7 @@ struct JournalsTabSettingsStyleView: View {
     @State private var showingSettings = false
     @State private var showingSearch = false
     @State private var showingEntryView = false
+    @State private var showingCalendarView = false
     
     var body: some View {
         NavigationStack {
@@ -89,7 +90,7 @@ struct JournalsTabSettingsStyleView: View {
                         iconColor: .red,
                         title: "Calendar View",
                         subtitle: "Browse entries by date",
-                        action: { /* TODO: Calendar action */ }
+                        action: { showingCalendarView = true }
                     )
                     
                     JournalsViewRow(
@@ -221,6 +222,20 @@ struct JournalsTabSettingsStyleView: View {
         }
         .sheet(isPresented: $showingEntryView) {
             EntryView()
+        }
+        .sheet(isPresented: $showingCalendarView) {
+            NavigationStack {
+                JournalCalendarView(selectedJournal: .constant(journalViewModel.selectedJournal))
+                    .navigationTitle("Calendar")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button("Done") {
+                                showingCalendarView = false
+                            }
+                        }
+                    }
+            }
         }
     }
     

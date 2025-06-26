@@ -484,18 +484,10 @@ struct EntryRow: View {
 }
 
 struct CalendarTabView: View {
+    @State private var selectedJournal: Journal?
+    
     var body: some View {
-        ScrollView {
-            VStack {
-                Text("Calendar View")
-                    .font(.title)
-                    .padding()
-                Text("Calendar view of entries would appear here.")
-                    .padding()
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .background(.gray.opacity(0.1))
+        JournalCalendarView(selectedJournal: $selectedJournal)
     }
 }
 

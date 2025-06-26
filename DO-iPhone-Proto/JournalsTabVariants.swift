@@ -1037,6 +1037,7 @@ struct JournalDetailPagedView: View {
     let journal: Journal
     let journalViewModel: JournalSelectionViewModel
     @State private var showingSheet = false
+    @State private var showingEntryView = false
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -1046,15 +1047,34 @@ struct JournalDetailPagedView: View {
                 .ignoresSafeArea()
             
             VStack(alignment: .leading) {
-                VStack(alignment: .leading, spacing: 0) {
-                    Text(journal.name)
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundStyle(.white)
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text(journal.name)
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .foregroundStyle(.white)
+                        
+                        Text("2020 – 2025")
+                            .font(.caption)
+                            .foregroundStyle(.white.opacity(0.8))
+                    }
                     
-                    Text("2020 – 2025")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.8))
+                    Spacer()
+                    
+                    // White FAB button
+                    Button(action: {
+                        showingEntryView = true
+                    }) {
+                        Image(systemName: "plus")
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(journal.color)
+                            .frame(width: 44, height: 44)
+                            .background(.white)
+                            .clipShape(Circle())
+                            .shadow(color: .black.opacity(0.2), radius: 3, x: 0, y: 2)
+                    }
+                    .padding(.trailing, 18)
                 }
                 .padding(.leading, 18)
                 .padding(.top, 100)
@@ -1079,6 +1099,9 @@ struct JournalDetailPagedView: View {
         .overlay(
             PagedNativeSheetView(isPresented: $showingSheet, journal: journal)
         )
+        .sheet(isPresented: $showingEntryView) {
+            EntryView()
+        }
     }
 }
 

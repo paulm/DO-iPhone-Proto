@@ -26,67 +26,20 @@ struct PromptsTabOriginalView: View {
     @Binding var showingSettings: Bool
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Header with profile button
-            HStack {
-                Text("Prompts")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                
-                Spacer()
-                
-                Button(action: {
-                    showingSettings = true
-                }) {
-                    Circle()
-                        .fill(.gray.opacity(0.3))
-                        .frame(width: 40, height: 40)
-                        .overlay(
-                            Image(systemName: "person.fill")
-                                .foregroundStyle(.gray)
-                        )
-                }
-                .accessibilityLabel("Settings")
-            }
-            .padding(.horizontal)
-            .padding(.top, 20)
-            
-            // Gallery/My Prompts tabs
-            HStack(spacing: 0) {
-                Button(action: { selectedTab = 0 }) {
-                    Text("Gallery")
-                        .font(.headline)
-                        .fontWeight(selectedTab == 0 ? .medium : .regular)
-                        .foregroundStyle(selectedTab == 0 ? .primary : .secondary)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(selectedTab == 0 ? .white : .clear)
-                                .shadow(color: selectedTab == 0 ? .black.opacity(0.1) : .clear, radius: 2, x: 0, y: 1)
-                        )
-                }
-                
-                Button(action: { selectedTab = 1 }) {
-                    Text("My Prompts")
-                        .font(.headline)
-                        .fontWeight(selectedTab == 1 ? .medium : .regular)
-                        .foregroundStyle(selectedTab == 1 ? .primary : .secondary)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(selectedTab == 1 ? .white : .clear)
-                                .shadow(color: selectedTab == 1 ? .black.opacity(0.1) : .clear, radius: 2, x: 0, y: 1)
-                        )
-                }
-            }
-            .background(.gray.opacity(0.1), in: RoundedRectangle(cornerRadius: 20))
-            .padding(.horizontal)
-            .padding(.top, 20)
-            
+        NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 32) {
+                    // Top segmented control
+                    VStack(spacing: 16) {
+                        Picker("Prompts Section", selection: $selectedTab) {
+                            Text("Gallery").tag(0)
+                            Text("My Prompts").tag(1)
+                        }
+                        .pickerStyle(.segmented)
+                        .padding(.horizontal)
+                    }
+                    .padding(.top, 8)
+                    
                     // Recommended Section
                     VStack(alignment: .leading, spacing: 16) {
                         Text("Recommended")
@@ -94,22 +47,28 @@ struct PromptsTabOriginalView: View {
                             .fontWeight(.bold)
                             .padding(.horizontal)
                         
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 16) {
-                                PromptCard(
-                                    question: "What is my earliest childhood memory?",
-                                    category: "Childhood Memories",
-                                    icon: "figure.child"
-                                )
-                                
-                                PromptCard(
-                                    question: "What moment changed my perspective?",
-                                    category: "Life Lessons",
-                                    icon: "lightbulb"
-                                )
-                            }
-                            .padding(.horizontal)
+                        TabView {
+                            PromptCard(
+                                question: "What is my earliest childhood memory?",
+                                category: "Childhood Memories",
+                                icon: "figure.child"
+                            )
+                            
+                            PromptCard(
+                                question: "What moment changed my perspective?",
+                                category: "Life Lessons",
+                                icon: "lightbulb"
+                            )
+                            
+                            PromptCard(
+                                question: "If I could have dinner with anyone, who would it be and why?",
+                                category: "Imagination",
+                                icon: "person.2"
+                            )
                         }
+                        .tabViewStyle(.page(indexDisplayMode: .always))
+                        .frame(height: 280)
+                        .padding(.horizontal)
                     }
                     
                     // Prompt Packs Section
@@ -119,10 +78,13 @@ struct PromptsTabOriginalView: View {
                             .fontWeight(.bold)
                             .padding(.horizontal)
                         
-                        VStack(spacing: 1) {
+                        VStack(spacing: 0) {
                             PromptPackRow(icon: "envelope", title: "Friendships Through the Years")
+                            Divider().padding(.leading, 56)
                             PromptPackRow(icon: "figure.child", title: "Childhood Memories")
+                            Divider().padding(.leading, 56)
                             PromptPackRow(icon: "face.smiling", title: "Firsts in Life")
+                            Divider().padding(.leading, 56)
                             PromptPackRow(icon: "cloud.sun", title: "Seasons of Life")
                         }
                         .background(.white)
@@ -132,12 +94,31 @@ struct PromptsTabOriginalView: View {
                     
                     Spacer(minLength: 40)
                 }
-                .padding(.top, 24)
+                .padding(.top, 8)
+            }
+            .navigationTitle("Prompts")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(action: {
+                        showingSettings = true
+                    }) {
+                        Circle()
+                            .fill(.gray.opacity(0.2))
+                            .frame(width: 32, height: 32)
+                            .overlay(
+                                Image(systemName: "person.fill")
+                                    .font(.caption)
+                                    .foregroundStyle(.gray)
+                            )
+                    }
+                    .accessibilityLabel("Settings")
+                }
             }
         }
-            .sheet(isPresented: $showingSettings) {
-                SettingsView()
-            }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
+        }
     }
 }
 
@@ -153,28 +134,18 @@ struct PromptCard: View {
         }) {
             VStack(spacing: 0) {
                 // Card content
-                VStack(spacing: 20) {
-                    Spacer()
-                    
+                VStack {
                     Text(question)
-                        .font(.title3)
+                        .font(.custom("New York", size: 20))
                         .fontWeight(.medium)
                         .foregroundStyle(.white)
                         .multilineTextAlignment(.center)
-                        .lineLimit(3)
-                    
-                    Spacer()
-                    
-                    Button(action: {}) {
-                        Image(systemName: "arrow.clockwise")
-                            .font(.title2)
-                            .foregroundStyle(.white)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-                    .padding(.bottom, 16)
-                    .padding(.trailing, 16)
+                        .lineLimit(4)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-                .frame(width: 280, height: 200)
+                .frame(maxWidth: .infinity)
+                .frame(height: 200)
+                .padding(.horizontal, 24)
                 .background(
                     LinearGradient(
                         colors: [Color(hex: "44C0FF"), Color(hex: "44C0FF").opacity(0.8)],

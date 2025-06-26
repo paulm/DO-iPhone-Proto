@@ -479,42 +479,63 @@ struct JournalCalendarView: View {
         VStack(spacing: 0) {
             CalendarWeekdayHeader()
             
-            ScrollView {
-                LazyVStack(spacing: 24) {
-                    // Generate calendar months for years that have entries
-                    ForEach(viewModel.yearsWithEntries(), id: \.self) { year in
-                        ForEach(viewModel.monthsWithEntries(for: year), id: \.self) { month in
-                            VStack(spacing: 16) {
-                                // Month/Year header
-                                Text(monthYearFormatter.string(from: month))
-                                    .font(.headline)
-                                    .fontWeight(.semibold)
-                                    .foregroundStyle(.primary)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(.horizontal)
-                                
-                                CalendarGridView(month: month, viewModel: viewModel) { date in
-                                    viewModel.selectedDate = date
-                                    if viewModel.entryCount(for: date) > 0 {
-                                        showingEntryPreview = true
-                                    } else {
-                                        showingDayMenu = true
+            ScrollViewReader { proxy in
+                ScrollView {
+                    LazyVStack(spacing: 24) {
+                        // Generate calendar months for years that have entries
+                        ForEach(viewModel.yearsWithEntries(), id: \.self) { year in
+                            ForEach(viewModel.monthsWithEntries(for: year), id: \.self) { month in
+                                VStack(spacing: 16) {
+                                    // Month/Year header
+                                    Text(monthYearFormatter.string(from: month))
+                                        .font(.headline)
+                                        .fontWeight(.semibold)
+                                        .foregroundStyle(.primary)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .padding(.horizontal)
+                                        .id("month-\(monthYearFormatter.string(from: month))")
+                                    
+                                    CalendarGridView(month: month, viewModel: viewModel) { date in
+                                        viewModel.selectedDate = date
+                                        if viewModel.entryCount(for: date) > 0 {
+                                            showingEntryPreview = true
+                                        } else {
+                                            showingDayMenu = true
+                                        }
                                     }
                                 }
                             }
+                            
+                            // Year gap indicator if there's a gap
+                            if let nextYear = viewModel.yearsWithEntries().first(where: { $0 > year }),
+                               nextYear > year + 1 {
+                                Text("Gap: \(year + 1) - \(nextYear - 1)")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary.opacity(0.6))
+                                    .padding()
+                            }
                         }
-                        
-                        // Year gap indicator if there's a gap
-                        if let nextYear = viewModel.yearsWithEntries().first(where: { $0 > year }),
-                           nextYear > year + 1 {
-                            Text("Gap: \(year + 1) - \(nextYear - 1)")
-                                .font(.caption)
-                                .foregroundStyle(.secondary.opacity(0.6))
-                                .padding()
+                    }
+                    .padding(.bottom, 100) // Space for FAB
+                }
+                .onAppear {
+                    // Auto-scroll to current month when calendar opens
+                    let currentMonth = Date()
+                    let currentMonthString = monthYearFormatter.string(from: currentMonth)
+                    
+                    // Check if current month exists in the calendar
+                    let calendar = Calendar.current
+                    let currentYear = calendar.component(.year, from: currentMonth)
+                    let monthsForCurrentYear = viewModel.monthsWithEntries(for: currentYear)
+                    
+                    if monthsForCurrentYear.contains(where: { calendar.isDate($0, equalTo: currentMonth, toGranularity: .month) }) {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            withAnimation(.easeInOut(duration: 0.5)) {
+                                proxy.scrollTo("month-\(currentMonthString)", anchor: .top)
+                            }
                         }
                     }
                 }
-                .padding(.bottom, 100) // Space for FAB
             }
             
         }

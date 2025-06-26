@@ -1157,7 +1157,8 @@ struct PagedJournalSheetContent: View {
             }
             .pickerStyle(.segmented)
             .padding(.horizontal)
-            .padding(.vertical, 12)
+            .padding(.top, 22)  // Added 10pt extra spacing (12 + 10)
+            .padding(.bottom, 12)
             .background(Color(UIColor.systemBackground))
             
             // Content based on selected tab

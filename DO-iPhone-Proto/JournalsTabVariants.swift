@@ -1038,6 +1038,7 @@ struct JournalDetailPagedView: View {
     let journalViewModel: JournalSelectionViewModel
     @State private var showingSheet = false
     @State private var showingEntryView = false
+    @State private var showFAB = false
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -1062,19 +1063,25 @@ struct JournalDetailPagedView: View {
                     Spacer()
                     
                     // White FAB button
-                    Button(action: {
-                        showingEntryView = true
-                    }) {
-                        Image(systemName: "plus")
-                            .font(.title3)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(journal.color)
-                            .frame(width: 44, height: 44)
-                            .background(.white)
-                            .clipShape(Circle())
-                            .shadow(color: .black.opacity(0.2), radius: 3, x: 0, y: 2)
+                    if showFAB {
+                        Button(action: {
+                            showingEntryView = true
+                        }) {
+                            Image(systemName: "plus")
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(journal.color)
+                                .frame(width: 44, height: 44)
+                                .background(.white)
+                                .clipShape(Circle())
+                                .shadow(color: .black.opacity(0.2), radius: 3, x: 0, y: 2)
+                        }
+                        .padding(.trailing, 18)
+                        .transition(.asymmetric(
+                            insertion: .scale(scale: 0.8).combined(with: .opacity),
+                            removal: .scale(scale: 0.8).combined(with: .opacity)
+                        ))
                     }
-                    .padding(.trailing, 18)
                 }
                 .padding(.leading, 18)
                 .padding(.top, 100)
@@ -1088,6 +1095,12 @@ struct JournalDetailPagedView: View {
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 showingSheet = true
+            }
+            // Animate FAB in after a short delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                withAnimation(.easeOut(duration: 0.4)) {
+                    showFAB = true
+                }
             }
         }
         .onChange(of: showingSheet) { _, newValue in

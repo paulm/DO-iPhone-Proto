@@ -180,93 +180,17 @@ struct CoverTabView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal)
                     
-                    // Stats grid
                     LazyVGrid(columns: [
+                        GridItem(.flexible()),
                         GridItem(.flexible()),
                         GridItem(.flexible())
                     ], spacing: 12) {
-                        // Streak stat (larger, spans full width)
-                        VStack(spacing: 8) {
-                            VStack(spacing: 4) {
-                                Text("STREAK")
-                                    .font(.caption)
-                                    .fontWeight(.medium)
-                                    .foregroundStyle(.secondary)
-                                
-                                Text("0")
-                                    .font(.system(size: 48, weight: .bold))
-                                    .foregroundStyle(.primary)
-                                
-                                Text("Days")
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                                    .foregroundStyle(.primary)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 20)
-                            .background(.gray.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
-                        }
-                        .gridCellColumns(2)
-                        
-                        // Entries stat
-                        VStack(spacing: 8) {
-                            Text("ENTRIES")
-                                .font(.caption)
-                                .fontWeight(.medium)
-                                .foregroundStyle(.secondary)
-                            
-                            Text("0")
-                                .font(.system(size: 24, weight: .bold))
-                                .foregroundStyle(.primary)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(.gray.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
-                        
-                        // Media stat
-                        VStack(spacing: 8) {
-                            Text("MEDIA")
-                                .font(.caption)
-                                .fontWeight(.medium)
-                                .foregroundStyle(.secondary)
-                            
-                            Text("0")
-                                .font(.system(size: 24, weight: .bold))
-                                .foregroundStyle(.primary)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(.gray.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
-                        
-                        // Days stat
-                        VStack(spacing: 8) {
-                            Text("DAYS")
-                                .font(.caption)
-                                .fontWeight(.medium)
-                                .foregroundStyle(.secondary)
-                            
-                            Text("0")
-                                .font(.system(size: 24, weight: .bold))
-                                .foregroundStyle(.primary)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(.gray.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
-                        
-                        // On This Day stat
-                        VStack(spacing: 8) {
-                            Text("ON THIS DAY")
-                                .font(.caption)
-                                .fontWeight(.medium)
-                                .foregroundStyle(.secondary)
-                            
-                            Text("0")
-                                .font(.system(size: 24, weight: .bold))
-                                .foregroundStyle(.primary)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(.gray.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
+                        StatsCard(title: "Journals", value: "5", icon: "book.fill", color: .blue)
+                        StatsCard(title: "Entries", value: "234", icon: "doc.text.fill", color: .green)
+                        StatsCard(title: "Days", value: "89", icon: "calendar.circle.fill", color: .orange)
+                        StatsCard(title: "Media", value: "67", icon: "photo.fill", color: .purple)
+                        StatsCard(title: "Words", value: "12.5K", icon: "textformat", color: .red)
+                        StatsCard(title: "Streak", value: "7", icon: "flame.fill", color: .yellow)
                     }
                     .padding(.horizontal)
                 }
@@ -522,6 +446,7 @@ struct MapTabView: View {
         .background(.gray.opacity(0.1))
     }
 }
+
 
 #Preview {
     JournalsView()

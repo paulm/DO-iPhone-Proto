@@ -55,9 +55,11 @@ struct MainTabView: View {
                     Spacer()
                     HStack(spacing: 12) {
                         Spacer()
-                        DailyChatFAB {
-                            // Send notification to trigger Daily Chat
-                            NotificationCenter.default.post(name: NSNotification.Name("TriggerDailyChat"), object: nil)
+                        if selectedTab == 0 {
+                            DailyChatFAB {
+                                // Send notification to trigger Daily Chat
+                                NotificationCenter.default.post(name: NSNotification.Name("TriggerDailyChat"), object: nil)
+                            }
                         }
                         FloatingActionButton {
                             // FAB action - will be defined later

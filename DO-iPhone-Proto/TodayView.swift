@@ -517,6 +517,7 @@ struct TodayViewV1i2: View {
             DailyChatView(
                 selectedDate: selectedDate,
                 initialLogMode: openChatInLogMode,
+                entryCreated: $entryCreated,
                 onChatStarted: {
                     // Mark that user has interacted with chat
                     hasInteractedWithChat = true
@@ -554,6 +555,7 @@ struct TodayViewV1i2: View {
             summaryGenerated = false
             hasInteractedWithChat = false
             chatMessageCount = 0
+            entryCreated = false
             
             // Check if there are existing chat messages for the new date
             let existingMessages = ChatSessionManager.shared.getMessages(for: newValue)
@@ -882,6 +884,7 @@ struct DailyChatView: View {
     @Environment(\.dismiss) private var dismiss
     let selectedDate: Date
     let initialLogMode: Bool
+    @Binding var entryCreated: Bool
     let onChatStarted: () -> Void
     let onMessageCountChanged: (Int) -> Void
     
@@ -892,7 +895,6 @@ struct DailyChatView: View {
     @FocusState private var isTextFieldFocused: Bool
     @State private var showingPreviewEntry = false
     @State private var showingBioView = false
-    @State private var entryCreated = false
     
     private let chatSessionManager = ChatSessionManager.shared
     
@@ -906,9 +908,10 @@ struct DailyChatView: View {
         messages.filter { $0.isUser }.count
     }
     
-    init(selectedDate: Date, initialLogMode: Bool, onChatStarted: @escaping () -> Void, onMessageCountChanged: @escaping (Int) -> Void) {
+    init(selectedDate: Date, initialLogMode: Bool, entryCreated: Binding<Bool>, onChatStarted: @escaping () -> Void, onMessageCountChanged: @escaping (Int) -> Void) {
         self.selectedDate = selectedDate
         self.initialLogMode = initialLogMode
+        self._entryCreated = entryCreated
         self.onChatStarted = onChatStarted
         self.onMessageCountChanged = onMessageCountChanged
         self._isLogDetailsMode = State(initialValue: initialLogMode)

@@ -158,7 +158,7 @@ struct TodayViewV1i2: View {
     @State private var showingEntry = false
     
     // Show/hide toggles for Daily Activities
-    @State private var showChat = false
+    @State private var showChat = true
     @State private var showMoments = false
     @State private var showTrackers = false
     @State private var showInsights = false

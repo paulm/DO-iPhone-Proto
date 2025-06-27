@@ -236,6 +236,7 @@ struct JournalRow: View {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(isSelected ? .gray.opacity(0.15) : .clear)
             )
+            .contentShape(Rectangle())
         }
         .buttonStyle(PlainButtonStyle())
         .contextMenu {

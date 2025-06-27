@@ -1,4 +1,5 @@
 import SwiftUI
+import MapKit
 
 /// Journals tab view showing journal collections
 struct JournalsView: View {
@@ -294,18 +295,35 @@ struct MediaTabView: View {
 }
 
 struct MapTabView: View {
+    // Park City, Utah coordinates
+    private let parkCityCoordinate = CLLocationCoordinate2D(latitude: 40.6461, longitude: -111.4980)
+    @State private var cameraPosition: MapCameraPosition = .automatic
+    
     var body: some View {
-        ScrollView {
-            VStack {
-                Text("Map View")
-                    .font(.title)
-                    .padding()
-                Text("Geolocation view of where entries were written would appear here.")
-                    .padding()
-                    .foregroundStyle(.secondary)
+        ZStack {
+            // Full-screen map that extends to edges and behind segmented controller
+            Map(position: $cameraPosition) {
+                // Add a marker for Park City
+                Marker("Park City", coordinate: parkCityCoordinate)
+                    .tint(.blue)
+            }
+            .mapStyle(.standard)
+            .mapControls {
+                MapUserLocationButton()
+                MapCompass()
+                MapScaleView()
+            }
+            .ignoresSafeArea(.all)
+            .onAppear {
+                // Zoom to Park City, Utah
+                cameraPosition = .region(
+                    MKCoordinateRegion(
+                        center: parkCityCoordinate,
+                        span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
+                    )
+                )
             }
         }
-        .background(.gray.opacity(0.1))
     }
 }
 

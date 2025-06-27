@@ -20,6 +20,9 @@ struct JournalsTabPagedView: View {
     @State private var viewMode: ViewMode = .list
     @State private var selectedJournal: Journal?
     
+    // Sheet regular position from top (in points)
+    let sheetRegularPosition: CGFloat = 250
+    
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -143,7 +146,7 @@ struct JournalsTabPagedView: View {
                 }
             }
             .navigationDestination(item: $selectedJournal) { journal in
-                JournalDetailPagedView(journal: journal, journalViewModel: journalViewModel)
+                JournalDetailPagedView(journal: journal, journalViewModel: journalViewModel, sheetRegularPosition: sheetRegularPosition)
             }
         }
         .tint(.white)
@@ -156,6 +159,7 @@ struct JournalsTabPagedView: View {
 struct JournalDetailPagedView: View {
     let journal: Journal
     let journalViewModel: JournalSelectionViewModel
+    let sheetRegularPosition: CGFloat
     @State private var showingSheet = false
     @State private var showingEntryView = false
     @State private var showFAB = false
@@ -218,7 +222,7 @@ struct JournalDetailPagedView: View {
                     }
                 }
                 .padding(.leading, 18)
-                .padding(.top, 100)
+                .padding(.top, sheetRegularPosition - 100)
                 
                 Spacer()
             }
@@ -244,7 +248,7 @@ struct JournalDetailPagedView: View {
             }
         }
         .overlay(
-            PagedNativeSheetView(isPresented: $showingSheet, journal: journal)
+            PagedNativeSheetView(isPresented: $showingSheet, journal: journal, sheetRegularPosition: sheetRegularPosition)
         )
         .sheet(isPresented: $showingEntryView) {
             EntryView()
@@ -252,11 +256,18 @@ struct JournalDetailPagedView: View {
     }
 }
 
+// MARK: - Sheet State
+class SheetState: ObservableObject {
+    @Published var isExpanded: Bool = false
+}
+
 // MARK: - Paged UIKit Sheet Wrapper
 
 struct PagedNativeSheetView: UIViewControllerRepresentable {
     @Binding var isPresented: Bool
     let journal: Journal
+    let sheetRegularPosition: CGFloat
+    @StateObject private var sheetState = SheetState()
     
     func makeUIViewController(context: Context) -> UIViewController {
         let hostingController = UIViewController()
@@ -265,15 +276,15 @@ struct PagedNativeSheetView: UIViewControllerRepresentable {
     
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
         if isPresented && uiViewController.presentedViewController == nil {
-            let sheetContent = PagedJournalSheetContent(journal: journal)
+            let sheetContent = PagedJournalSheetContent(journal: journal, sheetState: sheetState, sheetRegularPosition: sheetRegularPosition)
             let contentHostingController = UIHostingController(rootView: sheetContent)
             
             if let sheet = contentHostingController.sheetPresentationController {
                 // Configure the sheet
                 sheet.detents = [
                     .custom { context in
-                        // 230pt from top
-                        return context.maximumDetentValue - 200
+                        // Custom position from top
+                        return context.maximumDetentValue - sheetRegularPosition
                     },
                     .large()
                 ]
@@ -295,18 +306,38 @@ struct PagedNativeSheetView: UIViewControllerRepresentable {
     }
     
     func makeCoordinator() -> Coordinator {
-        Coordinator(isPresented: $isPresented)
+        Coordinator(isPresented: $isPresented, sheetState: sheetState)
     }
     
     class Coordinator: NSObject, UISheetPresentationControllerDelegate {
         @Binding var isPresented: Bool
+        let sheetState: SheetState
         
-        init(isPresented: Binding<Bool>) {
+        init(isPresented: Binding<Bool>, sheetState: SheetState) {
             self._isPresented = isPresented
+            self.sheetState = sheetState
         }
         
         func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
             isPresented = false
+        }
+        
+        func sheetPresentationControllerDidChangeSelectedDetentIdentifier(_ sheetPresentationController: UISheetPresentationController) {
+            if let selectedDetent = sheetPresentationController.selectedDetentIdentifier {
+                if selectedDetent == .large {
+                    print("📱 Journals UISheet expanded to large position")
+                    sheetState.isExpanded = true
+                } else {
+                    if let containerView = sheetPresentationController.containerView {
+                        let sheetFrame = sheetPresentationController.presentedView?.frame ?? .zero
+                        let yPosition = sheetFrame.origin.y
+                        print("📱 Journals UISheet moved to regular position (Y: \(Int(yPosition))pt)")
+                    } else {
+                        print("📱 Journals UISheet moved to regular position")
+                    }
+                    sheetState.isExpanded = false
+                }
+            }
         }
     }
 }
@@ -315,43 +346,92 @@ struct PagedNativeSheetView: UIViewControllerRepresentable {
 
 struct PagedJournalSheetContent: View {
     let journal: Journal
+    @ObservedObject var sheetState: SheetState
+    let sheetRegularPosition: CGFloat
     @State private var selectedTab = 1
     @State private var showingEntryView = false
+    @State private var showFAB = false
+    
+    // Calculate FAB positions to maintain 80pt from bottom of device
+    private var fabRegularPosition: CGFloat {
+        // When sheet is at regular position, calculate distance from sheet top
+        // Screen height - sheetRegularPosition - 80 (from bottom) - 56 (FAB height) - 50 (adjustment)
+        UIScreen.main.bounds.height - sheetRegularPosition - 80 - 56 - 50
+    }
+    
+    private var fabExpandedPosition: CGFloat {
+        // When expanded, sheet is roughly at status bar height (~50pt)
+        // So we need: Screen height - 50 (expanded position) - 80 (from bottom) - 56 (FAB height)
+        UIScreen.main.bounds.height - 50 - 80 - 56
+    }
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Segmented control
-            Picker("View", selection: $selectedTab) {
-                Text("Cover").tag(0)
-                Text("List").tag(1)
-                Text("Calendar").tag(2)
-                Text("Media").tag(3)
-                Text("Map").tag(4)
+        ZStack(alignment: .topTrailing) {
+            VStack(spacing: 0) {
+                // Segmented control
+                Picker("View", selection: $selectedTab) {
+                    Text("Cover").tag(0)
+                    Text("List").tag(1)
+                    Text("Calendar").tag(2)
+                    Text("Media").tag(3)
+                    Text("Map").tag(4)
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
+                .padding(.top, 22)  // Added 10pt extra spacing (12 + 10)
+                .padding(.bottom, 12)
+                .background(Color(UIColor.systemBackground))
+                
+                // Content based on selected tab
+                Group {
+                    switch selectedTab {
+                    case 0:
+                        PagedCoverTabView()
+                    case 1:
+                        ListTabView()
+                    case 2:
+                        CalendarTabView()
+                    case 3:
+                        MediaTabView()
+                    case 4:
+                        MapTabView()
+                    default:
+                        ListTabView()
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .pickerStyle(.segmented)
-            .padding(.horizontal)
-            .padding(.top, 22)  // Added 10pt extra spacing (12 + 10)
-            .padding(.bottom, 12)
-            .background(Color(UIColor.systemBackground))
             
-            // Content based on selected tab
-            Group {
-                switch selectedTab {
-                case 0:
-                    PagedCoverTabView()
-                case 1:
-                    ListTabView()
-                case 2:
-                    CalendarTabView()
-                case 3:
-                    MediaTabView()
-                case 4:
-                    MapTabView()
-                default:
-                    ListTabView()
+            // FAB button that animates based on sheet position
+            if showFAB {
+                Button(action: {
+                    showingEntryView = true
+                }) {
+                    Image(systemName: "plus")
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.white)
+                        .frame(width: 56, height: 56)
+                        .background(journal.color)
+                        .clipShape(Circle())
+                        .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
+                }
+                .padding(.trailing, 18)
+                .padding(.top, sheetState.isExpanded ? fabExpandedPosition : fabRegularPosition)
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: sheetState.isExpanded)
+                .transition(.asymmetric(
+                    insertion: .scale(scale: 0.8).combined(with: .opacity),
+                    removal: .scale(scale: 0.8).combined(with: .opacity)
+                ))
+            }
+        }
+        .onAppear {
+            // Animate FAB in after a short delay with bounce effect
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                withAnimation(.interpolatingSpring(stiffness: 180, damping: 12)) {
+                    showFAB = true
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .sheet(isPresented: $showingEntryView) {
             EntryView()

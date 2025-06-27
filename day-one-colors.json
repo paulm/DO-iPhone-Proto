@@ -1,0 +1,76 @@
+{
+  "colors": [
+    {
+      "name": "DayOne Blue",
+      "hex": "#44C0FF"
+    },
+    {
+      "name": "Honey",
+      "hex": "#FFC107"
+    },
+    {
+      "name": "Blue",
+      "hex": "#3398DB"
+    },
+    {
+      "name": "Fire",
+      "hex": "#FF983B"
+    },
+    {
+      "name": "Deep blue",
+      "hex": "#333B40"
+    },
+    {
+      "name": "Hot Pink",
+      "hex": "#E91E63"
+    },
+    {
+      "name": "Aqua",
+      "hex": "#16D6D9"
+    },
+    {
+      "name": "Watermelon",
+      "hex": "#FF7EB0"
+    },
+    {
+      "name": "Pewter",
+      "hex": "#95A5A6"
+    },
+    {
+      "name": "Lavender",
+      "hex": "#C27BD2"
+    },
+    {
+      "name": "Stone",
+      "hex": "#607D8B"
+    },
+    {
+      "name": "Magenta",
+      "hex": "#CF2F89"
+    },
+    {
+      "name": "Green",
+      "hex": "#2DCC71"
+    },
+    {
+      "name": "Salmon",
+      "hex": "#FF6E6B"
+    },
+    {
+      "name": "Tortilla",
+      "hex": "#C9A286"
+    },
+    {
+      "name": "Red",
+      "hex": "#E74C3C"
+    },
+    {
+      "name": "Lime",
+      "hex": "#CCDB18"
+    },
+    {
+      "name": "Iris",
+      "hex": "#6A6DCD"
+    }
+  ]
+}

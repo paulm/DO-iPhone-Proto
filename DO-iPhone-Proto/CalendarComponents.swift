@@ -7,7 +7,7 @@ struct CalendarEntry: Identifiable, Equatable {
     let title: String
     let preview: String
     let date: Date
-    let journalId: UUID
+    let journalId: String
     let journalName: String
     let journalColor: Color
     let hasPhoto: Bool
@@ -97,10 +97,10 @@ class CalendarViewModel {
 extension CalendarViewModel {
     private func generateSampleData() {
         let sampleJournals = [
-            (name: "Personal", color: Color(hex: "44C0FF"), id: UUID()),
-            (name: "Travel", color: Color(hex: "FF6B6B"), id: UUID()),
-            (name: "Work", color: Color(hex: "4ECDC4"), id: UUID()),
-            (name: "Health", color: Color(hex: "45B7D1"), id: UUID())
+            (name: "Personal", color: Color(hex: "44C0FF"), id: UUID().uuidString),
+            (name: "Travel", color: Color(hex: "FF6B6B"), id: UUID().uuidString),
+            (name: "Work", color: Color(hex: "4ECDC4"), id: UUID().uuidString),
+            (name: "Health", color: Color(hex: "45B7D1"), id: UUID().uuidString)
         ]
         
         let sampleTitles = [

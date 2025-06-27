@@ -78,7 +78,7 @@ struct JournalsTabPagedView: View {
                     switch viewMode {
                     case .compact:
                         LazyVStack(spacing: 4) {
-                            ForEach(Journal.allJournals) { journal in
+                            ForEach(Journal.visibleJournals) { journal in
                                 CompactJournalRow(
                                     journal: journal,
                                     isSelected: journal.id == journalViewModel.selectedJournal.id,
@@ -94,7 +94,7 @@ struct JournalsTabPagedView: View {
                         
                     case .list:
                         LazyVStack(spacing: 8) {
-                            ForEach(Journal.allJournals) { journal in
+                            ForEach(Journal.visibleJournals) { journal in
                                 JournalRow(
                                     journal: journal,
                                     isSelected: journal.id == journalViewModel.selectedJournal.id,
@@ -110,7 +110,7 @@ struct JournalsTabPagedView: View {
                         
                     case .grid:
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 3), spacing: 20) {
-                            ForEach(Journal.allJournals) { journal in
+                            ForEach(Journal.visibleJournals) { journal in
                                 JournalBookView(
                                     journal: journal,
                                     isSelected: journal.id == journalViewModel.selectedJournal.id,

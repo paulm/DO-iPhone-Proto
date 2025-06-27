@@ -1,0 +1,274 @@
+{
+  "journals": [
+    {
+      "id": "journal-001",
+      "name": "Daily Reflections",
+      "description": "My personal thoughts and daily observations",
+      "type": "personal",
+      "colorHex": "#44C0FF",
+      "iconURL": "journal-icon-url",
+      "settings": {
+        "hidden": false,
+        "conceal": false,
+        "sortMode": "entryDate",
+        "sortOrder": "descending",
+        "addLocationToNewEntries": true
+      },
+      "features": {
+        "shouldBeIncludedInAllEntries": true,
+        "shouldBeIncludedInOnThisDay": true,
+        "shouldBeIncludedInStreaks": true,
+        "shouldBeIncludedInTodayView": true
+      },
+      "appearance": {
+        "templateID": "template-default",
+        "presetID": "preset-001",
+        "originalCoverImageData": "",
+        "croppedCoverImageData": ""
+      }
+    },
+    {
+      "id": "journal-002",
+      "name": "Travel Adventures",
+      "description": "Documenting my journeys around the world",
+      "type": "personal",
+      "colorHex": "#2DCC71",
+      "iconURL": "journal-icon-url",
+      "settings": {
+        "hidden": false,
+        "conceal": false,
+        "sortMode": "entryDate",
+        "sortOrder": "descending",
+        "addLocationToNewEntries": true
+      },
+      "features": {
+        "shouldBeIncludedInAllEntries": true,
+        "shouldBeIncludedInOnThisDay": true,
+        "shouldBeIncludedInStreaks": false,
+        "shouldBeIncludedInTodayView": false
+      },
+      "appearance": {
+        "templateID": "template-travel",
+        "presetID": "preset-002",
+        "originalCoverImageData": "",
+        "croppedCoverImageData": ""
+      }
+    },
+    {
+      "id": "journal-003",
+      "name": "Work Notes",
+      "description": "Professional development and project notes",
+      "type": "personal",
+      "colorHex": "#3398DB",
+      "iconURL": "journal-icon-url",
+      "settings": {
+        "hidden": false,
+        "conceal": true,
+        "sortMode": "editDate",
+        "sortOrder": "descending",
+        "addLocationToNewEntries": false
+      },
+      "features": {
+        "shouldBeIncludedInAllEntries": true,
+        "shouldBeIncludedInOnThisDay": false,
+        "shouldBeIncludedInStreaks": true,
+        "shouldBeIncludedInTodayView": true
+      },
+      "appearance": {
+        "templateID": "template-professional",
+        "presetID": "preset-003",
+        "originalCoverImageData": "",
+        "croppedCoverImageData": ""
+      }
+    },
+    {
+      "id": "journal-004",
+      "name": "Family Memories",
+      "description": "Precious moments with loved ones",
+      "type": "shared",
+      "colorHex": "#E91E63",
+      "iconURL": "journal-icon-url",
+      "settings": {
+        "hidden": false,
+        "conceal": false,
+        "sortMode": "entryDate",
+        "sortOrder": "descending",
+        "addLocationToNewEntries": true
+      },
+      "features": {
+        "shouldBeIncludedInAllEntries": true,
+        "shouldBeIncludedInOnThisDay": true,
+        "shouldBeIncludedInStreaks": true,
+        "shouldBeIncludedInTodayView": true
+      },
+      "appearance": {
+        "templateID": "template-family",
+        "presetID": "preset-004",
+        "originalCoverImageData": "",
+        "croppedCoverImageData": ""
+      }
+    },
+    {
+      "id": "journal-005",
+      "name": "Gratitude Journal",
+      "description": "Daily appreciation and thankfulness",
+      "type": "personal",
+      "colorHex": "#FFC107",
+      "iconURL": "journal-icon-url",
+      "settings": {
+        "hidden": false,
+        "conceal": false,
+        "sortMode": "entryDate",
+        "sortOrder": "ascending",
+        "addLocationToNewEntries": false
+      },
+      "features": {
+        "shouldBeIncludedInAllEntries": true,
+        "shouldBeIncludedInOnThisDay": true,
+        "shouldBeIncludedInStreaks": true,
+        "shouldBeIncludedInTodayView": true
+      },
+      "appearance": {
+        "templateID": "template-gratitude",
+        "presetID": "preset-005",
+        "originalCoverImageData": "",
+        "croppedCoverImageData": ""
+      }
+    },
+    {
+      "id": "journal-006",
+      "name": "Dream Log",
+      "description": "Recording and analyzing my dreams",
+      "type": "personal",
+      "colorHex": "#C27BD2",
+      "iconURL": "journal-icon-url",
+      "settings": {
+        "hidden": false,
+        "conceal": true,
+        "sortMode": "entryDate",
+        "sortOrder": "descending",
+        "addLocationToNewEntries": false
+      },
+      "features": {
+        "shouldBeIncludedInAllEntries": false,
+        "shouldBeIncludedInOnThisDay": false,
+        "shouldBeIncludedInStreaks": false,
+        "shouldBeIncludedInTodayView": false
+      },
+      "appearance": {
+        "templateID": "template-dream",
+        "presetID": "preset-006",
+        "originalCoverImageData": "",
+        "croppedCoverImageData": ""
+      }
+    },
+    {
+      "id": "journal-007",
+      "name": "Fitness Journey",
+      "description": "Tracking workouts and health progress",
+      "type": "personal",
+      "colorHex": "#FF983B",
+      "iconURL": "journal-icon-url",
+      "settings": {
+        "hidden": false,
+        "conceal": false,
+        "sortMode": "entryDate",
+        "sortOrder": "descending",
+        "addLocationToNewEntries": true
+      },
+      "features": {
+        "shouldBeIncludedInAllEntries": true,
+        "shouldBeIncludedInOnThisDay": true,
+        "shouldBeIncludedInStreaks": true,
+        "shouldBeIncludedInTodayView": true
+      },
+      "appearance": {
+        "templateID": "template-fitness",
+        "presetID": "preset-007",
+        "originalCoverImageData": "",
+        "croppedCoverImageData": ""
+      }
+    },
+    {
+      "id": "journal-008",
+      "name": "Creative Ideas",
+      "description": "Inspiration and creative projects",
+      "type": "personal",
+      "colorHex": "#6A6DCD",
+      "iconURL": "journal-icon-url",
+      "settings": {
+        "hidden": false,
+        "conceal": false,
+        "sortMode": "editDate",
+        "sortOrder": "descending",
+        "addLocationToNewEntries": false
+      },
+      "features": {
+        "shouldBeIncludedInAllEntries": true,
+        "shouldBeIncludedInOnThisDay": false,
+        "shouldBeIncludedInStreaks": false,
+        "shouldBeIncludedInTodayView": true
+      },
+      "appearance": {
+        "templateID": "template-creative",
+        "presetID": "preset-008",
+        "originalCoverImageData": "",
+        "croppedCoverImageData": ""
+      }
+    },
+    {
+      "id": "journal-009",
+      "name": "Reading Notes",
+      "description": "Book summaries and literary thoughts",
+      "type": "personal",
+      "colorHex": "#607D8B",
+      "iconURL": "journal-icon-url",
+      "settings": {
+        "hidden": false,
+        "conceal": false,
+        "sortMode": "entryDate",
+        "sortOrder": "descending",
+        "addLocationToNewEntries": false
+      },
+      "features": {
+        "shouldBeIncludedInAllEntries": true,
+        "shouldBeIncludedInOnThisDay": false,
+        "shouldBeIncludedInStreaks": false,
+        "shouldBeIncludedInTodayView": false
+      },
+      "appearance": {
+        "templateID": "template-reading",
+        "presetID": "preset-009",
+        "originalCoverImageData": "",
+        "croppedCoverImageData": ""
+      }
+    },
+    {
+      "id": "journal-010",
+      "name": "Private Thoughts",
+      "description": "Deep personal reflections and feelings",
+      "type": "personal",
+      "colorHex": "#333B40",
+      "iconURL": "journal-icon-url",
+      "settings": {
+        "hidden": true,
+        "conceal": true,
+        "sortMode": "entryDate",
+        "sortOrder": "descending",
+        "addLocationToNewEntries": false
+      },
+      "features": {
+        "shouldBeIncludedInAllEntries": false,
+        "shouldBeIncludedInOnThisDay": false,
+        "shouldBeIncludedInStreaks": false,
+        "shouldBeIncludedInTodayView": false
+      },
+      "appearance": {
+        "templateID": "template-private",
+        "presetID": "preset-010",
+        "originalCoverImageData": "",
+        "croppedCoverImageData": ""
+      }
+    }
+  ]
+}

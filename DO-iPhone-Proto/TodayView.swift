@@ -1786,24 +1786,6 @@ struct ChatEntryPreviewView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                }
-                
-                ToolbarItem(placement: .principal) {
-                    VStack(spacing: 2) {
-                        Text(dateFormatter.string(from: selectedDate))
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                        
-                        Text("Entry generated from chat")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {
                         Button(action: {
                             copyEntryText()
@@ -1829,6 +1811,24 @@ struct ChatEntryPreviewView: View {
                             .font(.body)
                     }
                 }
+                
+                ToolbarItem(placement: .principal) {
+                    VStack(spacing: 2) {
+                        Text(dateFormatter.string(from: selectedDate))
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                        
+                        Text("Entry generated from chat")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
             }
         }
         .sheet(isPresented: $showingEntry) {
@@ -1852,6 +1852,8 @@ struct ChatEntryPreviewView: View {
             isCreatingEntry = false
             entryCreated = true
             hasNewInteractions = false
+            // Auto-open the entry after creation
+            showingEntry = true
         }
     }
     

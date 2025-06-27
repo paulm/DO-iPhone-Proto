@@ -1684,7 +1684,7 @@ struct TodayInsightItemView: View {
     }
 }
 
-// Chat Entry Preview View
+// Chat Entry Preview View (Chat Summary)
 struct ChatEntryPreviewView: View {
     let selectedDate: Date
     @Binding var entryCreated: Bool
@@ -1693,6 +1693,7 @@ struct ChatEntryPreviewView: View {
     @State private var isCreatingEntry = false
     @State private var showingEntry = false
     @State private var hasNewInteractions = false
+    @State private var isLoadingSummary = true
     
     private var dateFormatter: DateFormatter {
         let formatter = DateFormatter()
@@ -1707,83 +1708,96 @@ struct ChatEntryPreviewView: View {
                 Color(UIColor.systemGroupedBackground)
                     .ignoresSafeArea()
                 
-                VStack(spacing: 0) {
-                    // Entry content in white rounded rectangle
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Morning Reflections and Evening Plans")
-                                .font(.headline)
-                                .fontWeight(.bold)
-                            
-                            Text("Today I started with my usual morning routine, feeling energized and ready to tackle the day ahead. I spent some time thinking about my work goals and how I want to approach the various projects I have on my plate.")
-                                .font(.subheadline)
-                                .foregroundStyle(.primary)
-                            
-                            Text("The conversation helped me organize my thoughts around what's most important right now. We discussed my priorities for the week and how to balance work with personal time.")
-                                .font(.subheadline)
-                                .foregroundStyle(.primary)
-                            
-                            Text("As I look toward the evening, I'm planning to wind down with some reading and prepare for tomorrow's meetings. It's been a productive day overall, and I'm grateful for the clarity that comes from taking time to reflect.")
-                                .font(.subheadline)
-                                .foregroundStyle(.primary)
-                        }
-                        .padding()
-                        .background(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .padding()
-                    }
-                    
-                    Spacer()
-                    
-                    // Action buttons
-                    HStack(spacing: 12) {
-                        // Create/Update Entry button
-                        Button(action: {
-                            if entryCreated {
-                                // Update existing entry
-                                updateEntry()
-                            } else {
-                                // Create new entry
-                                createEntry()
-                            }
-                        }) {
-                            HStack {
-                                if isCreatingEntry {
-                                    ProgressView()
-                                        .scaleEffect(0.8)
-                                        .tint(.white)
-                                } else {
-                                    Text(entryCreated ? "Update Entry" : "Create Entry")
-                                        .font(.subheadline)
-                                        .fontWeight(.semibold)
-                                }
-                            }
-                            .foregroundStyle(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(Color(hex: "44C0FF"))
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                        }
-                        .disabled(isCreatingEntry || (entryCreated && !hasNewInteractions))
-                        .opacity((entryCreated && !hasNewInteractions) ? 0.6 : 1.0)
+                if isLoadingSummary {
+                    // Loading state
+                    VStack(spacing: 20) {
+                        ProgressView()
+                            .scaleEffect(1.2)
+                            .tint(Color(hex: "44C0FF"))
                         
-                        // Open button
-                        Button(action: {
-                            showingEntry = true
-                        }) {
-                            Text("Open Entry")
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(entryCreated ? .white : .gray)
+                        Text("Generating summary...")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                } else {
+                    VStack(spacing: 0) {
+                        // Entry content in white rounded rectangle
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("Morning Reflections and Evening Plans")
+                                    .font(.headline)
+                                    .fontWeight(.bold)
+                                
+                                Text("Today I started with my usual morning routine, feeling energized and ready to tackle the day ahead. I spent some time thinking about my work goals and how I want to approach the various projects I have on my plate.")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.primary)
+                                
+                                Text("The conversation helped me organize my thoughts around what's most important right now. We discussed my priorities for the week and how to balance work with personal time.")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.primary)
+                                
+                                Text("As I look toward the evening, I'm planning to wind down with some reading and prepare for tomorrow's meetings. It's been a productive day overall, and I'm grateful for the clarity that comes from taking time to reflect.")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.primary)
+                            }
+                            .padding()
+                            .background(.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .padding()
+                        }
+                        
+                            Spacer()
+                        
+                        // Action buttons
+                        HStack(spacing: 12) {
+                            // Create/Update Entry button
+                            Button(action: {
+                                if entryCreated {
+                                    // Update existing entry
+                                    updateEntry()
+                                } else {
+                                    // Create new entry
+                                    createEntry()
+                                }
+                            }) {
+                                HStack {
+                                    if isCreatingEntry {
+                                        ProgressView()
+                                            .scaleEffect(0.8)
+                                            .tint(.white)
+                                    } else {
+                                        Text(entryCreated ? "Update Entry" : "Create Entry")
+                                            .font(.subheadline)
+                                            .fontWeight(.semibold)
+                                    }
+                                }
+                                .foregroundStyle(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 14)
-                                .background(entryCreated ? Color(hex: "44C0FF") : Color.gray.opacity(0.3))
+                                .background(Color(hex: "44C0FF"))
                                 .clipShape(RoundedRectangle(cornerRadius: 10))
+                            }
+                            .disabled(isCreatingEntry || (entryCreated && !hasNewInteractions))
+                            .opacity((entryCreated && !hasNewInteractions) ? 0.6 : 1.0)
+                            
+                            // Open button
+                            Button(action: {
+                                showingEntry = true
+                            }) {
+                                Text("Open Entry")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(entryCreated ? .white : .gray)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 14)
+                                    .background(entryCreated ? Color(hex: "44C0FF") : Color.gray.opacity(0.3))
+                                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                            }
+                            .disabled(!entryCreated)
                         }
-                        .disabled(!entryCreated)
+                        .padding(.horizontal)
+                        .padding(.bottom, 20)
                     }
-                    .padding(.horizontal)
-                    .padding(.bottom, 20)
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
@@ -1838,6 +1852,11 @@ struct ChatEntryPreviewView: View {
             EntryView()
         }
         .onAppear {
+            // Show loading state for 0.5 seconds
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                isLoadingSummary = false
+            }
+            
             // Check if there are new chat interactions since entry was created
             // This would normally check actual chat data
             if entryCreated {

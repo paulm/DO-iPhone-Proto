@@ -162,6 +162,7 @@ struct JournalDetailPagedView: View {
     let sheetRegularPosition: CGFloat
     @State private var showingSheet = false
     @State private var showingEntryView = false
+    @State private var showingEditView = false
     @State private var showFAB = false
     @AppStorage("journalImageEnabled") private var imageEnabled = false
     @Environment(\.dismiss) private var dismiss
@@ -200,26 +201,34 @@ struct JournalDetailPagedView: View {
                     
                     Spacer()
                     
-                    // White FAB button
-                    if showFAB {
+                    // Ellipsis menu button
+                    Menu {
                         Button(action: {
-                            showingEntryView = true
+                            showingEditView = true
                         }) {
-                            Image(systemName: "plus")
-                                .font(.title3)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(journal.color)
-                                .frame(width: 44, height: 44)
-                                .background(.white)
-                                .clipShape(Circle())
-                                .shadow(color: .black.opacity(0.2), radius: 3, x: 0, y: 2)
+                            Label("Edit Journal", systemImage: "pencil")
                         }
-                        .padding(.trailing, 18)
-                        .transition(.asymmetric(
-                            insertion: .scale(scale: 0.8).combined(with: .opacity),
-                            removal: .scale(scale: 0.8).combined(with: .opacity)
-                        ))
+                        
+                        Button(action: {
+                            // TODO: Preview Book action
+                        }) {
+                            Label("Preview Book", systemImage: "book")
+                        }
+                        
+                        Button(action: {
+                            // TODO: Export action
+                        }) {
+                            Label("Export", systemImage: "square.and.arrow.up")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundStyle(.white)
+                            .frame(width: 44, height: 44)
+                            .background(Color.white.opacity(0.001))
+                            .contentShape(Rectangle())
                     }
+                    .padding(.trailing, 18)
                 }
                 .padding(.leading, 18)
                 .padding(.top, sheetRegularPosition - 100)
@@ -227,6 +236,7 @@ struct JournalDetailPagedView: View {
                 Spacer()
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .zIndex(1)
         }
         .navigationBarTitleDisplayMode(.inline)
         .tint(.white)
@@ -247,12 +257,15 @@ struct JournalDetailPagedView: View {
                 dismiss()
             }
         }
-        .overlay(
-            PagedNativeSheetView(isPresented: $showingSheet, journal: journal, sheetRegularPosition: sheetRegularPosition)
-        )
         .sheet(isPresented: $showingEntryView) {
             EntryView()
         }
+        .sheet(isPresented: $showingEditView) {
+            PagedEditJournalView(imageEnabled: $imageEnabled)
+        }
+        .overlay(
+            PagedNativeSheetView(isPresented: $showingSheet, journal: journal, sheetRegularPosition: sheetRegularPosition)
+        )
     }
 }
 
@@ -271,6 +284,8 @@ struct PagedNativeSheetView: UIViewControllerRepresentable {
     
     func makeUIViewController(context: Context) -> UIViewController {
         let hostingController = UIViewController()
+        hostingController.view.backgroundColor = .clear
+        hostingController.view.isUserInteractionEnabled = false
         return hostingController
     }
     

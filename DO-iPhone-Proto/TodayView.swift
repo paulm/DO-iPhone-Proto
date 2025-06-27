@@ -1640,6 +1640,8 @@ struct ChatEntryPreviewView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var entryContent: String = ""
     @State private var isCreatingEntry = false
+    @State private var showingEntry = false
+    @State private var hasNewInteractions = false
     
     private var dateFormatter: DateFormatter {
         let formatter = DateFormatter()
@@ -1682,36 +1684,55 @@ struct ChatEntryPreviewView: View {
                     
                     Spacer()
                     
-                    // Action button
-                    Button(action: {
-                    if entryCreated {
-                        // Update existing entry
-                        updateEntry()
-                    } else {
-                        // Create new entry
-                        createEntry()
-                    }
-                }) {
-                    HStack {
-                        if isCreatingEntry {
-                            ProgressView()
-                                .scaleEffect(0.8)
-                                .tint(.white)
-                        } else {
-                            Text(entryCreated ? "Update Entry" : "Create Entry")
-                                .font(.body)
-                                .fontWeight(.semibold)
+                    // Action buttons
+                    HStack(spacing: 12) {
+                        // Create/Update Entry button
+                        Button(action: {
+                            if entryCreated {
+                                // Update existing entry
+                                updateEntry()
+                            } else {
+                                // Create new entry
+                                createEntry()
+                            }
+                        }) {
+                            HStack {
+                                if isCreatingEntry {
+                                    ProgressView()
+                                        .scaleEffect(0.8)
+                                        .tint(.white)
+                                } else {
+                                    Text(entryCreated ? "Update Entry" : "Create Entry")
+                                        .font(.subheadline)
+                                        .fontWeight(.semibold)
+                                }
+                            }
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(Color(hex: "44C0FF"))
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
                         }
+                        .disabled(isCreatingEntry || (entryCreated && !hasNewInteractions))
+                        .opacity((entryCreated && !hasNewInteractions) ? 0.6 : 1.0)
+                        
+                        // Open button
+                        Button(action: {
+                            showingEntry = true
+                        }) {
+                            Text("Open")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(entryCreated ? .white : .gray)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 14)
+                                .background(entryCreated ? Color(hex: "44C0FF") : Color.gray.opacity(0.3))
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                        }
+                        .disabled(!entryCreated)
                     }
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(Color(hex: "44C0FF"))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                }
-                .padding(.horizontal)
-                .padding(.bottom, 20)
-                .disabled(isCreatingEntry)
+                    .padding(.horizontal)
+                    .padding(.bottom, 20)
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
@@ -1733,6 +1754,44 @@ struct ChatEntryPreviewView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Menu {
+                        Button(action: {
+                            copyEntryText()
+                        }) {
+                            Label("Copy Text", systemImage: "doc.on.doc")
+                        }
+                        
+                        Button(action: {
+                            // TODO: Edit entry
+                        }) {
+                            Label("Edit", systemImage: "pencil")
+                        }
+                        
+                        Divider()
+                        
+                        Button(role: .destructive, action: {
+                            deleteEntry()
+                        }) {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                            .font(.body)
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $showingEntry) {
+            EntryView()
+        }
+        .onAppear {
+            // Check if there are new chat interactions since entry was created
+            // This would normally check actual chat data
+            if entryCreated {
+                // Simulate checking for new interactions
+                hasNewInteractions = true
             }
         }
     }
@@ -1744,6 +1803,7 @@ struct ChatEntryPreviewView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             isCreatingEntry = false
             entryCreated = true
+            hasNewInteractions = false
         }
     }
     
@@ -1753,8 +1813,28 @@ struct ChatEntryPreviewView: View {
         // Simulate entry update
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             isCreatingEntry = false
+            hasNewInteractions = false
             // Entry remains created
         }
+    }
+    
+    private func copyEntryText() {
+        let entryText = """
+        Morning Reflections and Evening Plans
+        
+        Today I started with my usual morning routine, feeling energized and ready to tackle the day ahead. I spent some time thinking about my work goals and how I want to approach the various projects I have on my plate.
+        
+        The conversation helped me organize my thoughts around what's most important right now. We discussed my priorities for the week and how to balance work with personal time.
+        
+        As I look toward the evening, I'm planning to wind down with some reading and prepare for tomorrow's meetings. It's been a productive day overall, and I'm grateful for the clarity that comes from taking time to reflect.
+        """
+        
+        UIPasteboard.general.string = entryText
+    }
+    
+    private func deleteEntry() {
+        entryCreated = false
+        dismiss()
     }
 }
 

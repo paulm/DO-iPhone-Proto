@@ -155,6 +155,7 @@ struct TodayViewV1i2: View {
     @State private var showingOnThisDay = false
     @State private var showingPreviewEntry = false
     @State private var entryCreated = false
+    @State private var showingEntry = false
     
     // Show/hide toggles for Daily Activities
     @State private var showChat = false
@@ -368,158 +369,39 @@ struct TodayViewV1i2: View {
             
             // Content with Daily Activities
             List {
-                // Generated Journal Entry Preview (separate section)
-                Section("Daily Summary") {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 6) {
-                                if isGeneratingPreview {
-                                    // Loading state
-                                    VStack(alignment: .leading, spacing: 8) {
-                                        HStack(spacing: 8) {
-                                            Text("Generating entry...")
-                                                .font(.subheadline)
-                                                .fontWeight(.bold)
-                                                .foregroundStyle(.secondary)
-                                                .multilineTextAlignment(.leading)
-                                            
-                                            ProgressView()
-                                                .scaleEffect(0.8)
-                                        }
-                                        
-                                        VStack(alignment: .leading, spacing: 4) {
-                                            // Placeholder lines with shimmer effect
-                                            RoundedRectangle(cornerRadius: 4)
-                                                .fill(.gray.opacity(0.3))
-                                                .frame(height: 16)
-                                                .frame(maxWidth: .infinity)
-                                            
-                                            RoundedRectangle(cornerRadius: 4)
-                                                .fill(.gray.opacity(0.3))
-                                                .frame(height: 16)
-                                                .frame(maxWidth: .infinity)
-                                            
-                                            RoundedRectangle(cornerRadius: 4)
-                                                .fill(.gray.opacity(0.3))
-                                                .frame(height: 16)
-                                                .frame(maxWidth: 0.7 * UIScreen.main.bounds.width)
-                                            
-                                            RoundedRectangle(cornerRadius: 4)
-                                                .fill(.gray.opacity(0.3))
-                                                .frame(height: 16)
-                                                .frame(maxWidth: 0.9 * UIScreen.main.bounds.width)
-                                        }
-                                        
-                                        // Show selected locations, events, and health even during loading
-                                        if !selectedLocations.isEmpty || !selectedEvents.isEmpty || !selectedHealth.isEmpty {
-                                            VStack(alignment: .leading, spacing: 2) {
-                                                if !selectedLocations.isEmpty {
-                                                    Text("Locations: ") +
-                                                    Text(Array(selectedLocations).joined(separator: ", "))
-                                                        .foregroundStyle(.secondary)
-                                                }
-                                                
-                                                if !selectedEvents.isEmpty {
-                                                    Text("Events: ") +
-                                                    Text(Array(selectedEvents).joined(separator: ", "))
-                                                        .foregroundStyle(.secondary)
-                                                }
-                                                
-                                                if !selectedHealth.isEmpty {
-                                                    Text("Health: ") +
-                                                    Text(Array(selectedHealth).joined(separator: ", "))
-                                                        .foregroundStyle(.secondary)
-                                                }
-                                            }
-                                            .font(.caption)
-                                            .foregroundStyle(.primary)
-                                            .fontWeight(.medium)
-                                        }
-                                    }
-                                } else {
-                                    // Actual content
-                                    VStack(alignment: .leading, spacing: 8) {
-                                        // Show placeholder if nothing is available
-                                        if !hasInteractedWithChat && selectedLocations.isEmpty && selectedEvents.isEmpty && selectedHealth.isEmpty {
-                                            Text("Interact to populate")
-                                                .font(.subheadline)
-                                                .foregroundStyle(.tertiary)
-                                                .multilineTextAlignment(.leading)
-                                        } else {
-                                            // Generate Entry button section
-                                            if hasInteractedWithChat && !summaryGenerated {
-                                                Button(action: {
-                                                    generateSummary()
-                                                }) {
-                                                    HStack {
-                                                        Image(systemName: "wand.and.stars")
-                                                            .font(.caption)
-                                                        Text("Generate Entry")
-                                                            .font(.subheadline)
-                                                            .fontWeight(.medium)
-                                                    }
-                                                    .foregroundColor(.blue)
-                                                }
-                                                .buttonStyle(.plain)
-                                            }
-                                            
-                                            // Chat summary section
-                                            if summaryGenerated {
-                                                VStack(alignment: .leading, spacing: 4) {
-                                                    Text("Morning Reflections and Evening Plans")
-                                                        .font(.subheadline)
-                                                        .fontWeight(.bold)
-                                                        .foregroundStyle(.primary)
-                                                        .multilineTextAlignment(.leading)
-                                                    
-                                                    Text("Today I started with my usual morning routine, feeling energized and ready to tackle the day ahead. I spent some time thinking about my work goals and how I want to approach the various projects I have on my plate. The conversation helped me organize my thoughts around what's most important right now. As I look toward the evening, I'm planning to wind down with some reading and prepare for tomorrow's meetings.")
-                                                        .font(.subheadline)
-                                                        .foregroundStyle(.secondary)
-                                                        .lineLimit(4)
-                                                        .multilineTextAlignment(.leading)
-                                                }
-                                            }
-                                            
-                                            // Selected locations, events, and health section
-                                            if !selectedLocations.isEmpty || !selectedEvents.isEmpty || !selectedHealth.isEmpty {
-                                                VStack(alignment: .leading, spacing: 2) {
-                                                    if !selectedLocations.isEmpty {
-                                                        Text("Locations: ") +
-                                                        Text(Array(selectedLocations).joined(separator: ", "))
-                                                            .foregroundStyle(.secondary)
-                                                    }
-                                                    
-                                                    if !selectedEvents.isEmpty {
-                                                        Text("Events: ") +
-                                                        Text(Array(selectedEvents).joined(separator: ", "))
-                                                            .foregroundStyle(.secondary)
-                                                    }
-                                                    
-                                                    if !selectedHealth.isEmpty {
-                                                        Text("Health: ") +
-                                                        Text(Array(selectedHealth).joined(separator: ", "))
-                                                            .foregroundStyle(.secondary)
-                                                    }
-                                                }
-                                                .font(.caption)
-                                                .foregroundStyle(.primary)
-                                                .fontWeight(.medium)
-                                            }
-                                        }
-                                    }
+                // Daily Entry section (only shown after entry is created)
+                if entryCreated {
+                    Section("Daily Entry") {
+                        Button(action: {
+                            showingEntry = true
+                        }) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Morning Reflections and Evening Plans")
+                                        .font(.subheadline)
+                                        .fontWeight(.bold)
+                                        .foregroundStyle(.primary)
+                                        .multilineTextAlignment(.leading)
+                                    
+                                    Text("Today I started with my usual morning routine, feeling energized and ready to tackle the day ahead. I spent some time thinking about my work goals and how I want to approach the various projects I have on my plate. The conversation helped me organize my thoughts around what's most important right now.")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(3)
+                                        .multilineTextAlignment(.leading)
                                 }
-                            }
-                            
-                            Spacer()
-                            
-                            if !isGeneratingPreview && (chatCompleted || !selectedLocations.isEmpty || !selectedEvents.isEmpty) {
+                                
+                                Spacer()
+                                
                                 Image(systemName: "chevron.right")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
                         }
+                        .buttonStyle(PlainButtonStyle())
                         .padding(.vertical, 8)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
+                }
                 
                 // Daily Chat Section
                 if showChat {
@@ -716,6 +598,9 @@ struct TodayViewV1i2: View {
                 selectedDate: selectedDate,
                 entryCreated: $entryCreated
             )
+        }
+        .sheet(isPresented: $showingEntry) {
+            EntryView()
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("TriggerDailyChat"))) { _ in
             // Only respond to Daily Chat trigger if this variant supports it
@@ -1198,9 +1083,27 @@ struct DailyChatView: View {
                     .background(Color(.systemGroupedBackground))
                 }
             }
-            .navigationTitle("Daily Chat")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    VStack(spacing: 2) {
+                        Text("Daily Chat")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                        
+                        if userMessageCount > 0 {
+                            Button(action: {
+                                showingPreviewEntry = true
+                            }) {
+                                Text("Preview Entry")
+                                    .font(.caption)
+                                    .foregroundStyle(Color(hex: "44C0FF"))
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                    }
+                }
+                
                 ToolbarItem(placement: .navigationBarLeading) {
                     Menu {
                         Button(action: {

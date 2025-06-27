@@ -1094,6 +1094,10 @@ struct DailyChatView: View {
                             .font(.headline)
                             .fontWeight(.semibold)
                         
+                        Text(selectedDate, style: .date)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        
                         if userMessageCount > 0 {
                             Button(action: {
                                 showingPreviewEntry = true
@@ -1129,7 +1133,7 @@ struct DailyChatView: View {
                             Label("Clear Chat", systemImage: "trash")
                         }
                     } label: {
-                        Image(systemName: "ellipsis.circle")
+                        Image(systemName: "ellipsis")
                             .font(.body)
                     }
                 }

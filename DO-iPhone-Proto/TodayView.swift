@@ -426,13 +426,13 @@ struct TodayViewV1i2: View {
                             }
                         )
                         
-                        // Preview Entry row when chat has been interacted with
+                        // View Summary row when chat has been interacted with
                         if chatCompleted {
                             Button(action: {
                                 showingPreviewEntry = true
                             }) {
                                 HStack {
-                                    Text("Preview Entry")
+                                    Text("View Summary")
                                         .font(.body)
                                         .foregroundStyle(Color(hex: "44C0FF"))
                                     
@@ -1098,7 +1098,7 @@ struct DailyChatView: View {
                             Button(action: {
                                 showingPreviewEntry = true
                             }) {
-                                Text("Preview Entry")
+                                Text("View Summary")
                                     .font(.caption)
                                     .foregroundStyle(Color(hex: "44C0FF"))
                             }
@@ -1821,7 +1821,7 @@ struct ChatEntryPreviewView: View {
                             .font(.headline)
                             .fontWeight(.semibold)
                         
-                        Text("Entry generated from chat")
+                        Text("Summary generated from chat")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }

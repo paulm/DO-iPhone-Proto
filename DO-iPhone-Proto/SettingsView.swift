@@ -14,6 +14,12 @@ struct SettingsView: View {
                 }
                 
                 Section {
+                    NavigationLink("Daily Chat") {
+                        DailyChatSettingsView()
+                    }
+                }
+                
+                Section {
                     NavigationLink("Integrations") {
                         IntegrationsView()
                     }

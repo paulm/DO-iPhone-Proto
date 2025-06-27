@@ -826,20 +826,10 @@ struct TodayActivityRowWithChatResumeV2: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
                     if showResume {
-                        HStack(spacing: 4) {
-                            Text(subtitle)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                            
-                            Button(action: resumeAction) {
-                                Text("Resume")
-                                    .font(.subheadline)
-                                    .foregroundStyle(Color(hex: "44C0FF"))
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                            
-                            Spacer()
-                        }
+                        Text(subtitle)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     } else if showDefaultContent {
                         HStack(spacing: 4) {
                             Button(action: logHighlightsAction) {
@@ -872,7 +862,19 @@ struct TodayActivityRowWithChatResumeV2: View {
                 
                 Spacer()
                 
-                if isCompleted {
+                if showResume {
+                    Button(action: resumeAction) {
+                        Text("Resume Chat")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color(hex: "44C0FF"))
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                } else if isCompleted {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(.green)
                         .font(.title3)

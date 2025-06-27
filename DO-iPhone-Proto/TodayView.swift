@@ -1110,12 +1110,6 @@ struct DailyChatView: View {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Menu {
                         Button(action: {
-                            showingPreviewEntry = true
-                        }) {
-                            Label("Preview Entry", systemImage: "doc.text.magnifyingglass")
-                        }
-                        
-                        Button(action: {
                             regenerateResponse()
                         }) {
                             Label("Regenerate Response", systemImage: "arrow.clockwise")

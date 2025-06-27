@@ -3,6 +3,7 @@ import SwiftUI
 struct DailyChatSettingsView: View {
     @AppStorage("dailyChatJournal") private var selectedJournal = "Daily"
     @State private var showingJournalPicker = false
+    @State private var showingBioView = false
     
     // Sample journals for selection
     private let availableJournals = ["Daily", "Personal", "Work", "Travel", "Fitness", "Gratitude"]
@@ -23,12 +24,27 @@ struct DailyChatSettingsView: View {
                 .onTapGesture {
                     showingJournalPicker = true
                 }
+                
+                HStack {
+                    Text("Bio")
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    showingBioView = true
+                }
             }
         }
         .navigationTitle("Daily Chat")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showingJournalPicker) {
             JournalPickerView(selectedJournal: $selectedJournal)
+        }
+        .sheet(isPresented: $showingBioView) {
+            BioEditView()
         }
     }
 }

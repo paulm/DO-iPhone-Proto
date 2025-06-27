@@ -141,6 +141,7 @@ struct TodayViewV1i2: View {
     @State private var showingDailyChat = false
     @State private var chatCompleted = false
     @State private var openChatInLogMode = false
+    @State private var chatMessageCount = 0
     @State private var momentsCompleted = false
     @State private var trackersCompleted = false
     @State private var showingProfileMenu = false
@@ -244,8 +245,7 @@ struct TodayViewV1i2: View {
     }
     
     private var chatInteractionsText: String {
-        let interactionCount = Int.random(in: 1...55)
-        return "\(interactionCount) interactions."
+        return "\(chatMessageCount) interaction\(chatMessageCount == 1 ? "" : "s")."
     }
     
     private var chatSubtitleWithResume: String {
@@ -541,6 +541,27 @@ struct TodayViewV1i2: View {
                                 showingDailyChat = true
                             }
                         )
+                        
+                        // Preview Entry row when chat has been interacted with
+                        if chatCompleted {
+                            Button(action: {
+                                // TODO: Navigate to entry preview
+                            }) {
+                                HStack {
+                                    Text("Preview Entry")
+                                        .font(.body)
+                                        .foregroundStyle(Color(hex: "44C0FF"))
+                                    
+                                    Spacer()
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                .padding(.vertical, 12)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
                     }
                 }
                 
@@ -610,11 +631,16 @@ struct TodayViewV1i2: View {
         }
         .sheet(isPresented: $showingDailyChat) {
             DailyChatView(
+                selectedDate: selectedDate,
                 initialLogMode: openChatInLogMode,
                 onChatStarted: {
                     // Mark that user has interacted with chat
                     hasInteractedWithChat = true
                     chatCompleted = true
+                    showChat = true
+                },
+                onMessageCountChanged: { count in
+                    chatMessageCount = count
                 }
             )
         }
@@ -643,6 +669,16 @@ struct TodayViewV1i2: View {
             isGeneratingPreview = false
             summaryGenerated = false
             hasInteractedWithChat = false
+            chatMessageCount = 0
+            
+            // Check if there are existing chat messages for the new date
+            let existingMessages = ChatSessionManager.shared.getMessages(for: newValue)
+            if !existingMessages.isEmpty {
+                hasInteractedWithChat = true
+                chatCompleted = true
+                showChat = true
+                chatMessageCount = existingMessages.filter { $0.isUser }.count
+            }
             
             // Clear moments data
             selectedLocations.removeAll()
@@ -917,17 +953,72 @@ struct TodayActivityRowWithChatResume: View {
     }
 }
 
+// Chat Session Manager
+class ChatSessionManager {
+    static let shared = ChatSessionManager()
+    private var sessions: [String: [DailyChatMessage]] = [:]
+    
+    private init() {}
+    
+    private func dateKey(for date: Date = Date()) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: date)
+    }
+    
+    func getMessages(for date: Date = Date()) -> [DailyChatMessage] {
+        let key = dateKey(for: date)
+        return sessions[key] ?? []
+    }
+    
+    func saveMessages(_ messages: [DailyChatMessage], for date: Date = Date()) {
+        let key = dateKey(for: date)
+        sessions[key] = messages
+    }
+    
+    func clearSession(for date: Date = Date()) {
+        let key = dateKey(for: date)
+        sessions.removeValue(forKey: key)
+    }
+}
+
 // Daily Chat View
 struct DailyChatView: View {
     @Environment(\.dismiss) private var dismiss
+    let selectedDate: Date
     let initialLogMode: Bool
     let onChatStarted: () -> Void
+    let onMessageCountChanged: (Int) -> Void
     
     @State private var chatText = ""
-    @State private var isLogDetailsMode = false
+    @State private var isLogDetailsMode: Bool
     @State private var messages: [DailyChatMessage] = []
     @State private var isThinking = false
     @FocusState private var isTextFieldFocused: Bool
+    
+    private let chatSessionManager = ChatSessionManager.shared
+    
+    private var dayOfWeek: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE"
+        return formatter.string(from: selectedDate)
+    }
+    
+    private var userMessageCount: Int {
+        messages.filter { $0.isUser }.count
+    }
+    
+    init(selectedDate: Date, initialLogMode: Bool, onChatStarted: @escaping () -> Void, onMessageCountChanged: @escaping (Int) -> Void) {
+        self.selectedDate = selectedDate
+        self.initialLogMode = initialLogMode
+        self.onChatStarted = onChatStarted
+        self.onMessageCountChanged = onMessageCountChanged
+        self._isLogDetailsMode = State(initialValue: initialLogMode)
+        
+        // Load existing messages for the selected date
+        let existingMessages = ChatSessionManager.shared.getMessages(for: selectedDate)
+        self._messages = State(initialValue: existingMessages)
+    }
     
     private var placeholderText: String {
         isLogDetailsMode ? "Log any details about this day" : "Chat about your day"
@@ -1047,7 +1138,7 @@ struct DailyChatView: View {
                                         .padding(.horizontal, 12)
                                         .padding(.vertical, 6)
                                         .background(
-                                            isLogDetailsMode ? Color(hex: "44C0FF") : Color.clear,
+                                            isLogDetailsMode ? Color(.darkGray) : Color.clear,
                                             in: RoundedRectangle(cornerRadius: 16)
                                         )
                                         .foregroundStyle(isLogDetailsMode ? .white : .secondary)
@@ -1109,20 +1200,33 @@ struct DailyChatView: View {
                 
                 // Auto-insert first AI question if in chat mode and no messages yet
                 if !initialLogMode && messages.isEmpty {
-                    let initialMessage = DailyChatMessage(content: "How's your morning going?", isUser: false)
+                    let initialMessage = DailyChatMessage(content: "How's your \(dayOfWeek)?", isUser: false, isLogMode: false)
                     messages.append(initialMessage)
+                    chatSessionManager.saveMessages(messages, for: selectedDate)
+                }
+                
+                // Notify that chat has been started if there are existing messages
+                if !messages.isEmpty {
+                    onChatStarted()
+                    onMessageCountChanged(userMessageCount)
                 }
                 
                 // Auto-focus text field when view appears
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     isTextFieldFocused = true
                 }
+            }
+            .onChange(of: messages) { _, newMessages in
+                // Save messages whenever they change
+                chatSessionManager.saveMessages(newMessages, for: selectedDate)
+                // Update message count
+                onMessageCountChanged(userMessageCount)
             }
         }
     }
     
     private func sendMessage() {
-        let userMessage = DailyChatMessage(content: chatText, isUser: true)
+        let userMessage = DailyChatMessage(content: chatText, isUser: true, isLogMode: isLogDetailsMode)
         messages.append(userMessage)
         
         chatText = ""
@@ -1137,11 +1241,11 @@ struct DailyChatView: View {
             // Show thinking indicator
             isThinking = true
             
-            // Simulate AI response after a delay
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double.random(in: 1.5...3.0)) {
+            // Simulate AI response after a delay (reduced by half)
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double.random(in: 0.75...1.5)) {
                 isThinking = false
                 let aiResponse = aiResponses.randomElement() ?? aiResponses[0]
-                let aiMessage = DailyChatMessage(content: aiResponse, isUser: false)
+                let aiMessage = DailyChatMessage(content: aiResponse, isUser: false, isLogMode: false)
                 withAnimation(.easeIn(duration: 0.3)) {
                     messages.append(aiMessage)
                 }
@@ -1151,10 +1255,11 @@ struct DailyChatView: View {
 }
 
 // Daily Chat Message Model
-struct DailyChatMessage: Identifiable, Equatable {
+struct DailyChatMessage: Identifiable, Equatable, Codable {
     let id = UUID()
     let content: String
     let isUser: Bool
+    let isLogMode: Bool
     let timestamp = Date()
 }
 
@@ -1172,7 +1277,10 @@ struct DailyChatBubbleView: View {
                     .foregroundStyle(.white)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
-                    .background(Color(hex: "44C0FF"), in: RoundedRectangle(cornerRadius: 18))
+                    .background(
+                        message.isLogMode ? Color(.darkGray) : Color(hex: "44C0FF"),
+                        in: RoundedRectangle(cornerRadius: 18)
+                    )
             } else {
                 Text(message.content)
                     .font(.body)

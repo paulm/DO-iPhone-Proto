@@ -125,16 +125,9 @@ struct ListTabView: View {
     
     var body: some View {
         ScrollView {
-            LazyVStack(spacing: 0) {
+            LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
                 // March 2025 Section
-                VStack(alignment: .leading, spacing: 0) {
-                    Text("March 2025")
-                        .font(.title2)
-                        .fontWeight(.medium)
-                        .padding(.horizontal)
-                        .padding(.top, 20)
-                        .padding(.bottom, 16)
-                    
+                Section(header: MonthHeaderView(monthYear: "March 2025")) {
                     VStack(spacing: 0) {
                         EntryRow(
                             day: "WED",
@@ -166,14 +159,7 @@ struct ListTabView: View {
                 }
                 
                 // February 2025 Section
-                VStack(alignment: .leading, spacing: 0) {
-                    Text("February 2025")
-                        .font(.title2)
-                        .fontWeight(.medium)
-                        .padding(.horizontal)
-                        .padding(.top, 32)
-                        .padding(.bottom, 16)
-                    
+                Section(header: MonthHeaderView(monthYear: "February 2025")) {
                     VStack(spacing: 0) {
                         EntryRow(
                             day: "SUN",
@@ -205,6 +191,23 @@ struct ListTabView: View {
     }
 }
 
+struct MonthHeaderView: View {
+    let monthYear: String
+    
+    var body: some View {
+        HStack {
+            Text(monthYear)
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundStyle(.primary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal)
+                .padding(.vertical, 12)
+                .background(Color(UIColor.systemBackground))
+        }
+    }
+}
+
 struct EntryRow: View {
     let day: String
     let date: String
@@ -232,12 +235,12 @@ struct EntryRow: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(title)
                         .font(.subheadline)
-                        .fontWeight(.medium)
+                        .fontWeight(.semibold)
                         .foregroundStyle(.primary)
                         .multilineTextAlignment(.leading)
                     
                     Text(preview)
-                        .font(.caption)
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)

@@ -1005,6 +1005,9 @@ struct DailyChatView: View {
     @State private var messages: [DailyChatMessage] = []
     @State private var isThinking = false
     @FocusState private var isTextFieldFocused: Bool
+    @State private var showingPreviewEntry = false
+    @State private var showingBioView = false
+    @State private var entryCreated = false
     
     private let chatSessionManager = ChatSessionManager.shared
     
@@ -1198,6 +1201,39 @@ struct DailyChatView: View {
             .navigationTitle("Daily Chat")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Menu {
+                        Button(action: {
+                            showingPreviewEntry = true
+                        }) {
+                            Label("Preview Entry", systemImage: "doc.text.magnifyingglass")
+                        }
+                        
+                        Button(action: {
+                            regenerateResponse()
+                        }) {
+                            Label("Regenerate Response", systemImage: "arrow.clockwise")
+                        }
+                        
+                        Button(action: {
+                            showingBioView = true
+                        }) {
+                            Label("Edit Bio", systemImage: "person.circle")
+                        }
+                        
+                        Divider()
+                        
+                        Button(role: .destructive, action: {
+                            clearChat()
+                        }) {
+                            Label("Clear Chat", systemImage: "trash")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                            .font(.body)
+                    }
+                }
+                
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
                         dismiss()
@@ -1232,6 +1268,49 @@ struct DailyChatView: View {
                 // Update message count
                 onMessageCountChanged(userMessageCount)
             }
+        }
+        .sheet(isPresented: $showingPreviewEntry) {
+            ChatEntryPreviewView(
+                selectedDate: selectedDate,
+                entryCreated: $entryCreated
+            )
+        }
+        .sheet(isPresented: $showingBioView) {
+            BioEditView()
+        }
+    }
+    
+    private func regenerateResponse() {
+        // Find the last AI message and regenerate it
+        if let lastAIIndex = messages.lastIndex(where: { !$0.isUser && !$0.isLogMode }) {
+            // Remove the last AI message
+            messages.remove(at: lastAIIndex)
+            
+            // Show thinking indicator
+            isThinking = true
+            
+            // Generate new response
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double.random(in: 0.75...1.5)) {
+                isThinking = false
+                let aiResponse = aiResponses.randomElement() ?? aiResponses[0]
+                let aiMessage = DailyChatMessage(content: aiResponse, isUser: false, isLogMode: false)
+                withAnimation(.easeIn(duration: 0.3)) {
+                    messages.append(aiMessage)
+                }
+            }
+        }
+    }
+    
+    private func clearChat() {
+        messages.removeAll()
+        chatSessionManager.clearSession(for: selectedDate)
+        onMessageCountChanged(0)
+        
+        // Re-add initial AI message if in chat mode
+        if !isLogDetailsMode {
+            let initialMessage = DailyChatMessage(content: "How's your \(dayOfWeek)?", isUser: false, isLogMode: false)
+            messages.append(initialMessage)
+            chatSessionManager.saveMessages(messages, for: selectedDate)
         }
     }
     
@@ -1332,6 +1411,70 @@ struct ThinkingIndicatorView: View {
             animationOffset = 0
             withAnimation {
                 animationOffset = .pi * 2
+            }
+        }
+    }
+}
+
+// Bio Edit View
+struct BioEditView: View {
+    @Environment(\.dismiss) private var dismiss
+    @AppStorage("userBioName") private var userName = ""
+    @AppStorage("userBioBio") private var userBio = ""
+    @AppStorage("includeInDailyChat") private var includeInDailyChat = true
+    
+    @State private var editingName = ""
+    @State private var editingBio = ""
+    @State private var editingInclude = true
+    
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Name", text: $editingName)
+                        .textFieldStyle(.automatic)
+                    
+                    VStack(alignment: .leading) {
+                        Text("Bio")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        
+                        TextEditor(text: $editingBio)
+                            .frame(minHeight: 120)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color(.systemGray5), lineWidth: 1)
+                            )
+                    }
+                }
+                
+                Section {
+                    Toggle("Include in Daily Chat", isOn: $editingInclude)
+                }
+            }
+            .navigationTitle("Bio")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Save") {
+                        userName = editingName
+                        userBio = editingBio
+                        includeInDailyChat = editingInclude
+                        dismiss()
+                    }
+                    .fontWeight(.semibold)
+                }
+            }
+            .onAppear {
+                editingName = userName
+                editingBio = userBio
+                editingInclude = includeInDailyChat
             }
         }
     }
@@ -1722,7 +1865,7 @@ struct ChatEntryPreviewView: View {
                         Button(action: {
                             showingEntry = true
                         }) {
-                            Text("Open")
+                            Text("Open Entry")
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
                                 .foregroundStyle(entryCreated ? .white : .gray)

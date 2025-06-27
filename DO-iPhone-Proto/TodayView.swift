@@ -153,6 +153,8 @@ struct TodayViewV1i2: View {
     @State private var showingWeather = false
     @State private var showingEntries = false
     @State private var showingOnThisDay = false
+    @State private var showingPreviewEntry = false
+    @State private var entryCreated = false
     
     // Show/hide toggles for Daily Activities
     @State private var showChat = false
@@ -545,7 +547,7 @@ struct TodayViewV1i2: View {
                         // Preview Entry row when chat has been interacted with
                         if chatCompleted {
                             Button(action: {
-                                // TODO: Navigate to entry preview
+                                showingPreviewEntry = true
                             }) {
                                 HStack {
                                     Text("Preview Entry")
@@ -708,6 +710,12 @@ struct TodayViewV1i2: View {
             NavigationStack {
                 OnThisDayView()
             }
+        }
+        .sheet(isPresented: $showingPreviewEntry) {
+            ChatEntryPreviewView(
+                selectedDate: selectedDate,
+                entryCreated: $entryCreated
+            )
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("TriggerDailyChat"))) { _ in
             // Only respond to Daily Chat trigger if this variant supports it
@@ -1622,6 +1630,131 @@ struct TodayInsightItemView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 8)
+    }
+}
+
+// Chat Entry Preview View
+struct ChatEntryPreviewView: View {
+    let selectedDate: Date
+    @Binding var entryCreated: Bool
+    @Environment(\.dismiss) private var dismiss
+    @State private var entryContent: String = ""
+    @State private var isCreatingEntry = false
+    
+    private var dateFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .full
+        return formatter
+    }
+    
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                // Gray background
+                Color(UIColor.systemGroupedBackground)
+                    .ignoresSafeArea()
+                
+                VStack(spacing: 0) {
+                    // Entry content in white rounded rectangle
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Morning Reflections and Evening Plans")
+                                .font(.headline)
+                                .fontWeight(.bold)
+                            
+                            Text("Today I started with my usual morning routine, feeling energized and ready to tackle the day ahead. I spent some time thinking about my work goals and how I want to approach the various projects I have on my plate.")
+                                .font(.subheadline)
+                                .foregroundStyle(.primary)
+                            
+                            Text("The conversation helped me organize my thoughts around what's most important right now. We discussed my priorities for the week and how to balance work with personal time.")
+                                .font(.subheadline)
+                                .foregroundStyle(.primary)
+                            
+                            Text("As I look toward the evening, I'm planning to wind down with some reading and prepare for tomorrow's meetings. It's been a productive day overall, and I'm grateful for the clarity that comes from taking time to reflect.")
+                                .font(.subheadline)
+                                .foregroundStyle(.primary)
+                        }
+                        .padding()
+                        .background(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .padding()
+                    }
+                    
+                    Spacer()
+                    
+                    // Action button
+                    Button(action: {
+                    if entryCreated {
+                        // Update existing entry
+                        updateEntry()
+                    } else {
+                        // Create new entry
+                        createEntry()
+                    }
+                }) {
+                    HStack {
+                        if isCreatingEntry {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                                .tint(.white)
+                        } else {
+                            Text(entryCreated ? "Update Entry" : "Create Entry")
+                                .font(.body)
+                                .fontWeight(.semibold)
+                        }
+                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(Color(hex: "44C0FF"))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 20)
+                .disabled(isCreatingEntry)
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .principal) {
+                    VStack(spacing: 2) {
+                        Text(dateFormatter.string(from: selectedDate))
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                        
+                        Text("Entry generated from chat")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        }
+    }
+    
+    private func createEntry() {
+        isCreatingEntry = true
+        
+        // Simulate entry creation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            isCreatingEntry = false
+            entryCreated = true
+        }
+    }
+    
+    private func updateEntry() {
+        isCreatingEntry = true
+        
+        // Simulate entry update
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            isCreatingEntry = false
+            // Entry remains created
+        }
     }
 }
 

@@ -279,18 +279,24 @@ struct CalendarTabView: View {
 }
 
 struct MediaTabView: View {
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    
+    private var columns: [GridItem] {
+        let count = horizontalSizeClass == .compact ? 3 : 4
+        return Array(repeating: GridItem(.flexible(), spacing: 1), count: count)
+    }
+    
     var body: some View {
         ScrollView {
-            VStack {
-                Text("Media View")
-                    .font(.title)
-                    .padding()
-                Text("Photos and videos from entries would appear here.")
-                    .padding()
-                    .foregroundStyle(.secondary)
+            LazyVGrid(columns: columns, spacing: 1) {
+                ForEach(0..<40) { index in
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.3))
+                        .aspectRatio(1, contentMode: .fit)
+                }
             }
         }
-        .background(.gray.opacity(0.1))
+        .ignoresSafeArea(.all, edges: .horizontal)
     }
 }
 

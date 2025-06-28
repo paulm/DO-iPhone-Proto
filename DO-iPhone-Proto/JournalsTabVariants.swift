@@ -338,6 +338,7 @@ struct JournalDetailPagedView: View {
     @State private var showingSheet = false
     @State private var showingEntryView = false
     @State private var showingEditView = false
+    @StateObject private var sheetState = SheetState()
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -435,7 +436,7 @@ struct JournalDetailPagedView: View {
             PagedEditJournalView(journal: journal)
         }
         .overlay(
-            PagedNativeSheetView(isPresented: $showingSheet, journal: journal, sheetRegularPosition: sheetRegularPosition)
+            PagedNativeSheetView(isPresented: $showingSheet, journal: journal, sheetRegularPosition: sheetRegularPosition, sheetState: sheetState)
         )
     }
 }
@@ -451,7 +452,7 @@ struct PagedNativeSheetView: UIViewControllerRepresentable {
     @Binding var isPresented: Bool
     let journal: Journal
     let sheetRegularPosition: CGFloat
-    @StateObject private var sheetState = SheetState()
+    let sheetState: SheetState
     
     func makeUIViewController(context: Context) -> UIViewController {
         let hostingController = UIViewController()
@@ -484,7 +485,7 @@ struct PagedNativeSheetView: UIViewControllerRepresentable {
                 sheet.delegate = context.coordinator
             }
             
-            contentHostingController.isModalInPresentation = false
+            contentHostingController.isModalInPresentation = true
             uiViewController.present(contentHostingController, animated: true)
         } else if !isPresented && uiViewController.presentedViewController != nil {
             uiViewController.dismiss(animated: true)

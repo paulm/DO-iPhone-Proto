@@ -11,6 +11,7 @@ struct EntryView: View {
     @State private var hasChatActivity = true // Simulating that this entry has chat activity
     @State private var entryDate = Date()
     @State private var showingEditDate = false
+    @State private var showEntryChatEmbed = false
     @FocusState private var isTextFieldFocused: Bool
     
     var body: some View {
@@ -36,7 +37,7 @@ struct EntryView: View {
                 // Content area
                 VStack(alignment: .leading, spacing: 16) {
                     // Chat activity indicator
-                    if hasChatActivity {
+                    if hasChatActivity && showEntryChatEmbed {
                         Button {
                             showingEntryChat = true
                         } label: {
@@ -162,12 +163,65 @@ struct EntryView: View {
                 }
                 
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") {
-                        dismiss()
+                    HStack(spacing: 16) {
+                        Menu {
+                            Button(action: {}) {
+                                Label("Tag", systemImage: "tag")
+                            }
+                            
+                            Button(action: {}) {
+                                Label("Move to...", systemImage: "folder")
+                            }
+                            
+                            Button(action: {}) {
+                                Label("Copy to...", systemImage: "doc.on.doc")
+                            }
+                            
+                            Button(role: .destructive, action: {}) {
+                                Label("Move to Trash", systemImage: "trash")
+                            }
+                            
+                            Divider()
+                            
+                            Button(action: {}) {
+                                Label("Entry Info", systemImage: "info.circle")
+                            }
+                            
+                            Divider()
+                            
+                            Button(action: {}) {
+                                Label("Export", systemImage: "square.and.arrow.up")
+                            }
+                            
+                            Button(action: {}) {
+                                Label("View PDF", systemImage: "doc.text")
+                            }
+                            
+                            Button(action: {}) {
+                                Label("View \(entryDate, format: .dateTime.month(.abbreviated).day())", systemImage: "calendar")
+                            }
+                            
+                            Divider()
+                            
+                            Button(action: {
+                                showEntryChatEmbed.toggle()
+                            }) {
+                                Label("Show Entry Chat Embed", systemImage: showEntryChatEmbed ? "checkmark" : "")
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis")
+                                .foregroundStyle(.white)
+                                .frame(width: 44, height: 44)
+                                .contentShape(Rectangle())
+                        }
+                        
+                        Button("Done") {
+                            dismiss()
+                        }
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.white)
+                        .accessibilityLabel("Save journal entry")
                     }
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.white)
-                    .accessibilityLabel("Save journal entry")
                 }
             }
             .toolbarBackground(LinearGradient(colors: [Color(hex: "4EC3FE"), Color(hex: "4EC3FE").opacity(0.8)], startPoint: .top, endPoint: .bottom), for: .navigationBar)

@@ -348,15 +348,19 @@ struct JournalDetailPagedView: View {
             
             // Cover image overlay from journals.json
             if !journal.appearance.originalCoverImageData.isEmpty {
-                VStack {
-                    Image(journal.appearance.originalCoverImageData)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(maxWidth: .infinity)
-                        .ignoresSafeArea()
-                    
-                    Spacer()
+                GeometryReader { geometry in
+                    VStack {
+                        Image(journal.appearance.originalCoverImageData)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: geometry.size.width, height: sheetRegularPosition + 100)
+                            .clipped()
+                            .ignoresSafeArea()
+                        
+                        Spacer()
+                    }
                 }
+                .ignoresSafeArea()
             }
             
             VStack(alignment: .leading) {

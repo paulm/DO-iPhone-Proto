@@ -272,9 +272,10 @@ struct EntryRow: View {
 
 struct CalendarTabView: View {
     @State private var selectedJournal: Journal?
+    var journal: Journal?
     
     var body: some View {
-        JournalCalendarView(selectedJournal: $selectedJournal)
+        JournalCalendarView(selectedJournal: $selectedJournal, journalColor: journal?.color)
     }
 }
 

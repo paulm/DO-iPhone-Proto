@@ -50,7 +50,7 @@
       "appearance": {
         "templateID": "template-travel",
         "presetID": "preset-002",
-        "originalCoverImageData": "",
+        "originalCoverImageData": "bike",
         "croppedCoverImageData": ""
       }
     },
@@ -131,7 +131,7 @@
       "appearance": {
         "templateID": "template-gratitude",
         "presetID": "preset-005",
-        "originalCoverImageData": "",
+        "originalCoverImageData": "bike-wide",
         "croppedCoverImageData": ""
       }
     },

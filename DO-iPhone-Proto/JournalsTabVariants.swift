@@ -573,7 +573,7 @@ struct PagedJournalSheetContent: View {
                     case 1:
                         ListTabView()
                     case 2:
-                        CalendarTabView()
+                        CalendarTabView(journal: journal)
                     case 3:
                         MediaTabView()
                     case 4:

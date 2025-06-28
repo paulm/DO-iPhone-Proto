@@ -165,6 +165,7 @@ struct CalendarHeaderView: View {
     let onNextMonth: () -> Void
     let onTodayTap: () -> Void
     var viewModel: CalendarViewModel
+    var tintColor: Color?
     
     private var monthYearFormatter: DateFormatter {
         let formatter = DateFormatter()
@@ -202,7 +203,7 @@ struct CalendarHeaderView: View {
                     Text("Today")
                         .font(.subheadline)
                         .fontWeight(.medium)
-                        .foregroundStyle(Color(hex: "44C0FF"))
+                        .foregroundStyle(tintColor ?? Color(hex: "44C0FF"))
                 }
                 .buttonStyle(.plain)
                 
@@ -234,6 +235,7 @@ struct CalendarDayView: View {
     let entryCount: Int
     let hasPhoto: Bool
     let onTap: () -> Void
+    let tintColor: Color?
     
     private var dayNumber: String {
         let formatter = DateFormatter()
@@ -254,6 +256,7 @@ struct CalendarDayView: View {
     }
     
     private var textColor: Color {
+        let defaultColor = tintColor ?? Color(hex: "44C0FF")
         if !isCurrentMonth {
             return .secondary.opacity(0.6)
         } else if entryCount > 0 {
@@ -261,19 +264,20 @@ struct CalendarDayView: View {
         } else if isSelected {
             return .white
         } else if isToday {
-            return Color(hex: "44C0FF")
+            return defaultColor
         } else {
             return .primary
         }
     }
     
     private var backgroundColor: Color {
+        let defaultColor = tintColor ?? Color(hex: "44C0FF")
         if entryCount > 0 {
-            return Color(hex: "44C0FF")
+            return defaultColor
         } else if isSelected {
             return .gray.opacity(0.8)
         } else if isToday {
-            return Color(hex: "44C0FF").opacity(0.1)
+            return defaultColor.opacity(0.1)
         } else {
             return .clear
         }
@@ -302,14 +306,16 @@ struct CalendarGridView: View {
     let month: Date
     var viewModel: CalendarViewModel
     let onDateTap: ((Date) -> Void)?
+    let tintColor: Color?
     
     private let calendar = Calendar.current
     private let columns = Array(repeating: GridItem(.flexible()), count: 7)
     
-    init(month: Date, viewModel: CalendarViewModel, onDateTap: ((Date) -> Void)? = nil) {
+    init(month: Date, viewModel: CalendarViewModel, onDateTap: ((Date) -> Void)? = nil, tintColor: Color? = nil) {
         self.month = month
         self.viewModel = viewModel
         self.onDateTap = onDateTap
+        self.tintColor = tintColor
     }
     
     private var monthDates: [Date] {
@@ -356,7 +362,8 @@ struct CalendarGridView: View {
                             } else {
                                 viewModel.selectedDate = date
                             }
-                        }
+                        },
+                        tintColor: tintColor
                     )
                 } else {
                     // Empty space for days from other months
@@ -468,6 +475,7 @@ struct JournalCalendarView: View {
     @Binding var selectedJournal: Journal?
     @State private var showingEntryPreview = false
     @State private var showingDayMenu = false
+    var journalColor: Color?
     
     private var monthYearFormatter: DateFormatter {
         let formatter = DateFormatter()
@@ -495,14 +503,14 @@ struct JournalCalendarView: View {
                                         .padding(.horizontal)
                                         .id("month-\(monthYearFormatter.string(from: month))")
                                     
-                                    CalendarGridView(month: month, viewModel: viewModel) { date in
+                                    CalendarGridView(month: month, viewModel: viewModel, onDateTap: { date in
                                         viewModel.selectedDate = date
                                         if viewModel.entryCount(for: date) > 0 {
                                             showingEntryPreview = true
                                         } else {
                                             showingDayMenu = true
                                         }
-                                    }
+                                    }, tintColor: journalColor ?? selectedJournal?.color)
                                 }
                             }
                             

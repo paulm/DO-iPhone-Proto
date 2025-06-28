@@ -49,8 +49,8 @@ struct MainTabView: View {
             }
             .tint(.black)
             
-            // Floating Action Button - only show on Today and Journals tabs
-            if selectedTab == 0 || selectedTab == 1 {
+            // Floating Action Button - only show on Today tab
+            if selectedTab == 0 {
                 VStack {
                     Spacer()
                     HStack(spacing: 12) {

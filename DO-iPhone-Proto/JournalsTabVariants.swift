@@ -338,7 +338,7 @@ struct JournalDetailPagedView: View {
     @State private var showingSheet = false
     @State private var showingEntryView = false
     @State private var showingEditView = false
-    @AppStorage("journalImageEnabled") private var imageEnabled = false
+    @State private var imageEnabled = true
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -347,10 +347,10 @@ struct JournalDetailPagedView: View {
             journal.color
                 .ignoresSafeArea()
             
-            // Bike image overlay when enabled
-            if imageEnabled {
+            // Cover image overlay when enabled
+            if imageEnabled, !journal.appearance.originalCoverImageData.isEmpty {
                 VStack {
-                    Image("bike")
+                    Image(journal.appearance.originalCoverImageData)
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(maxWidth: .infinity)
@@ -429,7 +429,9 @@ struct JournalDetailPagedView: View {
             EntryView()
         }
         .sheet(isPresented: $showingEditView) {
-            PagedEditJournalView(imageEnabled: $imageEnabled)
+            PagedEditJournalView(journal: journal, imageEnabled: imageEnabled) { newValue in
+                imageEnabled = newValue
+            }
         }
         .overlay(
             PagedNativeSheetView(isPresented: $showingSheet, journal: journal, sheetRegularPosition: sheetRegularPosition)
@@ -569,7 +571,7 @@ struct PagedJournalSheetContent: View {
                 Group {
                     switch selectedTab {
                     case 0:
-                        PagedCoverTabView()
+                        PagedCoverTabView(journal: journal)
                     case 1:
                         ListTabView()
                     case 2:
@@ -624,8 +626,9 @@ struct PagedJournalSheetContent: View {
 
 // MARK: - Paged Cover Tab View
 struct PagedCoverTabView: View {
+    let journal: Journal
     @State private var showingEditView = false
-    @AppStorage("journalImageEnabled") private var imageEnabled = false
+    @State private var imageEnabled = true
     
     var body: some View {
         ScrollView {
@@ -687,7 +690,9 @@ struct PagedCoverTabView: View {
         }
         .background(.white)
         .sheet(isPresented: $showingEditView) {
-            PagedEditJournalView(imageEnabled: $imageEnabled)
+            PagedEditJournalView(journal: journal, imageEnabled: imageEnabled) { newValue in
+                imageEnabled = newValue
+            }
         }
     }
 }
@@ -695,7 +700,17 @@ struct PagedCoverTabView: View {
 // MARK: - Paged Edit Journal View
 struct PagedEditJournalView: View {
     @Environment(\.dismiss) private var dismiss
-    @Binding var imageEnabled: Bool
+    let journal: Journal
+    var imageEnabled: Bool
+    let onImageEnabledChange: (Bool) -> Void
+    @State private var localImageEnabled: Bool
+    
+    init(journal: Journal, imageEnabled: Bool, onImageEnabledChange: @escaping (Bool) -> Void) {
+        self.journal = journal
+        self.imageEnabled = imageEnabled
+        self.onImageEnabledChange = onImageEnabledChange
+        self._localImageEnabled = State(initialValue: imageEnabled)
+    }
     
     var body: some View {
         NavigationStack {
@@ -704,7 +719,7 @@ struct PagedEditJournalView: View {
                     HStack {
                         Text("Name")
                         Spacer()
-                        Text("Daily Journal")
+                        Text(journal.name)
                             .foregroundStyle(.secondary)
                     }
                     
@@ -712,13 +727,21 @@ struct PagedEditJournalView: View {
                         Text("Color")
                         Spacer()
                         Circle()
-                            .fill(Color.blue)
+                            .fill(journal.color)
                             .frame(width: 24, height: 24)
                     }
                 }
                 
                 Section("Appearance") {
-                    Toggle("Image", isOn: $imageEnabled)
+                    if !journal.appearance.originalCoverImageData.isEmpty {
+                        Toggle("Show Cover Image", isOn: $localImageEnabled)
+                            .onChange(of: localImageEnabled) { _, newValue in
+                                onImageEnabledChange(newValue)
+                            }
+                    } else {
+                        Text("No cover image available")
+                            .foregroundStyle(.secondary)
+                    }
                 }
                 
                 Section {

@@ -9,22 +9,13 @@ struct EntryView: View {
     @State private var showingContentFocusedJournalingTools = false
     @State private var showingEntryChat = false
     @State private var hasChatActivity = true // Simulating that this entry has chat activity
+    @State private var entryDate = Date()
+    @State private var showingEditDate = false
     @FocusState private var isTextFieldFocused: Bool
     
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Date header
-                VStack(alignment: .leading, spacing: 0) {
-                    Text("Mon, Feb 26, 2024 · 14:23")
-                        .font(.subheadline)
-                        .foregroundStyle(.white)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 16)
-                .background(LinearGradient(colors: [Color(hex: "4EC3FE"), Color(hex: "4EC3FE").opacity(0.8)], startPoint: .top, endPoint: .bottom))
-                
                 // Journal info header
                 VStack(alignment: .leading, spacing: 0) {
                     HStack {
@@ -151,11 +142,23 @@ struct EntryView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("Cancel") {
-                        dismiss()
+                    Button(action: {
+                        showingEditDate = true
+                    }) {
+                        HStack(spacing: 4) {
+                            Text(entryDate, format: .dateTime.weekday(.abbreviated).month(.abbreviated).day().year())
+                                .font(.body)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.white)
+                            Text("·")
+                                .font(.body)
+                                .foregroundStyle(.white)
+                            Text(entryDate, format: .dateTime.hour().minute())
+                                .font(.body)
+                                .fontWeight(.regular)
+                                .foregroundStyle(.white)
+                        }
                     }
-                    .foregroundStyle(.white)
-                    .accessibilityLabel("Cancel entry creation")
                 }
                 
                 ToolbarItem(placement: .topBarTrailing) {
@@ -182,6 +185,9 @@ struct EntryView: View {
             }
             .sheet(isPresented: $showingEntryChat) {
                 EntryChatView(entryText: entryText, entryTitle: extractTitle(from: entryText))
+            }
+            .sheet(isPresented: $showingEditDate) {
+                EditDateView(selectedDate: $entryDate)
             }
         }
     }

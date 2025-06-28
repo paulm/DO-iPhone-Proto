@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 // MARK: - Journals Tab Paged Variant
 
@@ -10,7 +11,21 @@ struct JournalEntry {
     let time: String
 }
 
+// MARK: - Preference Keys for Journal Row Tracking
 
+struct JournalRowPreferenceData: Equatable {
+    let id: String
+    let frame: CGRect
+    let color: Color
+}
+
+struct JournalRowPreferenceKey: PreferenceKey {
+    static var defaultValue: [JournalRowPreferenceData] = []
+    
+    static func reduce(value: inout [JournalRowPreferenceData], nextValue: () -> [JournalRowPreferenceData]) {
+        value.append(contentsOf: nextValue())
+    }
+}
 
 // MARK: - Journals Tab Paged Variant
 
@@ -20,10 +35,30 @@ struct JournalsTabPagedView: View {
     @State private var viewMode: ViewMode = .list
     @State private var selectedJournal: Journal?
     
+    // Draggable FAB state
+    @GestureState private var dragState = CGSize.zero
+    @State private var hoveredJournal: Journal?
+    @State private var showFAB = false
+    @State private var temporaryHoveredJournal: Journal?
+    @State private var lastHapticJournal: Journal?
+    
     // Sheet regular position from top (in points)
     let sheetRegularPosition: CGFloat = 250
     
     var body: some View {
+        ZStack {
+            navigationContent
+            fabOverlay
+        }
+        .onAppear {
+            withAnimation(.easeOut(duration: 0.3)) {
+                showFAB = true
+            }
+        }
+    }
+    
+    // MARK: - Navigation Content
+    private var navigationContent: some View {
         NavigationStack {
             VStack(spacing: 0) {
                 // Combined segmented control and buttons row
@@ -74,57 +109,7 @@ struct JournalsTabPagedView: View {
                     .padding(.bottom, 8)
                 
                 // Journal content based on view mode
-                ScrollView {
-                    switch viewMode {
-                    case .compact:
-                        LazyVStack(spacing: 4) {
-                            ForEach(Journal.visibleJournals) { journal in
-                                CompactJournalRow(
-                                    journal: journal,
-                                    isSelected: journal.id == journalViewModel.selectedJournal.id,
-                                    onSelect: {
-                                        selectedJournal = journal
-                                        journalViewModel.selectJournal(journal)
-                                    }
-                                )
-                            }
-                        }
-                        .padding(.horizontal)
-                        .padding(.top, 8)
-                        
-                    case .list:
-                        LazyVStack(spacing: 8) {
-                            ForEach(Journal.visibleJournals) { journal in
-                                JournalRow(
-                                    journal: journal,
-                                    isSelected: journal.id == journalViewModel.selectedJournal.id,
-                                    onSelect: {
-                                        selectedJournal = journal
-                                        journalViewModel.selectJournal(journal)
-                                    }
-                                )
-                            }
-                        }
-                        .padding(.horizontal)
-                        .padding(.top, 12)
-                        
-                    case .grid:
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 3), spacing: 20) {
-                            ForEach(Journal.visibleJournals) { journal in
-                                JournalBookView(
-                                    journal: journal,
-                                    isSelected: journal.id == journalViewModel.selectedJournal.id,
-                                    onSelect: {
-                                        selectedJournal = journal
-                                        journalViewModel.selectJournal(journal)
-                                    }
-                                )
-                            }
-                        }
-                        .padding(.horizontal)
-                        .padding(.top, 12)
-                    }
-                }
+                journalListContent
             }
             .navigationTitle("Journals")
             .navigationBarTitleDisplayMode(.large)
@@ -154,6 +139,196 @@ struct JournalsTabPagedView: View {
             SettingsView()
         }
     }
+    
+    // MARK: - Journal List Content
+    @ViewBuilder
+    private var journalListContent: some View {
+        ScrollView {
+            switch viewMode {
+            case .compact:
+                compactJournalList
+            case .list:
+                listJournalList
+            case .grid:
+                gridJournalList
+            }
+        }
+    }
+    
+    private var compactJournalList: some View {
+        LazyVStack(spacing: 4) {
+            ForEach(Journal.visibleJournals) { journal in
+                CompactJournalRow(
+                    journal: journal,
+                    isSelected: temporaryHoveredJournal?.id == journal.id || (temporaryHoveredJournal == nil && journal.id == journalViewModel.selectedJournal.id),
+                    onSelect: {
+                        journalViewModel.selectJournal(journal)
+                        selectedJournal = journal
+                    }
+                )
+            }
+        }
+        .padding(.horizontal)
+        .padding(.top, 8)
+    }
+    
+    private var listJournalList: some View {
+        LazyVStack(spacing: 8) {
+            ForEach(Journal.visibleJournals) { journal in
+                JournalRow(
+                    journal: journal,
+                    isSelected: temporaryHoveredJournal?.id == journal.id || (temporaryHoveredJournal == nil && journal.id == journalViewModel.selectedJournal.id),
+                    onSelect: {
+                        journalViewModel.selectJournal(journal)
+                        selectedJournal = journal
+                    }
+                )
+            }
+        }
+        .padding(.horizontal)
+        .padding(.top, 12)
+    }
+    
+    private var gridJournalList: some View {
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 3), spacing: 20) {
+            ForEach(Journal.visibleJournals) { journal in
+                JournalBookView(
+                    journal: journal,
+                    isSelected: temporaryHoveredJournal?.id == journal.id || (temporaryHoveredJournal == nil && journal.id == journalViewModel.selectedJournal.id),
+                    onSelect: {
+                        journalViewModel.selectJournal(journal)
+                        selectedJournal = journal
+                    }
+                )
+            }
+        }
+        .padding(.horizontal)
+        .padding(.top, 12)
+    }
+    
+    // MARK: - FAB Overlay
+    @ViewBuilder
+    private var fabOverlay: some View {
+        if showFAB && selectedJournal == nil {
+            GeometryReader { geometry in
+                fabButton(in: geometry)
+            }
+            .allowsHitTesting(true)
+            .transition(.scale.combined(with: .opacity))
+        }
+    }
+    
+    // MARK: - FAB Button
+    private func fabButton(in geometry: GeometryProxy) -> some View {
+        ZStack {
+            Circle()
+                .fill(getColorForPosition(dragOffset: dragState, geometry: geometry))
+                .frame(width: 56, height: 56)
+                .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
+            
+            Image(systemName: "plus")
+                .font(.title3)
+                .fontWeight(.semibold)
+                .foregroundStyle(.white)
+        }
+        .position(
+            x: geometry.size.width - 46 + dragState.width,
+            y: geometry.size.height - 80 + dragState.height
+        )
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: hoveredJournal?.color)
+        .gesture(
+            DragGesture()
+                .updating($dragState) { value, state, _ in
+                    state = value.translation
+                }
+                .onChanged { value in
+                    // Calculate which journal based on Y position
+                    updateHoveredJournal(for: value.location, in: geometry)
+                    temporaryHoveredJournal = hoveredJournal
+                    
+                    // Trigger haptic feedback when hovering over a new journal
+                    if let currentHovered = hoveredJournal, currentHovered.id != lastHapticJournal?.id {
+                        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                        impactFeedback.prepare()
+                        impactFeedback.impactOccurred()
+                        lastHapticJournal = currentHovered
+                    } else if hoveredJournal == nil {
+                        lastHapticJournal = nil
+                    }
+                }
+                .onEnded { _ in
+                    // Update the actual selection to the hovered journal
+                    if let hoveredJournal = hoveredJournal {
+                        journalViewModel.selectJournal(hoveredJournal)
+                        // Heavier haptic for selection
+                        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                        impactFeedback.prepare()
+                        impactFeedback.impactOccurred()
+                    }
+                    hoveredJournal = nil
+                    temporaryHoveredJournal = nil
+                    lastHapticJournal = nil
+                }
+        )
+        .onTapGesture {
+            // Navigate to selected journal when tapped
+            selectedJournal = journalViewModel.selectedJournal
+        }
+    }
+    
+    // Helper function to get color based on position
+    private func getColorForPosition(dragOffset: CGSize, geometry: GeometryProxy) -> Color {
+        // While dragging, show hovered color
+        if let hoveredJournal = hoveredJournal {
+            return hoveredJournal.color
+        }
+        // When not dragging, always show selected journal color
+        return journalViewModel.selectedJournal.color
+    }
+    
+    // Helper function to update hovered journal based on position
+    private func updateHoveredJournal(for location: CGPoint, in geometry: GeometryProxy) {
+        // Get the current FAB position
+        let fabX = geometry.size.width - 46 + dragState.width
+        let fabY = geometry.size.height - 80 + dragState.height
+        
+        // Estimate which journal based on Y position and view mode
+        let journals = Journal.visibleJournals
+        let contentStartY: CGFloat = 180 // Approximate start of content (after nav + segmented control)
+        
+        switch viewMode {
+        case .compact:
+            let rowHeight: CGFloat = 40
+            let index = Int((fabY - contentStartY) / rowHeight)
+            if index >= 0 && index < journals.count {
+                hoveredJournal = journals[index]
+            } else {
+                hoveredJournal = nil
+            }
+            
+        case .list:
+            let rowHeight: CGFloat = 76 // Height includes padding
+            let index = Int((fabY - contentStartY) / rowHeight)
+            if index >= 0 && index < journals.count {
+                hoveredJournal = journals[index]
+            } else {
+                hoveredJournal = nil
+            }
+            
+        case .grid:
+            // Grid is more complex, simplified approximation
+            let gridCellHeight: CGFloat = 140 // Approximate height with spacing
+            let columns = 3
+            let row = Int((fabY - contentStartY) / gridCellHeight)
+            let col = Int(fabX / (geometry.size.width / CGFloat(columns)))
+            let index = row * columns + col
+            if index >= 0 && index < journals.count {
+                hoveredJournal = journals[index]
+            } else {
+                hoveredJournal = nil
+            }
+        }
+    }
 }
 
 struct JournalDetailPagedView: View {
@@ -163,7 +338,6 @@ struct JournalDetailPagedView: View {
     @State private var showingSheet = false
     @State private var showingEntryView = false
     @State private var showingEditView = false
-    @State private var showFAB = false
     @AppStorage("journalImageEnabled") private var imageEnabled = false
     @Environment(\.dismiss) private var dismiss
     
@@ -243,12 +417,6 @@ struct JournalDetailPagedView: View {
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 showingSheet = true
-            }
-            // Animate FAB in after a short delay
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                withAnimation(.easeOut(duration: 0.4)) {
-                    showFAB = true
-                }
             }
         }
         .onChange(of: showingSheet) { _, newValue in
@@ -343,7 +511,7 @@ struct PagedNativeSheetView: UIViewControllerRepresentable {
                     print("📱 Journals UISheet expanded to large position")
                     sheetState.isExpanded = true
                 } else {
-                    if let containerView = sheetPresentationController.containerView {
+                    if sheetPresentationController.containerView != nil {
                         let sheetFrame = sheetPresentationController.presentedView?.frame ?? .zero
                         let yPosition = sheetFrame.origin.y
                         print("📱 Journals UISheet moved to regular position (Y: \(Int(yPosition))pt)")

@@ -248,6 +248,9 @@ struct TodayViewV1i2: View {
     }
     
     private var chatInteractionsText: String {
+        if chatMessageCount == 0 {
+            return ""
+        }
         return "\(chatMessageCount) interaction\(chatMessageCount == 1 ? "" : "s")."
     }
     
@@ -410,7 +413,7 @@ struct TodayViewV1i2: View {
                             icon: "bubble.left.and.bubble.right.fill",
                             iconColor: .blue,
                             title: dailyChatTitle,
-                            subtitle: chatCompleted ? chatInteractionsText : "",
+                            subtitle: chatMessageCount > 0 ? chatInteractionsText : "",
                             isCompleted: chatCompleted,
                             showResume: chatCompleted,
                             showDefaultContent: !chatCompleted,
@@ -521,11 +524,14 @@ struct TodayViewV1i2: View {
                 onChatStarted: {
                     // Mark that user has interacted with chat
                     hasInteractedWithChat = true
-                    chatCompleted = true
                     showChat = true
                 },
                 onMessageCountChanged: { count in
                     chatMessageCount = count
+                    // Only mark as completed if there's at least one interaction
+                    if count > 0 {
+                        chatCompleted = true
+                    }
                 }
             )
         }

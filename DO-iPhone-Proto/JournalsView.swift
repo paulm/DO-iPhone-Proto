@@ -127,6 +127,9 @@ struct ListTabView: View {
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
+                // Add top padding for floating segmented control
+                Color.clear.frame(height: 70)
+                
                 // March 2025 Section
                 Section(header: MonthHeaderView(monthYear: "March 2025")) {
                     VStack(spacing: 0) {
@@ -290,6 +293,12 @@ struct MediaTabView: View {
     var body: some View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: 1) {
+                // Add empty cells for top padding
+                ForEach(0..<3) { _ in
+                    Color.clear
+                        .aspectRatio(1, contentMode: .fit)
+                }
+                
                 ForEach(0..<40) { index in
                     Rectangle()
                         .fill(Color.gray.opacity(0.3))

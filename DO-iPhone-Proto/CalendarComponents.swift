@@ -484,11 +484,15 @@ struct JournalCalendarView: View {
     }
     
     var body: some View {
-        VStack(spacing: 0) {
-            CalendarWeekdayHeader()
-            
-            ScrollViewReader { proxy in
-                ScrollView {
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Add top padding for floating segmented control
+                    Color.clear.frame(height: 70)
+                    
+                    CalendarWeekdayHeader()
+                        .padding(.top, 8)
+                    
                     LazyVStack(spacing: 24) {
                         // Generate calendar months for years that have entries
                         ForEach(viewModel.yearsWithEntries(), id: \.self) { year in
@@ -545,7 +549,6 @@ struct JournalCalendarView: View {
                     }
                 }
             }
-            
         }
         .onChange(of: selectedJournal) { _, newJournal in
             viewModel.selectedJournal = newJournal

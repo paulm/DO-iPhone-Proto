@@ -554,21 +554,8 @@ struct PagedJournalSheetContent: View {
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
-            VStack(spacing: 0) {
-                // Segmented control
-                Picker("View", selection: $selectedTab) {
-                    Text("Cover").tag(0)
-                    Text("List").tag(1)
-                    Text("Calendar").tag(2)
-                    Text("Media").tag(3)
-                    Text("Map").tag(4)
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal)
-                .padding(.top, 22)  // Added 10pt extra spacing (12 + 10)
-                .padding(.bottom, 12)
-                .background(Color(UIColor.systemBackground))
-                
+            // Content fills entire sheet area
+            ZStack(alignment: .top) {
                 // Content based on selected tab
                 Group {
                     switch selectedTab {
@@ -587,6 +574,26 @@ struct PagedJournalSheetContent: View {
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                
+                // Floating segmented control on top
+                VStack(spacing: 0) {
+                    Picker("View", selection: $selectedTab) {
+                        Text("Cover").tag(0)
+                        Text("List").tag(1)
+                        Text("Calendar").tag(2)
+                        Text("Media").tag(3)
+                        Text("Map").tag(4)
+                    }
+                    .pickerStyle(.segmented)
+                    .padding(.horizontal)
+                    .padding(.top, 22)
+                    .padding(.bottom, 12)
+                    .background(
+                        .ultraThinMaterial
+                    )
+                    
+                    Spacer()
+                }
             }
             
             // FAB button that animates based on sheet position
@@ -647,7 +654,7 @@ struct PagedCoverTabView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .padding(.horizontal)
-                .padding(.top, 24)
+                .padding(.top, 94)  // 70pt for segmented control + 24pt original padding
                 
                 // Stats Section
                 VStack(alignment: .leading, spacing: 16) {

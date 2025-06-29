@@ -98,6 +98,8 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
                         .font(.body)
                         .focused($isTextFieldFocused)
                         .scrollContentBackground(.hidden)
+                        .contentMargins(.horizontal, 14, for: .scrollContent)
+                        .contentMargins(.vertical, 16, for: .scrollContent)
                         .allowsHitTesting(true) // Always allow taps
                         .onTapGesture {
                             if !isTextFieldFocused {
@@ -166,7 +168,7 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
                             }
                         }
                 }
-                .padding(.horizontal, 16)
+                .padding(.horizontal, 0)
                 .padding(.top, 0)
             }
                 

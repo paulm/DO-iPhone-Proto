@@ -1,9 +1,22 @@
 import SwiftUI
+import MapKit
 
 /// Modal sheet for creating new journal entries
 struct EntryView: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var entryText = "A Quiet Walk That Shifted Everything\n\nThis afternoon I walked a familiar trail near my house.\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam mattis, orci eu varius imperdiet, augue risus eleifend ex, eu sollicitudin enim erat maximus est."
+    @State private var entryText = """
+A Perfect Day at Sundance
+
+Today was one of those rare days where everything seemed to align perfectly. I woke up early, around 6:30 AM, to the sound of birds chirping outside my window at the resort. The morning light was just beginning to filter through the trees, casting long shadows across the mountain slopes. I decided to start the day with a hike on the Stewart Falls trail, something I've been meaning to do since arriving here three days ago.
+
+The trail was quiet, with only a few other early risers making their way up the path. The air was crisp and cool, probably around 55 degrees, and I could see my breath forming small clouds as I walked. About halfway up, I stopped at a clearing that offered a stunning view of the valley below. The aspens were just beginning to turn golden, creating patches of warm color against the dark green of the pines. I sat on a large rock and just took it all in, feeling grateful for this moment of solitude in nature.
+
+After the hike, I returned to the resort for breakfast at the Foundry Grill. I ordered their famous blueberry pancakes and a strong cup of coffee. While eating, I struck up a conversation with an older couple from Colorado who were celebrating their 40th wedding anniversary. They shared stories about how they've been coming to Sundance every fall for the past fifteen years, and how this place has become a sacred tradition for them. Their love for each other and for this place was infectious.
+
+The afternoon was spent exploring the art studios scattered around the resort. I was particularly drawn to the pottery workshop, where a local artist was demonstrating wheel throwing techniques. She invited me to try my hand at it, and despite making quite a mess, I managed to create something that vaguely resembled a bowl. There's something meditative about working with clay, feeling it take shape beneath your hands, requiring both strength and gentleness.
+
+As the sun began to set, painting the sky in shades of orange and pink, I found myself back on the deck of my cabin, wrapped in a warm blanket with a cup of herbal tea. The day felt complete in a way that few days do. No urgent emails, no pressing deadlines, just the simple pleasure of being present in a beautiful place. Tomorrow I'm planning to try the zip line tour, but for now, I'm content to watch the stars emerge one by one in the darkening sky, feeling deeply connected to this moment and this place.
+"""
     @State private var showingJournalingTools = false
     @State private var showingEnhancedJournalingTools = false
     @State private var showingContentFocusedJournalingTools = false
@@ -14,25 +27,34 @@ struct EntryView: View {
     @State private var showEntryChatEmbed = false
     @FocusState private var isTextFieldFocused: Bool
     
+    // Location for the map - Sundance Resort coordinates
+    private let entryLocation = CLLocationCoordinate2D(latitude: 40.6006, longitude: -111.5878)
+    private let journalName = "Sample Journal"
+    private let locationName = "Sundance Resort"
+    
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // Journal info header
-                VStack(alignment: .leading, spacing: 0) {
-                    HStack {
-                        Text("Sample Journal")
-                            .foregroundStyle(.black)
-                        Text(" · ")
-                            .foregroundStyle(.secondary)
-                        Text("Sundance Resort")
-                            .foregroundStyle(.secondary)
+            ZStack {
+                VStack(spacing: 0) {
+                    // Journal info header - only shown in Edit mode
+                    if isTextFieldFocused {
+                        VStack(alignment: .leading, spacing: 0) {
+                            HStack {
+                                Text(journalName)
+                                    .foregroundStyle(.black)
+                                Text(" · ")
+                                    .foregroundStyle(.secondary)
+                                Text(locationName)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .font(.subheadline)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 12)
+                        .background(.white)
+                        .transition(.move(edge: .top).combined(with: .opacity))
                     }
-                    .font(.subheadline)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 12)
-                .background(.white)
                 
                 // Content area
                 VStack(alignment: .leading, spacing: 16) {
@@ -76,6 +98,12 @@ struct EntryView: View {
                         .font(.body)
                         .focused($isTextFieldFocused)
                         .scrollContentBackground(.hidden)
+                        .allowsHitTesting(true) // Always allow taps
+                        .onTapGesture {
+                            if !isTextFieldFocused {
+                                isTextFieldFocused = true
+                            }
+                        }
                         .toolbar {
                             ToolbarItemGroup(placement: .keyboard) {
                                 HStack(spacing: 20) {
@@ -141,6 +169,51 @@ struct EntryView: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
             }
+                
+                // Bottom info block - only shown in Read mode
+                if !isTextFieldFocused {
+                    VStack {
+                        Spacer()
+                        
+                        VStack(spacing: 0) {
+                            // Row 1: Journal metadata
+                            VStack(alignment: .leading, spacing: 0) {
+                                HStack {
+                                    Text(journalName)
+                                        .foregroundStyle(.black)
+                                    Text(" · ")
+                                        .foregroundStyle(.secondary)
+                                    Text(locationName)
+                                        .foregroundStyle(.secondary)
+                                }
+                                .font(.subheadline)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 12)
+                            .background(.white)
+                            
+                            Divider()
+                            
+                            // Row 2: Map view
+                            Map(position: .constant(.region(MKCoordinateRegion(
+                                center: entryLocation,
+                                span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+                            )))) {
+                                Marker(locationName, coordinate: entryLocation)
+                                    .tint(Color(hex: "4EC3FE"))
+                            }
+                            .frame(height: 100)
+                            .mapStyle(.standard)
+                            .allowsHitTesting(false) // Make map non-interactive
+                        }
+                        .background(.white)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                    }
+                    .ignoresSafeArea(.all, edges: .bottom)
+                }
+            }
+            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: isTextFieldFocused)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button(action: {

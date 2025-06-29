@@ -895,6 +895,9 @@ struct DailyChatView: View {
     @FocusState private var isTextFieldFocused: Bool
     @State private var showingPreviewEntry = false
     @State private var showingBioView = false
+    @State private var contextPreviousChats = false
+    @State private var contextDailyEntries = false
+    @State private var contextBio = false
     
     private let chatSessionManager = ChatSessionManager.shared
     
@@ -1123,6 +1126,28 @@ struct DailyChatView: View {
                             showingBioView = true
                         }) {
                             Label("Edit Bio", systemImage: "person.circle")
+                        }
+                        
+                        Divider()
+                        
+                        Section("Include Context") {
+                            Button(action: {
+                                contextPreviousChats.toggle()
+                            }) {
+                                Label("Previous Chats", systemImage: contextPreviousChats ? "checkmark" : "")
+                            }
+                            
+                            Button(action: {
+                                contextDailyEntries.toggle()
+                            }) {
+                                Label("Daily Entries", systemImage: contextDailyEntries ? "checkmark" : "")
+                            }
+                            
+                            Button(action: {
+                                contextBio.toggle()
+                            }) {
+                                Label("Bio", systemImage: contextBio ? "checkmark" : "")
+                            }
                         }
                         
                         Divider()

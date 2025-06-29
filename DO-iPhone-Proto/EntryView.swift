@@ -47,11 +47,11 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
                                 Text(locationName)
                                     .foregroundStyle(.secondary)
                             }
-                            .font(.subheadline)
+                            .font(.caption)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 20)
-                        .padding(.vertical, 12)
+                        .padding(.vertical, 10)
                         .background(.white)
                         .transition(.move(edge: .top).combined(with: .opacity))
                     }
@@ -162,12 +162,12 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
                                     }
                                 }
                                 .foregroundStyle(.primary)
-                                .padding(.horizontal, 20)
+                                .padding(.horizontal, 18)
                             }
                         }
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 20)
+                .padding(.horizontal, 16)
+                .padding(.top, 0)
             }
                 
                 // Bottom info block - only shown in Read mode
@@ -186,11 +186,11 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
                                     Text(locationName)
                                         .foregroundStyle(.secondary)
                                 }
-                                .font(.subheadline)
+                                .font(.caption)
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 12)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 16)
                             .background(.white)
                             
                             Divider()
@@ -214,6 +214,13 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
                 }
             }
             .animation(.spring(response: 0.4, dampingFraction: 0.8), value: isTextFieldFocused)
+            .onKeyPress(.return, phases: .down) { keyPress in
+                if keyPress.modifiers.contains(.command) {
+                    isTextFieldFocused.toggle()
+                    return .handled
+                }
+                return .ignored
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button(action: {

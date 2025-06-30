@@ -434,18 +434,40 @@ struct TodayViewV1i2: View {
                             Button(action: {
                                 showingPreviewEntry = true
                             }) {
-                                HStack {
-                                    Text("View Summary")
-                                        .font(.body)
-                                        .foregroundStyle(Color(hex: "44C0FF"))
+                                HStack(spacing: 12) {
+                                    // Icon with colored background
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(Color(hex: "44C0FF"))
+                                        .frame(width: 32, height: 32)
+                                        .overlay(
+                                            Image(systemName: "doc.text")
+                                                .font(.system(size: 16, weight: .medium))
+                                                .foregroundStyle(.white)
+                                        )
+                                    
+                                    // Content
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Summary")
+                                            .font(.body)
+                                            .fontWeight(.medium)
+                                            .foregroundStyle(.primary)
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                    }
                                     
                                     Spacer()
                                     
-                                    Image(systemName: "chevron.right")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
+                                    // View with chevron
+                                    HStack(spacing: 4) {
+                                        Text("View")
+                                            .font(.subheadline)
+                                            .foregroundStyle(Color(hex: "44C0FF"))
+                                        
+                                        Image(systemName: "chevron.right")
+                                            .font(.subheadline)
+                                            .foregroundStyle(.secondary)
+                                    }
                                 }
-                                .padding(.vertical, 12)
+                                .padding(.vertical, 4)
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
@@ -756,17 +778,15 @@ struct TodayActivityRowWithChatResumeV2: View {
                 Spacer()
                 
                 if showResume {
-                    Button(action: resumeAction) {
-                        Text("Resume Chat")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Color(hex: "44C0FF"))
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                    HStack(spacing: 4) {
+                        Text("Resume")
+                            .font(.subheadline)
+                            .foregroundStyle(Color(hex: "44C0FF"))
+                        
+                        Image(systemName: "chevron.right")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
                     }
-                    .buttonStyle(PlainButtonStyle())
                 } else if isCompleted {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(.green)

@@ -4,6 +4,8 @@ import MapKit
 /// Modal sheet for creating new journal entries
 struct EntryView: View {
     @Environment(\.dismiss) private var dismiss
+    let journal: Journal?
+    
     @State private var entryText = """
 A Perfect Day at Sundance
 
@@ -29,8 +31,13 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
     
     // Location for the map - Sundance Resort coordinates
     private let entryLocation = CLLocationCoordinate2D(latitude: 40.6006, longitude: -111.5878)
-    private let journalName = "Sample Journal"
+    private var journalName: String {
+        journal?.name ?? "Sample Journal"
+    }
     private let locationName = "Sundance Resort"
+    private var journalColor: Color {
+        journal?.color ?? Color(hex: "4EC3FE")
+    }
     
     var body: some View {
         NavigationStack {
@@ -41,7 +48,8 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
                         VStack(alignment: .leading, spacing: 0) {
                             HStack {
                                 Text(journalName)
-                                    .foregroundStyle(.black)
+                                    .foregroundStyle(journalColor)
+                                    .fontWeight(.medium)
                                 Text(" · ")
                                     .foregroundStyle(.secondary)
                                 Text(locationName)
@@ -182,7 +190,8 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
                             VStack(alignment: .leading, spacing: 0) {
                                 HStack {
                                     Text(journalName)
-                                        .foregroundStyle(.black)
+                                        .foregroundStyle(journalColor)
+                                        .fontWeight(.medium)
                                     Text(" · ")
                                         .foregroundStyle(.secondary)
                                     Text(locationName)
@@ -203,7 +212,7 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
                                 span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
                             )))) {
                                 Marker(locationName, coordinate: entryLocation)
-                                    .tint(Color(hex: "4EC3FE"))
+                                    .tint(journalColor)
                             }
                             .frame(height: 100)
                             .mapStyle(.standard)
@@ -306,7 +315,7 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
                     }
                 }
             }
-            .toolbarBackground(LinearGradient(colors: [Color(hex: "4EC3FE"), Color(hex: "4EC3FE").opacity(0.8)], startPoint: .top, endPoint: .bottom), for: .navigationBar)
+            .toolbarBackground(journalColor, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .navigationBarTitleDisplayMode(.inline)
@@ -336,5 +345,5 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
 }
 
 #Preview {
-    EntryView()
+    EntryView(journal: nil)
 }

@@ -430,7 +430,7 @@ struct JournalDetailPagedView: View {
             }
         }
         .sheet(isPresented: $showingEntryView) {
-            EntryView()
+            EntryView(journal: journal)
         }
         .sheet(isPresented: $showingEditView) {
             PagedEditJournalView(journal: journal)
@@ -562,7 +562,7 @@ struct PagedJournalSheetContent: View {
                     case 0:
                         PagedCoverTabView(journal: journal)
                     case 1:
-                        ListTabView()
+                        ListTabView(journal: journal)
                     case 2:
                         CalendarTabView(journal: journal)
                     case 3:
@@ -570,7 +570,7 @@ struct PagedJournalSheetContent: View {
                     case 4:
                         MapTabView()
                     default:
-                        ListTabView()
+                        ListTabView(journal: journal)
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -628,7 +628,7 @@ struct PagedJournalSheetContent: View {
             }
         }
         .sheet(isPresented: $showingEntryView) {
-            EntryView()
+            EntryView(journal: journal)
         }
     }
 }

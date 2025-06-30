@@ -608,7 +608,7 @@ struct TodayViewV1i2: View {
             )
         }
         .sheet(isPresented: $showingEntry) {
-            EntryView()
+            EntryView(journal: nil)
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("TriggerDailyChat"))) { _ in
             // Only respond to Daily Chat trigger if this variant supports it
@@ -1878,7 +1878,7 @@ struct ChatEntryPreviewView: View {
             }
         }
         .sheet(isPresented: $showingEntry) {
-            EntryView()
+            EntryView(journal: nil)
         }
         .onAppear {
             // Show loading state for 0.5 seconds

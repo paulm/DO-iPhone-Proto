@@ -123,6 +123,7 @@ struct EditJournalPlaceholder: View {
 
 struct ListTabView: View {
     @State private var showingEntryView = false
+    let journal: Journal?
     
     var body: some View {
         ScrollView {
@@ -190,7 +191,7 @@ struct ListTabView: View {
         }
         .background(.white)
         .sheet(isPresented: $showingEntryView) {
-            EntryView()
+            EntryView(journal: journal)
         }
     }
 }

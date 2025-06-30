@@ -1103,19 +1103,25 @@ struct DailyChatView: View {
                             .font(.headline)
                             .fontWeight(.semibold)
                         
-                        Text(selectedDate, style: .date)
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                        
-                        if userMessageCount > 0 {
-                            Button(action: {
-                                showingPreviewEntry = true
-                            }) {
-                                Text("View Summary")
-                                    .font(.caption)
-                                    .foregroundStyle(Color(hex: "44C0FF"))
+                        HStack(spacing: 4) {
+                            Text(selectedDate, style: .date)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                            
+                            if userMessageCount > 0 {
+                                Text("•")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                                
+                                Button(action: {
+                                    showingPreviewEntry = true
+                                }) {
+                                    Text("View Summary")
+                                        .font(.caption2)
+                                        .foregroundStyle(Color(hex: "44C0FF"))
+                                }
+                                .buttonStyle(PlainButtonStyle())
                             }
-                            .buttonStyle(PlainButtonStyle())
                         }
                     }
                 }

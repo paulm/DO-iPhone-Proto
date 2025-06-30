@@ -746,27 +746,10 @@ struct TodayActivityRowWithChatResumeV2: View {
                             .foregroundStyle(.secondary)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     } else if showDefaultContent {
-                        HStack(spacing: 4) {
-                            Button(action: logHighlightsAction) {
-                                Text("Log Highlights")
-                                    .font(.subheadline)
-                                    .foregroundStyle(Color(hex: "44C0FF"))
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                            
-                            Text(" or ")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                            
-                            Button(action: beginChatAction) {
-                                Text("Begin Chat")
-                                    .font(.subheadline)
-                                    .foregroundStyle(Color(hex: "44C0FF"))
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                            
-                            Spacer()
-                        }
+                        Text("Log details about your day")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     } else {
                         Text(subtitle)
                             .font(.subheadline)
@@ -792,9 +775,15 @@ struct TodayActivityRowWithChatResumeV2: View {
                         .foregroundStyle(.green)
                         .font(.title3)
                 } else {
-                    Image(systemName: "circle")
-                        .foregroundStyle(.secondary.opacity(0.5))
-                        .font(.title3)
+                    HStack(spacing: 4) {
+                        Text("Start Chat")
+                            .font(.subheadline)
+                            .foregroundStyle(Color(hex: "44C0FF"))
+                        
+                        Image(systemName: "chevron.right")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
             .padding(.vertical, 4)

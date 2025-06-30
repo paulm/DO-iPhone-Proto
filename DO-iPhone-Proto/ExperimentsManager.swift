@@ -82,7 +82,7 @@ class ExperimentsManager {
         case .promptsTab:
             return [.original, .appleSettings] // Settings-style variant
         case .todayTab:
-            return [.appleSettings, .v1i2] // Clean, focused variants
+            return [.v1i2] // Only v1i2 variant
         case .journalsTab:
             return [.paged] // Only paged variant
         case .journalPicker:

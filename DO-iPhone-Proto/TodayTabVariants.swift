@@ -2,6 +2,8 @@ import SwiftUI
 
 // MARK: - Today Tab Variants
 
+// NOTE: This variant is no longer used but kept for reference
+// The Today Tab now only uses the v1i2 variant
 struct TodayTabSettingsStyleView: View {
     @State private var showingSettings = false
     @State private var showingDailySurvey = false

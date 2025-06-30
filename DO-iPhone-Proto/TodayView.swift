@@ -7,7 +7,6 @@ struct TodayView: View {
     @State private var showingDailySurvey = false
     @State private var showingMoments = false
     @State private var showingTrackers = false
-    private var experimentsManager = ExperimentsManager.shared
     @State private var selectedDate = Date()
     @State private var surveyCompleted = false
     
@@ -49,35 +48,26 @@ struct TodayView: View {
     }
     
     var body: some View {
-        Group {
-            switch experimentsManager.variant(for: .todayTab) {
-            case .appleSettings:
-                TodayTabSettingsStyleView()
-            case .v1i2:
-                TodayViewV1i2(
-                    showingSettings: $showingSettings,
-                    showingDatePicker: $showingDatePicker,
-                    showingDailySurvey: $showingDailySurvey,
-                    showingMoments: $showingMoments,
-                    showingTrackers: $showingTrackers,
-                    selectedDate: $selectedDate,
-                    surveyCompleted: $surveyCompleted,
-                    moodRating: $moodRating,
-                    energyRating: $energyRating,
-                    stressRating: $stressRating,
-                    foodInput: $foodInput,
-                    prioritiesInput: $prioritiesInput,
-                    mediaInput: $mediaInput,
-                    peopleInput: $peopleInput,
-                    selectedLocations: $selectedLocations,
-                    selectedEvents: $selectedEvents,
-                    selectedPhotos: $selectedPhotos,
-                    selectedHealth: $selectedHealth
-                )
-            default:
-                TodayTabSettingsStyleView()
-            }
-        }
+        TodayViewV1i2(
+            showingSettings: $showingSettings,
+            showingDatePicker: $showingDatePicker,
+            showingDailySurvey: $showingDailySurvey,
+            showingMoments: $showingMoments,
+            showingTrackers: $showingTrackers,
+            selectedDate: $selectedDate,
+            surveyCompleted: $surveyCompleted,
+            moodRating: $moodRating,
+            energyRating: $energyRating,
+            stressRating: $stressRating,
+            foodInput: $foodInput,
+            prioritiesInput: $prioritiesInput,
+            mediaInput: $mediaInput,
+            peopleInput: $peopleInput,
+            selectedLocations: $selectedLocations,
+            selectedEvents: $selectedEvents,
+            selectedPhotos: $selectedPhotos,
+            selectedHealth: $selectedHealth
+        )
         .sheet(isPresented: $showingSettings) {
             SettingsView()
         }

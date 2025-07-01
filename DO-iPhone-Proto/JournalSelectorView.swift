@@ -35,56 +35,56 @@ struct JournalSelectorOriginalView: View {
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // Combined segmented control and buttons row
-                HStack(spacing: 12) {
-                    // View mode segmented control
-                    Picker("View Mode", selection: $viewMode) {
-                        Image(systemName: "line.3.horizontal.decrease").tag(ViewMode.compact)
-                        Image(systemName: "list.bullet").tag(ViewMode.list)
-                        Image(systemName: "square.grid.3x3").tag(ViewMode.grid)
-                    }
-                    .pickerStyle(.segmented)
-                    .frame(maxWidth: .infinity)
-                    
-                    // Compact Add/Edit buttons
-                    HStack(spacing: 8) {
-                        Button("+ Add") {
-                            // TODO: Add new journal action
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Combined segmented control and buttons row
+                    HStack(spacing: 12) {
+                        // View mode segmented control
+                        Picker("View Mode", selection: $viewMode) {
+                            Image(systemName: "line.3.horizontal.decrease").tag(ViewMode.compact)
+                            Image(systemName: "list.bullet").tag(ViewMode.list)
+                            Image(systemName: "square.grid.3x3").tag(ViewMode.grid)
                         }
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.primary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(.gray.opacity(0.1))
-                        )
+                        .pickerStyle(.segmented)
+                        .frame(maxWidth: .infinity)
                         
-                        Button("Edit") {
-                            // TODO: Edit journals action
+                        // Compact Add/Edit buttons
+                        HStack(spacing: 8) {
+                            Button("+ Add") {
+                                // TODO: Add new journal action
+                            }
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.primary)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(.gray.opacity(0.1))
+                            )
+                            
+                            Button("Edit") {
+                                // TODO: Edit journals action
+                            }
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.primary)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(.gray.opacity(0.1))
+                            )
                         }
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.primary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(.gray.opacity(0.1))
-                        )
                     }
-                }
-                .padding(.horizontal)
-                .padding(.top, 12)
-                .padding(.bottom, 8)
-                
-                Divider()
+                    .padding(.horizontal)
+                    .padding(.top, 12)
                     .padding(.bottom, 8)
-                
-                // Journal content based on view mode
-                ScrollView {
+                    
+                    Divider()
+                        .padding(.bottom, 8)
+                    
+                    // Journal content based on view mode
                     switch viewMode {
                     case .compact:
                         LazyVStack(spacing: 4) {
@@ -134,6 +134,9 @@ struct JournalSelectorOriginalView: View {
                         .padding(.horizontal)
                         .padding(.top, 12)
                     }
+                    
+                    // Add some bottom padding for better scrolling experience
+                    Color.clear.frame(height: 20)
                 }
             }
             .navigationBarTitleDisplayMode(.inline)

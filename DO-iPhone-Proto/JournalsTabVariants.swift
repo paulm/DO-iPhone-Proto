@@ -60,56 +60,58 @@ struct JournalsTabPagedView: View {
     // MARK: - Navigation Content
     private var navigationContent: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // Combined segmented control and buttons row
-                HStack(spacing: 12) {
-                    // View mode segmented control
-                    Picker("View Mode", selection: $viewMode) {
-                        Image(systemName: "line.3.horizontal.decrease").tag(ViewMode.compact)
-                        Image(systemName: "list.bullet").tag(ViewMode.list)
-                        Image(systemName: "square.grid.3x3").tag(ViewMode.grid)
-                    }
-                    .pickerStyle(.segmented)
-                    .frame(maxWidth: .infinity)
-                    
-                    // Compact Add/Edit buttons
-                    HStack(spacing: 8) {
-                        Button("+ Add") {
-                            // TODO: Add new journal action
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Combined segmented control and buttons row
+                    HStack(spacing: 12) {
+                        // View mode segmented control
+                        Picker("View Mode", selection: $viewMode) {
+                            Image(systemName: "line.3.horizontal.decrease").tag(ViewMode.compact)
+                            Image(systemName: "list.bullet").tag(ViewMode.list)
+                            Image(systemName: "square.grid.3x3").tag(ViewMode.grid)
                         }
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.primary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(.gray.opacity(0.1))
-                        )
+                        .pickerStyle(.segmented)
+                        .frame(maxWidth: .infinity)
                         
-                        Button("Edit") {
-                            // TODO: Edit journals action
+                        // Compact Add/Edit buttons
+                        HStack(spacing: 8) {
+                            Button("+ Add") {
+                                // TODO: Add new journal action
+                            }
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.primary)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(.gray.opacity(0.1))
+                            )
+                            
+                            Button("Edit") {
+                                // TODO: Edit journals action
+                            }
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.primary)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(.gray.opacity(0.1))
+                            )
                         }
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.primary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(.gray.opacity(0.1))
-                        )
                     }
-                }
-                .padding(.horizontal)
-                .padding(.top, 12)
-                .padding(.bottom, 8)
-                
-                Divider()
+                    .padding(.horizontal)
+                    .padding(.top, 12)
                     .padding(.bottom, 8)
-                
-                // Journal content based on view mode
-                journalListContent
+                    
+                    Divider()
+                        .padding(.bottom, 8)
+                    
+                    // Journal content based on view mode
+                    journalListContent
+                }
             }
             .navigationTitle("Journals")
             .navigationBarTitleDisplayMode(.large)
@@ -143,15 +145,13 @@ struct JournalsTabPagedView: View {
     // MARK: - Journal List Content
     @ViewBuilder
     private var journalListContent: some View {
-        ScrollView {
-            switch viewMode {
-            case .compact:
-                compactJournalList
-            case .list:
-                listJournalList
-            case .grid:
-                gridJournalList
-            }
+        switch viewMode {
+        case .compact:
+            compactJournalList
+        case .list:
+            listJournalList
+        case .grid:
+            gridJournalList
         }
     }
     
@@ -170,6 +170,7 @@ struct JournalsTabPagedView: View {
         }
         .padding(.horizontal)
         .padding(.top, 8)
+        .padding(.bottom, 100)
     }
     
     private var listJournalList: some View {
@@ -187,6 +188,7 @@ struct JournalsTabPagedView: View {
         }
         .padding(.horizontal)
         .padding(.top, 12)
+        .padding(.bottom, 100)
     }
     
     private var gridJournalList: some View {
@@ -204,6 +206,7 @@ struct JournalsTabPagedView: View {
         }
         .padding(.horizontal)
         .padding(.top, 12)
+        .padding(.bottom, 100)
     }
     
     // MARK: - FAB Overlay

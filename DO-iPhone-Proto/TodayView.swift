@@ -249,6 +249,59 @@ struct TodayViewV1i2: View {
         return "\(interactionCount) interactions Resume"
     }
     
+    private func relativeDateText(for date: Date) -> String {
+        let calendar = Calendar.current
+        let now = Date()
+        
+        if calendar.isDateInToday(date) {
+            return "Today"
+        } else if calendar.isDateInYesterday(date) {
+            return "Yesterday"
+        } else if calendar.isDateInTomorrow(date) {
+            return "Tomorrow"
+        } else {
+            let days = calendar.dateComponents([.day], from: date, to: now).day ?? 0
+            if days > 0 {
+                if days < 7 {
+                    return "\(days) day\(days == 1 ? "" : "s") ago"
+                } else if days < 14 {
+                    return "1 week ago"
+                } else if days < 30 {
+                    return "\(days / 7) week\(days / 7 == 1 ? "" : "s") ago"
+                } else if days < 60 {
+                    return "1 month ago"
+                } else {
+                    return "\(days / 30) month\(days / 30 == 1 ? "" : "s") ago"
+                }
+            } else {
+                let futureDays = abs(days)
+                if futureDays < 7 {
+                    return "in \(futureDays) day\(futureDays == 1 ? "" : "s")"
+                } else if futureDays < 14 {
+                    return "in 1 week"
+                } else {
+                    return "in \(futureDays / 7) week\(futureDays / 7 == 1 ? "" : "s")"
+                }
+            }
+        }
+    }
+    
+    private func navigateToPreviousDay() {
+        if let newDate = Calendar.current.date(byAdding: .day, value: -1, to: selectedDate) {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                selectedDate = newDate
+            }
+        }
+    }
+    
+    private func navigateToNextDay() {
+        if let newDate = Calendar.current.date(byAdding: .day, value: 1, to: selectedDate) {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                selectedDate = newDate
+            }
+        }
+    }
+    
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -256,10 +309,6 @@ struct TodayViewV1i2: View {
             VStack(spacing: 0) {
                 // Header with profile button
                 HStack {
-                    Text(selectedDate, style: .date)
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                    
                     Spacer()
                     
                     Menu {
@@ -362,6 +411,56 @@ struct TodayViewV1i2: View {
             
             // Content with Daily Activities
             List {
+                // Date navigation section (no section header)
+                HStack {
+                    // Left arrow
+                    Button(action: navigateToPreviousDay) {
+                        Image(systemName: "chevron.left")
+                            .font(.title3)
+                            .foregroundStyle(.secondary)
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .padding(.leading, 16)
+                    
+                    Spacer()
+                    
+                    // Center content - tappable to open date picker
+                    Button(action: {
+                        showingDatePicker = true
+                    }) {
+                        VStack(spacing: 2) {
+                            Text(selectedDate, format: .dateTime.weekday(.abbreviated).month(.abbreviated).day().year())
+                                .font(.body)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.primary)
+                            
+                            Text(relativeDateText(for: selectedDate))
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    
+                    Spacer()
+                    
+                    // Right arrow
+                    Button(action: navigateToNextDay) {
+                        Image(systemName: "chevron.right")
+                            .font(.title3)
+                            .foregroundStyle(.secondary)
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .padding(.trailing, 16)
+                }
+                .padding(.vertical, 16)
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color(UIColor.secondarySystemGroupedBackground))
+                .listRowSeparator(.hidden)
+                
                 // Daily Entry section (only shown after entry is created)
                 if entryCreated {
                     Section("Daily Entry") {

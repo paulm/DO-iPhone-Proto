@@ -245,6 +245,114 @@
     },
     {
       "id": "journal-010",
+      "name": "Reading Notes",
+      "description": "Book summaries and literary thoughts",
+      "type": "personal",
+      "colorHex": "#607D8B",
+      "iconURL": "journal-icon-url",
+      "settings": {
+        "hidden": false,
+        "conceal": false,
+        "sortMode": "entryDate",
+        "sortOrder": "descending",
+        "addLocationToNewEntries": false
+      },
+      "features": {
+        "shouldBeIncludedInAllEntries": true,
+        "shouldBeIncludedInOnThisDay": false,
+        "shouldBeIncludedInStreaks": false,
+        "shouldBeIncludedInTodayView": false
+      },
+      "appearance": {
+        "templateID": "template-reading",
+        "presetID": "preset-009",
+        "originalCoverImageData": "",
+        "croppedCoverImageData": ""
+      }
+    },
+    {
+      "id": "journal-011",
+      "name": "Reading Notes",
+      "description": "Book summaries and literary thoughts",
+      "type": "personal",
+      "colorHex": "#607D8B",
+      "iconURL": "journal-icon-url",
+      "settings": {
+        "hidden": false,
+        "conceal": false,
+        "sortMode": "entryDate",
+        "sortOrder": "descending",
+        "addLocationToNewEntries": false
+      },
+      "features": {
+        "shouldBeIncludedInAllEntries": true,
+        "shouldBeIncludedInOnThisDay": false,
+        "shouldBeIncludedInStreaks": false,
+        "shouldBeIncludedInTodayView": false
+      },
+      "appearance": {
+        "templateID": "template-reading",
+        "presetID": "preset-009",
+        "originalCoverImageData": "",
+        "croppedCoverImageData": ""
+      }
+    },
+    {
+      "id": "journal-012",
+      "name": "Reading Notes",
+      "description": "Book summaries and literary thoughts",
+      "type": "personal",
+      "colorHex": "#607D8B",
+      "iconURL": "journal-icon-url",
+      "settings": {
+        "hidden": false,
+        "conceal": false,
+        "sortMode": "entryDate",
+        "sortOrder": "descending",
+        "addLocationToNewEntries": false
+      },
+      "features": {
+        "shouldBeIncludedInAllEntries": true,
+        "shouldBeIncludedInOnThisDay": false,
+        "shouldBeIncludedInStreaks": false,
+        "shouldBeIncludedInTodayView": false
+      },
+      "appearance": {
+        "templateID": "template-reading",
+        "presetID": "preset-009",
+        "originalCoverImageData": "",
+        "croppedCoverImageData": ""
+      }
+    },
+    {
+      "id": "journal-013",
+      "name": "Reading Notes",
+      "description": "Book summaries and literary thoughts",
+      "type": "personal",
+      "colorHex": "#607D8B",
+      "iconURL": "journal-icon-url",
+      "settings": {
+        "hidden": false,
+        "conceal": false,
+        "sortMode": "entryDate",
+        "sortOrder": "descending",
+        "addLocationToNewEntries": false
+      },
+      "features": {
+        "shouldBeIncludedInAllEntries": true,
+        "shouldBeIncludedInOnThisDay": false,
+        "shouldBeIncludedInStreaks": false,
+        "shouldBeIncludedInTodayView": false
+      },
+      "appearance": {
+        "templateID": "template-reading",
+        "presetID": "preset-009",
+        "originalCoverImageData": "",
+        "croppedCoverImageData": ""
+      }
+    },
+    {
+      "id": "journal-014",
       "name": "Private Thoughts",
       "description": "Deep personal reflections and feelings",
       "type": "personal",

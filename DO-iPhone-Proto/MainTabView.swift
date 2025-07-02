@@ -4,9 +4,23 @@ import SwiftUI
 struct MainTabView: View {
     @State private var selectedTab = 0
     @State private var tabSelectionCount: [Int: Int] = [0: 0, 1: 0, 2: 0, 3: 0]
-    @AppStorage("showChatFAB") private var showChatFAB = false
+    @AppStorage("showChatFAB") private var showChatFAB = true
     @AppStorage("showEntryFAB") private var showEntryFAB = false
+    @State private var selectedDate = Date()
+    @State private var chatCompleted = false
+    @State private var showingPreviewEntry = false
     private var experimentsManager = ExperimentsManager.shared
+    
+    private var dayOfWeek: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE"
+        return formatter.string(from: selectedDate)
+    }
+    
+    private var hasChatMessages: Bool {
+        let messages = ChatSessionManager.shared.getMessages(for: selectedDate)
+        return !messages.isEmpty && messages.contains { $0.isUser }
+    }
     
     var body: some View {
         ZStack {
@@ -55,23 +69,102 @@ struct MainTabView: View {
             if selectedTab == 0 {
                 VStack {
                     Spacer()
-                    HStack(spacing: 12) {
-                        Spacer()
-                        if selectedTab == 0 && showChatFAB {
-                            DailyChatFAB {
-                                // Send notification to trigger Daily Chat
-                                NotificationCenter.default.post(name: NSNotification.Name("TriggerDailyChat"), object: nil)
+                    VStack(alignment: .leading, spacing: 8) {
+                        if selectedTab == 0 && showChatFAB && !chatCompleted {
+                            // Chat bubble above FAB when no messages
+                            HStack {
+                                Text("How's your \(dayOfWeek)?")
+                                    .font(.body)
+                                    .foregroundStyle(.primary)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 12)
+                                    .background(Color(.systemGray5))
+                                    .clipShape(RoundedRectangle(cornerRadius: 18))
+                                Spacer()
                             }
+                            .padding(.leading, 16)
                         }
-                        if showEntryFAB {
-                            FloatingActionButton {
-                                // FAB action - will be defined later
-                                print("FAB tapped on tab \(selectedTab)")
+                        
+                        HStack(spacing: 12) {
+                            Spacer()
+                            if selectedTab == 0 && showChatFAB && chatCompleted {
+                                // View Summary FAB button when chat has been interacted with
+                                DailyChatFAB(
+                                    text: "View Summary",
+                                    backgroundColor: .white
+                                ) {
+                                    showingPreviewEntry = true
+                                }
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 28)
+                                        .stroke(Color(hex: "44C0FF").opacity(0.2), lineWidth: 1)
+                                )
+                            }
+                            if selectedTab == 0 && showChatFAB {
+                                DailyChatFAB(
+                                    text: chatCompleted ? "Resume Chat" : "Start Daily Chat",
+                                    backgroundColor: chatCompleted ? Color(hex: "333B40") : Color(hex: "44C0FF")
+                                ) {
+                                    // Send notification to trigger Daily Chat
+                                    NotificationCenter.default.post(name: NSNotification.Name("TriggerDailyChat"), object: nil)
+                                }
+                            }
+                            if showEntryFAB {
+                                FloatingActionButton {
+                                    // FAB action - will be defined later
+                                    print("FAB tapped on tab \(selectedTab)")
+                                }
                             }
                         }
                     }
                     .padding(.trailing, 16)
                     .padding(.bottom, 90) // Position above tab bar
+                }
+            }
+        }
+        .sheet(isPresented: $showingPreviewEntry) {
+            ChatEntryPreviewView(
+                selectedDate: selectedDate,
+                entryCreated: .constant(false)
+            )
+        }
+        .onAppear {
+            // Check for chat messages on appear
+            chatCompleted = hasChatMessages
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+            // Refresh chat status when app comes to foreground
+            chatCompleted = hasChatMessages
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ChatMessagesUpdated"))) { _ in
+            // Refresh chat status when messages are updated
+            DispatchQueue.main.async {
+                chatCompleted = hasChatMessages
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+            // Also check when app becomes active
+            DispatchQueue.main.async {
+                chatCompleted = hasChatMessages
+            }
+        }
+        .onReceive(Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()) { _ in
+            // Check every second while on Today tab
+            if selectedTab == 0 {
+                let hasMessages = hasChatMessages
+                if chatCompleted != hasMessages {
+                    chatCompleted = hasMessages
+                }
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("SelectedDateChanged"))) { notification in
+            // Update selected date and reset chat state
+            if let newDate = notification.object as? Date {
+                selectedDate = newDate
+                chatCompleted = false // Reset to default state
+                // Check for messages on the new date
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    chatCompleted = hasChatMessages
                 }
             }
         }
@@ -131,17 +224,19 @@ struct FloatingActionButton: View {
 }
 
 struct DailyChatFAB: View {
+    let text: String
+    let backgroundColor: Color
     let action: () -> Void
     
     var body: some View {
         Button(action: action) {
-            Text("Daily Chat")
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.white)
+            Text(text)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(backgroundColor == .white ? Color(hex: "44C0FF") : .white)
                 .frame(height: 56)
                 .padding(.horizontal, 20)
         }
-        .background(Color(hex: "44C0FF"))
+        .background(backgroundColor)
         .clipShape(RoundedRectangle(cornerRadius: 28))
         .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
     }

@@ -370,11 +370,12 @@ struct TodayViewV1i2: View {
     @State private var showDatePickerGrid = true
     @State private var showDateNavigation = true
     @State private var showChat = false
+    @State private var showChatSimple = true
     @State private var showMoments = false
     @State private var showTrackers = false
     @State private var showInsights = false
     @State private var showBioTooltip = false
-    @AppStorage("showChatFAB") private var showChatFAB = false
+    @AppStorage("showChatFAB") private var showChatFAB = true
     @AppStorage("showEntryFAB") private var showEntryFAB = false
     @Binding var moodRating: Int
     @Binding var energyRating: Int
@@ -926,7 +927,7 @@ struct TodayViewV1i2: View {
                 onChatStarted: {
                     // Mark that user has interacted with chat
                     hasInteractedWithChat = true
-                    showChat = true
+                    // Don't automatically show Daily Chat section unless manually enabled
                 },
                 onMessageCountChanged: { count in
                     chatMessageCount = count
@@ -957,6 +958,9 @@ struct TodayViewV1i2: View {
             )
         }
         .onChange(of: selectedDate) { oldValue, newValue in
+            // Post notification for date change
+            NotificationCenter.default.post(name: NSNotification.Name("SelectedDateChanged"), object: newValue)
+            
             // Reset daily activities state when date changes
             chatCompleted = false
             isGeneratingPreview = false
@@ -970,7 +974,7 @@ struct TodayViewV1i2: View {
             if !existingMessages.isEmpty {
                 hasInteractedWithChat = true
                 chatCompleted = true
-                showChat = true
+                // Don't automatically show Daily Chat section unless manually enabled
                 chatMessageCount = existingMessages.filter { $0.isUser }.count
             }
             

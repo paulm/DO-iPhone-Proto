@@ -355,6 +355,8 @@ struct DailyChatView: View {
                 chatSessionManager.saveMessages(newMessages, for: selectedDate)
                 // Update message count
                 onMessageCountChanged(userMessageCount)
+                // Post notification to update FAB state
+                NotificationCenter.default.post(name: NSNotification.Name("ChatMessagesUpdated"), object: nil)
             }
         }
         .sheet(isPresented: $showingPreviewEntry) {

@@ -9,6 +9,7 @@ struct MainTabView: View {
     @State private var selectedDate = Date()
     @State private var chatCompleted = false
     @State private var showingPreviewEntry = false
+    @State private var showingEntry = false
     @State private var hasResumedChat = false
     @State private var messageCountAtResume = 0
     @State private var updateTrigger = false
@@ -116,8 +117,13 @@ struct MainTabView: View {
                                         text: "View Entry",
                                         backgroundColor: .white
                                     ) {
-                                        // Send notification to trigger entry generation
-                                        NotificationCenter.default.post(name: NSNotification.Name("TriggerEntryGeneration"), object: selectedDate)
+                                        if DailyContentManager.shared.hasEntry(for: selectedDate) {
+                                            // Entry exists, open it directly
+                                            showingEntry = true
+                                        } else {
+                                            // Send notification to trigger entry generation
+                                            NotificationCenter.default.post(name: NSNotification.Name("TriggerEntryGeneration"), object: selectedDate)
+                                        }
                                     }
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 28)
@@ -171,6 +177,9 @@ struct MainTabView: View {
                 selectedDate: selectedDate,
                 entryCreated: .constant(false)
             )
+        }
+        .sheet(isPresented: $showingEntry) {
+            EntryView(journal: nil)
         }
         .onAppear {
             // Check for chat messages on appear
@@ -238,6 +247,10 @@ struct MainTabView: View {
                 chatCompleted = !currentState
                 chatCompleted = currentState
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("OpenEntryView"))) { _ in
+            // Open Entry view when notification is received
+            showingEntry = true
         }
     }
     

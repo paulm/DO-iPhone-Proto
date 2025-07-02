@@ -953,7 +953,7 @@ struct TodayViewV1i2: View {
                             .padding(.vertical, 20)
                         } else {
                             Button(action: {
-                                showingPreviewEntry = true
+                                showingEntry = true
                             }) {
                                 HStack {
                                     VStack(alignment: .leading, spacing: 4) {
@@ -1192,8 +1192,8 @@ struct TodayViewV1i2: View {
                     entryCreated = true
                     // Post notification to update FAB
                     NotificationCenter.default.post(name: NSNotification.Name("DailyEntryCreatedStatusChanged"), object: selectedDate)
-                    // Open the entry preview
-                    showingPreviewEntry = true
+                    // Open the entry view directly
+                    showingEntry = true
                 }
             }
         }

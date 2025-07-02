@@ -33,9 +33,7 @@ struct TodayView: View {
         // Calculate how many dates we need based on screen width
         // Assuming we want to fit as many as possible in 3 rows
         let approximateWidth = UIScreen.main.bounds.width - 40
-        let circleSize: CGFloat = 16
-        let spacing: CGFloat = 12
-        let columnsPerRow = Int((approximateWidth + spacing) / (circleSize + spacing))
+        let columnsPerRow = Int((approximateWidth + DatePickerConstants.spacing) / (DatePickerConstants.circleSize + DatePickerConstants.spacing))
         let totalDates = columnsPerRow * 3
         
         // Calculate the starting date to ensure we end 4 days in the future
@@ -124,6 +122,11 @@ struct TodayView: View {
 }
 
 // MARK: - Date Picker Components
+private struct DatePickerConstants {
+    static let circleSize: CGFloat = 18
+    static let spacing: CGFloat = 12
+}
+
 private struct SizePreferenceKey: PreferenceKey {
     static var defaultValue: CGFloat = 0
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
@@ -134,7 +137,6 @@ private struct SizePreferenceKey: PreferenceKey {
 struct DatePickerGrid: View {
     let dates: [Date]
     @Binding var selectedDate: Date
-    let spacing: CGFloat
     
     @State private var availableWidth: CGFloat = UIScreen.main.bounds.width - 40 // Approximate initial width
     
@@ -161,10 +163,9 @@ struct DatePickerGrid: View {
         return completed
     }()
     
-    init(dates: [Date], selectedDate: Binding<Date>, spacing: CGFloat) {
+    init(dates: [Date], selectedDate: Binding<Date>) {
         self.dates = dates
         self._selectedDate = selectedDate
-        self.spacing = spacing
     }
     
     private func isDateCompleted(_ date: Date) -> Bool {
@@ -173,11 +174,10 @@ struct DatePickerGrid: View {
         return Self.completedDates.contains(dateStart)
     }
     
-    private var circleSize: CGFloat = 16
     private var columns: Int {
         guard availableWidth > 0 else { return 10 } // Default to 10 columns if width not yet calculated
-        let totalCircleWidth = circleSize + spacing
-        let possibleColumns = Int((availableWidth + spacing) / totalCircleWidth)
+        let totalCircleWidth = DatePickerConstants.circleSize + DatePickerConstants.spacing
+        let possibleColumns = Int((availableWidth + DatePickerConstants.spacing) / totalCircleWidth)
         return max(1, possibleColumns)
     }
     
@@ -200,7 +200,7 @@ struct DatePickerGrid: View {
     }
     
     var body: some View {
-        VStack(spacing: spacing) {
+        VStack(spacing: DatePickerConstants.spacing) {
             // Streak and Today text
             HStack(spacing: 0) {
                 Text("2 Day Streak")
@@ -224,7 +224,7 @@ struct DatePickerGrid: View {
             .padding(.bottom, 8)
             
             ForEach(Array(rows.enumerated()), id: \.offset) { rowIndex, row in
-                HStack(spacing: spacing) {
+                HStack(spacing: DatePickerConstants.spacing) {
                     ForEach(Array(row.enumerated()), id: \.offset) { index, date in
                         DateCircle(
                             date: date,
@@ -297,7 +297,7 @@ struct DateCircle: View {
         Button(action: onTap) {
             Circle()
                 .fill(circleColor)
-                .frame(width: 16, height: 16)
+                .frame(width: DatePickerConstants.circleSize, height: DatePickerConstants.circleSize)
                 .overlay(
                     Text(dayNumber)
                         .font(.system(size: 8))
@@ -364,9 +364,7 @@ struct TodayViewV1i2: View {
         // Calculate how many dates we need based on screen width
         // Assuming we want to fit as many as possible in 3 rows
         let approximateWidth = UIScreen.main.bounds.width - 40
-        let circleSize: CGFloat = 16
-        let spacing: CGFloat = 12
-        let columnsPerRow = Int((approximateWidth + spacing) / (circleSize + spacing))
+        let columnsPerRow = Int((approximateWidth + DatePickerConstants.spacing) / (DatePickerConstants.circleSize + DatePickerConstants.spacing))
         let totalDates = columnsPerRow * 3
         
         // Calculate the starting date to ensure we end 4 days in the future
@@ -580,8 +578,7 @@ struct TodayViewV1i2: View {
                 // Date picker grid at top of scrollable content
                 DatePickerGrid(
                     dates: dateRange,
-                    selectedDate: $selectedDate,
-                    spacing: 12
+                    selectedDate: $selectedDate
                 )
                 .background(Color.clear)
                 .listRowBackground(Color.clear)

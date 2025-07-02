@@ -413,11 +413,13 @@ struct TodayViewV1i2: View {
     @State private var showingBioView = false
     
     // Show/hide toggles for Daily Activities
-    @State private var showWeather = true
+    @State private var showWeather = false
     @State private var showDatePickerGrid = true
     @State private var showDateNavigation = true
     @State private var showChat = false
     @State private var showChatSimple = true
+    @State private var showDailyEntry = true
+    @State private var showSummary = true
     @State private var showMoments = false
     @State private var showTrackers = false
     @State private var showInsights = false
@@ -626,11 +628,44 @@ struct TodayViewV1i2: View {
                             }
                             
                             Button {
+                                showChatSimple.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Chat Simple")
+                                    if showChatSimple {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
                                 showChat.toggle()
                             } label: {
                                 HStack {
                                     Text("Daily Chat")
                                     if showChat {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showDailyEntry.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Daily Entry")
+                                    if showDailyEntry {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showSummary.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Summary")
+                                    if showSummary {
                                         Image(systemName: "checkmark")
                                     }
                                 }
@@ -662,7 +697,7 @@ struct TodayViewV1i2: View {
                                 showInsights.toggle()
                             } label: {
                                 HStack {
-                                    Text("Today Insights")
+                                    Text("Entry Links")
                                     if showInsights {
                                         Image(systemName: "checkmark")
                                     }
@@ -810,11 +845,45 @@ struct TodayViewV1i2: View {
                 .listRowSeparator(.hidden)
                 }
                 
-                // Daily Entry section (only shown after entry is created)
-                if entryCreated {
+                // Daily Entry section (shown when entry exists for the date)
+                if showDailyEntry && DailyContentManager.shared.hasEntry(for: selectedDate) {
                     Section("Daily Entry") {
                         Button(action: {
                             showingEntry = true
+                        }) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Morning Reflections and Evening Plans")
+                                        .font(.subheadline)
+                                        .fontWeight(.bold)
+                                        .foregroundStyle(.primary)
+                                        .multilineTextAlignment(.leading)
+                                    
+                                    Text("Today I started with my usual morning routine, feeling energized and ready to tackle the day ahead. I spent some time thinking about my work goals and how I want to approach the various projects I have on my plate. The conversation helped me organize my thoughts around what's most important right now.")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(3)
+                                        .multilineTextAlignment(.leading)
+                                }
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .padding(.vertical, 8)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+                
+                // Summary section (shown when summary exists for the date)
+                if showSummary && DailyContentManager.shared.hasSummary(for: selectedDate) {
+                    Section("Summary") {
+                        Button(action: {
+                            showingPreviewEntry = true
                         }) {
                             HStack {
                                 VStack(alignment: .leading, spacing: 4) {
@@ -945,33 +1014,37 @@ struct TodayViewV1i2: View {
                     }
                 }
                 
-                // Today Insights Section
+                // Entry Links (no section wrapper)
                 if showInsights {
-                    Section("Today Insights") {
-                    HStack(spacing: 0) {
-                        TodayInsightItem(
-                            icon: "cloud.sun",
-                            title: "72°F Sunny",
-                            detail: "Alpine, Utah",
-                            action: { showingWeather = true }
-                        )
+                    HStack(spacing: 12) {
+                        Button(action: { showingEntries = true }) {
+                            Text("3 Entries")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundStyle(Color(hex: "44C0FF"))
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(Color.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
+                        .buttonStyle(PlainButtonStyle())
                         
-                        TodayInsightItem(
-                            icon: "square.and.pencil",
-                            title: "3 entries",
-                            detail: "Today",
-                            action: { showingEntries = true }
-                        )
-                        
-                        TodayInsightItem(
-                            icon: "calendar.badge.clock",
-                            title: "2 memories",
-                            detail: "On This Day",
-                            action: { showingOnThisDay = true }
-                        )
+                        Button(action: { showingOnThisDay = true }) {
+                            Text("4 On This Day")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundStyle(Color(hex: "44C0FF"))
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(Color.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
+                        .buttonStyle(PlainButtonStyle())
                     }
-                    .padding(.vertical, 4)
-                    }
+                    .padding(.vertical, 20)
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
                 }
                 
                 // Bio ToolTip (no section wrapper)
@@ -1052,6 +1125,10 @@ struct TodayViewV1i2: View {
                 chatMessageCount = existingMessages.filter { $0.isUser }.count
             }
             
+            // Check if summary and entry exist for the new date
+            summaryGenerated = DailyContentManager.shared.hasSummary(for: newValue)
+            entryCreated = DailyContentManager.shared.hasEntry(for: newValue)
+            
             // Clear moments data
             selectedLocations.removeAll()
             selectedEvents.removeAll()
@@ -1096,6 +1173,27 @@ struct TodayViewV1i2: View {
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("TriggerDailyChat"))) { _ in
             // Only respond to Daily Chat trigger if this variant supports it
             showingDailyChat = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("SummaryGeneratedStatusChanged"))) { notification in
+            // Update summaryGenerated state when notification is received
+            if let date = notification.object as? Date,
+               Calendar.current.isDate(date, inSameDayAs: selectedDate) {
+                // Force a UI update
+                summaryGenerated = DailyContentManager.shared.hasSummary(for: selectedDate)
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("DailyEntryCreatedStatusChanged"))) { notification in
+            // Update entryCreated state when notification is received
+            if let date = notification.object as? Date,
+               Calendar.current.isDate(date, inSameDayAs: selectedDate) {
+                // Force a UI update
+                entryCreated = DailyContentManager.shared.hasEntry(for: selectedDate)
+            }
+        }
+        .onAppear {
+            // Check if summary and entry exist for current date on appear
+            summaryGenerated = DailyContentManager.shared.hasSummary(for: selectedDate)
+            entryCreated = DailyContentManager.shared.hasEntry(for: selectedDate)
         }
         }
     }

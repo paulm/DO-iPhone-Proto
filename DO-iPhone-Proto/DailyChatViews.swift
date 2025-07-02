@@ -3,10 +3,46 @@ import SwiftUI
 // This file contains all Daily Chat related views and components
 // Extracted from TodayView.swift for better organization
 
+// MARK: - Daily Content Manager
+class DailyContentManager {
+    static let shared = DailyContentManager()
+    private var dailyEntries: [String: Bool] = [:]
+    private var summaries: [String: Bool] = [:]
+    
+    private init() {}
+    
+    private func dateKey(for date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: date)
+    }
+    
+    func hasEntry(for date: Date) -> Bool {
+        let key = dateKey(for: date)
+        return dailyEntries[key] ?? false
+    }
+    
+    func setHasEntry(_ hasEntry: Bool, for date: Date) {
+        let key = dateKey(for: date)
+        dailyEntries[key] = hasEntry
+    }
+    
+    func hasSummary(for date: Date) -> Bool {
+        let key = dateKey(for: date)
+        return summaries[key] ?? false
+    }
+    
+    func setHasSummary(_ hasSummary: Bool, for date: Date) {
+        let key = dateKey(for: date)
+        summaries[key] = hasSummary
+    }
+}
+
 // MARK: - Chat Session Manager
 class ChatSessionManager {
     static let shared = ChatSessionManager()
     private var sessions: [String: [DailyChatMessage]] = [:]
+    private var summariesGenerated: [String: Bool] = [:]
     
     private init() {}
     
@@ -29,6 +65,17 @@ class ChatSessionManager {
     func clearSession(for date: Date = Date()) {
         let key = dateKey(for: date)
         sessions.removeValue(forKey: key)
+        summariesGenerated.removeValue(forKey: key)
+    }
+    
+    func isSummaryGenerated(for date: Date = Date()) -> Bool {
+        let key = dateKey(for: date)
+        return summariesGenerated[key] ?? false
+    }
+    
+    func setSummaryGenerated(_ generated: Bool, for date: Date = Date()) {
+        let key = dateKey(for: date)
+        summariesGenerated[key] = generated
     }
 }
 
@@ -741,6 +788,10 @@ struct ChatEntryPreviewView: View {
             // Show loading state for 0.5 seconds
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 isLoadingSummary = false
+                // Mark summary as generated when view appears (independent from chat)
+                DailyContentManager.shared.setHasSummary(true, for: selectedDate)
+                // Post notification to update UI
+                NotificationCenter.default.post(name: NSNotification.Name("SummaryGeneratedStatusChanged"), object: selectedDate)
             }
             
             // Check if there are new chat interactions since entry was created
@@ -760,6 +811,10 @@ struct ChatEntryPreviewView: View {
             isCreatingEntry = false
             entryCreated = true
             hasNewInteractions = false
+            // Mark entry as created (independent from chat)
+            DailyContentManager.shared.setHasEntry(true, for: selectedDate)
+            // Post notification to update UI
+            NotificationCenter.default.post(name: NSNotification.Name("DailyEntryCreatedStatusChanged"), object: selectedDate)
             // Auto-open the entry after creation
             showingEntry = true
         }

@@ -9,7 +9,27 @@ class DailyContentManager {
     private var dailyEntries: [String: Bool] = [:]
     private var summaries: [String: Bool] = [:]
     
-    private init() {}
+    private init() {
+        // Add some sample entries for testing
+        let calendar = Calendar.current
+        let today = Date()
+        
+        // Add entries for some days that have chat messages
+        // Yesterday has an entry
+        if let date = calendar.date(byAdding: .day, value: -1, to: today) {
+            setHasEntry(true, for: date)
+        }
+        
+        // 3 days ago has an entry
+        if let date = calendar.date(byAdding: .day, value: -3, to: today) {
+            setHasEntry(true, for: date)
+        }
+        
+        // 6 days ago has an entry
+        if let date = calendar.date(byAdding: .day, value: -6, to: today) {
+            setHasEntry(true, for: date)
+        }
+    }
     
     private func dateKey(for date: Date) -> String {
         let formatter = DateFormatter()

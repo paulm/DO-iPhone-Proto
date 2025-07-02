@@ -174,6 +174,11 @@ struct DatePickerGrid: View {
         return !messages.isEmpty && messages.contains { $0.isUser }
     }
     
+    // Check if a date has an entry created
+    private func hasEntryForDate(_ date: Date) -> Bool {
+        return DailyContentManager.shared.hasEntry(for: date)
+    }
+    
     init(dates: [Date], selectedDate: Binding<Date>, showDates: Bool = true, showStreak: Bool = true) {
         self.dates = dates
         self._selectedDate = selectedDate
@@ -269,6 +274,7 @@ struct DatePickerGrid: View {
                             isToday: Calendar.current.isDateInToday(date),
                             isFuture: date > Date(),
                             isCompleted: isDateCompleted(date),
+                            hasEntry: hasEntryForDate(date),
                             showDate: showDates,
                             onTap: {
                                 selectedDate = date
@@ -337,6 +343,7 @@ struct DateCircle: View {
     let isToday: Bool
     let isFuture: Bool
     let isCompleted: Bool
+    let hasEntry: Bool
     let showDate: Bool
     let onTap: () -> Void
     
@@ -375,12 +382,20 @@ struct DateCircle: View {
             .fill(circleColor)
             .frame(width: DatePickerConstants.circleSize, height: DatePickerConstants.circleSize)
             .overlay(
-                Group {
+                ZStack {
                     if showDate || isToday {
                         Text(dayNumber)
                             .font(.system(size: 8))
                             .fontWeight(.medium)
                             .foregroundStyle(textColor)
+                    }
+                    
+                    // Blue dot for entry created
+                    if hasEntry && !isSelected {
+                        Circle()
+                            .fill(Color(hex: "44C0FF"))
+                            .frame(width: 6, height: 6)
+                            .offset(y: -DatePickerConstants.circleSize / 2 + 6)
                     }
                 }
             )
@@ -905,8 +920,8 @@ struct TodayViewV1i2: View {
                     .listRowSeparator(.hidden)
                 }
                 
-                // Entry section
-                if showEntry {
+                // Entry section (shown when entry exists for selected date)
+                if showEntry && DailyContentManager.shared.hasEntry(for: selectedDate) {
                     Section("Daily Entry") {
                         Button(action: {
                             showingPreviewEntry = true

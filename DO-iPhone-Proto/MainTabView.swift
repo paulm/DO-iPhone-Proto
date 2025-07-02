@@ -4,6 +4,8 @@ import SwiftUI
 struct MainTabView: View {
     @State private var selectedTab = 0
     @State private var tabSelectionCount: [Int: Int] = [0: 0, 1: 0, 2: 0, 3: 0]
+    @AppStorage("showChatFAB") private var showChatFAB = false
+    @AppStorage("showEntryFAB") private var showEntryFAB = false
     private var experimentsManager = ExperimentsManager.shared
     
     var body: some View {
@@ -55,15 +57,17 @@ struct MainTabView: View {
                     Spacer()
                     HStack(spacing: 12) {
                         Spacer()
-                        if selectedTab == 0 {
+                        if selectedTab == 0 && showChatFAB {
                             DailyChatFAB {
                                 // Send notification to trigger Daily Chat
                                 NotificationCenter.default.post(name: NSNotification.Name("TriggerDailyChat"), object: nil)
                             }
                         }
-                        FloatingActionButton {
-                            // FAB action - will be defined later
-                            print("FAB tapped on tab \(selectedTab)")
+                        if showEntryFAB {
+                            FloatingActionButton {
+                                // FAB action - will be defined later
+                                print("FAB tapped on tab \(selectedTab)")
+                            }
                         }
                     }
                     .padding(.trailing, 16)

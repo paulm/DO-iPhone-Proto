@@ -374,6 +374,8 @@ struct TodayViewV1i2: View {
     @State private var showTrackers = false
     @State private var showInsights = false
     @State private var showBioTooltip = true
+    @AppStorage("showChatFAB") private var showChatFAB = false
+    @AppStorage("showEntryFAB") private var showEntryFAB = false
     @Binding var moodRating: Int
     @Binding var energyRating: Int
     @Binding var stressRating: Int
@@ -541,7 +543,7 @@ struct TodayViewV1i2: View {
                             showingSettings = true
                         }
                         
-                        Section("Show") {
+                        Section("Show in Today") {
                             Button {
                                 showDatePickerGrid.toggle()
                             } label: {
@@ -618,15 +620,35 @@ struct TodayViewV1i2: View {
                                     }
                                 }
                             }
+                            
+                            Button {
+                                showChatFAB.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Chat FAB")
+                                    if showChatFAB {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showEntryFAB.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Entry FAB")
+                                    if showEntryFAB {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
                         }
                     } label: {
-                        Circle()
-                            .fill(.gray.opacity(0.3))
-                            .frame(width: 40, height: 40)
-                            .overlay(
-                                Image(systemName: "person.fill")
-                                    .foregroundStyle(.gray)
-                            )
+                        Image(systemName: "ellipsis")
+                            .font(.body)
+                            .foregroundStyle(.primary)
+                            .frame(width: 44, height: 44)
+                            .background(Circle().fill(Color.clear))
                     }
                     .accessibilityLabel("Profile Menu")
                 }

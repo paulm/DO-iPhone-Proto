@@ -649,6 +649,14 @@ struct TodayViewV1i2: View {
                     .listRowSeparator(.hidden)
                 }
                 
+                // Spacer divider between Date Picker Grid and Date Navigation
+                if showDatePickerGrid && showDateNavigation {
+                    Divider()
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                        .listRowInsets(EdgeInsets(top: 20, leading: 16, bottom: 20, trailing: 16))
+                }
+                
                 // Date navigation section (no section header)
                 if showDateNavigation {
                     HStack {
@@ -696,8 +704,12 @@ struct TodayViewV1i2: View {
                     .padding(.trailing, 16)
                 }
                 .padding(.vertical, 10)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color(UIColor.secondarySystemGroupedBackground))
+                )
                 .listRowInsets(EdgeInsets())
-                .listRowBackground(Color(UIColor.secondarySystemGroupedBackground))
+                .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
                 }
                 

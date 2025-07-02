@@ -9,6 +9,10 @@ struct MainTabView: View {
     @State private var selectedDate = Date()
     @State private var chatCompleted = false
     @State private var showingPreviewEntry = false
+    @State private var hasResumedChat = false
+    @State private var messageCountAtResume = 0
+    @State private var updateTrigger = false
+    @State private var showUpdateEntry = false
     private var experimentsManager = ExperimentsManager.shared
     
     private var dayOfWeek: String {
@@ -20,6 +24,22 @@ struct MainTabView: View {
     private var hasChatMessages: Bool {
         let messages = ChatSessionManager.shared.getMessages(for: selectedDate)
         return !messages.isEmpty && messages.contains { $0.isUser }
+    }
+    
+    private var hasEntry: Bool {
+        return DailyContentManager.shared.hasEntry(for: selectedDate)
+    }
+    
+    private var hasNewMessagesSinceEntry: Bool {
+        return DailyContentManager.shared.hasNewMessagesSinceEntry(for: selectedDate)
+    }
+    
+    private var hasNewMessagesSinceResume: Bool {
+        let messages = ChatSessionManager.shared.getMessages(for: selectedDate)
+        let currentUserMessageCount = messages.filter { $0.isUser }.count
+        let hasNew = currentUserMessageCount > messageCountAtResume
+        print("DEBUG: hasEntry=\(hasEntry), hasResumedChat=\(hasResumedChat), messageCountAtResume=\(messageCountAtResume), currentCount=\(currentUserMessageCount), hasNew=\(hasNew)")
+        return hasNew
     }
     
     var body: some View {
@@ -88,23 +108,46 @@ struct MainTabView: View {
                         HStack(spacing: 12) {
                             Spacer()
                             if selectedTab == 0 && showChatFAB && chatCompleted {
-                                // View Entry FAB button when chat has been interacted with
-                                DailyChatFAB(
-                                    text: "View Entry",
-                                    backgroundColor: .white
-                                ) {
-                                    showingPreviewEntry = true
+                                // Show View Entry/Update Entry button only when appropriate
+                                let _ = updateTrigger // Force dependency on updateTrigger
+                                if !hasEntry {
+                                    // Show "View Entry" when no entry exists yet
+                                    DailyChatFAB(
+                                        text: "View Entry",
+                                        backgroundColor: .white
+                                    ) {
+                                        showingPreviewEntry = true
+                                    }
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 28)
+                                            .stroke(Color(hex: "44C0FF").opacity(0.2), lineWidth: 1)
+                                    )
+                                } else if hasEntry && showUpdateEntry {
+                                    // Show "Update Entry" only after user has resumed chat AND sent a new message
+                                    DailyChatFAB(
+                                        text: "Update Entry",
+                                        backgroundColor: .white
+                                    ) {
+                                        showingPreviewEntry = true
+                                    }
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 28)
+                                            .stroke(Color(hex: "44C0FF").opacity(0.2), lineWidth: 1)
+                                    )
                                 }
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 28)
-                                        .stroke(Color(hex: "44C0FF").opacity(0.2), lineWidth: 1)
-                                )
                             }
                             if selectedTab == 0 && showChatFAB {
                                 DailyChatFAB(
                                     text: chatCompleted ? "Resume Chat" : "Start Daily Chat",
                                     backgroundColor: chatCompleted ? Color(hex: "333B40") : Color(hex: "44C0FF")
                                 ) {
+                                    // Set hasResumedChat to true when Resume Chat is tapped on a day with an entry
+                                    if chatCompleted && hasEntry {
+                                        hasResumedChat = true
+                                        // Track current message count when resuming
+                                        let messages = ChatSessionManager.shared.getMessages(for: selectedDate)
+                                        messageCountAtResume = messages.filter { $0.isUser }.count
+                                    }
                                     // Send notification to trigger Daily Chat
                                     NotificationCenter.default.post(name: NSNotification.Name("TriggerDailyChat"), object: nil)
                                 }
@@ -140,6 +183,13 @@ struct MainTabView: View {
             // Refresh chat status when messages are updated
             DispatchQueue.main.async {
                 chatCompleted = hasChatMessages
+                // Check if Update Entry should show
+                if hasResumedChat && hasEntry {
+                    let messages = ChatSessionManager.shared.getMessages(for: selectedDate)
+                    let currentUserMessageCount = messages.filter { $0.isUser }.count
+                    let shouldShowUpdate = currentUserMessageCount > messageCountAtResume
+                    showUpdateEntry = shouldShowUpdate
+                }
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
@@ -148,12 +198,21 @@ struct MainTabView: View {
                 chatCompleted = hasChatMessages
             }
         }
-        .onReceive(Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()) { _ in
-            // Check every second while on Today tab
+        .onReceive(Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()) { _ in
+            // Check every half second while on Today tab
             if selectedTab == 0 {
                 let hasMessages = hasChatMessages
                 if chatCompleted != hasMessages {
                     chatCompleted = hasMessages
+                }
+                // Also trigger update for message count changes
+                if hasResumedChat && hasEntry {
+                    let messages = ChatSessionManager.shared.getMessages(for: selectedDate)
+                    let currentUserMessageCount = messages.filter { $0.isUser }.count
+                    let shouldShowUpdate = currentUserMessageCount > messageCountAtResume
+                    if shouldShowUpdate != showUpdateEntry {
+                        showUpdateEntry = shouldShowUpdate
+                    }
                 }
             }
         }
@@ -161,9 +220,22 @@ struct MainTabView: View {
             // Update selected date and check chat state
             if let newDate = notification.object as? Date {
                 selectedDate = newDate
+                // Reset hasResumedChat and message count when date changes
+                hasResumedChat = false
+                messageCountAtResume = 0
+                showUpdateEntry = false
                 // Check for messages on the new date immediately
                 let messages = ChatSessionManager.shared.getMessages(for: newDate)
                 chatCompleted = !messages.isEmpty && messages.contains { $0.isUser }
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("DailyEntryCreatedStatusChanged"))) { _ in
+            // Force UI update when entry status changes
+            DispatchQueue.main.async {
+                // Trigger a view update by modifying state
+                let currentState = chatCompleted
+                chatCompleted = !currentState
+                chatCompleted = currentState
             }
         }
     }

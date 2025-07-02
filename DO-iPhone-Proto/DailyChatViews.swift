@@ -8,6 +8,7 @@ class DailyContentManager {
     static let shared = DailyContentManager()
     private var dailyEntries: [String: Bool] = [:]
     private var summaries: [String: Bool] = [:]
+    private var entryMessageCounts: [String: Int] = [:] // Track message count when entry was created
     
     private init() {
         // Data will be loaded from JSON via DailyDataManager
@@ -37,6 +38,24 @@ class DailyContentManager {
     func setHasSummary(_ hasSummary: Bool, for date: Date) {
         let key = dateKey(for: date)
         summaries[key] = hasSummary
+    }
+    
+    func setEntryMessageCount(_ count: Int, for date: Date) {
+        let key = dateKey(for: date)
+        entryMessageCounts[key] = count
+    }
+    
+    func getEntryMessageCount(for date: Date) -> Int {
+        let key = dateKey(for: date)
+        return entryMessageCounts[key] ?? 0
+    }
+    
+    func hasNewMessagesSinceEntry(for date: Date) -> Bool {
+        let key = dateKey(for: date)
+        let entryMessageCount = entryMessageCounts[key] ?? 0
+        let currentMessages = ChatSessionManager.shared.getMessages(for: date)
+        let currentUserMessageCount = currentMessages.filter { $0.isUser }.count
+        return currentUserMessageCount > entryMessageCount
     }
 }
 
@@ -825,6 +844,10 @@ struct ChatEntryPreviewView: View {
             hasNewInteractions = false
             // Mark entry as created (independent from chat)
             DailyContentManager.shared.setHasEntry(true, for: selectedDate)
+            // Track current message count when entry is created
+            let messages = ChatSessionManager.shared.getMessages(for: selectedDate)
+            let userMessageCount = messages.filter { $0.isUser }.count
+            DailyContentManager.shared.setEntryMessageCount(userMessageCount, for: selectedDate)
             // Post notification to update UI
             NotificationCenter.default.post(name: NSNotification.Name("DailyEntryCreatedStatusChanged"), object: selectedDate)
             // Auto-open the entry after creation

@@ -709,9 +709,9 @@ struct ChatEntryPreviewView: View {
                         
                             Spacer()
                         
-                        // Action buttons
-                        HStack(spacing: 12) {
-                            // Create/Update Entry button
+                        // Action button
+                        VStack {
+                            // Update Entry button
                             Button(action: {
                                 if entryCreated {
                                     // Update existing entry
@@ -727,7 +727,7 @@ struct ChatEntryPreviewView: View {
                                             .scaleEffect(0.8)
                                             .tint(.white)
                                     } else {
-                                        Text(entryCreated ? "Update Entry" : "Create Entry")
+                                        Text("Update Entry")
                                             .font(.subheadline)
                                             .fontWeight(.semibold)
                                     }
@@ -740,21 +740,6 @@ struct ChatEntryPreviewView: View {
                             }
                             .disabled(isCreatingEntry || (entryCreated && !hasNewInteractions))
                             .opacity((entryCreated && !hasNewInteractions) ? 0.6 : 1.0)
-                            
-                            // Open button
-                            Button(action: {
-                                showingEntry = true
-                            }) {
-                                Text("Open Entry")
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                                    .foregroundStyle(entryCreated ? .white : .gray)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 14)
-                                    .background(entryCreated ? Color(hex: "44C0FF") : Color.gray.opacity(0.3))
-                                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                            }
-                            .disabled(!entryCreated)
                         }
                         .padding(.horizontal)
                         .padding(.bottom, 20)
@@ -803,7 +788,7 @@ struct ChatEntryPreviewView: View {
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                    Button("Cancel") {
                         dismiss()
                     }
                 }

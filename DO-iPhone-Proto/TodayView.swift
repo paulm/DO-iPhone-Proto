@@ -300,14 +300,17 @@ struct DatePickerGrid: View {
                     
                     if row >= 0 && row < rows.count && col >= 0 && col < rows[row].count {
                         let date = rows[row][col]
-                        if lastSelectedDate != date {
+                        
+                        // Only provide haptic feedback if we're over a new date
+                        if lastSelectedDate == nil || !Calendar.current.isDate(lastSelectedDate!, inSameDayAs: date) {
                             // Haptic feedback when selecting a new date
                             let impactFeedback = UIImpactFeedbackGenerator(style: .light)
                             impactFeedback.impactOccurred()
-                            
-                            selectedDate = date
                             lastSelectedDate = date
                         }
+                        
+                        // Always update the selected date
+                        selectedDate = date
                     }
                 }
                 .onEnded { _ in
@@ -410,6 +413,7 @@ struct TodayViewV1i2: View {
     @State private var showingBioView = false
     
     // Show/hide toggles for Daily Activities
+    @State private var showWeather = true
     @State private var showDatePickerGrid = true
     @State private var showDateNavigation = true
     @State private var showChat = false
@@ -589,6 +593,17 @@ struct TodayViewV1i2: View {
                         
                         Section("Show in Today") {
                             Button {
+                                showWeather.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Weather")
+                                    if showWeather {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
                                 showDatePickerGrid.toggle()
                             } label: {
                                 HStack {
@@ -697,13 +712,36 @@ struct TodayViewV1i2: View {
                     .accessibilityLabel("Profile Menu")
                 }
                 .padding(.horizontal)
-                .padding(.top, 20)
-                .padding(.bottom, 20)
+                .padding(.top, 0)
+                .padding(.bottom, 10)
             }
             .background(Color(UIColor.systemGroupedBackground))
             
             // Content with Daily Activities
             List {
+                // Weather section at the very top
+                if showWeather {
+                    VStack(spacing: 4) {
+                        Image(systemName: "cloud.sun")
+                            .font(.system(size: 40, weight: .thin))
+                            .foregroundStyle(Color(hex: "44C0FF"))
+                        
+                        Text("72°F Sunny")
+                            .font(.system(size: 13))
+                            .foregroundStyle(.primary)
+                        
+                        Text("Alpine, Utah")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 8)
+                    .padding(.bottom, 16)
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                }
+                
                 // Date picker grid at top of scrollable content
                 if showDatePickerGrid {
                     DatePickerGrid(
@@ -713,14 +751,7 @@ struct TodayViewV1i2: View {
                     .background(Color.clear)
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
-                }
-                
-                // Spacer divider between Date Picker Grid and Date Navigation
-                if showDatePickerGrid && showDateNavigation {
-                    Divider()
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
-                        .listRowInsets(EdgeInsets(top: 20, leading: 16, bottom: 20, trailing: 16))
+                    .padding(.bottom, 20)
                 }
                 
                 // Date navigation section (no section header)

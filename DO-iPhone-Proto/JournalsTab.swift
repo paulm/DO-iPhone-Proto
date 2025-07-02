@@ -137,7 +137,7 @@ struct JournalsTabPagedView: View {
                 JournalDetailPagedView(journal: journal, journalViewModel: journalViewModel, sheetRegularPosition: sheetRegularPosition)
             }
         }
-        .tint(.primary)
+        .tint(.white)
         .sheet(isPresented: $showingSettings) {
             SettingsView()
         }
@@ -472,7 +472,6 @@ struct JournalDetailPagedView: View {
             .zIndex(1)
         }
         .navigationBarTitleDisplayMode(.inline)
-        .tint(.white)
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 showingSheet = true

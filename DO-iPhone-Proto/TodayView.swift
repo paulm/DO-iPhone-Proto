@@ -138,10 +138,39 @@ struct DatePickerGrid: View {
     
     @State private var availableWidth: CGFloat = UIScreen.main.bounds.width - 40 // Approximate initial width
     
+    // Static storage for completed dates - generated once and reused
+    private static let completedDates: Set<Date> = {
+        let calendar = Calendar.current
+        let today = Date()
+        var completed = Set<Date>()
+        
+        // Get past 10 days (excluding today)
+        var pastDates: [Date] = []
+        for i in 1...10 {
+            if let date = calendar.date(byAdding: .day, value: -i, to: today) {
+                pastDates.append(calendar.startOfDay(for: date))
+            }
+        }
+        
+        // Randomly select 6 of them
+        let shuffled = pastDates.shuffled()
+        for i in 0..<min(6, shuffled.count) {
+            completed.insert(shuffled[i])
+        }
+        
+        return completed
+    }()
+    
     init(dates: [Date], selectedDate: Binding<Date>, spacing: CGFloat) {
         self.dates = dates
         self._selectedDate = selectedDate
         self.spacing = spacing
+    }
+    
+    private func isDateCompleted(_ date: Date) -> Bool {
+        let calendar = Calendar.current
+        let dateStart = calendar.startOfDay(for: date)
+        return Self.completedDates.contains(dateStart)
     }
     
     private var circleSize: CGFloat = 16
@@ -172,6 +201,28 @@ struct DatePickerGrid: View {
     
     var body: some View {
         VStack(spacing: spacing) {
+            // Streak and Today text
+            HStack(spacing: 0) {
+                Text("2 Day Streak")
+                    .font(.caption)
+                    .foregroundStyle(.secondary.opacity(0.7))
+                
+                Text(" • ")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                
+                Button(action: {
+                    selectedDate = Date()
+                }) {
+                    Text("Today")
+                        .font(.caption)
+                        .foregroundStyle(Calendar.current.isDateInToday(selectedDate) ? .secondary : Color(hex: "44C0FF"))
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.bottom, 8)
+            
             ForEach(Array(rows.enumerated()), id: \.offset) { rowIndex, row in
                 HStack(spacing: spacing) {
                     ForEach(Array(row.enumerated()), id: \.offset) { index, date in
@@ -180,6 +231,7 @@ struct DatePickerGrid: View {
                             isSelected: Calendar.current.isDate(date, inSameDayAs: selectedDate),
                             isToday: Calendar.current.isDateInToday(date),
                             isFuture: date > Date(),
+                            isCompleted: isDateCompleted(date),
                             onTap: {
                                 selectedDate = date
                             }
@@ -208,6 +260,7 @@ struct DateCircle: View {
     let isSelected: Bool
     let isToday: Bool
     let isFuture: Bool
+    let isCompleted: Bool
     let onTap: () -> Void
     
     private var dayNumber: String {
@@ -220,15 +273,19 @@ struct DateCircle: View {
         if isSelected {
             return Color(hex: "44C0FF") // Day One Blue for selected
         } else if isToday {
-            return Color(hex: "333B40") // Dark gray for today
+            return .gray.opacity(0.3) // Light gray for today
+        } else if isCompleted {
+            return Color(hex: "333B40") // Dark gray for completed chat days
         } else {
             return .gray.opacity(0.1)
         }
     }
     
     private var textColor: Color {
-        if isSelected || isToday {
+        if isSelected || isCompleted {
             return .white
+        } else if isToday {
+            return .primary // Dark text for light gray background
         } else if isFuture {
             return .secondary
         } else {
@@ -526,6 +583,7 @@ struct TodayViewV1i2: View {
                     selectedDate: $selectedDate,
                     spacing: 12
                 )
+                .background(Color.clear)
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
                 
@@ -574,7 +632,7 @@ struct TodayViewV1i2: View {
                     .buttonStyle(PlainButtonStyle())
                     .padding(.trailing, 16)
                 }
-                .padding(.vertical, 16)
+                .padding(.vertical, 10)
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color(UIColor.secondarySystemGroupedBackground))
                 .listRowSeparator(.hidden)

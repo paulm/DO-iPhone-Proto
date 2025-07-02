@@ -70,31 +70,13 @@ struct JournalsTabPagedView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
-                    // Combined segmented control and buttons row
-                    HStack(spacing: 12) {
-                        // View mode segmented control
-                        Picker("View Mode", selection: $viewMode) {
-                            Image(systemName: "line.3.horizontal.decrease").tag(ViewMode.compact)
-                            Image(systemName: "list.bullet").tag(ViewMode.list)
-                            Image(systemName: "square.grid.3x3").tag(ViewMode.grid)
-                        }
-                        .pickerStyle(.segmented)
-                        .frame(maxWidth: .infinity)
-                        
-                        // Compact Add button
-                        Button("+ Add") {
-                            // TODO: Add new journal action
-                        }
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.primary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(.gray.opacity(0.1))
-                        )
+                    // View mode segmented control
+                    Picker("View Mode", selection: $viewMode) {
+                        Image(systemName: "line.3.horizontal.decrease").tag(ViewMode.compact)
+                        Image(systemName: "list.bullet").tag(ViewMode.list)
+                        Image(systemName: "square.grid.3x3").tag(ViewMode.grid)
                     }
+                    .pickerStyle(.segmented)
                     .padding(.horizontal)
                     .padding(.top, 12)
                     .padding(.bottom, 16)
@@ -122,7 +104,16 @@ struct JournalsTabPagedView: View {
                     .buttonStyle(PlainButtonStyle())
                 }
                 
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItemGroup(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        // TODO: Add new journal action
+                    }) {
+                        Image(systemName: "plus")
+                            .font(.body)
+                            .fontWeight(.medium)
+                    }
+                    .foregroundStyle(.primary)
+                    
                     Button("Edit") {
                         // TODO: Edit journals action
                     }

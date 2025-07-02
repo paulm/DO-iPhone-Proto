@@ -28,20 +28,25 @@ struct TodayView: View {
     private var dateRange: [Date] {
         let calendar = Calendar.current
         var dates: [Date] = []
+        let today = Date()
         
-        // Past 4 days (from -4 to -1)
-        for i in stride(from: -4, through: -1, by: 1) {
-            if let date = calendar.date(byAdding: .day, value: i, to: selectedDate) {
+        // Calculate how many dates we need based on screen width
+        // Assuming we want to fit as many as possible in 3 rows
+        let approximateWidth = UIScreen.main.bounds.width - 40
+        let circleSize: CGFloat = 16
+        let spacing: CGFloat = 12
+        let columnsPerRow = Int((approximateWidth + spacing) / (circleSize + spacing))
+        let totalDates = columnsPerRow * 3
+        
+        // Calculate the starting date to ensure we end 4 days in the future
+        let endDate = 4
+        let startDate = endDate - totalDates + 1
+        
+        // Generate dates from calculated start to 4 days in the future
+        for i in startDate...endDate {
+            if let date = calendar.date(byAdding: .day, value: i, to: today) {
                 dates.append(date)
             }
-        }
-        
-        // Current day
-        dates.append(selectedDate)
-        
-        // Tomorrow
-        if let tomorrow = calendar.date(byAdding: .day, value: 1, to: selectedDate) {
-            dates.append(tomorrow)
         }
         
         return dates
@@ -118,6 +123,136 @@ struct TodayView: View {
     }
 }
 
+// MARK: - Date Picker Components
+private struct SizePreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
+struct DatePickerGrid: View {
+    let dates: [Date]
+    @Binding var selectedDate: Date
+    let spacing: CGFloat
+    
+    @State private var availableWidth: CGFloat = UIScreen.main.bounds.width - 40 // Approximate initial width
+    
+    init(dates: [Date], selectedDate: Binding<Date>, spacing: CGFloat) {
+        self.dates = dates
+        self._selectedDate = selectedDate
+        self.spacing = spacing
+    }
+    
+    private var circleSize: CGFloat = 16
+    private var columns: Int {
+        guard availableWidth > 0 else { return 10 } // Default to 10 columns if width not yet calculated
+        let totalCircleWidth = circleSize + spacing
+        let possibleColumns = Int((availableWidth + spacing) / totalCircleWidth)
+        return max(1, possibleColumns)
+    }
+    
+    private var rows: [[Date]] {
+        var result: [[Date]] = []
+        var currentRow: [Date] = []
+        
+        // Force exactly 3 rows
+        let datesPerRow = (dates.count + 2) / 3 // Round up division
+        
+        for (index, date) in dates.enumerated() {
+            currentRow.append(date)
+            if currentRow.count == datesPerRow || index == dates.count - 1 {
+                result.append(currentRow)
+                currentRow = []
+            }
+        }
+        
+        return result
+    }
+    
+    var body: some View {
+        VStack(spacing: spacing) {
+            ForEach(Array(rows.enumerated()), id: \.offset) { rowIndex, row in
+                HStack(spacing: spacing) {
+                    ForEach(Array(row.enumerated()), id: \.offset) { index, date in
+                        DateCircle(
+                            date: date,
+                            isSelected: Calendar.current.isDate(date, inSameDayAs: selectedDate),
+                            isToday: Calendar.current.isDateInToday(date),
+                            isFuture: date > Date(),
+                            onTap: {
+                                selectedDate = date
+                            }
+                        )
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .background(
+            GeometryReader { geometry in
+                Color.clear
+                    .preference(key: SizePreferenceKey.self, value: geometry.size.width)
+            }
+        )
+        .onPreferenceChange(SizePreferenceKey.self) { width in
+            if width > 0 {
+                availableWidth = width
+            }
+        }
+    }
+}
+
+struct DateCircle: View {
+    let date: Date
+    let isSelected: Bool
+    let isToday: Bool
+    let isFuture: Bool
+    let onTap: () -> Void
+    
+    private var dayNumber: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "d"
+        return formatter.string(from: date)
+    }
+    
+    private var circleColor: Color {
+        if isSelected {
+            return Color(hex: "44C0FF") // Day One Blue for selected
+        } else if isToday {
+            return Color(hex: "333B40") // Dark gray for today
+        } else {
+            return .gray.opacity(0.1)
+        }
+    }
+    
+    private var textColor: Color {
+        if isSelected || isToday {
+            return .white
+        } else if isFuture {
+            return .secondary
+        } else {
+            return .primary
+        }
+    }
+    
+    var body: some View {
+        Button(action: onTap) {
+            Circle()
+                .fill(circleColor)
+                .frame(width: 16, height: 16)
+                .overlay(
+                    Text(dayNumber)
+                        .font(.system(size: 8))
+                        .fontWeight(.medium)
+                        .foregroundStyle(textColor)
+                )
+                .opacity(isFuture && !isSelected ? 0.6 : 1.0)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
 /// V1i2 Today tab layout - Enhanced with Daily Activities section
 struct TodayViewV1i2: View {
     @Binding var showingSettings: Bool
@@ -167,20 +302,25 @@ struct TodayViewV1i2: View {
     private var dateRange: [Date] {
         let calendar = Calendar.current
         var dates: [Date] = []
+        let today = Date()
         
-        // Past 4 days (from -4 to -1)
-        for i in stride(from: -4, through: -1, by: 1) {
-            if let date = calendar.date(byAdding: .day, value: i, to: selectedDate) {
+        // Calculate how many dates we need based on screen width
+        // Assuming we want to fit as many as possible in 3 rows
+        let approximateWidth = UIScreen.main.bounds.width - 40
+        let circleSize: CGFloat = 16
+        let spacing: CGFloat = 12
+        let columnsPerRow = Int((approximateWidth + spacing) / (circleSize + spacing))
+        let totalDates = columnsPerRow * 3
+        
+        // Calculate the starting date to ensure we end 4 days in the future
+        let endDate = 4
+        let startDate = endDate - totalDates + 1
+        
+        // Generate dates from calculated start to 4 days in the future
+        for i in startDate...endDate {
+            if let date = calendar.date(byAdding: .day, value: i, to: today) {
                 dates.append(date)
             }
-        }
-        
-        // Current day
-        dates.append(selectedDate)
-        
-        // Tomorrow
-        if let tomorrow = calendar.date(byAdding: .day, value: 1, to: selectedDate) {
-            dates.append(tomorrow)
         }
         
         return dates
@@ -305,7 +445,7 @@ struct TodayViewV1i2: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Header and date picker section with gray background
+                // Header section with gray background
             VStack(spacing: 0) {
                 // Header with profile button
                 HStack {
@@ -374,43 +514,21 @@ struct TodayViewV1i2: View {
                 }
                 .padding(.horizontal)
                 .padding(.top, 20)
-                
-                // Date picker row
-                HStack(spacing: 16) {
-                    // Calendar icon
-                    Button(action: {
-                        showingDatePicker = true
-                    }) {
-                        Image(systemName: "calendar")
-                            .font(.title2)
-                            .foregroundStyle(.primary)
-                    }
-                    .accessibilityLabel("Open date picker")
-                    
-                    // Date circles
-                    HStack(spacing: 12) {
-                        ForEach(Array(dateRange.enumerated()), id: \.offset) { index, date in
-                            DateCircle(
-                                date: date,
-                                isSelected: Calendar.current.isDate(date, inSameDayAs: selectedDate),
-                                isFuture: date > Date(),
-                                onTap: {
-                                    selectedDate = date
-                                }
-                            )
-                        }
-                    }
-                    
-                    Spacer()
-                }
-                .padding(.horizontal)
-                .padding(.top, 16)
                 .padding(.bottom, 20)
             }
             .background(Color(UIColor.systemGroupedBackground))
             
             // Content with Daily Activities
             List {
+                // Date picker grid at top of scrollable content
+                DatePickerGrid(
+                    dates: dateRange,
+                    selectedDate: $selectedDate,
+                    spacing: 12
+                )
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+                
                 // Date navigation section (no section header)
                 HStack {
                     // Left arrow
@@ -1520,36 +1638,6 @@ struct BioEditView: View {
 }
 
 // MARK: - Supporting Views
-struct DateCircle: View {
-    let date: Date
-    let isSelected: Bool
-    let isFuture: Bool
-    let onTap: () -> Void
-    
-    private var dayNumber: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "d"
-        return formatter.string(from: date)
-    }
-    
-    var body: some View {
-        Button(action: onTap) {
-            Circle()
-                .fill(isSelected ? Color(hex: "44C0FF") : .gray.opacity(0.1))
-                .frame(width: 40, height: 40)
-                .overlay(
-                    Text(dayNumber)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundStyle(isSelected ? .white : (isFuture ? .secondary : .primary))
-                )
-                .opacity(isFuture ? 0.6 : 1.0)
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-}
-
-
 // Custom row component with moments-specific subtitle formatting
 struct TodayActivityRowWithMomentsSubtitle: View {
     let icon: String

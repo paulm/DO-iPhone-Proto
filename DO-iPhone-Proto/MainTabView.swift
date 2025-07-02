@@ -116,7 +116,8 @@ struct MainTabView: View {
                                         text: "View Entry",
                                         backgroundColor: .white
                                     ) {
-                                        showingPreviewEntry = true
+                                        // Send notification to trigger entry generation
+                                        NotificationCenter.default.post(name: NSNotification.Name("TriggerEntryGeneration"), object: selectedDate)
                                     }
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 28)

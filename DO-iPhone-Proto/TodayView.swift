@@ -445,6 +445,7 @@ struct TodayViewV1i2: View {
     @State private var entryCreated = false
     @State private var showingEntry = false
     @State private var showingBioView = false
+    @State private var isGeneratingEntry = false
     
     // Show/hide toggles for Daily Activities
     @State private var showWeather = false
@@ -933,37 +934,53 @@ struct TodayViewV1i2: View {
                     }
                 }
                 
-                // Entry section (shown when entry exists for selected date)
-                if showEntry && DailyContentManager.shared.hasEntry(for: selectedDate) {
+                // Entry section (shown when entry exists OR is being generated)
+                if showEntry && (DailyContentManager.shared.hasEntry(for: selectedDate) || isGeneratingEntry) {
                     Section("Daily Entry") {
-                        Button(action: {
-                            showingPreviewEntry = true
-                        }) {
+                        if isGeneratingEntry {
+                            // Loading state
                             HStack {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("Morning Reflections and Evening Plans")
-                                        .font(.subheadline)
-                                        .fontWeight(.bold)
-                                        .foregroundStyle(.primary)
-                                        .multilineTextAlignment(.leading)
-                                    
-                                    Text("Today I started with my usual morning routine, feeling energized and ready to tackle the day ahead. I spent some time thinking about my work goals and how I want to approach the various projects I have on my plate. The conversation helped me organize my thoughts around what's most important right now.")
-                                        .font(.subheadline)
-                                        .foregroundStyle(.secondary)
-                                        .lineLimit(3)
-                                        .multilineTextAlignment(.leading)
-                                }
-                                
                                 Spacer()
-                                
-                                Image(systemName: "chevron.right")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                VStack(spacing: 12) {
+                                    ProgressView()
+                                        .scaleEffect(0.8)
+                                    Text("Generating entry...")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
                             }
+                            .padding(.vertical, 20)
+                        } else {
+                            Button(action: {
+                                showingPreviewEntry = true
+                            }) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Morning Reflections and Evening Plans")
+                                            .font(.subheadline)
+                                            .fontWeight(.bold)
+                                            .foregroundStyle(.primary)
+                                            .multilineTextAlignment(.leading)
+                                        
+                                        Text("Today I started with my usual morning routine, feeling energized and ready to tackle the day ahead. I spent some time thinking about my work goals and how I want to approach the various projects I have on my plate. The conversation helped me organize my thoughts around what's most important right now.")
+                                            .font(.subheadline)
+                                            .foregroundStyle(.secondary)
+                                            .lineLimit(3)
+                                            .multilineTextAlignment(.leading)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .padding(.vertical, 8)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
-                        .buttonStyle(PlainButtonStyle())
-                        .padding(.vertical, 8)
-                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
                 
@@ -1153,6 +1170,31 @@ struct TodayViewV1i2: View {
                Calendar.current.isDate(date, inSameDayAs: selectedDate) {
                 // Force a UI update
                 entryCreated = DailyContentManager.shared.hasEntry(for: selectedDate)
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("TriggerEntryGeneration"))) { notification in
+            // Handle entry generation trigger
+            if let date = notification.object as? Date,
+               Calendar.current.isDate(date, inSameDayAs: selectedDate) {
+                // Start generating entry
+                isGeneratingEntry = true
+                
+                // After 1 second, mark entry as created and open it
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    isGeneratingEntry = false
+                    // Mark entry as created
+                    DailyContentManager.shared.setHasEntry(true, for: selectedDate)
+                    // Track current message count when entry is created
+                    let messages = ChatSessionManager.shared.getMessages(for: selectedDate)
+                    let userMessageCount = messages.filter { $0.isUser }.count
+                    DailyContentManager.shared.setEntryMessageCount(userMessageCount, for: selectedDate)
+                    // Update local state
+                    entryCreated = true
+                    // Post notification to update FAB
+                    NotificationCenter.default.post(name: NSNotification.Name("DailyEntryCreatedStatusChanged"), object: selectedDate)
+                    // Open the entry preview
+                    showingPreviewEntry = true
+                }
             }
         }
         .onAppear {

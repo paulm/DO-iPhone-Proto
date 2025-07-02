@@ -160,6 +160,8 @@ private struct SizePreferenceKey: PreferenceKey {
 struct DatePickerGrid: View {
     let dates: [Date]
     @Binding var selectedDate: Date
+    let showDates: Bool
+    let showStreak: Bool
     
     @State private var availableWidth: CGFloat = UIScreen.main.bounds.width - 40 // Approximate initial width
     @State private var dragLocation: CGPoint = .zero
@@ -189,9 +191,11 @@ struct DatePickerGrid: View {
         return completed
     }()
     
-    init(dates: [Date], selectedDate: Binding<Date>) {
+    init(dates: [Date], selectedDate: Binding<Date>, showDates: Bool = true, showStreak: Bool = true) {
         self.dates = dates
         self._selectedDate = selectedDate
+        self.showDates = showDates
+        self.showStreak = showStreak
     }
     
     private func isDateCompleted(_ date: Date) -> Bool {
@@ -229,14 +233,18 @@ struct DatePickerGrid: View {
         VStack(spacing: DatePickerConstants.spacing) {
             // Streak and Today text
             HStack(spacing: 0) {
-                Text("2 Day Streak")
-                    .font(.caption)
-                    .foregroundStyle(.secondary.opacity(0.7))
+                if showStreak {
+                    Text("2 Day Streak")
+                        .font(.caption)
+                        .foregroundStyle(.secondary.opacity(0.7))
+                }
                 
                 if !Calendar.current.isDateInToday(selectedDate) {
-                    Text(" • ")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    if showStreak {
+                        Text(" • ")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                     
                     Button(action: {
                         selectedDate = Date()
@@ -260,6 +268,7 @@ struct DatePickerGrid: View {
                             isToday: Calendar.current.isDateInToday(date),
                             isFuture: date > Date(),
                             isCompleted: isDateCompleted(date),
+                            showDate: showDates,
                             onTap: {
                                 selectedDate = date
                             }
@@ -327,6 +336,7 @@ struct DateCircle: View {
     let isToday: Bool
     let isFuture: Bool
     let isCompleted: Bool
+    let showDate: Bool
     let onTap: () -> Void
     
     private var dayNumber: String {
@@ -364,10 +374,14 @@ struct DateCircle: View {
             .fill(circleColor)
             .frame(width: DatePickerConstants.circleSize, height: DatePickerConstants.circleSize)
             .overlay(
-                Text(dayNumber)
-                    .font(.system(size: 8))
-                    .fontWeight(.medium)
-                    .foregroundStyle(textColor)
+                Group {
+                    if showDate || isToday {
+                        Text(dayNumber)
+                            .font(.system(size: 8))
+                            .fontWeight(.medium)
+                            .foregroundStyle(textColor)
+                    }
+                }
             )
             .opacity(isFuture && !isSelected ? 0.6 : 1.0)
             .onTapGesture {
@@ -402,6 +416,7 @@ struct TodayViewV1i2: View {
     @State private var isGeneratingPreview = false
     @State private var summaryGenerated = false
     @State private var hasInteractedWithChat = false
+    @State private var hasViewedSummary = false
     
     // Today Insights state
     @State private var showingWeather = false
@@ -426,6 +441,10 @@ struct TodayViewV1i2: View {
     @State private var showBioTooltip = false
     @AppStorage("showChatFAB") private var showChatFAB = true
     @AppStorage("showEntryFAB") private var showEntryFAB = false
+    
+    // Options toggles
+    @State private var showGridDates = false
+    @State private var showStreak = true
     @Binding var moodRating: Int
     @Binding var energyRating: Int
     @Binding var stressRating: Int
@@ -638,27 +657,6 @@ struct TodayViewV1i2: View {
                                 }
                             }
                             
-                            Button {
-                                showChat.toggle()
-                            } label: {
-                                HStack {
-                                    Text("Daily Chat")
-                                    if showChat {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                            
-                            Button {
-                                showDailyEntry.toggle()
-                            } label: {
-                                HStack {
-                                    Text("Daily Entry")
-                                    if showDailyEntry {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
                             
                             Button {
                                 showSummary.toggle()
@@ -737,6 +735,30 @@ struct TodayViewV1i2: View {
                                 }
                             }
                         }
+                        
+                        Section("Options") {
+                            Button {
+                                showGridDates.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Grid Dates")
+                                    if showGridDates {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showStreak.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Show Streak")
+                                    if showStreak {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        }
                     } label: {
                         Image(systemName: "ellipsis")
                             .font(.body)
@@ -781,7 +803,9 @@ struct TodayViewV1i2: View {
                 if showDatePickerGrid {
                     DatePickerGrid(
                         dates: dateRange,
-                        selectedDate: $selectedDate
+                        selectedDate: $selectedDate,
+                        showDates: showGridDates,
+                        showStreak: showStreak
                     )
                     .background(Color.clear)
                     .listRowBackground(Color.clear)
@@ -845,42 +869,9 @@ struct TodayViewV1i2: View {
                 .listRowSeparator(.hidden)
                 }
                 
-                // Daily Entry section (shown when entry exists for the date)
-                if showDailyEntry && DailyContentManager.shared.hasEntry(for: selectedDate) {
-                    Section("Daily Entry") {
-                        Button(action: {
-                            showingEntry = true
-                        }) {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("Morning Reflections and Evening Plans")
-                                        .font(.subheadline)
-                                        .fontWeight(.bold)
-                                        .foregroundStyle(.primary)
-                                        .multilineTextAlignment(.leading)
-                                    
-                                    Text("Today I started with my usual morning routine, feeling energized and ready to tackle the day ahead. I spent some time thinking about my work goals and how I want to approach the various projects I have on my plate. The conversation helped me organize my thoughts around what's most important right now.")
-                                        .font(.subheadline)
-                                        .foregroundStyle(.secondary)
-                                        .lineLimit(3)
-                                        .multilineTextAlignment(.leading)
-                                }
-                                
-                                Spacer()
-                                
-                                Image(systemName: "chevron.right")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        .padding(.vertical, 8)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                }
                 
                 // Summary section (shown when summary exists for the date)
-                if showSummary && DailyContentManager.shared.hasSummary(for: selectedDate) {
+                if showSummary && hasViewedSummary {
                     Section("Summary") {
                         Button(action: {
                             showingPreviewEntry = true
@@ -913,73 +904,6 @@ struct TodayViewV1i2: View {
                     }
                 }
                 
-                // Daily Chat Section
-                if showChat {
-                    Section("Daily Chat") {
-                        TodayActivityRowWithChatResumeV2(
-                            icon: "bubble.left.and.bubble.right.fill",
-                            iconColor: .blue,
-                            title: dailyChatTitle,
-                            subtitle: chatMessageCount > 0 ? chatInteractionsText : "",
-                            isCompleted: chatCompleted,
-                            showResume: chatCompleted,
-                            showDefaultContent: !chatCompleted,
-                            action: { showingDailyChat = true },
-                            resumeAction: { showingDailyChat = true },
-                            beginChatAction: { 
-                                openChatInLogMode = false
-                                showingDailyChat = true 
-                            },
-                            logHighlightsAction: { 
-                                openChatInLogMode = true
-                                showingDailyChat = true
-                            }
-                        )
-                        
-                        // View Summary row when chat has been interacted with
-                        if chatCompleted {
-                            Button(action: {
-                                showingPreviewEntry = true
-                            }) {
-                                HStack(spacing: 12) {
-                                    // Icon with colored background
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(Color(hex: "44C0FF"))
-                                        .frame(width: 32, height: 32)
-                                        .overlay(
-                                            Image(systemName: "doc.text")
-                                                .font(.system(size: 16, weight: .medium))
-                                                .foregroundStyle(.white)
-                                        )
-                                    
-                                    // Content
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("Summary")
-                                            .font(.body)
-                                            .fontWeight(.medium)
-                                            .foregroundStyle(.primary)
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    // View with chevron
-                                    HStack(spacing: 4) {
-                                        Text("View")
-                                            .font(.subheadline)
-                                            .foregroundStyle(Color(hex: "44C0FF"))
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .font(.subheadline)
-                                            .foregroundStyle(.secondary)
-                                    }
-                                }
-                                .padding(.vertical, 4)
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                        }
-                    }
-                }
                 
                 // Daily Moments Section
                 if showMoments {
@@ -1113,6 +1037,7 @@ struct TodayViewV1i2: View {
             isGeneratingPreview = false
             summaryGenerated = false
             hasInteractedWithChat = false
+            hasViewedSummary = false
             chatMessageCount = 0
             entryCreated = false
             
@@ -1164,6 +1089,13 @@ struct TodayViewV1i2: View {
                 entryCreated: $entryCreated
             )
         }
+        .onChange(of: showingPreviewEntry) { oldValue, newValue in
+            // When sheet is dismissed, check if summary was generated
+            if oldValue == true && newValue == false {
+                hasViewedSummary = true
+                summaryGenerated = DailyContentManager.shared.hasSummary(for: selectedDate)
+            }
+        }
         .sheet(isPresented: $showingEntry) {
             EntryView(journal: nil)
         }
@@ -1179,7 +1111,9 @@ struct TodayViewV1i2: View {
             if let date = notification.object as? Date,
                Calendar.current.isDate(date, inSameDayAs: selectedDate) {
                 // Force a UI update
-                summaryGenerated = DailyContentManager.shared.hasSummary(for: selectedDate)
+                DispatchQueue.main.async {
+                    summaryGenerated = DailyContentManager.shared.hasSummary(for: selectedDate)
+                }
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("DailyEntryCreatedStatusChanged"))) { notification in

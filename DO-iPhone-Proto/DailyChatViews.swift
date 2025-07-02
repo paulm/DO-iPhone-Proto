@@ -768,7 +768,7 @@ struct ChatEntryPreviewView: View {
                             .font(.headline)
                             .fontWeight(.semibold)
                         
-                        Text("Summary generated from chat")
+                        Text("Entry generated from chat")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -788,11 +788,10 @@ struct ChatEntryPreviewView: View {
             // Show loading state for 0.5 seconds
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 isLoadingSummary = false
-                // Mark summary as generated when view appears (independent from chat)
-                DailyContentManager.shared.setHasSummary(true, for: selectedDate)
-                // Post notification to update UI
-                NotificationCenter.default.post(name: NSNotification.Name("SummaryGeneratedStatusChanged"), object: selectedDate)
             }
+            
+            // Mark summary as generated immediately
+            DailyContentManager.shared.setHasSummary(true, for: selectedDate)
             
             // Check if there are new chat interactions since entry was created
             // This would normally check actual chat data
@@ -800,6 +799,10 @@ struct ChatEntryPreviewView: View {
                 // Simulate checking for new interactions
                 hasNewInteractions = true
             }
+        }
+        .onDisappear {
+            // Post notification when view is dismissed to ensure UI updates
+            NotificationCenter.default.post(name: NSNotification.Name("SummaryGeneratedStatusChanged"), object: selectedDate)
         }
     }
     

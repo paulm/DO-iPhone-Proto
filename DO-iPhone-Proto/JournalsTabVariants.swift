@@ -154,6 +154,23 @@ struct JournalsTabPagedView: View {
     
     private var compactJournalList: some View {
         LazyVStack(spacing: 4) {
+            // Show "All Entries" only if there are multiple journals
+            if Journal.visibleJournals.count > 1 {
+                let allEntriesJournal = Journal(
+                    name: "All Entries",
+                    color: Color(hex: "333B40"),
+                    entryCount: Journal.visibleJournals.reduce(0) { $0 + ($1.entryCount ?? 0) }
+                )
+                CompactJournalRow(
+                    journal: allEntriesJournal,
+                    isSelected: temporaryHoveredJournal?.id == allEntriesJournal.id || (temporaryHoveredJournal == nil && journalViewModel.selectedJournal.id == allEntriesJournal.id),
+                    onSelect: {
+                        journalViewModel.selectJournal(allEntriesJournal)
+                        selectedJournal = allEntriesJournal
+                    }
+                )
+            }
+            
             ForEach(Journal.visibleJournals) { journal in
                 CompactJournalRow(
                     journal: journal,
@@ -172,6 +189,23 @@ struct JournalsTabPagedView: View {
     
     private var listJournalList: some View {
         LazyVStack(spacing: 8) {
+            // Show "All Entries" only if there are multiple journals
+            if Journal.visibleJournals.count > 1 {
+                let allEntriesJournal = Journal(
+                    name: "All Entries",
+                    color: Color(hex: "333B40"),
+                    entryCount: Journal.visibleJournals.reduce(0) { $0 + ($1.entryCount ?? 0) }
+                )
+                JournalRow(
+                    journal: allEntriesJournal,
+                    isSelected: temporaryHoveredJournal?.id == allEntriesJournal.id || (temporaryHoveredJournal == nil && journalViewModel.selectedJournal.id == allEntriesJournal.id),
+                    onSelect: {
+                        journalViewModel.selectJournal(allEntriesJournal)
+                        selectedJournal = allEntriesJournal
+                    }
+                )
+            }
+            
             ForEach(Journal.visibleJournals) { journal in
                 JournalRow(
                     journal: journal,
@@ -190,6 +224,23 @@ struct JournalsTabPagedView: View {
     
     private var gridJournalList: some View {
         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 3), spacing: 20) {
+            // Show "All Entries" only if there are multiple journals
+            if Journal.visibleJournals.count > 1 {
+                let allEntriesJournal = Journal(
+                    name: "All Entries",
+                    color: Color(hex: "333B40"),
+                    entryCount: Journal.visibleJournals.reduce(0) { $0 + ($1.entryCount ?? 0) }
+                )
+                JournalBookView(
+                    journal: allEntriesJournal,
+                    isSelected: temporaryHoveredJournal?.id == allEntriesJournal.id || (temporaryHoveredJournal == nil && journalViewModel.selectedJournal.id == allEntriesJournal.id),
+                    onSelect: {
+                        journalViewModel.selectJournal(allEntriesJournal)
+                        selectedJournal = allEntriesJournal
+                    }
+                )
+            }
+            
             ForEach(Journal.visibleJournals) { journal in
                 JournalBookView(
                     journal: journal,

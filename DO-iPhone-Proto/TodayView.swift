@@ -1,4 +1,27 @@
 import SwiftUI
+import TipKit
+
+// MARK: - Bio Tip Definition
+struct BioCompletionTip: Tip {
+    var title: Text {
+        Text("Complete Your Bio")
+    }
+    
+    var message: Text? {
+        Text("Add personal details to enhance your daily chat experience with AI-powered insights.")
+    }
+    
+    var image: Image? {
+        Image(systemName: "person.text.rectangle")
+    }
+    
+    var actions: [Action] {
+        [
+            Action(id: "fill-bio", title: "Fill Bio Now"),
+            Action(id: "later", title: "Maybe Later")
+        ]
+    }
+}
 
 /// Today tab view
 struct TodayView: View {
@@ -320,6 +343,9 @@ struct TodayViewV1i2: View {
     @Binding var selectedDate: Date
     @Binding var surveyCompleted: Bool
     
+    // Create an instance of the bio tip
+    private let bioTip = BioCompletionTip()
+    
     @State private var showingDailyChat = false
     @State private var chatCompleted = false
     @State private var openChatInLogMode = false
@@ -338,12 +364,16 @@ struct TodayViewV1i2: View {
     @State private var showingPreviewEntry = false
     @State private var entryCreated = false
     @State private var showingEntry = false
+    @State private var showingBioView = false
     
     // Show/hide toggles for Daily Activities
+    @State private var showDatePickerGrid = true
+    @State private var showDateNavigation = true
     @State private var showChat = true
     @State private var showMoments = false
     @State private var showTrackers = false
     @State private var showInsights = false
+    @State private var showBioTooltip = true
     @Binding var moodRating: Int
     @Binding var energyRating: Int
     @Binding var stressRating: Int
@@ -513,10 +543,32 @@ struct TodayViewV1i2: View {
                         
                         Section("Show") {
                             Button {
+                                showDatePickerGrid.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Date Picker Grid")
+                                    if showDatePickerGrid {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showDateNavigation.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Date Navigation")
+                                    if showDateNavigation {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
                                 showChat.toggle()
                             } label: {
                                 HStack {
-                                    Text("Chat")
+                                    Text("Daily Chat")
                                     if showChat {
                                         Image(systemName: "checkmark")
                                     }
@@ -527,7 +579,7 @@ struct TodayViewV1i2: View {
                                 showMoments.toggle()
                             } label: {
                                 HStack {
-                                    Text("Moments")
+                                    Text("Daily Moments")
                                     if showMoments {
                                         Image(systemName: "checkmark")
                                     }
@@ -538,7 +590,7 @@ struct TodayViewV1i2: View {
                                 showTrackers.toggle()
                             } label: {
                                 HStack {
-                                    Text("Trackers")
+                                    Text("Daily Trackers")
                                     if showTrackers {
                                         Image(systemName: "checkmark")
                                     }
@@ -551,6 +603,17 @@ struct TodayViewV1i2: View {
                                 HStack {
                                     Text("Today Insights")
                                     if showInsights {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showBioTooltip.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Bio ToolTip")
+                                    if showBioTooltip {
                                         Image(systemName: "checkmark")
                                     }
                                 }
@@ -576,16 +639,19 @@ struct TodayViewV1i2: View {
             // Content with Daily Activities
             List {
                 // Date picker grid at top of scrollable content
-                DatePickerGrid(
-                    dates: dateRange,
-                    selectedDate: $selectedDate
-                )
-                .background(Color.clear)
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
+                if showDatePickerGrid {
+                    DatePickerGrid(
+                        dates: dateRange,
+                        selectedDate: $selectedDate
+                    )
+                    .background(Color.clear)
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                }
                 
                 // Date navigation section (no section header)
-                HStack {
+                if showDateNavigation {
+                    HStack {
                     // Left arrow
                     Button(action: navigateToPreviousDay) {
                         Image(systemName: "chevron.left")
@@ -633,6 +699,7 @@ struct TodayViewV1i2: View {
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color(UIColor.secondarySystemGroupedBackground))
                 .listRowSeparator(.hidden)
+                }
                 
                 // Daily Entry section (only shown after entry is created)
                 if entryCreated {
@@ -797,6 +864,23 @@ struct TodayViewV1i2: View {
                     .padding(.vertical, 4)
                     }
                 }
+                
+                // Bio ToolTip (no section wrapper)
+                if showBioTooltip {
+                    TipView(bioTip) { action in
+                        if action.id == "fill-bio" {
+                            // Handle Fill Bio Now action
+                            showingBioView = true
+                            bioTip.invalidate(reason: .actionPerformed)
+                        } else if action.id == "later" {
+                            // Handle Maybe Later action
+                            bioTip.invalidate(reason: .actionPerformed)
+                        }
+                    }
+                    .tipBackground(.white)
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                }
             }
             .listStyle(.insetGrouped)
         }
@@ -893,6 +977,9 @@ struct TodayViewV1i2: View {
         }
         .sheet(isPresented: $showingEntry) {
             EntryView(journal: nil)
+        }
+        .sheet(isPresented: $showingBioView) {
+            BioEditView()
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("TriggerDailyChat"))) { _ in
             // Only respond to Daily Chat trigger if this variant supports it

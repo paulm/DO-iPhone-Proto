@@ -6,10 +6,19 @@
 //
 
 import SwiftUI
+import TipKit
 
 /// Main app entry point for Day One prototype with global styling
 @main
 struct DayOnePrototypeApp: App {
+    init() {
+        // Configure TipKit
+        try? Tips.configure([
+            .displayFrequency(.immediate),
+            .datastoreLocation(.applicationDefault)
+        ])
+    }
+    
     var body: some Scene {
         WindowGroup {
             MainTabView()

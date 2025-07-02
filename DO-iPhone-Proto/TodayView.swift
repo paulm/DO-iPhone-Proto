@@ -377,28 +377,32 @@ struct DateCircle: View {
         }
     }
     
+    private var circleOpacity: Double {
+        if isFuture && !isSelected {
+            return 0.4
+        } else if isCompleted && !hasEntry && !isSelected {
+            // Days with interactions but no entry get 60% opacity
+            return 0.4
+        } else {
+            return 1.0
+        }
+    }
+    
     var body: some View {
         Circle()
             .fill(circleColor)
             .frame(width: DatePickerConstants.circleSize, height: DatePickerConstants.circleSize)
             .overlay(
-                ZStack {
+                Group {
                     if showDate || isToday {
                         Text(dayNumber)
                             .font(.system(size: 8))
                             .fontWeight(.medium)
                             .foregroundStyle(textColor)
                     }
-                    
-                    // Blue dot for entry created
-                    if hasEntry && !isSelected {
-                        Circle()
-                            .fill(Color(hex: "44C0FF"))
-                            .frame(width: 10, height: 10)
-                    }
                 }
             )
-            .opacity(isFuture && !isSelected ? 0.6 : 1.0)
+            .opacity(circleOpacity)
             .onTapGesture {
                 // Haptic feedback on tap
                 let impactFeedback = UIImpactFeedbackGenerator(style: .light)

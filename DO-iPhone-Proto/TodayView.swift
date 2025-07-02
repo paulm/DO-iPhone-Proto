@@ -168,28 +168,11 @@ struct DatePickerGrid: View {
     @State private var isDragging = false
     @State private var lastSelectedDate: Date?
     
-    // Static storage for completed dates - generated once and reused
-    private static let completedDates: Set<Date> = {
-        let calendar = Calendar.current
-        let today = Date()
-        var completed = Set<Date>()
-        
-        // Get past 10 days (excluding today)
-        var pastDates: [Date] = []
-        for i in 1...10 {
-            if let date = calendar.date(byAdding: .day, value: -i, to: today) {
-                pastDates.append(calendar.startOfDay(for: date))
-            }
-        }
-        
-        // Randomly select 6 of them
-        let shuffled = pastDates.shuffled()
-        for i in 0..<min(6, shuffled.count) {
-            completed.insert(shuffled[i])
-        }
-        
-        return completed
-    }()
+    // Check if a date has chat messages (completed)
+    private func hasMessagesForDate(_ date: Date) -> Bool {
+        let messages = ChatSessionManager.shared.getMessages(for: date)
+        return !messages.isEmpty && messages.contains { $0.isUser }
+    }
     
     init(dates: [Date], selectedDate: Binding<Date>, showDates: Bool = true, showStreak: Bool = true) {
         self.dates = dates
@@ -199,9 +182,22 @@ struct DatePickerGrid: View {
     }
     
     private func isDateCompleted(_ date: Date) -> Bool {
+        return hasMessagesForDate(date)
+    }
+    
+    private var currentStreak: Int {
         let calendar = Calendar.current
-        let dateStart = calendar.startOfDay(for: date)
-        return Self.completedDates.contains(dateStart)
+        let today = calendar.startOfDay(for: Date())
+        var streak = 0
+        var checkDate = calendar.date(byAdding: .day, value: -1, to: today)! // Start with yesterday
+        
+        // Check consecutive days backwards starting from yesterday
+        while isDateCompleted(checkDate) {
+            streak += 1
+            checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate)!
+        }
+        
+        return streak
     }
     
     private var columns: Int {
@@ -231,32 +227,37 @@ struct DatePickerGrid: View {
     
     var body: some View {
         VStack(spacing: DatePickerConstants.spacing) {
-            // Streak and Today text
-            HStack(spacing: 0) {
-                if showStreak {
-                    Text("2 Day Streak")
+            // Streak and Today button
+            HStack {
+                if showStreak && currentStreak > 0 {
+                    Text("\(currentStreak) Day\(currentStreak == 1 ? "" : "s") Streak")
                         .font(.caption)
-                        .foregroundStyle(.secondary.opacity(0.7))
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(Color.gray.opacity(0.2))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
                 
+                Spacer()
+                
                 if !Calendar.current.isDateInToday(selectedDate) {
-                    if showStreak {
-                        Text(" • ")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    
                     Button(action: {
                         selectedDate = Date()
                     }) {
                         Text("Today")
                             .font(.caption)
-                            .foregroundStyle(Color(hex: "44C0FF"))
+                            .fontWeight(.medium)
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(Color(hex: "44C0FF"))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
                     .buttonStyle(PlainButtonStyle())
                 }
             }
-            .frame(maxWidth: .infinity)
             .padding(.bottom, 8)
             
             ForEach(Array(rows.enumerated()), id: \.offset) { rowIndex, row in
@@ -662,7 +663,7 @@ struct TodayViewV1i2: View {
                                 showEntry.toggle()
                             } label: {
                                 HStack {
-                                    Text("Entry")
+                                    Text("Daily Entry")
                                     if showEntry {
                                         Image(systemName: "checkmark")
                                     }
@@ -898,7 +899,7 @@ struct TodayViewV1i2: View {
                         }
                         .buttonStyle(PlainButtonStyle())
                     }
-                    .padding(.vertical, 20)
+                    .padding(.top, 20)
                     .listRowInsets(EdgeInsets())
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
@@ -906,7 +907,7 @@ struct TodayViewV1i2: View {
                 
                 // Entry section
                 if showEntry {
-                    Section("Entry") {
+                    Section("Daily Entry") {
                         Button(action: {
                             showingPreviewEntry = true
                         }) {

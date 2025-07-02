@@ -158,14 +158,12 @@ struct MainTabView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("SelectedDateChanged"))) { notification in
-            // Update selected date and reset chat state
+            // Update selected date and check chat state
             if let newDate = notification.object as? Date {
                 selectedDate = newDate
-                chatCompleted = false // Reset to default state
-                // Check for messages on the new date
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    chatCompleted = hasChatMessages
-                }
+                // Check for messages on the new date immediately
+                let messages = ChatSessionManager.shared.getMessages(for: newDate)
+                chatCompleted = !messages.isEmpty && messages.contains { $0.isUser }
             }
         }
     }

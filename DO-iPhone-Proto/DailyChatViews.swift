@@ -44,7 +44,39 @@ class ChatSessionManager {
     private var sessions: [String: [DailyChatMessage]] = [:]
     private var summariesGenerated: [String: Bool] = [:]
     
-    private init() {}
+    private init() {
+        // Add some sample chat data for testing
+        let calendar = Calendar.current
+        let today = Date()
+        
+        // Add messages for a few recent days to create a streak
+        for i in 1...3 {
+            if let date = calendar.date(byAdding: .day, value: -i, to: today) {
+                let key = dateKey(for: date)
+                sessions[key] = [
+                    DailyChatMessage(content: "How's your day?", isUser: false, isLogMode: false),
+                    DailyChatMessage(content: "It was a good day!", isUser: true, isLogMode: false)
+                ]
+            }
+        }
+        
+        // Add messages for a couple more random days
+        if let date1 = calendar.date(byAdding: .day, value: -6, to: today) {
+            let key = dateKey(for: date1)
+            sessions[key] = [
+                DailyChatMessage(content: "How's your day?", isUser: false, isLogMode: false),
+                DailyChatMessage(content: "Had a great workout today", isUser: true, isLogMode: false)
+            ]
+        }
+        
+        if let date2 = calendar.date(byAdding: .day, value: -8, to: today) {
+            let key = dateKey(for: date2)
+            sessions[key] = [
+                DailyChatMessage(content: "How's your day?", isUser: false, isLogMode: false),
+                DailyChatMessage(content: "Finished a big project!", isUser: true, isLogMode: false)
+            ]
+        }
+    }
     
     private func dateKey(for date: Date = Date()) -> String {
         let formatter = DateFormatter()

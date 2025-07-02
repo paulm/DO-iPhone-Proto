@@ -888,36 +888,46 @@ struct TodayViewV1i2: View {
                 
                 // Entry Links (no section wrapper)
                 if showInsights {
-                    HStack {
-                        Spacer()
-                        Button(action: { showingEntries = true }) {
-                            Text("3 Entries")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                                .foregroundStyle(Color(hex: "44C0FF"))
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 8)
-                                .background(Color.white)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                    let entryCount = DailyDataManager.shared.getEntryCount(for: selectedDate)
+                    let onThisDayCount = DailyDataManager.shared.getOnThisDayCount(for: selectedDate)
+                    
+                    // Only show if at least one count is greater than 0
+                    if entryCount > 0 || onThisDayCount > 0 {
+                        HStack {
+                            Spacer()
+                            if entryCount > 0 {
+                                Button(action: { showingEntries = true }) {
+                                    Text("\(entryCount) \(entryCount == 1 ? "Entry" : "Entries")")
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                        .foregroundStyle(Color(hex: "44C0FF"))
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 8)
+                                        .background(Color.white)
+                                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                            }
+                            
+                            if onThisDayCount > 0 {
+                                Button(action: { showingOnThisDay = true }) {
+                                    Text("\(onThisDayCount) On This Day")
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                        .foregroundStyle(Color(hex: "44C0FF"))
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 8)
+                                        .background(Color.white)
+                                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                            }
                         }
-                        .buttonStyle(PlainButtonStyle())
-                        
-                        Button(action: { showingOnThisDay = true }) {
-                            Text("4 On This Day")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                                .foregroundStyle(Color(hex: "44C0FF"))
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 8)
-                                .background(Color.white)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                        }
-                        .buttonStyle(PlainButtonStyle())
+                        .padding(.top, 20)
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
                     }
-                    .padding(.top, 20)
-                    .listRowInsets(EdgeInsets())
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
                 }
                 
                 // Entry section (shown when entry exists for selected date)

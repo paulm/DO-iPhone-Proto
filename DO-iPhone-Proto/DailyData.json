@@ -1,0 +1,102 @@
+{
+  "dailyData": [
+    {
+      "daysAgo": 1,
+      "hasChat": true,
+      "hasGeneratedEntry": true,
+      "entryCount": 2,
+      "onThisDayCount": 5
+    },
+    {
+      "daysAgo": 2,
+      "hasChat": true,
+      "hasGeneratedEntry": false,
+      "entryCount": 1,
+      "onThisDayCount": 3
+    },
+    {
+      "daysAgo": 3,
+      "hasChat": true,
+      "hasGeneratedEntry": true,
+      "entryCount": 3,
+      "onThisDayCount": 8
+    },
+    {
+      "daysAgo": 4,
+      "hasChat": false,
+      "hasGeneratedEntry": false,
+      "entryCount": 1,
+      "onThisDayCount": 2
+    },
+    {
+      "daysAgo": 5,
+      "hasChat": true,
+      "hasGeneratedEntry": false,
+      "entryCount": 0,
+      "onThisDayCount": 4
+    },
+    {
+      "daysAgo": 6,
+      "hasChat": true,
+      "hasGeneratedEntry": true,
+      "entryCount": 2,
+      "onThisDayCount": 6
+    },
+    {
+      "daysAgo": 7,
+      "hasChat": false,
+      "hasGeneratedEntry": false,
+      "entryCount": 1,
+      "onThisDayCount": 0
+    },
+    {
+      "daysAgo": 8,
+      "hasChat": true,
+      "hasGeneratedEntry": true,
+      "entryCount": 4,
+      "onThisDayCount": 7
+    },
+    {
+      "daysAgo": 9,
+      "hasChat": false,
+      "hasGeneratedEntry": false,
+      "entryCount": 0,
+      "onThisDayCount": 3
+    },
+    {
+      "daysAgo": 10,
+      "hasChat": true,
+      "hasGeneratedEntry": false,
+      "entryCount": 1,
+      "onThisDayCount": 5
+    },
+    {
+      "daysAgo": 11,
+      "hasChat": false,
+      "hasGeneratedEntry": false,
+      "entryCount": 2,
+      "onThisDayCount": 0
+    },
+    {
+      "daysAgo": 12,
+      "hasChat": true,
+      "hasGeneratedEntry": true,
+      "entryCount": 3,
+      "onThisDayCount": 9
+    },
+    {
+      "daysAgo": 13,
+      "hasChat": false,
+      "hasGeneratedEntry": false,
+      "entryCount": 0,
+      "onThisDayCount": 1
+    },
+    {
+      "daysAgo": 14,
+      "hasChat": true,
+      "hasGeneratedEntry": false,
+      "entryCount": 2,
+      "onThisDayCount": 4
+    }
+  ]
+}

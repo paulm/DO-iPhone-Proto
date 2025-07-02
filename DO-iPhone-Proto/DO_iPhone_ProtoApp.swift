@@ -17,6 +17,9 @@ struct DayOnePrototypeApp: App {
             .displayFrequency(.immediate),
             .datastoreLocation(.applicationDefault)
         ])
+        
+        // Initialize daily data from JSON
+        _ = DailyDataManager.shared
     }
     
     var body: some Scene {

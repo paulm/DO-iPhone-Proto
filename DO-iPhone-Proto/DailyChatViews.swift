@@ -10,25 +10,7 @@ class DailyContentManager {
     private var summaries: [String: Bool] = [:]
     
     private init() {
-        // Add some sample entries for testing
-        let calendar = Calendar.current
-        let today = Date()
-        
-        // Add entries for some days that have chat messages
-        // Yesterday has an entry
-        if let date = calendar.date(byAdding: .day, value: -1, to: today) {
-            setHasEntry(true, for: date)
-        }
-        
-        // 3 days ago has an entry
-        if let date = calendar.date(byAdding: .day, value: -3, to: today) {
-            setHasEntry(true, for: date)
-        }
-        
-        // 6 days ago has an entry
-        if let date = calendar.date(byAdding: .day, value: -6, to: today) {
-            setHasEntry(true, for: date)
-        }
+        // Data will be loaded from JSON via DailyDataManager
     }
     
     private func dateKey(for date: Date) -> String {
@@ -65,37 +47,7 @@ class ChatSessionManager {
     private var summariesGenerated: [String: Bool] = [:]
     
     private init() {
-        // Add some sample chat data for testing
-        let calendar = Calendar.current
-        let today = Date()
-        
-        // Add messages for a few recent days to create a streak
-        for i in 1...3 {
-            if let date = calendar.date(byAdding: .day, value: -i, to: today) {
-                let key = dateKey(for: date)
-                sessions[key] = [
-                    DailyChatMessage(content: "How's your day?", isUser: false, isLogMode: false),
-                    DailyChatMessage(content: "It was a good day!", isUser: true, isLogMode: false)
-                ]
-            }
-        }
-        
-        // Add messages for a couple more random days
-        if let date1 = calendar.date(byAdding: .day, value: -6, to: today) {
-            let key = dateKey(for: date1)
-            sessions[key] = [
-                DailyChatMessage(content: "How's your day?", isUser: false, isLogMode: false),
-                DailyChatMessage(content: "Had a great workout today", isUser: true, isLogMode: false)
-            ]
-        }
-        
-        if let date2 = calendar.date(byAdding: .day, value: -8, to: today) {
-            let key = dateKey(for: date2)
-            sessions[key] = [
-                DailyChatMessage(content: "How's your day?", isUser: false, isLogMode: false),
-                DailyChatMessage(content: "Finished a big project!", isUser: true, isLogMode: false)
-            ]
-        }
+        // Data will be loaded from JSON via DailyDataManager
     }
     
     private func dateKey(for date: Date = Date()) -> String {
@@ -128,6 +80,11 @@ class ChatSessionManager {
     func setSummaryGenerated(_ generated: Bool, for date: Date = Date()) {
         let key = dateKey(for: date)
         summariesGenerated[key] = generated
+    }
+    
+    func clearAllSessions() {
+        sessions.removeAll()
+        summariesGenerated.removeAll()
     }
 }
 

@@ -434,10 +434,10 @@ struct TodayViewV1i2: View {
     @State private var showChat = false
     @State private var showChatSimple = true
     @State private var showDailyEntry = true
-    @State private var showSummary = true
+    @State private var showEntry = true
     @State private var showMoments = false
     @State private var showTrackers = false
-    @State private var showInsights = false
+    @State private var showInsights = true
     @State private var showBioTooltip = false
     @AppStorage("showChatFAB") private var showChatFAB = true
     @AppStorage("showEntryFAB") private var showEntryFAB = false
@@ -659,11 +659,11 @@ struct TodayViewV1i2: View {
                             
                             
                             Button {
-                                showSummary.toggle()
+                                showEntry.toggle()
                             } label: {
                                 HStack {
-                                    Text("Summary")
-                                    if showSummary {
+                                    Text("Entry")
+                                    if showEntry {
                                         Image(systemName: "checkmark")
                                     }
                                 }
@@ -870,9 +870,43 @@ struct TodayViewV1i2: View {
                 }
                 
                 
-                // Summary section (shown when summary exists for the date)
-                if showSummary && hasViewedSummary {
-                    Section("Summary") {
+                // Entry Links (no section wrapper)
+                if showInsights {
+                    HStack {
+                        Spacer()
+                        Button(action: { showingEntries = true }) {
+                            Text("3 Entries")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundStyle(Color(hex: "44C0FF"))
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(Color.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        
+                        Button(action: { showingOnThisDay = true }) {
+                            Text("4 On This Day")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundStyle(Color(hex: "44C0FF"))
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(Color.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                    .padding(.vertical, 20)
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                }
+                
+                // Entry section
+                if showEntry {
+                    Section("Entry") {
                         Button(action: {
                             showingPreviewEntry = true
                         }) {
@@ -938,38 +972,6 @@ struct TodayViewV1i2: View {
                     }
                 }
                 
-                // Entry Links (no section wrapper)
-                if showInsights {
-                    HStack(spacing: 12) {
-                        Button(action: { showingEntries = true }) {
-                            Text("3 Entries")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                                .foregroundStyle(Color(hex: "44C0FF"))
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 8)
-                                .background(Color.white)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        
-                        Button(action: { showingOnThisDay = true }) {
-                            Text("4 On This Day")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                                .foregroundStyle(Color(hex: "44C0FF"))
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 8)
-                                .background(Color.white)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                    }
-                    .padding(.vertical, 20)
-                    .listRowInsets(EdgeInsets())
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-                }
                 
                 // Bio ToolTip (no section wrapper)
                 if showBioTooltip {

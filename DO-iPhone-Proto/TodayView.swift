@@ -162,6 +162,9 @@ struct DatePickerGrid: View {
     @Binding var selectedDate: Date
     
     @State private var availableWidth: CGFloat = UIScreen.main.bounds.width - 40 // Approximate initial width
+    @State private var dragLocation: CGPoint = .zero
+    @State private var isDragging = false
+    @State private var lastSelectedDate: Date?
     
     // Static storage for completed dates - generated once and reused
     private static let completedDates: Set<Date> = {
@@ -230,18 +233,20 @@ struct DatePickerGrid: View {
                     .font(.caption)
                     .foregroundStyle(.secondary.opacity(0.7))
                 
-                Text(" • ")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                
-                Button(action: {
-                    selectedDate = Date()
-                }) {
-                    Text("Today")
+                if !Calendar.current.isDateInToday(selectedDate) {
+                    Text(" • ")
                         .font(.caption)
-                        .foregroundStyle(Calendar.current.isDateInToday(selectedDate) ? .secondary : Color(hex: "44C0FF"))
+                        .foregroundStyle(.secondary)
+                    
+                    Button(action: {
+                        selectedDate = Date()
+                    }) {
+                        Text("Today")
+                            .font(.caption)
+                            .foregroundStyle(Color(hex: "44C0FF"))
+                    }
+                    .buttonStyle(PlainButtonStyle())
                 }
-                .buttonStyle(PlainButtonStyle())
             }
             .frame(maxWidth: .infinity)
             .padding(.bottom, 8)
@@ -257,6 +262,14 @@ struct DatePickerGrid: View {
                             isCompleted: isDateCompleted(date),
                             onTap: {
                                 selectedDate = date
+                            }
+                        )
+                        .background(
+                            GeometryReader { geometry in
+                                Color.clear
+                                    .onAppear {
+                                        // Store the frame for hit testing during drag
+                                    }
                             }
                         )
                     }
@@ -275,6 +288,33 @@ struct DatePickerGrid: View {
                 availableWidth = width
             }
         }
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { value in
+                    isDragging = true
+                    dragLocation = value.location
+                    
+                    // Find which date circle contains the drag location
+                    let row = Int(value.location.y / (DatePickerConstants.circleSize + DatePickerConstants.spacing))
+                    let col = Int(value.location.x / (DatePickerConstants.circleSize + DatePickerConstants.spacing))
+                    
+                    if row >= 0 && row < rows.count && col >= 0 && col < rows[row].count {
+                        let date = rows[row][col]
+                        if lastSelectedDate != date {
+                            // Haptic feedback when selecting a new date
+                            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                            impactFeedback.impactOccurred()
+                            
+                            selectedDate = date
+                            lastSelectedDate = date
+                        }
+                    }
+                }
+                .onEnded { _ in
+                    isDragging = false
+                    lastSelectedDate = nil
+                }
+        )
     }
 }
 
@@ -317,19 +357,22 @@ struct DateCircle: View {
     }
     
     var body: some View {
-        Button(action: onTap) {
-            Circle()
-                .fill(circleColor)
-                .frame(width: DatePickerConstants.circleSize, height: DatePickerConstants.circleSize)
-                .overlay(
-                    Text(dayNumber)
-                        .font(.system(size: 8))
-                        .fontWeight(.medium)
-                        .foregroundStyle(textColor)
-                )
-                .opacity(isFuture && !isSelected ? 0.6 : 1.0)
-        }
-        .buttonStyle(PlainButtonStyle())
+        Circle()
+            .fill(circleColor)
+            .frame(width: DatePickerConstants.circleSize, height: DatePickerConstants.circleSize)
+            .overlay(
+                Text(dayNumber)
+                    .font(.system(size: 8))
+                    .fontWeight(.medium)
+                    .foregroundStyle(textColor)
+            )
+            .opacity(isFuture && !isSelected ? 0.6 : 1.0)
+            .onTapGesture {
+                // Haptic feedback on tap
+                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                impactFeedback.impactOccurred()
+                onTap()
+            }
     }
 }
 

@@ -369,11 +369,11 @@ struct TodayViewV1i2: View {
     // Show/hide toggles for Daily Activities
     @State private var showDatePickerGrid = true
     @State private var showDateNavigation = true
-    @State private var showChat = true
+    @State private var showChat = false
     @State private var showMoments = false
     @State private var showTrackers = false
     @State private var showInsights = false
-    @State private var showBioTooltip = true
+    @State private var showBioTooltip = false
     @AppStorage("showChatFAB") private var showChatFAB = false
     @AppStorage("showEntryFAB") private var showEntryFAB = false
     @Binding var moodRating: Int

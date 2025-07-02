@@ -88,9 +88,9 @@ struct MainTabView: View {
                         HStack(spacing: 12) {
                             Spacer()
                             if selectedTab == 0 && showChatFAB && chatCompleted {
-                                // View Summary FAB button when chat has been interacted with
+                                // View Entry FAB button when chat has been interacted with
                                 DailyChatFAB(
-                                    text: "View Summary",
+                                    text: "View Entry",
                                     backgroundColor: .white
                                 ) {
                                     showingPreviewEntry = true

@@ -394,8 +394,7 @@ struct DateCircle: View {
                     if hasEntry && !isSelected {
                         Circle()
                             .fill(Color(hex: "44C0FF"))
-                            .frame(width: 6, height: 6)
-                            .offset(y: -DatePickerConstants.circleSize / 2 + 6)
+                            .frame(width: 10, height: 10)
                     }
                 }
             )

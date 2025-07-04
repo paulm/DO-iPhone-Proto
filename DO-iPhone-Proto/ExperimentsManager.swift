@@ -22,6 +22,7 @@ enum ExperimentVariant: String, CaseIterable, Identifiable {
     case v1i1 = "v1i1"
     case v1i2 = "v1i2"
     case grid = "Grid"
+    case multiColumn = "Multi-Column"
     
     var id: String { rawValue }
 }
@@ -44,8 +45,8 @@ class ExperimentsManager {
         // Set Moments modal to use grid as default
         variants[.momentsModal] = .grid
         
-        // Set Journals tab to use paged as default
-        variants[.journalsTab] = .paged
+        // Set Journals tab to use multi-column as default (will fall back to paged on iPhone)
+        variants[.journalsTab] = .multiColumn
     }
     
     func variant(for section: AppSection) -> ExperimentVariant {
@@ -82,9 +83,9 @@ class ExperimentsManager {
         case .promptsTab:
             return [.original, .appleSettings] // Settings-style variant
         case .todayTab:
-            return [.v1i2] // Only v1i2 variant
+            return [.v1i2, .multiColumn] // v1i2 and multi-column variants
         case .journalsTab:
-            return [.paged] // Only paged variant
+            return [.paged, .multiColumn] // Paged and multi-column variants
         case .journalPicker:
             return [.original] // All use compact layout now
         case .entryView:

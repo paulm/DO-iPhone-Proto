@@ -3,8 +3,19 @@ import MapKit
 
 /// Journals tab view showing journal collections
 struct JournalsView: View {
+    private var experimentsManager = ExperimentsManager.shared
+    
     var body: some View {
-        JournalsTabPagedView()
+        Group {
+            switch experimentsManager.variant(for: .journalsTab) {
+            case .paged:
+                JournalsTabPagedView()
+            case .multiColumn:
+                JournalsTabMultiColumnView()
+            default:
+                JournalsTabPagedView()
+            }
+        }
     }
 }
 

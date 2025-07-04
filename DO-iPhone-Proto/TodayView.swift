@@ -73,27 +73,76 @@ struct TodayView: View {
         return dates
     }
     
+    private var experimentsManager = ExperimentsManager.shared
+    
     var body: some View {
-        TodayViewV1i2(
-            showingSettings: $showingSettings,
-            showingDatePicker: $showingDatePicker,
-            showingDailySurvey: $showingDailySurvey,
-            showingMoments: $showingMoments,
-            showingTrackers: $showingTrackers,
-            selectedDate: $selectedDate,
-            surveyCompleted: $surveyCompleted,
-            moodRating: $moodRating,
-            energyRating: $energyRating,
-            stressRating: $stressRating,
-            foodInput: $foodInput,
-            prioritiesInput: $prioritiesInput,
-            mediaInput: $mediaInput,
-            peopleInput: $peopleInput,
-            selectedLocations: $selectedLocations,
-            selectedEvents: $selectedEvents,
-            selectedPhotos: $selectedPhotos,
-            selectedHealth: $selectedHealth
-        )
+        Group {
+            switch experimentsManager.variant(for: .todayTab) {
+            case .v1i2:
+                TodayViewV1i2(
+                    showingSettings: $showingSettings,
+                    showingDatePicker: $showingDatePicker,
+                    showingDailySurvey: $showingDailySurvey,
+                    showingMoments: $showingMoments,
+                    showingTrackers: $showingTrackers,
+                    selectedDate: $selectedDate,
+                    surveyCompleted: $surveyCompleted,
+                    moodRating: $moodRating,
+                    energyRating: $energyRating,
+                    stressRating: $stressRating,
+                    foodInput: $foodInput,
+                    prioritiesInput: $prioritiesInput,
+                    mediaInput: $mediaInput,
+                    peopleInput: $peopleInput,
+                    selectedLocations: $selectedLocations,
+                    selectedEvents: $selectedEvents,
+                    selectedPhotos: $selectedPhotos,
+                    selectedHealth: $selectedHealth
+                )
+            case .multiColumn:
+                TodayViewMultiColumn(
+                    showingSettings: $showingSettings,
+                    showingDatePicker: $showingDatePicker,
+                    showingDailySurvey: $showingDailySurvey,
+                    showingMoments: $showingMoments,
+                    showingTrackers: $showingTrackers,
+                    selectedDate: $selectedDate,
+                    surveyCompleted: $surveyCompleted,
+                    moodRating: $moodRating,
+                    energyRating: $energyRating,
+                    stressRating: $stressRating,
+                    foodInput: $foodInput,
+                    prioritiesInput: $prioritiesInput,
+                    mediaInput: $mediaInput,
+                    peopleInput: $peopleInput,
+                    selectedLocations: $selectedLocations,
+                    selectedEvents: $selectedEvents,
+                    selectedPhotos: $selectedPhotos,
+                    selectedHealth: $selectedHealth
+                )
+            default:
+                TodayViewV1i2(
+                    showingSettings: $showingSettings,
+                    showingDatePicker: $showingDatePicker,
+                    showingDailySurvey: $showingDailySurvey,
+                    showingMoments: $showingMoments,
+                    showingTrackers: $showingTrackers,
+                    selectedDate: $selectedDate,
+                    surveyCompleted: $surveyCompleted,
+                    moodRating: $moodRating,
+                    energyRating: $energyRating,
+                    stressRating: $stressRating,
+                    foodInput: $foodInput,
+                    prioritiesInput: $prioritiesInput,
+                    mediaInput: $mediaInput,
+                    peopleInput: $peopleInput,
+                    selectedLocations: $selectedLocations,
+                    selectedEvents: $selectedEvents,
+                    selectedPhotos: $selectedPhotos,
+                    selectedHealth: $selectedHealth
+                )
+            }
+        }
         .sheet(isPresented: $showingSettings) {
             SettingsView()
         }

@@ -958,7 +958,7 @@ struct TodayViewV1i2: View {
                                 // Trigger entry generation
                                 NotificationCenter.default.post(name: NSNotification.Name("TriggerEntryGeneration"), object: selectedDate)
                             }) {
-                                Text("Generate Entry")
+                                Text("Generate Entry from Chat")
                                     .font(.body)
                                     .foregroundStyle(Color(hex: "44C0FF"))
                                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -999,47 +999,39 @@ struct TodayViewV1i2: View {
                     }
                 }
                 
-                // Updated text (shown below Daily Entry when entry was updated)
+                // Update text (shown below Daily Entry when entry exists and chat has updates)
                 if showEntry && DailyContentManager.shared.hasEntry(for: selectedDate) {
                     let _ = chatUpdateTrigger // Force dependency on chatUpdateTrigger
-                    if let updateDate = DailyContentManager.shared.getEntryUpdateDate(for: selectedDate) {
-                        HStack {
-                            Spacer()
-                            Text("Updated \(formatRelativeDate(updateDate))")
+                    let hasNewMessages = DailyContentManager.shared.hasNewMessagesSinceEntry(for: selectedDate)
+                    
+                    if hasNewMessages {
+                        let entryMessageCount = DailyContentManager.shared.getEntryMessageCount(for: selectedDate)
+                        let currentMessages = ChatSessionManager.shared.getMessages(for: selectedDate)
+                        let currentUserMessageCount = currentMessages.filter { $0.isUser }.count
+                        let newMessageCount = currentUserMessageCount - entryMessageCount
+                        
+                        HStack(spacing: 0) {
+                            Button(action: {
+                                showingPreviewEntry = true
+                            }) {
+                                Text("Update Entry")
+                                    .font(.caption)
+                                    .foregroundStyle(Color(hex: "44C0FF"))
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            
+                            Text(" to apply \(newMessageCount) chat update\(newMessageCount == 1 ? "" : "s").")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
+                            
+                            Spacer()
                         }
-                        .listRowInsets(EdgeInsets(top: -8, leading: 16, bottom: 8, trailing: 16))
+                        .listRowInsets(EdgeInsets(top: -16, leading: 16, bottom: 8, trailing: 16))
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                     }
                 }
                 
-                // Update Entry button (shown below Daily Entry when entry exists and there are new messages)
-                if showEntry && DailyContentManager.shared.hasEntry(for: selectedDate) && DailyContentManager.shared.hasNewMessagesSinceEntry(for: selectedDate) {
-                    let _ = chatUpdateTrigger // Force dependency on chatUpdateTrigger
-                    VStack {
-                        HStack {
-                            Spacer()
-                            Button(action: { 
-                                showingPreviewEntry = true 
-                            }) {
-                                Text("Update Entry")
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                                    .foregroundStyle(Color(hex: "44C0FF"))
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 8)
-                                    .background(Color.white)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                        }
-                    }
-                    .listRowInsets(EdgeInsets(top: -8, leading: 0, bottom: 8, trailing: 0))
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-                }
                 
                 
                 // Daily Moments Section
@@ -1249,8 +1241,6 @@ struct TodayViewV1i2: View {
                     entryCreated = true
                     // Post notification to update FAB
                     NotificationCenter.default.post(name: NSNotification.Name("DailyEntryCreatedStatusChanged"), object: selectedDate)
-                    // Open the entry view directly
-                    showingEntry = true
                 }
             }
         }

@@ -126,6 +126,8 @@ struct DailyChatView: View {
     @State private var contextPreviousChats = false
     @State private var contextDailyEntries = false
     @State private var contextBio = false
+    @State private var isGeneratingEntry = false
+    @State private var showingEntry = false
     
     private let chatSessionManager = ChatSessionManager.shared
     
@@ -335,14 +337,29 @@ struct DailyChatView: View {
                                     .font(.caption2)
                                     .foregroundStyle(.secondary)
                                 
-                                Button(action: {
-                                    showingPreviewEntry = true
-                                }) {
-                                    Text("Generate Entry")
-                                        .font(.caption2)
-                                        .foregroundStyle(Color(hex: "44C0FF"))
+                                if isGeneratingEntry {
+                                    ProgressView()
+                                        .scaleEffect(0.5)
+                                        .frame(width: 14, height: 14)
+                                } else {
+                                    Button(action: {
+                                        if DailyContentManager.shared.hasEntry(for: selectedDate) {
+                                            // Entry exists with new messages - show preview
+                                            if DailyContentManager.shared.hasNewMessagesSinceEntry(for: selectedDate) {
+                                                showingPreviewEntry = true
+                                            }
+                                        } else {
+                                            // No entry exists - generate directly
+                                            generateEntryDirectly()
+                                        }
+                                    }) {
+                                        Text(getButtonText())
+                                            .font(.caption2)
+                                            .foregroundStyle(Color(hex: "44C0FF"))
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
+                                    .disabled(isGeneratingEntry || (DailyContentManager.shared.hasEntry(for: selectedDate) && !DailyContentManager.shared.hasNewMessagesSinceEntry(for: selectedDate)))
                                 }
-                                .buttonStyle(PlainButtonStyle())
                             }
                         }
                     }
@@ -443,6 +460,9 @@ struct DailyChatView: View {
         .sheet(isPresented: $showingBioView) {
             BioEditView()
         }
+        .sheet(isPresented: $showingEntry) {
+            EntryView(journal: nil)
+        }
     }
     
     private func regenerateResponse() {
@@ -504,6 +524,44 @@ struct DailyChatView: View {
                     messages.append(aiMessage)
                 }
             }
+        }
+    }
+    
+    private func getButtonText() -> String {
+        if DailyContentManager.shared.hasEntry(for: selectedDate) {
+            // Check if there are new messages since entry was created
+            if DailyContentManager.shared.hasNewMessagesSinceEntry(for: selectedDate) {
+                return "Update Entry"
+            } else {
+                return "View Entry"
+            }
+        } else {
+            return "Generate Entry"
+        }
+    }
+    
+    private func generateEntryDirectly() {
+        isGeneratingEntry = true
+        
+        // Simulate entry generation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            isGeneratingEntry = false
+            
+            // Mark entry as created
+            DailyContentManager.shared.setHasEntry(true, for: selectedDate)
+            
+            // Track current message count when entry is created
+            let userMessageCount = messages.filter { $0.isUser }.count
+            DailyContentManager.shared.setEntryMessageCount(userMessageCount, for: selectedDate)
+            
+            // Update local state
+            entryCreated = true
+            
+            // Post notification to update UI
+            NotificationCenter.default.post(name: NSNotification.Name("DailyEntryCreatedStatusChanged"), object: selectedDate)
+            
+            // Open the entry view directly
+            showingEntry = true
         }
     }
 }

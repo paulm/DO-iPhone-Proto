@@ -9,6 +9,7 @@ class DailyContentManager {
     private var dailyEntries: [String: Bool] = [:]
     private var summaries: [String: Bool] = [:]
     private var entryMessageCounts: [String: Int] = [:] // Track message count when entry was created
+    private var entryUpdateDates: [String: Date] = [:] // Track when entries were last updated
     
     private init() {
         // Data will be loaded from JSON via DailyDataManager
@@ -56,6 +57,16 @@ class DailyContentManager {
         let currentMessages = ChatSessionManager.shared.getMessages(for: date)
         let currentUserMessageCount = currentMessages.filter { $0.isUser }.count
         return currentUserMessageCount > entryMessageCount
+    }
+    
+    func setEntryUpdateDate(_ updateDate: Date, for date: Date) {
+        let key = dateKey(for: date)
+        entryUpdateDates[key] = updateDate
+    }
+    
+    func getEntryUpdateDate(for date: Date) -> Date? {
+        let key = dateKey(for: date)
+        return entryUpdateDates[key]
     }
 }
 
@@ -905,7 +916,20 @@ struct ChatEntryPreviewView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             isCreatingEntry = false
             hasNewInteractions = false
-            // Entry remains created
+            
+            // Update the entry message count to current count
+            let messages = ChatSessionManager.shared.getMessages(for: selectedDate)
+            let userMessageCount = messages.filter { $0.isUser }.count
+            DailyContentManager.shared.setEntryMessageCount(userMessageCount, for: selectedDate)
+            
+            // Set the update date
+            DailyContentManager.shared.setEntryUpdateDate(Date(), for: selectedDate)
+            
+            // Post notification to update UI
+            NotificationCenter.default.post(name: NSNotification.Name("DailyEntryUpdatedStatusChanged"), object: selectedDate)
+            
+            // Auto-dismiss the preview after update completes
+            dismiss()
         }
     }
     

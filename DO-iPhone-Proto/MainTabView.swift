@@ -8,7 +8,6 @@ struct MainTabView: View {
     @AppStorage("showEntryFAB") private var showEntryFAB = false
     @State private var selectedDate = Date()
     @State private var chatCompleted = false
-    @State private var showingPreviewEntry = false
     @State private var showingEntry = false
     @State private var hasResumedChat = false
     @State private var messageCountAtResume = 0
@@ -108,20 +107,6 @@ struct MainTabView: View {
                         
                         HStack(spacing: 12) {
                             Spacer()
-                            if selectedTab == 0 && showChatFAB && chatCompleted && hasEntry && showUpdateEntry {
-                                // Show "Update Entry" only after user has resumed chat AND sent a new message
-                                let _ = updateTrigger // Force dependency on updateTrigger
-                                DailyChatFAB(
-                                    text: "Update Entry",
-                                    backgroundColor: .white
-                                ) {
-                                    showingPreviewEntry = true
-                                }
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 28)
-                                        .stroke(Color(hex: "44C0FF").opacity(0.2), lineWidth: 1)
-                                )
-                            }
                             if selectedTab == 0 && showChatFAB {
                                 DailyChatFAB(
                                     text: chatCompleted ? "Resume Chat" : "Start Daily Chat",
@@ -150,12 +135,6 @@ struct MainTabView: View {
                     .padding(.bottom, 90) // Position above tab bar
                 }
             }
-        }
-        .sheet(isPresented: $showingPreviewEntry) {
-            ChatEntryPreviewView(
-                selectedDate: selectedDate,
-                entryCreated: .constant(false)
-            )
         }
         .sheet(isPresented: $showingEntry) {
             EntryView(journal: nil)

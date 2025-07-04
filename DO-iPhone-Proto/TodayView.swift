@@ -446,6 +446,7 @@ struct TodayViewV1i2: View {
     @State private var showingEntry = false
     @State private var showingBioView = false
     @State private var isGeneratingEntry = false
+    @State private var chatUpdateTrigger = false
     
     // Show/hide toggles for Daily Activities
     @State private var showWeather = false
@@ -998,6 +999,48 @@ struct TodayViewV1i2: View {
                     }
                 }
                 
+                // Updated text (shown below Daily Entry when entry was updated)
+                if showEntry && DailyContentManager.shared.hasEntry(for: selectedDate) {
+                    let _ = chatUpdateTrigger // Force dependency on chatUpdateTrigger
+                    if let updateDate = DailyContentManager.shared.getEntryUpdateDate(for: selectedDate) {
+                        HStack {
+                            Spacer()
+                            Text("Updated \(formatRelativeDate(updateDate))")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .listRowInsets(EdgeInsets(top: -8, leading: 16, bottom: 8, trailing: 16))
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                    }
+                }
+                
+                // Update Entry button (shown below Daily Entry when entry exists and there are new messages)
+                if showEntry && DailyContentManager.shared.hasEntry(for: selectedDate) && DailyContentManager.shared.hasNewMessagesSinceEntry(for: selectedDate) {
+                    let _ = chatUpdateTrigger // Force dependency on chatUpdateTrigger
+                    VStack {
+                        HStack {
+                            Spacer()
+                            Button(action: { 
+                                showingPreviewEntry = true 
+                            }) {
+                                Text("Update Entry")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(Color(hex: "44C0FF"))
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
+                                    .background(Color.white)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                    }
+                    .listRowInsets(EdgeInsets(top: -8, leading: 0, bottom: 8, trailing: 0))
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                }
+                
                 
                 // Daily Moments Section
                 if showMoments {
@@ -1216,6 +1259,21 @@ struct TodayViewV1i2: View {
             summaryGenerated = DailyContentManager.shared.hasSummary(for: selectedDate)
             entryCreated = DailyContentManager.shared.hasEntry(for: selectedDate)
         }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ChatMessagesUpdated"))) { _ in
+            // Force view update when chat messages change
+            DispatchQueue.main.async {
+                chatUpdateTrigger.toggle()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("DailyEntryUpdatedStatusChanged"))) { notification in
+            // Force view update when entry is updated
+            if let date = notification.object as? Date,
+               Calendar.current.isDate(date, inSameDayAs: selectedDate) {
+                DispatchQueue.main.async {
+                    chatUpdateTrigger.toggle()
+                }
+            }
+        }
         }
     }
     
@@ -1227,6 +1285,34 @@ struct TodayViewV1i2: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + Double.random(in: 2.0...4.0)) {
             isGeneratingPreview = false
             summaryGenerated = true
+        }
+    }
+    
+    private func formatRelativeDate(_ date: Date) -> String {
+        let now = Date()
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.minute, .hour, .day], from: date, to: now)
+        
+        if let days = components.day, days > 0 {
+            if days == 1 {
+                return "yesterday"
+            } else {
+                return "\(days) days ago"
+            }
+        } else if let hours = components.hour, hours > 0 {
+            if hours == 1 {
+                return "1 hour ago"
+            } else {
+                return "\(hours) hours ago"
+            }
+        } else if let minutes = components.minute, minutes > 0 {
+            if minutes == 1 {
+                return "1 minute ago"
+            } else {
+                return "\(minutes) minutes ago"
+            }
+        } else {
+            return "just now"
         }
     }
 }

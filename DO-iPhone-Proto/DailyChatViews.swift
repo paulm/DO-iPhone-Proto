@@ -338,7 +338,7 @@ struct DailyChatView: View {
                                 Button(action: {
                                     showingPreviewEntry = true
                                 }) {
-                                    Text("View Summary")
+                                    Text("Generate Entry")
                                         .font(.caption2)
                                         .foregroundStyle(Color(hex: "44C0FF"))
                                 }

@@ -109,12 +109,12 @@ struct MainTabView: View {
                         HStack(spacing: 12) {
                             Spacer()
                             if selectedTab == 0 && showChatFAB && chatCompleted {
-                                // Show View Entry/Update Entry button only when appropriate
+                                // Show Generate Entry/Update Entry button only when appropriate
                                 let _ = updateTrigger // Force dependency on updateTrigger
                                 if !hasEntry {
-                                    // Show "View Entry" when no entry exists yet
+                                    // Show "Generate Entry" when no entry exists yet
                                     DailyChatFAB(
-                                        text: "View Entry",
+                                        text: "Generate Entry",
                                         backgroundColor: .white
                                     ) {
                                         if DailyContentManager.shared.hasEntry(for: selectedDate) {

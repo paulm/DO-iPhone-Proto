@@ -108,40 +108,19 @@ struct MainTabView: View {
                         
                         HStack(spacing: 12) {
                             Spacer()
-                            if selectedTab == 0 && showChatFAB && chatCompleted {
-                                // Show Generate Entry/Update Entry button only when appropriate
+                            if selectedTab == 0 && showChatFAB && chatCompleted && hasEntry && showUpdateEntry {
+                                // Show "Update Entry" only after user has resumed chat AND sent a new message
                                 let _ = updateTrigger // Force dependency on updateTrigger
-                                if !hasEntry {
-                                    // Show "Generate Entry" when no entry exists yet
-                                    DailyChatFAB(
-                                        text: "Generate Entry",
-                                        backgroundColor: .white
-                                    ) {
-                                        if DailyContentManager.shared.hasEntry(for: selectedDate) {
-                                            // Entry exists, open it directly
-                                            showingEntry = true
-                                        } else {
-                                            // Send notification to trigger entry generation
-                                            NotificationCenter.default.post(name: NSNotification.Name("TriggerEntryGeneration"), object: selectedDate)
-                                        }
-                                    }
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 28)
-                                            .stroke(Color(hex: "44C0FF").opacity(0.2), lineWidth: 1)
-                                    )
-                                } else if hasEntry && showUpdateEntry {
-                                    // Show "Update Entry" only after user has resumed chat AND sent a new message
-                                    DailyChatFAB(
-                                        text: "Update Entry",
-                                        backgroundColor: .white
-                                    ) {
-                                        showingPreviewEntry = true
-                                    }
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 28)
-                                            .stroke(Color(hex: "44C0FF").opacity(0.2), lineWidth: 1)
-                                    )
+                                DailyChatFAB(
+                                    text: "Update Entry",
+                                    backgroundColor: .white
+                                ) {
+                                    showingPreviewEntry = true
                                 }
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 28)
+                                        .stroke(Color(hex: "44C0FF").opacity(0.2), lineWidth: 1)
+                                )
                             }
                             if selectedTab == 0 && showChatFAB {
                                 DailyChatFAB(

@@ -934,8 +934,8 @@ struct TodayViewV1i2: View {
                     }
                 }
                 
-                // Entry section (shown when entry exists OR is being generated)
-                if showEntry && (DailyContentManager.shared.hasEntry(for: selectedDate) || isGeneratingEntry) {
+                // Entry section (shown when entry exists OR is being generated OR chat is completed)
+                if showEntry && (DailyContentManager.shared.hasEntry(for: selectedDate) || isGeneratingEntry || (chatCompleted && !DailyContentManager.shared.hasEntry(for: selectedDate))) {
                     Section("Daily Entry") {
                         if isGeneratingEntry {
                             // Loading state
@@ -951,7 +951,21 @@ struct TodayViewV1i2: View {
                                 Spacer()
                             }
                             .padding(.vertical, 20)
+                        } else if !DailyContentManager.shared.hasEntry(for: selectedDate) && chatCompleted {
+                            // Show Generate Entry link when chat is completed but no entry exists
+                            Button(action: {
+                                // Trigger entry generation
+                                NotificationCenter.default.post(name: NSNotification.Name("TriggerEntryGeneration"), object: selectedDate)
+                            }) {
+                                Text("Generate Entry")
+                                    .font(.body)
+                                    .foregroundStyle(Color(hex: "44C0FF"))
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .padding(.vertical, 12)
                         } else {
+                            // Show existing entry
                             Button(action: {
                                 showingEntry = true
                             }) {

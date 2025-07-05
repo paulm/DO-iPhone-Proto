@@ -29,6 +29,7 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
     @State private var showingEditDate = false
     @State private var showEntryChatEmbed = true
     @State private var showGeneratedFromDailyChat = true
+    @State private var useSmallEmbedSize = true
     @FocusState private var isTextFieldFocused: Bool
     
     // Location for the map - Sundance Resort coordinates
@@ -66,145 +67,191 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
                         .transition(.move(edge: .top).combined(with: .opacity))
                     }
                 
-                // Content area
-                VStack(alignment: .leading, spacing: 0) {
-                    // Chat activity indicator
-                    if hasChatActivity && showEntryChatEmbed {
-                        Button {
-                            showingEntryChat = true
-                        } label: {
-                            HStack(spacing: 12) {
-                                Image(systemName: "bubble.left.and.text.bubble.right")
-                                    .font(.body)
-                                    .foregroundStyle(.black)
-                                
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("Entry Chat")
-                                        .font(.subheadline)
-                                        .fontWeight(.medium)
-                                        .foregroundStyle(.primary)
-                                    Text("3 messages • Discussed themes, emotions, and reflections")
-                                        .font(.caption2)
-                                        .foregroundStyle(.secondary)
-                                        .lineLimit(1)
+                // Content area with scrollable embeds and text
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        // Chat activity indicator
+                        if hasChatActivity && showEntryChatEmbed {
+                            Button {
+                                showingEntryChat = true
+                            } label: {
+                                HStack(spacing: 12) {
+                                    Image(systemName: "bubble.left.and.text.bubble.right")
+                                        .font(.body)
+                                        .foregroundStyle(.black)
+                                    
+                                    if useSmallEmbedSize {
+                                        Text("Entry Chat")
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .foregroundStyle(.primary)
+                                        
+                                        Spacer()
+                                        
+                                        Text("3")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    } else {
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text("Entry Chat")
+                                                .font(.subheadline)
+                                                .fontWeight(.medium)
+                                                .foregroundStyle(.primary)
+                                            Text("3 messages • \(formatTimeAgo(from: Date().addingTimeInterval(-3600))) • Discussed themes, emotions, and reflections")
+                                                .font(.caption2)
+                                                .foregroundStyle(.secondary)
+                                                .lineLimit(1)
+                                        }
+                                        
+                                        Spacer()
+                                    }
                                 }
-                                
-                                Spacer()
+                                .frame(height: useSmallEmbedSize ? 40 : 56)
+                                .padding(.horizontal, 12)
+                                .background(Color(hex: "44C0FF").opacity(0.15))
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
                             }
-                            .frame(height: 56)
-                            .padding(.horizontal, 12)
-                            .background(Color(hex: "44C0FF").opacity(0.08))
+                            .buttonStyle(.plain)
+                            .padding(.horizontal, 14)
+                            .padding(.top, 16)
                         }
-                        .buttonStyle(.plain)
+                        
+                        // Generated from Daily Chat indicator
+                        if showGeneratedFromDailyChat {
+                            Button {
+                                showingDailyChat = true
+                            } label: {
+                                HStack(spacing: 12) {
+                                    Image(systemName: "questionmark.bubble")
+                                        .font(.body)
+                                        .foregroundStyle(.black)
+                                    
+                                    if useSmallEmbedSize {
+                                        Text("Generated from Daily Chat")
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .foregroundStyle(.primary)
+                                        
+                                        Spacer()
+                                        
+                                        Text("3")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    } else {
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text("Generated from Daily Chat")
+                                                .font(.subheadline)
+                                                .fontWeight(.medium)
+                                                .foregroundStyle(.primary)
+                                            Text("3 messages • \(formatTimeAgo(from: entryDate))")
+                                                .font(.caption2)
+                                                .foregroundStyle(.secondary)
+                                                .lineLimit(1)
+                                        }
+                                        
+                                        Spacer()
+                                    }
+                                }
+                                .frame(height: useSmallEmbedSize ? 40 : 56)
+                                .padding(.horizontal, 12)
+                                .background(Color.orange.opacity(0.15))
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                            }
+                            .buttonStyle(.plain)
+                            .padding(.horizontal, 14)
+                            .padding(.top, hasChatActivity && showEntryChatEmbed ? 8 : 16)
+                        }
+                        
+                        // Text content
+                        Text(entryText)
+                            .font(.body)
+                            .padding(.horizontal, 14)
+                            .padding(.top, (hasChatActivity && showEntryChatEmbed) || showGeneratedFromDailyChat ? 28 : 12)
+                            .padding(.bottom, 100)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .onTapGesture {
+                                if !isTextFieldFocused {
+                                    isTextFieldFocused = true
+                                }
+                            }
                     }
-                    
-                    // Generated from Daily Chat indicator
-                    if showGeneratedFromDailyChat {
-                        Button {
-                            showingDailyChat = true
-                        } label: {
-                            HStack(spacing: 12) {
-                                Image(systemName: "questionmark.bubble")
-                                    .font(.body)
-                                    .foregroundStyle(.black)
-                                
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("Generated from Daily Chat")
-                                        .font(.subheadline)
-                                        .fontWeight(.medium)
-                                        .foregroundStyle(.primary)
-                                    Text("3 messages")
-                                        .font(.caption2)
-                                        .foregroundStyle(.secondary)
-                                        .lineLimit(1)
-                                }
-                                
-                                Spacer()
-                            }
-                            .frame(height: 56)
-                            .padding(.horizontal, 12)
-                            .background(Color.orange.opacity(0.08))
-                        }
-                        .buttonStyle(.plain)
-                    }
-                    
-                    // Combined text editor
-                    TextEditor(text: $entryText)
-                        .font(.body)
-                        .focused($isTextFieldFocused)
-                        .scrollContentBackground(.hidden)
-                        .contentMargins(.horizontal, 14, for: .scrollContent)
-                        .contentMargins(.vertical, 16, for: .scrollContent)
-                        .allowsHitTesting(true) // Always allow taps
-                        .onTapGesture {
-                            if !isTextFieldFocused {
-                                isTextFieldFocused = true
-                            }
-                        }
-                        .toolbar {
-                            ToolbarItemGroup(placement: .keyboard) {
-                                HStack(spacing: 20) {
-                                    Button {
-                                        // Collapse action
-                                        isTextFieldFocused = false
-                                    } label: {
-                                        Image(systemName: "chevron.down")
-                                            .font(.title3)
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    Button {
-                                        showingJournalingTools = true
-                                    } label: {
-                                        Image(systemName: "sparkles")
-                                            .font(.title3)
-                                    }
-                                    
-                                    Button {
-                                        showingEnhancedJournalingTools = true
-                                    } label: {
-                                        Image(systemName: "sparkles")
-                                            .font(.title3)
-                                            .foregroundStyle(.black)
-                                    }
-                                    
-                                    Button {
-                                        showingContentFocusedJournalingTools = true
-                                    } label: {
-                                        Image(systemName: "sparkles")
-                                            .font(.title3)
-                                            .foregroundStyle(.purple)
-                                    }
-                                    
-                                    Button {
-                                        showingEntryChat = true
-                                    } label: {
-                                        Image(systemName: "message.circle")
-                                            .font(.title3)
-                                    }
-                                    
-                                    Button {
-                                        // Attachment action
-                                    } label: {
-                                        Image(systemName: "paperclip")
-                                            .font(.title3)
-                                    }
-                                    
-                                    Button {
-                                        // Text formatting action
-                                    } label: {
-                                        Image(systemName: "textformat")
-                                            .font(.title3)
-                                    }
-                                }
-                                .foregroundStyle(.primary)
-                                .padding(.horizontal, 18)
-                            }
-                        }
                 }
-                .padding(.horizontal, 0)
-                .padding(.top, 0)
+                .scrollDismissesKeyboard(.interactively)
+                .overlay(
+                    // Floating text editor for editing mode
+                    Group {
+                        if isTextFieldFocused {
+                            TextEditor(text: $entryText)
+                                .font(.body)
+                                .focused($isTextFieldFocused)
+                                .scrollContentBackground(.hidden)
+                                .background(.white)
+                                .contentMargins(.horizontal, 14, for: .scrollContent)
+                                .contentMargins(.vertical, 16, for: .scrollContent)
+                        }
+                    }
+                )
+                .toolbar {
+                    ToolbarItemGroup(placement: .keyboard) {
+                        HStack(spacing: 20) {
+                            Button {
+                                // Collapse action
+                                isTextFieldFocused = false
+                            } label: {
+                                Image(systemName: "chevron.down")
+                                    .font(.title3)
+                            }
+                            
+                            Spacer()
+                            
+                            Button {
+                                showingJournalingTools = true
+                            } label: {
+                                Image(systemName: "sparkles")
+                                    .font(.title3)
+                            }
+                            
+                            Button {
+                                showingEnhancedJournalingTools = true
+                            } label: {
+                                Image(systemName: "sparkles")
+                                    .font(.title3)
+                                    .foregroundStyle(.black)
+                            }
+                            
+                            Button {
+                                showingContentFocusedJournalingTools = true
+                            } label: {
+                                Image(systemName: "sparkles")
+                                    .font(.title3)
+                                    .foregroundStyle(.purple)
+                            }
+                            
+                            Button {
+                                showingEntryChat = true
+                            } label: {
+                                Image(systemName: "message.circle")
+                                    .font(.title3)
+                            }
+                            
+                            Button {
+                                // Attachment action
+                            } label: {
+                                Image(systemName: "paperclip")
+                                    .font(.title3)
+                            }
+                            
+                            Button {
+                                // Text formatting action
+                            } label: {
+                                Image(systemName: "textformat")
+                                    .font(.title3)
+                            }
+                        }
+                        .foregroundStyle(.primary)
+                        .padding(.horizontal, 18)
+                    }
+                }
             }
                 
                 // Bottom info block - only shown in Read mode
@@ -332,6 +379,24 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
                             }) {
                                 Label("Show Generated from Daily Chat", systemImage: showGeneratedFromDailyChat ? "checkmark" : "")
                             }
+                            
+                            Divider()
+                            
+                            Menu {
+                                Button(action: {
+                                    useSmallEmbedSize = false
+                                }) {
+                                    Label("Medium", systemImage: !useSmallEmbedSize ? "checkmark" : "")
+                                }
+                                
+                                Button(action: {
+                                    useSmallEmbedSize = true
+                                }) {
+                                    Label("Small", systemImage: useSmallEmbedSize ? "checkmark" : "")
+                                }
+                            } label: {
+                                Label("Entry Embed Size", systemImage: "textformat.size")
+                            }
                         } label: {
                             Image(systemName: "ellipsis")
                                 .foregroundStyle(.white)
@@ -383,6 +448,27 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
         let lines = text.components(separatedBy: .newlines)
         let firstLine = lines.first?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         return firstLine.isEmpty ? "Untitled Entry" : firstLine
+    }
+    
+    private func formatTimeAgo(from date: Date) -> String {
+        let calendar = Calendar.current
+        let now = Date()
+        let components = calendar.dateComponents([.day, .hour, .minute], from: date, to: now)
+        
+        if let days = components.day, days > 14 {
+            // More than 2 weeks ago, show the date
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MMM d, yyyy"
+            return "on \(formatter.string(from: date))"
+        } else if let days = components.day, days > 0 {
+            return "\(days) day\(days == 1 ? "" : "s") ago"
+        } else if let hours = components.hour, hours > 0 {
+            return "\(hours) hour\(hours == 1 ? "" : "s") ago"
+        } else if let minutes = components.minute, minutes > 0 {
+            return "\(minutes) minute\(minutes == 1 ? "" : "s") ago"
+        } else {
+            return "just now"
+        }
     }
 }
 

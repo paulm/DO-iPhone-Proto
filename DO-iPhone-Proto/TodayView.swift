@@ -54,10 +54,10 @@ struct TodayView: View {
         let today = Date()
         
         // Calculate how many dates we need based on screen width
-        // Assuming we want to fit as many as possible in 3 rows
+        // Assuming we want to fit as many as possible in 6 rows
         let approximateWidth = UIScreen.main.bounds.width - 40
         let columnsPerRow = Int((approximateWidth + DatePickerConstants.spacing) / (DatePickerConstants.circleSize + DatePickerConstants.spacing))
-        let totalDates = columnsPerRow * 3
+        let totalDates = columnsPerRow * 6
         
         // Calculate the starting date to ensure we end 4 days in the future
         let endDate = 4
@@ -216,8 +216,8 @@ struct DatePickerGrid: View {
         var result: [[Date]] = []
         var currentRow: [Date] = []
         
-        // Force exactly 3 rows
-        let datesPerRow = (dates.count + 2) / 3 // Round up division
+        // Force exactly 6 rows
+        let datesPerRow = (dates.count + 5) / 6 // Round up division
         
         for (index, date) in dates.enumerated() {
             currentRow.append(date)
@@ -465,7 +465,7 @@ struct TodayViewV1i2: View {
     
     // Options toggles
     @State private var showGridDates = false
-    @State private var showStreak = true
+    @State private var showStreak = false
     @Binding var moodRating: Int
     @Binding var energyRating: Int
     @Binding var stressRating: Int
@@ -484,10 +484,10 @@ struct TodayViewV1i2: View {
         let today = Date()
         
         // Calculate how many dates we need based on screen width
-        // Assuming we want to fit as many as possible in 3 rows
+        // Assuming we want to fit as many as possible in 6 rows
         let approximateWidth = UIScreen.main.bounds.width - 40
         let columnsPerRow = Int((approximateWidth + DatePickerConstants.spacing) / (DatePickerConstants.circleSize + DatePickerConstants.spacing))
-        let totalDates = columnsPerRow * 3
+        let totalDates = columnsPerRow * 6
         
         // Calculate the starting date to ensure we end 4 days in the future
         let endDate = 4

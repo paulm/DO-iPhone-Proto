@@ -23,10 +23,12 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
     @State private var showingEnhancedJournalingTools = false
     @State private var showingContentFocusedJournalingTools = false
     @State private var showingEntryChat = false
+    @State private var showingDailyChat = false
     @State private var hasChatActivity = true // Simulating that this entry has chat activity
     @State private var entryDate = Date()
     @State private var showingEditDate = false
     @State private var showEntryChatEmbed = true
+    @State private var showGeneratedFromDailyChat = true
     @FocusState private var isTextFieldFocused: Bool
     
     // Location for the map - Sundance Resort coordinates
@@ -77,7 +79,7 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
                                     .foregroundStyle(.black)
                                 
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Entry Chat Session")
+                                    Text("Entry Chat")
                                         .font(.subheadline)
                                         .fontWeight(.medium)
                                         .foregroundStyle(.primary)
@@ -91,7 +93,37 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
                             }
                             .frame(height: 56)
                             .padding(.horizontal, 12)
-                            .background(.black.opacity(0.05))
+                            .background(Color(hex: "44C0FF").opacity(0.08))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    
+                    // Generated from Daily Chat indicator
+                    if showGeneratedFromDailyChat {
+                        Button {
+                            showingDailyChat = true
+                        } label: {
+                            HStack(spacing: 12) {
+                                Image(systemName: "questionmark.bubble")
+                                    .font(.body)
+                                    .foregroundStyle(.black)
+                                
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Generated from Daily Chat")
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                        .foregroundStyle(.primary)
+                                    Text("3 messages")
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(1)
+                                }
+                                
+                                Spacer()
+                            }
+                            .frame(height: 56)
+                            .padding(.horizontal, 12)
+                            .background(Color.orange.opacity(0.08))
                         }
                         .buttonStyle(.plain)
                     }
@@ -294,6 +326,12 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
                             }) {
                                 Label("Show Entry Chat Embed", systemImage: showEntryChatEmbed ? "checkmark" : "")
                             }
+                            
+                            Button(action: {
+                                showGeneratedFromDailyChat.toggle()
+                            }) {
+                                Label("Show Generated from Daily Chat", systemImage: showGeneratedFromDailyChat ? "checkmark" : "")
+                            }
                         } label: {
                             Image(systemName: "ellipsis")
                                 .foregroundStyle(.white)
@@ -328,6 +366,15 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
             }
             .sheet(isPresented: $showingEditDate) {
                 EditDateView(selectedDate: $entryDate)
+            }
+            .sheet(isPresented: $showingDailyChat) {
+                DailyChatView(
+                    selectedDate: entryDate,
+                    initialLogMode: false,
+                    entryCreated: .constant(true),
+                    onChatStarted: {},
+                    onMessageCountChanged: { _ in }
+                )
             }
         }
     }

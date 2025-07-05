@@ -26,7 +26,7 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
     @State private var hasChatActivity = true // Simulating that this entry has chat activity
     @State private var entryDate = Date()
     @State private var showingEditDate = false
-    @State private var showEntryChatEmbed = false
+    @State private var showEntryChatEmbed = true
     @FocusState private var isTextFieldFocused: Bool
     
     // Location for the map - Sundance Resort coordinates
@@ -65,38 +65,33 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
                     }
                 
                 // Content area
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 0) {
                     // Chat activity indicator
                     if hasChatActivity && showEntryChatEmbed {
                         Button {
                             showingEntryChat = true
                         } label: {
-                            HStack(spacing: 8) {
-                                Image(systemName: "message.circle.fill")
-                                    .font(.caption)
+                            HStack(spacing: 12) {
+                                Image(systemName: "bubble.left.and.text.bubble.right")
+                                    .font(.body)
                                     .foregroundStyle(.black)
                                 
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text("Entry Chat Session")
-                                        .font(.caption)
+                                        .font(.subheadline)
                                         .fontWeight(.medium)
                                         .foregroundStyle(.primary)
-                                    Text("Discussed themes, emotions, and reflections • 3 messages")
+                                    Text("3 messages • Discussed themes, emotions, and reflections")
                                         .font(.caption2)
                                         .foregroundStyle(.secondary)
                                         .lineLimit(1)
                                 }
                                 
                                 Spacer()
-                                
-                                Image(systemName: "chevron.right")
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
                             }
+                            .frame(height: 56)
                             .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
                             .background(.black.opacity(0.05))
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
                         }
                         .buttonStyle(.plain)
                     }

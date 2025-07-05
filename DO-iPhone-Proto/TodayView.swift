@@ -247,7 +247,7 @@ struct DatePickerGrid: View {
                 
                 Spacer()
                 
-                if !Calendar.current.isDateInToday(selectedDate) {
+                if showStreak && !Calendar.current.isDateInToday(selectedDate) {
                     Button(action: {
                         selectedDate = Date()
                     }) {
@@ -773,7 +773,7 @@ struct TodayViewV1i2: View {
                                 showStreak.toggle()
                             } label: {
                                 HStack {
-                                    Text("Show Streak")
+                                    Text("Show Streak & Today")
                                     if showStreak {
                                         Image(systemName: "checkmark")
                                     }

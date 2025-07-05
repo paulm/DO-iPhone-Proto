@@ -733,11 +733,7 @@ struct ChatEntryPreviewView: View {
     
     var body: some View {
         NavigationStack {
-            ZStack {
-                // Gray background
-                Color(UIColor.systemGroupedBackground)
-                    .ignoresSafeArea()
-                
+            Group {
                 if isLoadingSummary {
                     // Loading state
                     VStack(spacing: 20) {
@@ -749,10 +745,45 @@ struct ChatEntryPreviewView: View {
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color(UIColor.systemGroupedBackground))
                 } else {
                     VStack(spacing: 0) {
-                        // Entry content in white rounded rectangle
-                        ScrollView {
+                        // List with sections
+                        List {
+                        // Current Daily Entry Section
+                        Section("CURRENT DAILY ENTRY") {
+                            Button(action: {
+                                showingEntry = true
+                            }) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Morning Reflections and Evening Plans")
+                                            .font(.subheadline)
+                                            .fontWeight(.bold)
+                                            .foregroundStyle(.primary)
+                                            .multilineTextAlignment(.leading)
+                                        
+                                        Text("Today I started with my usual morning routine, feeling energized and ready to tackle the day ahead. I spent some time thinking about my work goals and how I want to approach the various projects I have on my plate. The conversation helped me organize my thoughts around what's most important right now.")
+                                            .font(.subheadline)
+                                            .foregroundStyle(.secondary)
+                                            .lineLimit(3)
+                                            .multilineTextAlignment(.leading)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .padding(.vertical, 8)
+                        }
+                        
+                        // Preview Daily Entry Update Section
+                        Section("PREVIEW DAILY ENTRY UPDATE") {
                             VStack(alignment: .leading, spacing: 12) {
                                 Text("Morning Reflections and Evening Plans")
                                     .font(.headline)
@@ -770,50 +801,48 @@ struct ChatEntryPreviewView: View {
                                     .font(.subheadline)
                                     .foregroundStyle(.primary)
                             }
-                            .padding()
-                            .background(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .padding()
+                            .padding(.vertical, 8)
                         }
-                        
-                            Spacer()
-                        
-                        // Action button
-                        VStack {
-                            // Update Entry button
-                            Button(action: {
-                                if entryCreated {
-                                    // Update existing entry
-                                    updateEntry()
-                                } else {
-                                    // Create new entry
-                                    createEntry()
-                                }
-                            }) {
-                                HStack {
-                                    if isCreatingEntry {
-                                        ProgressView()
-                                            .scaleEffect(0.8)
-                                            .tint(.white)
-                                    } else {
-                                        Text("Update Entry")
-                                            .font(.subheadline)
-                                            .fontWeight(.semibold)
-                                    }
-                                }
-                                .foregroundStyle(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 14)
-                                .background(Color(hex: "44C0FF"))
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                            }
-                            .disabled(isCreatingEntry || (entryCreated && !hasNewInteractions))
-                            .opacity((entryCreated && !hasNewInteractions) ? 0.6 : 1.0)
-                        }
-                        .padding(.horizontal)
-                        .padding(.bottom, 20)
                     }
+                    .listStyle(.insetGrouped)
+                    
+                    // Action button
+                    VStack {
+                        // Update Entry button
+                        Button(action: {
+                            if entryCreated {
+                                // Update existing entry
+                                updateEntry()
+                            } else {
+                                // Create new entry
+                                createEntry()
+                            }
+                        }) {
+                            HStack {
+                                if isCreatingEntry {
+                                    ProgressView()
+                                        .scaleEffect(0.8)
+                                        .tint(.white)
+                                } else {
+                                    Text("Update Entry")
+                                        .font(.subheadline)
+                                        .fontWeight(.semibold)
+                                }
+                            }
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(Color(hex: "44C0FF"))
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                        }
+                        .disabled(isCreatingEntry || (entryCreated && !hasNewInteractions))
+                        .opacity((entryCreated && !hasNewInteractions) ? 0.6 : 1.0)
+                    }
+                    .padding(.horizontal)
+                    .padding(.bottom, 20)
+                    .background(Color(UIColor.systemGroupedBackground))
                 }
+            }
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -862,11 +891,10 @@ struct ChatEntryPreviewView: View {
                     }
                 }
             }
-        }
-        .sheet(isPresented: $showingEntry) {
-            EntryView(journal: nil)
-        }
-        .onAppear {
+            .sheet(isPresented: $showingEntry) {
+                EntryView(journal: nil)
+            }
+            .onAppear {
             // Show loading state for 0.5 seconds
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 isLoadingSummary = false
@@ -885,6 +913,7 @@ struct ChatEntryPreviewView: View {
         .onDisappear {
             // Post notification when view is dismissed to ensure UI updates
             NotificationCenter.default.post(name: NSNotification.Name("SummaryGeneratedStatusChanged"), object: selectedDate)
+        }
         }
     }
     

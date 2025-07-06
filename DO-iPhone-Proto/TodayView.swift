@@ -621,183 +621,11 @@ struct TodayViewV1i2: View {
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // Header section with gray background
-            VStack(spacing: 0) {
-                // Header with profile button
-                HStack {
-                    Spacer()
+            ZStack {
+                // Main content
+                List {
                     
-                    Menu {
-                        Button("Settings") {
-                            showingSettings = true
-                        }
-                        
-                        Section("Show in Today") {
-                            Button {
-                                showWeather.toggle()
-                            } label: {
-                                HStack {
-                                    Text("Weather")
-                                    if showWeather {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                            
-                            Button {
-                                showDatePickerGrid.toggle()
-                            } label: {
-                                HStack {
-                                    Text("Date Picker Grid")
-                                    if showDatePickerGrid {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                            
-                            Button {
-                                showDateNavigation.toggle()
-                            } label: {
-                                HStack {
-                                    Text("Date Navigation")
-                                    if showDateNavigation {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                            
-                            Button {
-                                showChatSimple.toggle()
-                            } label: {
-                                HStack {
-                                    Text("Chat Simple")
-                                    if showChatSimple {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                            
-                            
-                            Button {
-                                showEntry.toggle()
-                            } label: {
-                                HStack {
-                                    Text("Daily Entry")
-                                    if showEntry {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                            
-                            Button {
-                                showMoments.toggle()
-                            } label: {
-                                HStack {
-                                    Text("Daily Moments")
-                                    if showMoments {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                            
-                            Button {
-                                showTrackers.toggle()
-                            } label: {
-                                HStack {
-                                    Text("Daily Trackers")
-                                    if showTrackers {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                            
-                            Button {
-                                showInsights.toggle()
-                            } label: {
-                                HStack {
-                                    Text("Entry Links")
-                                    if showInsights {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                            
-                            Button {
-                                showBioTooltip.toggle()
-                            } label: {
-                                HStack {
-                                    Text("Bio ToolTip")
-                                    if showBioTooltip {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                            
-                            Button {
-                                showChatFAB.toggle()
-                            } label: {
-                                HStack {
-                                    Text("Chat FAB")
-                                    if showChatFAB {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                            
-                            Button {
-                                showEntryFAB.toggle()
-                            } label: {
-                                HStack {
-                                    Text("Entry FAB")
-                                    if showEntryFAB {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                        }
-                        
-                        Section("Options") {
-                            Button {
-                                showGridDates.toggle()
-                            } label: {
-                                HStack {
-                                    Text("Grid Dates")
-                                    if showGridDates {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                            
-                            Button {
-                                showStreak.toggle()
-                            } label: {
-                                HStack {
-                                    Text("Show Streak & Today")
-                                    if showStreak {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis")
-                            .font(.body)
-                            .foregroundStyle(.primary)
-                            .frame(width: 44, height: 44)
-                            .background(Circle().fill(Color.clear))
-                    }
-                    .accessibilityLabel("Profile Menu")
-                }
-                .padding(.horizontal)
-                .padding(.top, 0)
-                .padding(.bottom, 10)
-            }
-            .background(Color(UIColor.systemGroupedBackground))
-            
-            // Content with Daily Activities
-            List {
-                // Weather section at the very top
+                    // Weather section at the very top
                 if showWeather {
                     VStack(spacing: 4) {
                         Image(systemName: "cloud.sun")
@@ -1086,7 +914,173 @@ struct TodayViewV1i2: View {
                 }
             }
             .listStyle(.insetGrouped)
+            .ignoresSafeArea(.all, edges: .top)
+            .padding(.top, -100)
+            
+            }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Button("Settings") {
+                            showingSettings = true
+                        }
+                        
+                        Section("Show in Today") {
+                            Button {
+                                showWeather.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Weather")
+                                    if showWeather {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showDatePickerGrid.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Date Picker Grid")
+                                    if showDatePickerGrid {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showDateNavigation.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Date Navigation")
+                                    if showDateNavigation {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showChatSimple.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Chat Simple")
+                                    if showChatSimple {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showEntry.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Daily Entry")
+                                    if showEntry {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showMoments.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Daily Moments")
+                                    if showMoments {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showTrackers.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Daily Trackers")
+                                    if showTrackers {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showInsights.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Entry Links")
+                                    if showInsights {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showBioTooltip.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Bio ToolTip")
+                                    if showBioTooltip {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showChatFAB.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Chat FAB")
+                                    if showChatFAB {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showEntryFAB.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Entry FAB")
+                                    if showEntryFAB {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        }
+                        
+                        Section("Options") {
+                            Button {
+                                showGridDates.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Grid Dates")
+                                    if showGridDates {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showStreak.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Show Streak & Today")
+                                    if showStreak {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .font(.body)
+                            .foregroundStyle(.primary)
+                    }
+                    .accessibilityLabel("Profile Menu")
+                }
+            }
         }
+        .toolbarBackground(.hidden, for: .navigationBar)
         .sheet(isPresented: $showingDailyChat) {
             DailyChatView(
                 selectedDate: selectedDate,
@@ -1263,7 +1257,6 @@ struct TodayViewV1i2: View {
                     chatUpdateTrigger.toggle()
                 }
             }
-        }
         }
     }
     

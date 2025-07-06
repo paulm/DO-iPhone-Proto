@@ -110,7 +110,7 @@ struct MainTabView: View {
                             if selectedTab == 0 && showChatFAB {
                                 DailyChatFAB(
                                     text: chatCompleted ? "Resume Chat" : "Start Daily Chat",
-                                    backgroundColor: chatCompleted ? Color(hex: "333B40") : Color(hex: "44C0FF")
+                                    backgroundColor: chatCompleted ? .white : Color(hex: "44C0FF")
                                 ) {
                                     // Set hasResumedChat to true when Resume Chat is tapped on a day with an entry
                                     if chatCompleted && hasEntry {

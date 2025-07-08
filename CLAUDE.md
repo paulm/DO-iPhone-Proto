@@ -6,6 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a Day One iOS prototype built with SwiftUI that explores different UI approaches for journaling apps. The key architectural feature is a runtime experiments system that allows switching between different UI variants without rebuilding the app.
 
+* Aim to build all functionality using SwiftUI unless there is a feature that is only supported in AppKit.
+* Design UI in a way that is idiomatic for the macOS platform and follows Apple Human Interface Guidelines.
+* Use SF Symbols for iconography.
+* Use the most modern macOS APIs. Since there is no backward compatibility constraint, this app can target the latest macOS version with the newest APIs.
+* Use the most modern Swift language features and conventions. Target Swift 6 and use Swift concurrency (async/await, actors) and Swift macros where applicable.
+
+
 ## Build Commands
 
 - **Build & Run**: Open `DO-iPhone-Proto.xcodeproj` in Xcode and use Cmd+R to build and run

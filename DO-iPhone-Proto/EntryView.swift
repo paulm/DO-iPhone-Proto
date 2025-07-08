@@ -70,96 +70,101 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
                 // Content area with scrollable embeds and text
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
-                        // Chat activity indicator
-                        if hasChatActivity && showEntryChatEmbed {
-                            Button {
-                                showingEntryChat = true
-                            } label: {
-                                HStack(spacing: 12) {
-                                    Image(systemName: "bubble.left.and.text.bubble.right")
-                                        .font(.body)
-                                        .foregroundStyle(.black)
-                                    
-                                    if useSmallEmbedSize {
-                                        Text("Entry Chat")
-                                            .font(.subheadline)
-                                            .fontWeight(.medium)
-                                            .foregroundStyle(.primary)
-                                        
-                                        Spacer()
-                                        
-                                        Text("3")
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
-                                    } else {
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text("Entry Chat")
-                                                .font(.subheadline)
-                                                .fontWeight(.medium)
-                                                .foregroundStyle(.primary)
-                                            Text("3 messages • \(formatTimeAgo(from: Date().addingTimeInterval(-3600))) • Discussed themes, emotions, and reflections")
-                                                .font(.caption2)
-                                                .foregroundStyle(.secondary)
-                                                .lineLimit(1)
+                        // Embeds section with gray background
+                        if (hasChatActivity && showEntryChatEmbed) || showGeneratedFromDailyChat {
+                            VStack(spacing: 12) {
+                                // Chat activity indicator
+                                if hasChatActivity && showEntryChatEmbed {
+                                    Button {
+                                        showingEntryChat = true
+                                    } label: {
+                                        HStack(spacing: 12) {
+                                            Image(systemName: "bubble.left.and.text.bubble.right")
+                                                .font(.body)
+                                                .foregroundStyle(Color(hex: "44C0FF"))
+                                            
+                                            if useSmallEmbedSize {
+                                                Text("Entry Chat")
+                                                    .font(.subheadline)
+                                                    .fontWeight(.medium)
+                                                    .foregroundStyle(.primary)
+                                                
+                                                Spacer()
+                                                
+                                                Text("3")
+                                                    .font(.caption)
+                                                    .foregroundStyle(.secondary)
+                                            } else {
+                                                VStack(alignment: .leading, spacing: 2) {
+                                                    Text("Entry Chat")
+                                                        .font(.subheadline)
+                                                        .fontWeight(.medium)
+                                                        .foregroundStyle(.primary)
+                                                    Text("3 messages • \(formatTimeAgo(from: Date().addingTimeInterval(-3600))) • Discussed themes, emotions, and reflections")
+                                                        .font(.caption2)
+                                                        .foregroundStyle(.secondary)
+                                                        .lineLimit(1)
+                                                }
+                                                
+                                                Spacer()
+                                            }
                                         }
-                                        
-                                        Spacer()
+                                        .frame(height: useSmallEmbedSize ? 40 : 56)
+                                        .padding(.horizontal, 12)
+                                        .background(Color.black.opacity(0.05))
+                                        .clipShape(RoundedRectangle(cornerRadius: 10))
                                     }
+                                    .buttonStyle(.plain)
                                 }
-                                .frame(height: useSmallEmbedSize ? 40 : 56)
-                                .padding(.horizontal, 12)
-                                .background(Color(hex: "44C0FF").opacity(0.15))
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                            }
-                            .buttonStyle(.plain)
-                            .padding(.horizontal, 14)
-                            .padding(.top, 16)
-                        }
-                        
-                        // Generated from Daily Chat indicator
-                        if showGeneratedFromDailyChat {
-                            Button {
-                                showingDailyChat = true
-                            } label: {
-                                HStack(spacing: 12) {
-                                    Image(systemName: "questionmark.bubble")
-                                        .font(.body)
-                                        .foregroundStyle(.black)
-                                    
-                                    if useSmallEmbedSize {
-                                        Text("Generated from Daily Chat")
-                                            .font(.subheadline)
-                                            .fontWeight(.medium)
-                                            .foregroundStyle(.primary)
-                                        
-                                        Spacer()
-                                        
-                                        Text("3")
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
-                                    } else {
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text("Generated from Daily Chat")
-                                                .font(.subheadline)
-                                                .fontWeight(.medium)
-                                                .foregroundStyle(.primary)
-                                            Text("3 messages • \(formatTimeAgo(from: entryDate))")
-                                                .font(.caption2)
-                                                .foregroundStyle(.secondary)
-                                                .lineLimit(1)
+                                
+                                // Generated from Daily Chat indicator
+                                if showGeneratedFromDailyChat {
+                                    Button {
+                                        showingDailyChat = true
+                                    } label: {
+                                        HStack(spacing: 12) {
+                                            Image(systemName: "questionmark.bubble")
+                                                .font(.body)
+                                                .foregroundStyle(Color.orange)
+                                            
+                                            if useSmallEmbedSize {
+                                                Text("Generated from Daily Chat")
+                                                    .font(.subheadline)
+                                                    .fontWeight(.medium)
+                                                    .foregroundStyle(.primary)
+                                                
+                                                Spacer()
+                                                
+                                                Text("3")
+                                                    .font(.caption)
+                                                    .foregroundStyle(.secondary)
+                                            } else {
+                                                VStack(alignment: .leading, spacing: 2) {
+                                                    Text("Generated from Daily Chat")
+                                                        .font(.subheadline)
+                                                        .fontWeight(.medium)
+                                                        .foregroundStyle(.primary)
+                                                    Text("3 messages • \(formatTimeAgo(from: entryDate))")
+                                                        .font(.caption2)
+                                                        .foregroundStyle(.secondary)
+                                                        .lineLimit(1)
+                                                }
+                                                
+                                                Spacer()
+                                            }
                                         }
-                                        
-                                        Spacer()
+                                        .frame(height: useSmallEmbedSize ? 40 : 56)
+                                        .padding(.horizontal, 12)
+                                        .background(Color.black.opacity(0.05))
+                                        .clipShape(RoundedRectangle(cornerRadius: 10))
                                     }
+                                    .buttonStyle(.plain)
                                 }
-                                .frame(height: useSmallEmbedSize ? 40 : 56)
-                                .padding(.horizontal, 12)
-                                .background(Color.orange.opacity(0.15))
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
                             }
-                            .buttonStyle(.plain)
                             .padding(.horizontal, 14)
-                            .padding(.top, hasChatActivity && showEntryChatEmbed ? 8 : 16)
+                            .padding(.vertical, 16)
+                            .frame(maxWidth: .infinity)
+                            .background(Color(hex: "F2F2F7"))
                         }
                         
                         // Text content

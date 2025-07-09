@@ -29,7 +29,6 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
     @State private var showingEditDate = false
     @State private var showEntryChatEmbed = true
     @State private var showGeneratedFromDailyChat = true
-    @State private var useSmallEmbedSize = true
     @FocusState private var isTextFieldFocused: Bool
     
     // Location for the map - Sundance Resort coordinates
@@ -72,45 +71,29 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
                     VStack(alignment: .leading, spacing: 0) {
                         // Embeds section with gray background
                         if (hasChatActivity && showEntryChatEmbed) || showGeneratedFromDailyChat {
-                            VStack(spacing: 12) {
+                            VStack(spacing: 10) {
                                 // Chat activity indicator
                                 if hasChatActivity && showEntryChatEmbed {
                                     Button {
                                         showingEntryChat = true
                                     } label: {
-                                        HStack(spacing: 12) {
+                                        HStack(spacing: 10) {
                                             Image(systemName: "bubble.left.and.text.bubble.right")
-                                                .font(.body)
-                                                .foregroundStyle(Color(hex: "44C0FF"))
+                                                .font(.caption)
+                                                .foregroundStyle(.white)
                                             
-                                            if useSmallEmbedSize {
-                                                Text("Entry Chat")
-                                                    .font(.subheadline)
-                                                    .fontWeight(.medium)
-                                                    .foregroundStyle(.primary)
-                                                
-                                                Spacer()
-                                                
-                                                Text("3")
-                                                    .font(.caption)
-                                                    .foregroundStyle(.secondary)
-                                            } else {
-                                                VStack(alignment: .leading, spacing: 2) {
-                                                    Text("Entry Chat")
-                                                        .font(.subheadline)
-                                                        .fontWeight(.medium)
-                                                        .foregroundStyle(.primary)
-                                                    Text("3 messages • \(formatTimeAgo(from: Date().addingTimeInterval(-3600))) • Discussed themes, emotions, and reflections")
-                                                        .font(.caption2)
-                                                        .foregroundStyle(.secondary)
-                                                        .lineLimit(1)
-                                                }
-                                                
-                                                Spacer()
-                                            }
+                                            Text("Entry Chat Session")
+                                                .font(.caption)
+                                                .foregroundStyle(.primary.opacity(0.7))
+                                            
+                                            Spacer()
+                                            
+                                            Text("3")
+                                                .font(.caption2)
+                                                .foregroundStyle(.secondary)
                                         }
-                                        .frame(height: useSmallEmbedSize ? 40 : 56)
-                                        .padding(.horizontal, 12)
+                                        .frame(height: 32)
+                                        .padding(.horizontal, 10)
                                         .background(Color.black.opacity(0.05))
                                         .clipShape(RoundedRectangle(cornerRadius: 10))
                                     }
@@ -122,47 +105,31 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
                                     Button {
                                         showingDailyChat = true
                                     } label: {
-                                        HStack(spacing: 12) {
+                                        HStack(spacing: 10) {
                                             Image(systemName: "questionmark.bubble")
-                                                .font(.body)
-                                                .foregroundStyle(Color.orange)
+                                                .font(.caption)
+                                                .foregroundStyle(.white)
                                             
-                                            if useSmallEmbedSize {
-                                                Text("Generated from Daily Chat")
-                                                    .font(.subheadline)
-                                                    .fontWeight(.medium)
-                                                    .foregroundStyle(.primary)
-                                                
-                                                Spacer()
-                                                
-                                                Text("3")
-                                                    .font(.caption)
-                                                    .foregroundStyle(.secondary)
-                                            } else {
-                                                VStack(alignment: .leading, spacing: 2) {
-                                                    Text("Generated from Daily Chat")
-                                                        .font(.subheadline)
-                                                        .fontWeight(.medium)
-                                                        .foregroundStyle(.primary)
-                                                    Text("3 messages • \(formatTimeAgo(from: entryDate))")
-                                                        .font(.caption2)
-                                                        .foregroundStyle(.secondary)
-                                                        .lineLimit(1)
-                                                }
-                                                
-                                                Spacer()
-                                            }
+                                            Text("Generated from Daily Chat")
+                                                .font(.caption)
+                                                .foregroundStyle(.primary.opacity(0.7))
+                                            
+                                            Spacer()
+                                            
+                                            Text("3")
+                                                .font(.caption2)
+                                                .foregroundStyle(.secondary)
                                         }
-                                        .frame(height: useSmallEmbedSize ? 40 : 56)
-                                        .padding(.horizontal, 12)
+                                        .frame(height: 32)
+                                        .padding(.horizontal, 10)
                                         .background(Color.black.opacity(0.05))
                                         .clipShape(RoundedRectangle(cornerRadius: 10))
                                     }
                                     .buttonStyle(.plain)
                                 }
                             }
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 16)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 14)
                             .frame(maxWidth: .infinity)
                             .background(Color(hex: "F2F2F7"))
                         }
@@ -383,24 +350,6 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
                                 showGeneratedFromDailyChat.toggle()
                             }) {
                                 Label("Show Generated from Daily Chat", systemImage: showGeneratedFromDailyChat ? "checkmark" : "")
-                            }
-                            
-                            Divider()
-                            
-                            Menu {
-                                Button(action: {
-                                    useSmallEmbedSize = false
-                                }) {
-                                    Label("Medium", systemImage: !useSmallEmbedSize ? "checkmark" : "")
-                                }
-                                
-                                Button(action: {
-                                    useSmallEmbedSize = true
-                                }) {
-                                    Label("Small", systemImage: useSmallEmbedSize ? "checkmark" : "")
-                                }
-                            } label: {
-                                Label("Entry Embed Size", systemImage: "textformat.size")
                             }
                         } label: {
                             Image(systemName: "ellipsis")

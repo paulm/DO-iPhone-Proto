@@ -96,8 +96,12 @@ struct EntryChatView: View {
                         }
                         .onChange(of: messages.count) { _, _ in
                             if let lastMessage = messages.last {
-                                withAnimation(.easeOut(duration: 0.3)) {
-                                    proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                                // Small delay to ensure message is fully rendered
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                    withAnimation(.easeOut(duration: 0.3)) {
+                                        // Use .top anchor to ensure full message is visible
+                                        proxy.scrollTo(lastMessage.id, anchor: .top)
+                                    }
                                 }
                             }
                         }

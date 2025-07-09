@@ -80,7 +80,7 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
                                         HStack(spacing: 10) {
                                             Image(systemName: "bubble.left.and.text.bubble.right")
                                                 .font(.caption)
-                                                .foregroundStyle(.white)
+                                                .foregroundStyle(Color.black.opacity(0.5))
                                             
                                             Text("Entry Chat Session")
                                                 .font(.caption)
@@ -108,7 +108,7 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
                                         HStack(spacing: 10) {
                                             Image(systemName: "questionmark.bubble")
                                                 .font(.caption)
-                                                .foregroundStyle(.white)
+                                                .foregroundStyle(Color.black.opacity(0.5))
                                             
                                             Text("Generated from Daily Chat")
                                                 .font(.caption)
@@ -381,7 +381,11 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
                 ContentFocusedJournalingToolsView()
             }
             .sheet(isPresented: $showingEntryChat) {
-                EntryChatView(entryText: entryText, entryTitle: extractTitle(from: entryText))
+                EntryChatView(
+                    entryText: entryText,
+                    entryDate: entryDate,
+                    journal: journal
+                )
             }
             .sheet(isPresented: $showingEditDate) {
                 EditDateView(selectedDate: $entryDate)

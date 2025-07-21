@@ -40,6 +40,7 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
     @State private var selectedAudioHasTranscription = true
     @State private var showAudioEmbed = true
     @State private var showAudioEmbedWithTranscription = true
+    @State private var showImageEmbed = true
     @FocusState private var isTextFieldFocused: Bool
     
     // Location for the map - Sundance Resort coordinates
@@ -148,6 +149,16 @@ I think I'm going to sit here for a while longer before heading back down. This 
         .onTapGesture {
             onTap()
         }
+    }
+    
+    private func imageEmbed(imageName: String) -> some View {
+        Image(imageName)
+            .resizable()
+            .aspectRatio(contentMode: .fill)
+            .frame(maxWidth: .infinity)
+            .frame(height: 200)
+            .clipped()
+            .clipShape(RoundedRectangle(cornerRadius: 12))
     }
     
     var body: some View {
@@ -270,8 +281,13 @@ I think I'm going to sit here for a while longer before heading back down. This 
                                 )
                             }
                             
-                            // Text between audio embeds
-                            Text(getTextBetweenAudioEmbeds())
+                            // Image embed
+                            if showImageEmbed {
+                                imageEmbed(imageName: "bike-wide")
+                            }
+                            
+                            // Text between image and second audio
+                            Text(getTextBetweenImageAndSecondAudio())
                                 .font(.body)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .onTapGesture {
@@ -526,6 +542,12 @@ I think I'm going to sit here for a while longer before heading back down. This 
                                 }) {
                                     Label("Audio Embed with Transcription", systemImage: showAudioEmbedWithTranscription ? "checkmark" : "")
                                 }
+                                
+                                Button(action: {
+                                    showImageEmbed.toggle()
+                                }) {
+                                    Label("Image", systemImage: showImageEmbed ? "checkmark" : "")
+                                }
                             }
                         } label: {
                             Image(systemName: "ellipsis")
@@ -646,6 +668,11 @@ I think I'm going to sit here for a while longer before heading back down. This 
     }
     
     private func getTextBetweenAudioEmbeds() -> String {
+        // This will be empty since we're placing the image here instead
+        return ""
+    }
+    
+    private func getTextBetweenImageAndSecondAudio() -> String {
         let paragraphs = entryText.components(separatedBy: "\n\n")
         if paragraphs.count > 2 {
             return paragraphs[2]

@@ -40,7 +40,7 @@ struct JournalRowPreferenceKey: PreferenceKey {
 struct JournalsTabPagedView: View {
     @State private var journalViewModel = JournalSelectionViewModel()
     @State private var showingSettings = false
-    @State private var viewMode: ViewMode = .list
+    @State private var viewMode: ViewMode = .list // Default to Icons view
     @State private var selectedJournal: Journal?
     @State private var searchText = ""
     
@@ -82,19 +82,9 @@ struct JournalsTabPagedView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
-                    // View mode segmented control
-                    Picker("View Mode", selection: $viewMode) {
-                        Image(systemName: "line.3.horizontal.decrease").tag(ViewMode.compact)
-                        Image(systemName: "list.bullet").tag(ViewMode.list)
-                        Image(systemName: "square.grid.3x3").tag(ViewMode.grid)
-                    }
-                    .pickerStyle(.segmented)
-                    .padding(.horizontal)
-                    .padding(.top, 12)
-                    .padding(.bottom, 16)
-                    
                     // Journal content based on view mode
                     journalListContent
+                        .padding(.top, 12)
                 }
             }
             .navigationTitle("Journals")
@@ -118,6 +108,42 @@ struct JournalsTabPagedView: View {
                 }
                 
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
+                    Menu {
+                        Button(action: {
+                            // TODO: Edit journals action
+                        }) {
+                            Label("Edit", systemImage: "pencil")
+                        }
+                        
+                        Button(action: {
+                            // TODO: Select multiple journals action
+                        }) {
+                            Label("Select", systemImage: "checkmark.circle")
+                        }
+                        
+                        Button(action: {
+                            // TODO: Add new journal action
+                        }) {
+                            Label("New Journal", systemImage: "plus")
+                        }
+                        
+                        Divider()
+                        
+                        Picker("View Style", selection: $viewMode) {
+                            Label("List", systemImage: "list.bullet")
+                                .tag(ViewMode.compact)
+                            Label("Icons", systemImage: "square.grid.3x3")
+                                .tag(ViewMode.list)
+                            Label("Books", systemImage: "books.vertical")
+                                .tag(ViewMode.grid)
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                            .font(.body)
+                            .fontWeight(.medium)
+                    }
+                    .foregroundStyle(.primary)
+                    
                     Button(action: {
                         // TODO: Add new journal action
                     }) {
@@ -126,18 +152,12 @@ struct JournalsTabPagedView: View {
                             .fontWeight(.medium)
                     }
                     .foregroundStyle(.primary)
-                    
-                    Button("Edit") {
-                        // TODO: Edit journals action
-                    }
-                    .foregroundStyle(.primary)
                 }
             }
             .navigationDestination(item: $selectedJournal) { journal in
                 JournalDetailPagedView(journal: journal, journalViewModel: journalViewModel, sheetRegularPosition: sheetRegularPosition)
             }
         }
-        .tint(.white)
         .sheet(isPresented: $showingSettings) {
             SettingsView()
         }

@@ -27,18 +27,127 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
     @State private var hasChatActivity = true // Simulating that this entry has chat activity
     @State private var entryDate = Date()
     @State private var showingEditDate = false
-    @State private var showEntryChatEmbed = true
+    @State private var showEntryChatEmbed = false
     @State private var showGeneratedFromDailyChat = true
+    @State private var isPlayingAudio = false
+    @State private var audioDuration: TimeInterval = 125 // 2:05 duration
+    @State private var currentPlayTime: TimeInterval = 0
+    @State private var showingTranscription = false
+    @State private var isPlayingAudio2 = false
+    @State private var audioDuration2: TimeInterval = 87 // 1:27 duration
+    @State private var showingAudioPage = false
+    @State private var showingAudioPage2 = false
+    @State private var selectedAudioHasTranscription = true
+    @State private var showAudioEmbed = true
+    @State private var showAudioEmbedWithTranscription = true
     @FocusState private var isTextFieldFocused: Bool
     
     // Location for the map - Sundance Resort coordinates
     private let entryLocation = CLLocationCoordinate2D(latitude: 40.6006, longitude: -111.5878)
+    
+    // Audio transcription text
+    private let audioTranscriptionText = """
+So, I'm sitting here at Stewart Falls, and I just... I can't even put into words how beautiful this is. The water is just cascading down, and there's this mist that's catching the morning light. It's creating these tiny rainbows everywhere I look.
+
+I'm about halfway up the trail now, and I had to stop and just take this in. You know, I was thinking on the way up here about how we get so caught up in our daily routines, checking emails, rushing from one thing to the next. But being out here, it's like... it's like time just slows down.
+
+The aspens are incredible right now. They're just starting to turn, and you can see these patches of gold mixed in with the evergreens. I wish I could capture this, but even photos don't do it justice. There's something about being here, feeling the cool air, hearing the water... it's just so peaceful.
+
+I think I'm going to sit here for a while longer before heading back down. This is exactly what I needed.
+"""
     private var journalName: String {
         journal?.name ?? "Sample Journal"
     }
     private let locationName = "Sundance Resort"
     private var journalColor: Color {
         journal?.color ?? Color(hex: "4EC3FE")
+    }
+    
+    private func audioRecordingEmbed(hasTranscription: Bool, isPlaying: Binding<Bool>, duration: TimeInterval, title: String, transcriptionPreview: String? = nil, onTap: @escaping () -> Void) -> some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 12) {
+                // Play/Pause button
+                Button {
+                    isPlaying.wrappedValue.toggle()
+                } label: {
+                    ZStack {
+                        Circle()
+                            .fill(Color.black)
+                            .frame(width: 36, height: 36)
+                        
+                        Image(systemName: isPlaying.wrappedValue ? "pause.fill" : "play.fill")
+                            .font(.system(size: 14))
+                            .foregroundStyle(.white)
+                            .offset(x: isPlaying.wrappedValue ? 0 : 1)
+                    }
+                }
+                .buttonStyle(.plain)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title)
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                    
+                    HStack(spacing: 8) {
+                        Text(formatTime(duration))
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        
+                        if hasTranscription {
+                            Text("·")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                            
+                            HStack(spacing: 4) {
+                                Image(systemName: "text.quote")
+                                    .font(.system(size: 10))
+                                Text("Transcription")
+                                    .font(.caption2)
+                            }
+                            .foregroundStyle(Color.blue)
+                        }
+                    }
+                }
+                
+                Spacer()
+                
+                // Waveform visualization
+                HStack(spacing: 2) {
+                    ForEach(0..<30) { index in
+                        RoundedRectangle(cornerRadius: 1)
+                            .fill(Color.black.opacity(0.2))
+                            .frame(width: 2, height: CGFloat.random(in: 8...24))
+                    }
+                }
+                .frame(width: 100)
+            }
+            .padding(12)
+            
+            // Transcription preview for embeds with transcription
+            if hasTranscription, let preview = transcriptionPreview {
+                VStack(alignment: .leading, spacing: 4) {
+                    Divider()
+                        .padding(.horizontal, -12)
+                    
+                    Text(preview)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(3)
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                }
+            }
+        }
+        .background(Color(hex: "F8F8F8"))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onTap()
+        }
     }
     
     var body: some View {
@@ -134,18 +243,71 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
                             .background(Color(hex: "F2F2F7"))
                         }
                         
-                        // Text content
-                        Text(entryText)
-                            .font(.body)
-                            .padding(.horizontal, 14)
-                            .padding(.top, (hasChatActivity && showEntryChatEmbed) || showGeneratedFromDailyChat ? 28 : 12)
-                            .padding(.bottom, 100)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .onTapGesture {
-                                if !isTextFieldFocused {
-                                    isTextFieldFocused = true
+                        // Text content with inline audio embeds
+                        VStack(alignment: .leading, spacing: 16) {
+                            // First two paragraphs
+                            Text(getTextBeforeAudioEmbed())
+                                .font(.body)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .onTapGesture {
+                                    if !isTextFieldFocused {
+                                        isTextFieldFocused = true
+                                    }
                                 }
+                            
+                            // First audio recording embed (with transcription)
+                            if showAudioEmbedWithTranscription {
+                                audioRecordingEmbed(
+                                    hasTranscription: true,
+                                    isPlaying: $isPlayingAudio,
+                                    duration: audioDuration,
+                                    title: "Morning Reflections at Stewart Falls",
+                                    transcriptionPreview: "So, I'm sitting here at Stewart Falls, and I just... I can't even put into words how beautiful this is. The water is just cascading down, and there's this mist that's catching the morning light. It's creating these tiny rainbows everywhere I look.",
+                                    onTap: {
+                                        selectedAudioHasTranscription = true
+                                        showingAudioPage = true
+                                    }
+                                )
                             }
+                            
+                            // Text between audio embeds
+                            Text(getTextBetweenAudioEmbeds())
+                                .font(.body)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .onTapGesture {
+                                    if !isTextFieldFocused {
+                                        isTextFieldFocused = true
+                                    }
+                                }
+                            
+                            // Second audio recording embed (without transcription)
+                            if showAudioEmbed {
+                                audioRecordingEmbed(
+                                    hasTranscription: false,
+                                    isPlaying: $isPlayingAudio2,
+                                    duration: audioDuration2,
+                                    title: "Sounds of the Mountain Stream",
+                                    transcriptionPreview: nil,
+                                    onTap: {
+                                        selectedAudioHasTranscription = false
+                                        showingAudioPage2 = true
+                                    }
+                                )
+                            }
+                            
+                            // Remaining text
+                            Text(getTextAfterSecondAudioEmbed())
+                                .font(.body)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .onTapGesture {
+                                    if !isTextFieldFocused {
+                                        isTextFieldFocused = true
+                                    }
+                                }
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.top, (hasChatActivity && showEntryChatEmbed) || showGeneratedFromDailyChat ? 28 : 12)
+                        .padding(.bottom, 100)
                     }
                 }
                 .scrollDismissesKeyboard(.interactively)
@@ -340,16 +502,30 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
                             
                             Divider()
                             
-                            Button(action: {
-                                showEntryChatEmbed.toggle()
-                            }) {
-                                Label("Show Entry Chat Embed", systemImage: showEntryChatEmbed ? "checkmark" : "")
-                            }
-                            
-                            Button(action: {
-                                showGeneratedFromDailyChat.toggle()
-                            }) {
-                                Label("Show Generated from Daily Chat", systemImage: showGeneratedFromDailyChat ? "checkmark" : "")
+                            Section("Show") {
+                                Button(action: {
+                                    showEntryChatEmbed.toggle()
+                                }) {
+                                    Label("Entry Chat Embed", systemImage: showEntryChatEmbed ? "checkmark" : "")
+                                }
+                                
+                                Button(action: {
+                                    showGeneratedFromDailyChat.toggle()
+                                }) {
+                                    Label("Generated from Daily Chat", systemImage: showGeneratedFromDailyChat ? "checkmark" : "")
+                                }
+                                
+                                Button(action: {
+                                    showAudioEmbed.toggle()
+                                }) {
+                                    Label("Audio Embed", systemImage: showAudioEmbed ? "checkmark" : "")
+                                }
+                                
+                                Button(action: {
+                                    showAudioEmbedWithTranscription.toggle()
+                                }) {
+                                    Label("Audio Embed with Transcription", systemImage: showAudioEmbedWithTranscription ? "checkmark" : "")
+                                }
                             }
                         } label: {
                             Image(systemName: "ellipsis")
@@ -399,6 +575,24 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
                     onMessageCountChanged: { _ in }
                 )
             }
+            .sheet(isPresented: $showingAudioPage) {
+                AudioTranscriptionView(
+                    transcriptionText: audioTranscriptionText,
+                    audioDuration: audioDuration,
+                    recordingDate: entryDate,
+                    hasTranscription: true,
+                    audioTitle: "Morning Reflections at Stewart Falls"
+                )
+            }
+            .sheet(isPresented: $showingAudioPage2) {
+                AudioTranscriptionView(
+                    transcriptionText: "",
+                    audioDuration: audioDuration2,
+                    recordingDate: entryDate,
+                    hasTranscription: false,
+                    audioTitle: "Sounds of the Mountain Stream"
+                )
+            }
         }
     }
     
@@ -427,6 +621,44 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
         } else {
             return "just now"
         }
+    }
+    
+    private func formatTime(_ timeInterval: TimeInterval) -> String {
+        let minutes = Int(timeInterval) / 60
+        let seconds = Int(timeInterval) % 60
+        return String(format: "%d:%02d", minutes, seconds)
+    }
+    
+    private func getTextBeforeAudioEmbed() -> String {
+        let paragraphs = entryText.components(separatedBy: "\n\n")
+        if paragraphs.count >= 2 {
+            return paragraphs[0...1].joined(separator: "\n\n")
+        }
+        return entryText
+    }
+    
+    private func getTextAfterAudioEmbed() -> String {
+        let paragraphs = entryText.components(separatedBy: "\n\n")
+        if paragraphs.count > 2 {
+            return paragraphs[2...].joined(separator: "\n\n")
+        }
+        return ""
+    }
+    
+    private func getTextBetweenAudioEmbeds() -> String {
+        let paragraphs = entryText.components(separatedBy: "\n\n")
+        if paragraphs.count > 2 {
+            return paragraphs[2]
+        }
+        return ""
+    }
+    
+    private func getTextAfterSecondAudioEmbed() -> String {
+        let paragraphs = entryText.components(separatedBy: "\n\n")
+        if paragraphs.count > 3 {
+            return paragraphs[3...].joined(separator: "\n\n")
+        }
+        return ""
     }
 }
 

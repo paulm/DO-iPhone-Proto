@@ -222,10 +222,6 @@ I think I'm going to sit here for a while longer before heading back down. This 
                                         showingEntryChat = true
                                     } label: {
                                         HStack(spacing: 10) {
-                                            Image(systemName: "bubble.left.and.text.bubble.right")
-                                                .font(.caption)
-                                                .foregroundStyle(Color.black.opacity(0.5))
-                                            
                                             Text("Entry Chat Session")
                                                 .font(.caption)
                                                 .foregroundStyle(.primary.opacity(0.7))
@@ -236,10 +232,11 @@ I think I'm going to sit here for a while longer before heading back down. This 
                                                 .font(.caption2)
                                                 .foregroundStyle(.secondary)
                                         }
-                                        .frame(height: 32)
-                                        .padding(.horizontal, 10)
-                                        .background(Color.black.opacity(0.05))
-                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 12)
+                                        .frame(maxWidth: .infinity)
+                                        .background(Color(hex: "F8F8F8"))
+                                        .clipShape(RoundedRectangle(cornerRadius: 12))
                                     }
                                     .buttonStyle(.plain)
                                 }
@@ -250,10 +247,6 @@ I think I'm going to sit here for a while longer before heading back down. This 
                                         showingDailyChat = true
                                     } label: {
                                         HStack(spacing: 10) {
-                                            Image(systemName: "questionmark.bubble")
-                                                .font(.caption)
-                                                .foregroundStyle(Color.black.opacity(0.5))
-                                            
                                             Text("Generated from Daily Chat")
                                                 .font(.caption)
                                                 .foregroundStyle(.primary.opacity(0.7))
@@ -264,10 +257,11 @@ I think I'm going to sit here for a while longer before heading back down. This 
                                                 .font(.caption2)
                                                 .foregroundStyle(.secondary)
                                         }
-                                        .frame(height: 32)
-                                        .padding(.horizontal, 10)
-                                        .background(Color.black.opacity(0.05))
-                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 12)
+                                        .frame(maxWidth: .infinity)
+                                        .background(Color(hex: "F8F8F8"))
+                                        .clipShape(RoundedRectangle(cornerRadius: 12))
                                     }
                                     .buttonStyle(.plain)
                                 }
@@ -275,7 +269,6 @@ I think I'm going to sit here for a while longer before heading back down. This 
                             .padding(.horizontal, 12)
                             .padding(.vertical, 14)
                             .frame(maxWidth: .infinity)
-                            .background(Color(hex: "F2F2F7"))
                         }
                         
                         // Text content with inline audio embeds
@@ -309,7 +302,7 @@ I think I'm going to sit here for a while longer before heading back down. This 
                             if showImageEmbed {
                                 imageEmbed(
                                     imageName: "bike-wide",
-                                    caption: "The view from the mountain trail was absolutely breathtaking this morning. The golden aspens contrasting against the dark pines created a natural masterpiece that no camera could truly capture.",
+                                    caption: "Timeless style on two wheels—vintage charm meets modern café culture",
                                     showCaption: showImageCaption,
                                     onTap: {
                                         showingMediaPage = true

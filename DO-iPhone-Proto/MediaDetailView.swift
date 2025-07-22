@@ -5,6 +5,9 @@ struct MediaDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var caption: String = ""
     @State private var showingMenu = false
+    @State private var hasDescription = false
+    @State private var isGeneratingDescription = false
+    @State private var generatedDescription = ""
     @FocusState private var isCaptionFocused: Bool
     
     let imageName: String
@@ -12,8 +15,8 @@ struct MediaDetailView: View {
     let locationName: String
     let locationCoordinate: CLLocationCoordinate2D
     
-    private let mediaDescription = """
-A scenic mountain vista captured during an early morning hike. The image shows a winding trail cutting through dense forest, with golden aspen trees in the foreground creating a striking contrast against the darker evergreen pines. The morning light filters through the canopy, creating dappled shadows on the path below. In the distance, mountain peaks are visible through a slight haze, their rocky faces catching the warm light of sunrise. The composition captures the serene beauty of the natural landscape, with the trail serving as a leading line that draws the eye deeper into the wilderness. The autumn colors suggest this was taken during peak fall foliage season, when the aspens transform the mountainside into a patchwork of gold and green.
+    private let fullDescription = """
+A meticulously restored vintage bicycle is parked curbside in front of a stylish café or boutique shop. The chrome frame gleams in the daylight, complemented by tan wall tires, a brown leather saddle, and matching leather-wrapped handlebars. Mounted on the rear rack is a wooden storage box with leather accents, while two polished gold water bottles are secured to the frame. A small wooden crate with vintage accessories rests beneath the bike, enhancing its nostalgic charm. The warm, wood-paneled storefront in the background, filled with bottles and soft lighting, completes the inviting, retro-modern aesthetic.
 """
     
     var body: some View {
@@ -60,35 +63,62 @@ A scenic mountain vista captured during an early morning hike. The image shows a
                             
                             Spacer()
                             
-                            Menu {
-                                Button(action: {
-                                    // Process again action
-                                }) {
-                                    Label("Process again", systemImage: "arrow.clockwise")
+                            if hasDescription {
+                                Menu {
+                                    Button(action: {
+                                        // Process again - regenerate description
+                                        hasDescription = false
+                                        generatedDescription = ""
+                                        generateDescription()
+                                    }) {
+                                        Label("Process again", systemImage: "arrow.clockwise")
+                                    }
+                                    
+                                    Button(role: .destructive, action: {
+                                        // Delete description
+                                        hasDescription = false
+                                        generatedDescription = ""
+                                    }) {
+                                        Label("Delete description", systemImage: "trash")
+                                    }
+                                } label: {
+                                    Image(systemName: "ellipsis")
+                                        .font(.body)
+                                        .foregroundStyle(.secondary)
+                                        .frame(width: 44, height: 44)
+                                        .contentShape(Rectangle())
                                 }
-                                
-                                Button(role: .destructive, action: {
-                                    // Delete description action
-                                }) {
-                                    Label("Delete description", systemImage: "trash")
+                            } else if !isGeneratingDescription {
+                                Button(action: generateDescription) {
+                                    Text("Generate")
+                                        .font(.caption)
+                                        .foregroundStyle(.blue)
                                 }
-                            } label: {
-                                Image(systemName: "ellipsis")
-                                    .font(.body)
-                                    .foregroundStyle(.secondary)
-                                    .frame(width: 44, height: 44)
-                                    .contentShape(Rectangle())
                             }
                         }
                         
-                        Text(mediaDescription)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .padding()
-                            .background(Color(UIColor.systemGray6))
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                        if hasDescription {
+                            Text(generatedDescription)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .padding()
+                                .background(Color(UIColor.systemGray6))
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        } else if isGeneratingDescription {
+                            HStack {
+                                Spacer()
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle())
+                                    .scaleEffect(0.8)
+                                Text("Generating description...")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                Spacer()
+                            }
+                            .padding(.vertical, 30)
+                        }
                     }
                     .padding()
                 }
@@ -103,6 +133,17 @@ A scenic mountain vista captured during an early morning hike. The image shows a
                     .fontWeight(.semibold)
                 }
             }
+        }
+    }
+    
+    private func generateDescription() {
+        isGeneratingDescription = true
+        
+        // Simulate API call delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            generatedDescription = fullDescription
+            hasDescription = true
+            isGeneratingDescription = false
         }
     }
 }

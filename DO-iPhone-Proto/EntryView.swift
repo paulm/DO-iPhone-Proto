@@ -41,6 +41,8 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
     @State private var showAudioEmbed = true
     @State private var showAudioEmbedWithTranscription = true
     @State private var showImageEmbed = true
+    @State private var showImageCaption = true
+    @State private var showingMediaPage = false
     @FocusState private var isTextFieldFocused: Bool
     
     // Location for the map - Sundance Resort coordinates
@@ -151,14 +153,36 @@ I think I'm going to sit here for a while longer before heading back down. This 
         }
     }
     
-    private func imageEmbed(imageName: String) -> some View {
-        Image(imageName)
-            .resizable()
-            .aspectRatio(contentMode: .fill)
-            .frame(maxWidth: .infinity)
-            .frame(height: 200)
-            .clipped()
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+    private func imageEmbed(imageName: String, caption: String? = nil, showCaption: Bool = true, onTap: @escaping () -> Void) -> some View {
+        VStack(spacing: 0) {
+            Image(imageName)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(maxWidth: .infinity)
+            
+            // Caption section similar to audio transcription preview
+            if showCaption, let captionText = caption {
+                VStack(alignment: .leading, spacing: 4) {
+                    Divider()
+                        .padding(.horizontal, -12)
+                    
+                    Text(captionText)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(3)
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                }
+            }
+        }
+        .background(Color(hex: "F8F8F8"))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onTap()
+        }
     }
     
     var body: some View {
@@ -283,7 +307,14 @@ I think I'm going to sit here for a while longer before heading back down. This 
                             
                             // Image embed
                             if showImageEmbed {
-                                imageEmbed(imageName: "bike-wide")
+                                imageEmbed(
+                                    imageName: "bike-wide",
+                                    caption: "The view from the mountain trail was absolutely breathtaking this morning. The golden aspens contrasting against the dark pines created a natural masterpiece that no camera could truly capture.",
+                                    showCaption: showImageCaption,
+                                    onTap: {
+                                        showingMediaPage = true
+                                    }
+                                )
                             }
                             
                             // Text between image and second audio
@@ -548,6 +579,12 @@ I think I'm going to sit here for a while longer before heading back down. This 
                                 }) {
                                     Label("Image", systemImage: showImageEmbed ? "checkmark" : "")
                                 }
+                                
+                                Button(action: {
+                                    showImageCaption.toggle()
+                                }) {
+                                    Label("Image Caption", systemImage: showImageCaption ? "checkmark" : "")
+                                }
                             }
                         } label: {
                             Image(systemName: "ellipsis")
@@ -613,6 +650,14 @@ I think I'm going to sit here for a while longer before heading back down. This 
                     recordingDate: entryDate,
                     hasTranscription: false,
                     audioTitle: "Sounds of the Mountain Stream"
+                )
+            }
+            .sheet(isPresented: $showingMediaPage) {
+                MediaDetailView(
+                    imageName: "bike-wide",
+                    imageDate: entryDate,
+                    locationName: locationName,
+                    locationCoordinate: entryLocation
                 )
             }
         }

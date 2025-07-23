@@ -12,6 +12,7 @@ struct CustomSheet<Content: View>: View {
     @State private var scrollOffset: CGFloat = 0
     @State private var contentHeight: CGFloat = 0
     @State private var sheetHeight: CGFloat = 0
+    @State private var lastDragValue: CGFloat = 0
     @State private var isScrollViewAtTop = true
     @State private var scrollViewProxy: ScrollViewProxy?
     @State private var isHandlingSheetDrag = false

@@ -418,78 +418,105 @@ struct JournalDetailPagedView: View {
     
     var body: some View {
         ZStack {
-            // Full screen journal color background
-            journal.color
-                .ignoresSafeArea()
-            
-            // Cover image overlay from journals.json
-            if !journal.appearance.originalCoverImageData.isEmpty {
-                GeometryReader { geometry in
-                    VStack {
-                        Image(journal.appearance.originalCoverImageData)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: geometry.size.width, height: sheetRegularPosition + 100)
-                            .clipped()
-                            .ignoresSafeArea()
+            // Background and sheet layer
+            ZStack {
+                // Full screen journal color background
+                journal.color
+                    .ignoresSafeArea()
+                
+                // Cover image overlay from journals.json
+                if !journal.appearance.originalCoverImageData.isEmpty {
+                    GeometryReader { geometry in
+                        VStack {
+                            Image(journal.appearance.originalCoverImageData)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: geometry.size.width, height: sheetRegularPosition + 100)
+                                .clipped()
+                                .ignoresSafeArea()
+                            
+                            Spacer()
+                        }
+                    }
+                    .ignoresSafeArea()
+                }
+                
+                VStack(alignment: .leading) {
+                    HStack(alignment: .top) {
+                        VStack(alignment: .leading, spacing: 0) {
+                            Text(journal.name)
+                                .font(.title)
+                                .fontWeight(.bold)
+                                .foregroundStyle(.white)
+                            
+                            Text("2020 – 2025")
+                                .font(.caption)
+                                .foregroundStyle(.white.opacity(0.8))
+                        }
                         
                         Spacer()
-                    }
-                }
-                .ignoresSafeArea()
-            }
-            
-            VStack(alignment: .leading) {
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text(journal.name)
-                            .font(.title)
-                            .fontWeight(.bold)
-                            .foregroundStyle(.white)
                         
-                        Text("2020 – 2025")
-                            .font(.caption)
-                            .foregroundStyle(.white.opacity(0.8))
+                        // Ellipsis menu button
+                        Menu {
+                            Button(action: {
+                                showingEditView = true
+                            }) {
+                                Label("Edit Journal", systemImage: "pencil")
+                            }
+                            
+                            Button(action: {
+                                // TODO: Preview Book action
+                            }) {
+                                Label("Preview Book", systemImage: "book")
+                            }
+                            
+                            Button(action: {
+                                // TODO: Export action
+                            }) {
+                                Label("Export", systemImage: "square.and.arrow.up")
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis")
+                                .font(.system(size: 20, weight: .medium))
+                                .foregroundStyle(.white)
+                                .frame(width: 44, height: 44)
+                                .background(Color.white.opacity(0.001))
+                                .contentShape(Rectangle())
+                        }
+                        .padding(.trailing, 18)
                     }
+                    .padding(.leading, 18)
+                    .padding(.top, sheetRegularPosition - 100)
                     
                     Spacer()
-                    
-                    // Ellipsis menu button
-                    Menu {
-                        Button(action: {
-                            showingEditView = true
-                        }) {
-                            Label("Edit Journal", systemImage: "pencil")
-                        }
-                        
-                        Button(action: {
-                            // TODO: Preview Book action
-                        }) {
-                            Label("Preview Book", systemImage: "book")
-                        }
-                        
-                        Button(action: {
-                            // TODO: Export action
-                        }) {
-                            Label("Export", systemImage: "square.and.arrow.up")
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis")
-                            .font(.system(size: 20, weight: .medium))
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .customSheet(isPresented: $showingSheet, regularPosition: sheetRegularPosition, sheetState: sheetState) {
+                PagedJournalSheetContent(journal: journal, sheetState: sheetState, sheetRegularPosition: sheetRegularPosition)
+            }
+            
+            // FAB on top layer
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        showingEntryView = true
+                    }) {
+                        Image(systemName: "plus")
+                            .font(.title3)
+                            .fontWeight(.semibold)
                             .foregroundStyle(.white)
-                            .frame(width: 44, height: 44)
-                            .background(Color.white.opacity(0.001))
-                            .contentShape(Rectangle())
+                            .frame(width: 56, height: 56)
+                            .background(journal.color)
+                            .clipShape(Circle())
+                            .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
                     }
                     .padding(.trailing, 18)
+                    .padding(.bottom, 40) // Position above tab bar (was 100pt, now 40pt)
                 }
-                .padding(.leading, 18)
-                .padding(.top, sheetRegularPosition - 100)
-                
-                Spacer()
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .zIndex(1)
         }
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
@@ -509,9 +536,6 @@ struct JournalDetailPagedView: View {
         .sheet(isPresented: $showingEditView) {
             PagedEditJournalView(journal: journal)
         }
-        .overlay(
-            PagedNativeSheetView(isPresented: $showingSheet, journal: journal, sheetRegularPosition: sheetRegularPosition, sheetState: sheetState)
-        )
     }
 }
 
@@ -611,20 +635,6 @@ struct PagedJournalSheetContent: View {
     let sheetRegularPosition: CGFloat
     @State private var selectedTab = 1
     @State private var showingEntryView = false
-    @State private var showFAB = false
-    
-    // Calculate FAB positions to maintain 80pt from bottom of device
-    private var fabRegularPosition: CGFloat {
-        // When sheet is at regular position, calculate distance from sheet top
-        // Screen height - sheetRegularPosition - 80 (from bottom) - 56 (FAB height) - 50 (adjustment)
-        UIScreen.main.bounds.height - sheetRegularPosition - 80 - 56 - 50
-    }
-    
-    private var fabExpandedPosition: CGFloat {
-        // When expanded, sheet is roughly at status bar height (~50pt)
-        // So we need: Screen height - 50 (expanded position) - 80 (from bottom) - 56 (FAB height)
-        UIScreen.main.bounds.height - 50 - 80 - 56
-    }
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -660,46 +670,17 @@ struct PagedJournalSheetContent: View {
                     }
                     .pickerStyle(.segmented)
                     .padding(.horizontal)
-                    .padding(.top, 22)
+                    .padding(.top, -4) // Negative padding to position behind grabber
                     .padding(.bottom, 12)
                     .background(
                         .ultraThinMaterial
                     )
+                    .zIndex(1) // Ensure it stays on top
                     
                     Spacer()
                 }
             }
             
-            // FAB button that animates based on sheet position
-            if showFAB {
-                Button(action: {
-                    showingEntryView = true
-                }) {
-                    Image(systemName: "plus")
-                        .font(.title3)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.white)
-                        .frame(width: 56, height: 56)
-                        .background(journal.color)
-                        .clipShape(Circle())
-                        .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
-                }
-                .padding(.trailing, 18)
-                .padding(.top, sheetState.isExpanded ? fabExpandedPosition : fabRegularPosition)
-                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: sheetState.isExpanded)
-                .transition(.asymmetric(
-                    insertion: .scale(scale: 0.8).combined(with: .opacity),
-                    removal: .scale(scale: 0.8).combined(with: .opacity)
-                ))
-            }
-        }
-        .onAppear {
-            // Animate FAB in after a short delay with bounce effect
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                withAnimation(.interpolatingSpring(stiffness: 180, damping: 12)) {
-                    showFAB = true
-                }
-            }
         }
         .sheet(isPresented: $showingEntryView) {
             EntryView(journal: journal)

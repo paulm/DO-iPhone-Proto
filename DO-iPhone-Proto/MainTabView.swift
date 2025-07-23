@@ -84,6 +84,7 @@ struct MainTabView: View {
                     .tag(3)
             }
             .tint(.black)
+            .zIndex(1) // Ensure tab bar appears above custom sheets
             
             // Floating Action Button - only show on Today tab
             if selectedTab == 0 {

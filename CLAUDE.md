@@ -6,11 +6,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a Day One iOS prototype built with SwiftUI that explores different UI approaches for journaling apps. The key architectural feature is a runtime experiments system that allows switching between different UI variants without rebuilding the app.
 
-* Aim to build all functionality using SwiftUI unless there is a feature that is only supported in AppKit.
-* Design UI in a way that is idiomatic for the macOS platform and follows Apple Human Interface Guidelines.
-* Use SF Symbols for iconography.
-* Use the most modern macOS APIs. Since there is no backward compatibility constraint, this app can target the latest macOS version with the newest APIs.
-* Use the most modern Swift language features and conventions. Target Swift 6 and use Swift concurrency (async/await, actors) and Swift macros where applicable.
+**Key Features:**
+- AI-powered conversational journaling with chat interface
+- Runtime UI experimentation framework
+- Modern SwiftUI architecture targeting iOS 18.5+
+- TipKit integration for user guidance
+
+**Development Guidelines:**
+- Build all functionality using SwiftUI patterns
+- Follow Apple Human Interface Guidelines for iOS
+- Use SF Symbols for consistent iconography
+- Target iOS 18.5+ with modern Swift features
+- Use `@Observable` macro for state management
+- Leverage Swift concurrency (async/await) where applicable
 
 
 ## Build Commands
@@ -39,6 +47,9 @@ The app uses an `@Observable` ExperimentsManager singleton to control UI variant
 - **ExperimentsManager**: Global UI variant state
 - **RootViewModel**: Root-level UI state (modals, sheets)
 - **JournalSelectionViewModel**: Journal selection and theming state
+- **ChatSessionManager**: Chat message persistence and state
+- **DailyContentManager**: Entry and summary tracking
+- **DailyDataManager**: JSON data loading and caching
 
 ### UI Patterns
 - **Variant Architecture**: Each major view has multiple implementation variants
@@ -47,9 +58,11 @@ The app uses an `@Observable` ExperimentsManager singleton to control UI variant
 - **Color Theming**: Custom Color extension with hex support (`Color(hex: "44C0FF")`)
 
 ### Data Models
-- **Journal**: Identifiable struct with name, color, and entry count
+- **Journal**: Full-featured journal with settings, features, and appearance
+- **DailyChatMessage**: Chat message with user flag and log mode support
+- **DayData**: Daily activity data loaded from JSON
 - **AppSection**: Enum defining experiment-capable app sections
-- **ExperimentVariant**: Enum defining available UI variants (Original, Apple Settings, Variant 2, Paged)
+- **ExperimentVariant**: Enum defining available UI variants (original, appleSettings, v1i2, paged, grid)
 
 ## Key Files Structure
 
@@ -83,3 +96,19 @@ DO-iPhone-Proto/
    - Use Settings → Experiments for full control
    - Tap active tabs to quickly cycle variants
    - Global variants apply to all compatible sections
+
+## AI Chat Features
+
+The app includes an AI-powered journaling chat system:
+- **Chat Modes**: Toggle between "Chat" (conversational) and "Log" (quick notes) modes
+- **Entry Generation**: Creates journal entries from chat conversations
+- **Resume Functionality**: Continue existing chats with context
+- **Update Detection**: Detects new messages after entry creation and prompts for updates
+- **Floating Action Button**: Context-aware FAB changes state based on chat/entry status
+
+## Data Sources
+
+- **DailyData.json**: Provides daily activity data (steps, water, calories, etc.)
+- **journals.json**: Journal configuration and sample data
+- Data is loaded on app launch by respective managers
+- NotificationCenter broadcasts updates across views

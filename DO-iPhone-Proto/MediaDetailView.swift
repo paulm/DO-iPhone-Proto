@@ -23,17 +23,6 @@ A meticulously restored vintage bicycle is parked curbside in front of a stylish
         NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
-                    // Date, time and location header
-                    HStack {
-                        Text("\(imageDate, format: .dateTime.weekday(.wide).month(.wide).day()) at \(imageDate, format: .dateTime.hour().minute()) · \(locationName)")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        
-                        Spacer()
-                    }
-                    .padding(.horizontal)
-                    .padding(.top)
-                    
                     // Image thumbnail section
                     VStack(spacing: 16) {
                         Image(imageName)
@@ -123,9 +112,20 @@ A meticulously restored vintage bicycle is parked curbside in front of a stylish
                     .padding()
                 }
             }
-            .navigationTitle("Media")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    VStack(spacing: 2) {
+                        Text(imageDate, format: .dateTime.weekday(.wide).month(.wide).day().year())
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                        
+                        Text("\(imageDate, format: .dateTime.hour().minute()) at \(locationName)")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") {
                         dismiss()
@@ -149,9 +149,19 @@ A meticulously restored vintage bicycle is parked curbside in front of a stylish
 }
 
 #Preview {
-    MediaDetailView(
+    // Create a specific date: Tuesday, July 22, 2025 at 3:14 PM
+    let components = DateComponents(
+        year: 2025,
+        month: 7,
+        day: 22,
+        hour: 15,
+        minute: 14
+    )
+    let specificDate = Calendar.current.date(from: components) ?? Date()
+    
+    return MediaDetailView(
         imageName: "bike-wide",
-        imageDate: Date(),
+        imageDate: specificDate,
         locationName: "Sundance Resort",
         locationCoordinate: CLLocationCoordinate2D(latitude: 40.6006, longitude: -111.5878)
     )

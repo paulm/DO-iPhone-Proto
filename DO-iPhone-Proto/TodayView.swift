@@ -2055,14 +2055,24 @@ struct ChatMessageBubbleView: View {
 // Chat Input Box View
 struct ChatInputBoxView: View {
     let action: () -> Void
+    @State private var showCursor = true
     
     var body: some View {
         Button(action: action) {
             HStack(spacing: 12) {
-                Text("Chat about your day...")
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                HStack(spacing: 4) {
+                    // Blinking cursor
+                    Rectangle()
+                        .fill(Color(hex: "44C0FF"))
+                        .frame(width: 2, height: 30)
+                        .opacity(showCursor ? 1 : 0)
+                        .animation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true), value: showCursor)
+                    
+                    Text("Chat about your day...")
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 
                 Image(systemName: "mic")
                     .font(.system(size: 20))
@@ -2085,6 +2095,9 @@ struct ChatInputBoxView: View {
         .buttonStyle(PlainButtonStyle())
         .padding(.horizontal, 16)
         .padding(.bottom, 8)
+        .onAppear {
+            showCursor = true
+        }
     }
 }
 

@@ -90,21 +90,6 @@ struct MainTabView: View {
                 VStack {
                     Spacer()
                     VStack(alignment: .leading, spacing: 8) {
-                        if selectedTab == 0 && showChatFAB && !chatCompleted {
-                            // Chat bubble above FAB when no messages
-                            HStack {
-                                Text("How's your \(dayOfWeek)?")
-                                    .font(.body)
-                                    .foregroundStyle(.primary)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 12)
-                                    .background(Color(.systemGray5))
-                                    .clipShape(RoundedRectangle(cornerRadius: 18))
-                                Spacer()
-                            }
-                            .padding(.leading, 16)
-                        }
-                        
                         HStack(spacing: 12) {
                             Spacer()
                             if selectedTab == 0 && showChatFAB {

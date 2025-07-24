@@ -38,10 +38,10 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
     @State private var showingAudioPage = false
     @State private var showingAudioPage2 = false
     @State private var selectedAudioHasTranscription = true
-    @State private var showAudioEmbed = true
-    @State private var showAudioEmbedWithTranscription = true
-    @State private var showImageEmbed = true
-    @State private var showImageCaption = true
+    @State private var showAudioEmbed = false
+    @State private var showAudioEmbedWithTranscription = false
+    @State private var showImageEmbed = false
+    @State private var showImageCaption = false
     @State private var showingMediaPage = false
     @FocusState private var isTextFieldFocused: Bool
     

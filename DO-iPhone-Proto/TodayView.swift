@@ -460,8 +460,10 @@ struct TodayViewV1i2: View {
     @State private var showTrackers = false
     @State private var showInsights = true
     @State private var showBioTooltip = false
-    @AppStorage("showChatFAB") private var showChatFAB = true
+    @AppStorage("showChatFAB") private var showChatFAB = false
     @AppStorage("showEntryFAB") private var showEntryFAB = false
+    @AppStorage("showChatInputBox") private var showChatInputBox = true
+    @AppStorage("showChatMessage") private var showChatMessage = true
     
     // Options toggles
     @State private var showGridDates = false
@@ -918,6 +920,25 @@ struct TodayViewV1i2: View {
             .ignoresSafeArea(.all, edges: .top)
             .padding(.top, -100)
             
+                // Chat elements at bottom
+                VStack {
+                    Spacer()
+                    VStack(spacing: 12) {  // Increased spacing from 8pt to 18pt (10pt more)
+                        // Chat Message Bubble
+                        if showChatMessage && !chatCompleted {
+                            ChatMessageBubbleView(dayOfWeek: currentDayName)
+                        }
+                        
+                        // Chat Input Box
+                        if showChatInputBox {
+                            ChatInputBoxView {
+                                showingDailyChat = true
+                                openChatInLogMode = false
+                            }
+                        }
+                    }
+                    .padding(.bottom, 16) // Fixed 16pt from bottom
+                }
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -1043,6 +1064,28 @@ struct TodayViewV1i2: View {
                                 HStack {
                                     Text("Entry FAB")
                                     if showEntryFAB {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showChatInputBox.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Chat Input Box")
+                                    if showChatInputBox {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showChatMessage.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Chat Message")
+                                    if showChatMessage {
                                         Image(systemName: "checkmark")
                                     }
                                 }
@@ -1987,6 +2030,61 @@ struct TodayInsightItem: View {
             .padding(.vertical, 4)
         }
         .buttonStyle(PlainButtonStyle())
+    }
+}
+
+// Chat Message Bubble View
+struct ChatMessageBubbleView: View {
+    let dayOfWeek: String
+    
+    var body: some View {
+        HStack {
+            Text("How's your \(dayOfWeek)?")
+                .font(.body)
+                .foregroundStyle(.primary)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(Color(.systemGray5))
+                .clipShape(RoundedRectangle(cornerRadius: 18))
+            Spacer()
+        }
+        .padding(.horizontal, 16)
+    }
+}
+
+// Chat Input Box View
+struct ChatInputBoxView: View {
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Text("Chat about your day...")
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                
+                Image(systemName: "mic")
+                    .font(.system(size: 20))
+                    .foregroundStyle(.secondary)
+                
+                Image(systemName: "arrow.up.circle.fill")
+                    .font(.system(size: 28))
+                    .foregroundStyle(Color(hex: "44C0FF"))
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .background(Color(UIColor.systemBackground))
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 20))
+            .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .padding(.horizontal, 16)
+        .padding(.bottom, 8)
     }
 }
 

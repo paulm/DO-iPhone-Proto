@@ -355,9 +355,13 @@ struct DailyChatView: View {
                                 } else {
                                     Button(action: {
                                         if DailyContentManager.shared.hasEntry(for: selectedDate) {
-                                            // Entry exists with new messages - show preview
+                                            // Entry exists
                                             if DailyContentManager.shared.hasNewMessagesSinceEntry(for: selectedDate) {
+                                                // New messages - show preview
                                                 showingPreviewEntry = true
+                                            } else {
+                                                // No new messages - just view entry
+                                                showingEntry = true
                                             }
                                         } else {
                                             // No entry exists - generate directly
@@ -369,7 +373,7 @@ struct DailyChatView: View {
                                             .foregroundStyle(Color(hex: "44C0FF"))
                                     }
                                     .buttonStyle(PlainButtonStyle())
-                                    .disabled(isGeneratingEntry || (DailyContentManager.shared.hasEntry(for: selectedDate) && !DailyContentManager.shared.hasNewMessagesSinceEntry(for: selectedDate)))
+                                    .disabled(isGeneratingEntry)
                                 }
                             }
                         }

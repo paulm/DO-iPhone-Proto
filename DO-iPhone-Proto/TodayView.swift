@@ -465,13 +465,14 @@ struct TodayViewV1i2: View {
     @State private var showEntry = true
     @State private var showMoments = false
     @State private var showTrackers = false
-    @State private var showInsights = true
+    @State private var showInsights = false
     @State private var showBioTooltip = false
     @AppStorage("showChatFAB") private var showChatFAB = false
     @AppStorage("showEntryFAB") private var showEntryFAB = false
     @AppStorage("showChatInputBox") private var showChatInputBox = true
     @AppStorage("showChatMessage") private var showChatMessage = true
     @AppStorage("showMomentsCarousel") private var showMomentsCarousel = false
+    @AppStorage("showEntryCarousel") private var showEntryCarousel = false
     @AppStorage("todayViewStyle") private var selectedStyle = TodayViewStyle.standard
     
     // Options toggles
@@ -892,7 +893,17 @@ struct TodayViewV1i2: View {
                     }
                 }
                 
-                
+                // Entry Carousel Section
+                if showEntryCarousel {
+                    Section {
+                        EntryCarouselView(selectedDate: selectedDate)
+                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                            .listRowBackground(Color.clear)
+                            .padding(.horizontal, -20)
+                    } header: {
+                        Text("Entries")
+                    }
+                }
                 
                 // Daily Moments Section
                 if showMoments {
@@ -1050,6 +1061,17 @@ struct TodayViewV1i2: View {
                                 HStack {
                                     Text("Daily Entry")
                                     if showEntry {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showEntryCarousel.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Entry Carousel")
+                                    if showEntryCarousel {
                                         Image(systemName: "checkmark")
                                     }
                                 }
@@ -2216,6 +2238,89 @@ struct TodayInsightItemView: View {
 }
 
 // MARK: - ChatEntryPreviewView moved to DailyChatViews.swift
+
+// MARK: - Entry Carousel View
+struct EntryCarouselView: View {
+    let selectedDate: Date
+    
+    struct EntryCategory {
+        let title: String
+        let icon: String
+        let count: Int
+        let color: Color
+        let showPlus: Bool
+        let isDimmed: Bool
+    }
+    
+    var categories: [EntryCategory] {
+        let entriesCount = DailyContentManager.shared.hasEntry(for: selectedDate) ? 1 : 0
+        let onThisDayCount = 3 // Mock data - would come from actual data source
+        
+        return [
+            EntryCategory(
+                title: "Journals", 
+                icon: "books.vertical.fill", 
+                count: 13, 
+                color: Color(hex: "333B40"),
+                showPlus: false,
+                isDimmed: false
+            ),
+            EntryCategory(
+                title: "On This Day", 
+                icon: "calendar", 
+                count: onThisDayCount, 
+                color: Color(hex: "333B40"),
+                showPlus: false,
+                isDimmed: onThisDayCount == 0
+            ),
+            EntryCategory(
+                title: entriesCount > 0 ? "Entries" : "Create Entry", 
+                icon: entriesCount > 0 ? "doc.text.fill" : "plus", 
+                count: entriesCount, 
+                color: Color(hex: "333B40"),
+                showPlus: entriesCount == 0,
+                isDimmed: false
+            )
+        ]
+    }
+    
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(Array(categories.enumerated()), id: \.element.title) { index, category in
+                    VStack(spacing: 0) {
+                        // Icon
+                        Image(systemName: category.icon)
+                            .font(.system(size: 28))
+                            .foregroundStyle(category.isDimmed ? category.color.opacity(0.4) : category.color)
+                            .frame(maxHeight: .infinity)
+                        
+                        // Count label
+                        if category.showPlus {
+                            Text(category.title)
+                                .font(.system(size: 11))
+                                .foregroundStyle(.secondary)
+                                .padding(.bottom, 8)
+                        } else {
+                            Text("\(category.count) \(category.title)")
+                                .font(.system(size: 11))
+                                .foregroundStyle(.secondary)
+                                .opacity(category.isDimmed ? 0.4 : 1.0)
+                                .padding(.bottom, 8)
+                        }
+                    }
+                    .frame(width: 116, height: 84)
+                    .background(Color.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .opacity(category.isDimmed ? 0.6 : 1.0)
+                    .padding(.leading, index == 0 ? 20 : 0)
+                    .padding(.trailing, index == categories.count - 1 ? 20 : 0)
+                }
+            }
+        }
+        .padding(.vertical, 4)
+    }
+}
 
 // MARK: - Moments Carousel View
 struct MomentsCarouselView: View {

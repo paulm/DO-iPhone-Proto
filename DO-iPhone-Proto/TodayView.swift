@@ -2238,17 +2238,11 @@ struct MomentsCarouselView: View {
             HStack(spacing: 12) {
                 ForEach(Array(categories.enumerated()), id: \.element.title) { index, category in
                     VStack(spacing: 0) {
-                        // Icon and title
-                        VStack(spacing: 8) {
-                            Image(systemName: category.icon)
-                                .font(.system(size: 28))
-                                .foregroundStyle(category.color)
-                            
-                            Text(category.title)
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundStyle(.primary)
-                        }
-                        .frame(maxHeight: .infinity)
+                        // Icon
+                        Image(systemName: category.icon)
+                            .font(.system(size: 28))
+                            .foregroundStyle(category.color)
+                            .frame(maxHeight: .infinity)
                         
                         // Count label
                         Text("\(category.count) \(category.title)")
@@ -2256,7 +2250,7 @@ struct MomentsCarouselView: View {
                             .foregroundStyle(.secondary)
                             .padding(.bottom, 8)
                     }
-                    .frame(width: 136, height: 100)
+                    .frame(width: 116, height: 84)
                     .background(Color.white)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .padding(.leading, index == 0 ? 20 : 0)

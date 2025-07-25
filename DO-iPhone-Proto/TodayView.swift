@@ -1031,6 +1031,10 @@ struct TodayViewV1i2: View {
                 HStack {
                     Spacer()
                     Menu {
+                        Button("Select Date") {
+                            showingDatePicker = true
+                        }
+                        
                         Button("Settings") {
                             showingSettings = true
                         }

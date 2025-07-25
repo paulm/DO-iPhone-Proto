@@ -1,6 +1,12 @@
 import SwiftUI
 import TipKit
 
+// MARK: - Style Options
+enum TodayViewStyle: String, CaseIterable {
+    case standard = "Standard"
+    case transparent = "Transparent"
+}
+
 // MARK: - Bio Tip Definition
 struct BioCompletionTip: Tip {
     var title: Text {
@@ -464,6 +470,7 @@ struct TodayViewV1i2: View {
     @AppStorage("showEntryFAB") private var showEntryFAB = false
     @AppStorage("showChatInputBox") private var showChatInputBox = true
     @AppStorage("showChatMessage") private var showChatMessage = true
+    @AppStorage("todayViewStyle") private var selectedStyle = TodayViewStyle.standard
     
     // Options toggles
     @State private var showGridDates = false
@@ -550,6 +557,24 @@ struct TodayViewV1i2: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "EEEE"
         return formatter.string(from: selectedDate)
+    }
+    
+    private var backgroundColor: Color {
+        switch selectedStyle {
+        case .standard:
+            return Color(UIColor.systemGroupedBackground)
+        case .transparent:
+            return .white
+        }
+    }
+    
+    private var cellBackgroundColor: Color {
+        switch selectedStyle {
+        case .standard:
+            return Color(UIColor.secondarySystemGroupedBackground)
+        case .transparent:
+            return Color(UIColor.systemGroupedBackground)
+        }
     }
     
     private var dailyChatTitle: String {
@@ -714,7 +739,7 @@ struct TodayViewV1i2: View {
                 .padding(.vertical, 10)
                 .background(
                     RoundedRectangle(cornerRadius: 10)
-                        .fill(Color(UIColor.secondarySystemGroupedBackground))
+                        .fill(cellBackgroundColor)
                 )
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color.clear)
@@ -739,7 +764,7 @@ struct TodayViewV1i2: View {
                                         .foregroundStyle(Color(hex: "44C0FF"))
                                         .padding(.horizontal, 16)
                                         .padding(.vertical, 8)
-                                        .background(Color.white)
+                                        .background(cellBackgroundColor)
                                         .clipShape(RoundedRectangle(cornerRadius: 8))
                                 }
                                 .buttonStyle(PlainButtonStyle())
@@ -753,7 +778,7 @@ struct TodayViewV1i2: View {
                                         .foregroundStyle(Color(hex: "44C0FF"))
                                         .padding(.horizontal, 16)
                                         .padding(.vertical, 8)
-                                        .background(Color.white)
+                                        .background(cellBackgroundColor)
                                         .clipShape(RoundedRectangle(cornerRadius: 8))
                                 }
                                 .buttonStyle(PlainButtonStyle())
@@ -768,7 +793,7 @@ struct TodayViewV1i2: View {
                 
                 // Entry section (shown when entry exists OR is being generated OR chat is completed)
                 if showEntry && (DailyContentManager.shared.hasEntry(for: selectedDate) || isGeneratingEntry || (chatCompleted && !DailyContentManager.shared.hasEntry(for: selectedDate))) {
-                    Section("Daily Entry") {
+                    Section {
                         if isGeneratingEntry {
                             // Loading state
                             HStack {
@@ -827,7 +852,10 @@ struct TodayViewV1i2: View {
                             .padding(.vertical, 8)
                             .frame(maxWidth: .infinity, alignment: .leading)
                         }
+                    } header: {
+                        Text("Daily Entry")
                     }
+                    .listRowBackground(cellBackgroundColor)
                 }
                 
                 // Update text (shown below Daily Entry when entry exists and chat has updates)
@@ -867,7 +895,7 @@ struct TodayViewV1i2: View {
                 
                 // Daily Moments Section
                 if showMoments {
-                    Section("Daily Moments") {
+                    Section {
                         TodayActivityRowWithMomentsSubtitle(
                             icon: "sparkles",
                             iconColor: .purple,
@@ -879,12 +907,15 @@ struct TodayViewV1i2: View {
                                 showingMoments = true
                             }
                         )
+                    } header: {
+                        Text("Daily Moments")
                     }
+                    .listRowBackground(cellBackgroundColor)
                 }
                 
                 // Daily Trackers Section
                 if showTrackers {
-                    Section("Daily Trackers") {
+                    Section {
                         TodayActivityRowWithCheckbox(
                             icon: "chart.line.uptrend.xyaxis",
                             iconColor: .orange,
@@ -895,7 +926,10 @@ struct TodayViewV1i2: View {
                                 showingTrackers = true
                             }
                         )
+                    } header: {
+                        Text("Daily Trackers")
                     }
+                    .listRowBackground(cellBackgroundColor)
                 }
                 
                 
@@ -917,6 +951,8 @@ struct TodayViewV1i2: View {
                 }
             }
             .listStyle(.insetGrouped)
+            .scrollContentBackground(.hidden)
+            .background(backgroundColor)
             .ignoresSafeArea(.all, edges: .top)
             .padding(.top, -100)
             
@@ -1111,6 +1147,21 @@ struct TodayViewV1i2: View {
                                     Text("Show Streak & Today")
                                     if showStreak {
                                         Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        }
+                        
+                        Section("Style") {
+                            ForEach(TodayViewStyle.allCases, id: \.self) { style in
+                                Button {
+                                    selectedStyle = style
+                                } label: {
+                                    HStack {
+                                        Text(style.rawValue)
+                                        if selectedStyle == style {
+                                            Image(systemName: "checkmark")
+                                        }
                                     }
                                 }
                             }
@@ -2057,16 +2108,17 @@ struct ChatInputBoxView: View {
     let action: () -> Void
     @State private var showCursor = true
     
+    let timer = Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()
+    
     var body: some View {
         Button(action: action) {
             HStack(spacing: 12) {
-                HStack(spacing: 4) {
+                HStack(spacing: 0) {
                     // Blinking cursor
                     Rectangle()
                         .fill(Color(hex: "44C0FF"))
-                        .frame(width: 2, height: 30)
+                        .frame(width: 2, height: 24)
                         .opacity(showCursor ? 1 : 0)
-                        .animation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true), value: showCursor)
                     
                     Text("Chat about your day...")
                         .font(.body)
@@ -2095,8 +2147,10 @@ struct ChatInputBoxView: View {
         .buttonStyle(PlainButtonStyle())
         .padding(.horizontal, 16)
         .padding(.bottom, 8)
-        .onAppear {
-            showCursor = true
+        .onReceive(timer) { _ in
+            withAnimation(.easeInOut(duration: 0.1)) {
+                showCursor.toggle()
+            }
         }
     }
 }

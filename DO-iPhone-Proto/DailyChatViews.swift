@@ -248,6 +248,7 @@ struct DailyChatView: View {
                         .padding(.vertical, 12)
                         .background(Color(.systemBackground))
                         .lineLimit(1...6)
+                        .tint(Color(hex: "44C0FF"))
                     
                     // Keyboard accessory toolbar
                     HStack {

@@ -462,7 +462,7 @@ struct TodayViewV1i2: View {
     @State private var showChat = false
     @State private var showChatSimple = true
     @State private var showDailyEntry = true
-    @State private var showEntry = true
+    @State private var showEntry = false
     @State private var showMoments = false
     @State private var showTrackers = false
     @State private var showInsights = false
@@ -473,6 +473,7 @@ struct TodayViewV1i2: View {
     @AppStorage("showChatMessage") private var showChatMessage = true
     @AppStorage("showMomentsCarousel") private var showMomentsCarousel = false
     @AppStorage("showEntryCarousel") private var showEntryCarousel = false
+    @AppStorage("showDailyChatCarousel") private var showDailyChatCarousel = true
     @AppStorage("todayViewStyle") private var selectedStyle = TodayViewStyle.standard
     
     // Options toggles
@@ -749,7 +750,6 @@ struct TodayViewV1i2: View {
                 .listRowSeparator(.hidden)
                 }
                 
-                
                 // Entry Links (no section wrapper)
                 if showInsights {
                     let entryCount = DailyDataManager.shared.getEntryCount(for: selectedDate)
@@ -804,6 +804,20 @@ struct TodayViewV1i2: View {
                     } header: {
                         if showSectionNames {
                             Text("Entries")
+                        }
+                    }
+                }
+                
+                // Daily Chat Carousel Section
+                if showDailyChatCarousel {
+                    Section {
+                        DailyChatCarouselView(selectedDate: selectedDate, chatCompleted: chatCompleted)
+                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                            .listRowBackground(Color.clear)
+                            .padding(.horizontal, -20)
+                    } header: {
+                        if showSectionNames {
+                            Text("Daily Chat")
                         }
                     }
                 }
@@ -1182,6 +1196,17 @@ struct TodayViewV1i2: View {
                                 HStack {
                                     Text("Chat Message")
                                     if showChatMessage {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showDailyChatCarousel.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Daily Chat Carousel")
+                                    if showDailyChatCarousel {
                                         Image(systemName: "checkmark")
                                     }
                                 }
@@ -2337,6 +2362,63 @@ struct EntryCarouselView: View {
                     .opacity(category.isDimmed ? 0.6 : 1.0)
                     .padding(.leading, index == 0 ? 20 : 0)
                     .padding(.trailing, index == categories.count - 1 ? 20 : 0)
+                }
+            }
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+// MARK: - Daily Chat Carousel View
+struct DailyChatCarouselView: View {
+    let selectedDate: Date
+    let chatCompleted: Bool
+    
+    private var hasEntry: Bool {
+        DailyContentManager.shared.hasEntry(for: selectedDate)
+    }
+    
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                // Chat item
+                VStack(spacing: 0) {
+                    // Icon
+                    Image(systemName: "bubble.left.and.bubble.right.fill")
+                        .font(.system(size: 28))
+                        .foregroundStyle(Color(hex: "44C0FF"))
+                        .frame(maxHeight: .infinity)
+                    
+                    // Label
+                    Text(chatCompleted ? "Resume" : "Start Chat")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                        .padding(.bottom, 8)
+                }
+                .frame(width: 116, height: 84)
+                .background(Color.white)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .padding(.leading, 20)
+                
+                // Entry item (only shown when entry exists)
+                if hasEntry {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Morning Reflections")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                        
+                        Text("Today I started with my usual morning routine, feeling energized and ready...")
+                            .font(.system(size: 12))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(3)
+                            .multilineTextAlignment(.leading)
+                    }
+                    .padding(12)
+                    .frame(width: 244, height: 84) // Double wide (116 * 2 + 12 spacing)
+                    .background(Color.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .padding(.trailing, 20)
                 }
             }
         }

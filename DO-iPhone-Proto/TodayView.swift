@@ -647,10 +647,9 @@ struct TodayViewV1i2: View {
     }
     
     var body: some View {
-        NavigationStack {
-            ZStack {
-                // Main content
-                List {
+        ZStack {
+            // Main content
+            List {
                     
                     // Weather section at the very top
                 if showWeather {
@@ -953,8 +952,7 @@ struct TodayViewV1i2: View {
             .listStyle(.insetGrouped)
             .scrollContentBackground(.hidden)
             .background(backgroundColor)
-            .ignoresSafeArea(.all, edges: .top)
-            .padding(.top, -100)
+            .ignoresSafeArea(edges: .bottom)
             
                 // Chat elements at bottom
                 VStack {
@@ -975,9 +973,11 @@ struct TodayViewV1i2: View {
                     }
                     .padding(.bottom, 16) // Fixed 16pt from bottom
                 }
-            }
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+            
+            // Floating menu button
+            VStack {
+                HStack {
+                    Spacer()
                     Menu {
                         Button("Settings") {
                             showingSettings = true
@@ -1182,14 +1182,18 @@ struct TodayViewV1i2: View {
                         }
                     } label: {
                         Image(systemName: "ellipsis")
-                            .font(.body)
+                            .font(.system(size: 18, weight: .medium))
                             .foregroundStyle(.primary)
+                            .frame(width: 44, height: 44)
+                            .background(Color.clear)
                     }
                     .accessibilityLabel("Profile Menu")
                 }
+                .padding(.top, 14) // Moved up 36pt (was 50pt, now 14pt)
+                .padding(.trailing, 16)
+                Spacer()
             }
         }
-        .toolbarBackground(.hidden, for: .navigationBar)
         .sheet(isPresented: $showingDailyChat) {
             DailyChatView(
                 selectedDate: selectedDate,

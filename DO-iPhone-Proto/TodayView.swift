@@ -920,6 +920,7 @@ struct TodayViewV1i2: View {
                         MomentsCarouselView()
                             .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                             .listRowBackground(Color.clear)
+                            .padding(.horizontal, -20)
                     } header: {
                         Text("Moments")
                     }
@@ -2258,8 +2259,8 @@ struct MomentsCarouselView: View {
                     .frame(width: 136, height: 100)
                     .background(Color.white)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .padding(.leading, index == 0 ? 16 : 0)
-                    .padding(.trailing, index == categories.count - 1 ? 16 : 0)
+                    .padding(.leading, index == 0 ? 20 : 0)
+                    .padding(.trailing, index == categories.count - 1 ? 20 : 0)
                 }
             }
         }

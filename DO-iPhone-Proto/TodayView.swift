@@ -471,6 +471,7 @@ struct TodayViewV1i2: View {
     @AppStorage("showEntryFAB") private var showEntryFAB = false
     @AppStorage("showChatInputBox") private var showChatInputBox = true
     @AppStorage("showChatMessage") private var showChatMessage = true
+    @AppStorage("showMomentsCarousel") private var showMomentsCarousel = false
     @AppStorage("todayViewStyle") private var selectedStyle = TodayViewStyle.standard
     
     // Options toggles
@@ -913,6 +914,17 @@ struct TodayViewV1i2: View {
                     .listRowBackground(cellBackgroundColor)
                 }
                 
+                // Moments Carousel Section
+                if showMomentsCarousel {
+                    Section {
+                        MomentsCarouselView()
+                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                            .listRowBackground(Color.clear)
+                    } header: {
+                        Text("Moments")
+                    }
+                }
+                
                 // Daily Trackers Section
                 if showTrackers {
                     Section {
@@ -1048,6 +1060,17 @@ struct TodayViewV1i2: View {
                                 HStack {
                                     Text("Daily Moments")
                                     if showMoments {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showMomentsCarousel.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Moments Carousel")
+                                    if showMomentsCarousel {
                                         Image(systemName: "checkmark")
                                     }
                                 }
@@ -2193,6 +2216,56 @@ struct TodayInsightItemView: View {
 
 // MARK: - ChatEntryPreviewView moved to DailyChatViews.swift
 
+// MARK: - Moments Carousel View
+struct MomentsCarouselView: View {
+    struct MomentCategory {
+        let title: String
+        let icon: String
+        let count: Int
+        let color: Color
+    }
+    
+    let categories = [
+        MomentCategory(title: "Visits", icon: "location.fill", count: 5, color: .blue),
+        MomentCategory(title: "Media", icon: "photo.fill", count: 12, color: .orange),
+        MomentCategory(title: "Events", icon: "calendar", count: 3, color: .purple),
+        MomentCategory(title: "Health", icon: "heart.fill", count: 8, color: .red)
+    ]
+    
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(Array(categories.enumerated()), id: \.element.title) { index, category in
+                    VStack(spacing: 0) {
+                        // Icon and title
+                        VStack(spacing: 8) {
+                            Image(systemName: category.icon)
+                                .font(.system(size: 28))
+                                .foregroundStyle(category.color)
+                            
+                            Text(category.title)
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundStyle(.primary)
+                        }
+                        .frame(maxHeight: .infinity)
+                        
+                        // Count label
+                        Text("\(category.count) \(category.title)")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                            .padding(.bottom, 8)
+                    }
+                    .frame(width: 136, height: 100)
+                    .background(Color.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .padding(.leading, index == 0 ? 16 : 0)
+                    .padding(.trailing, index == categories.count - 1 ? 16 : 0)
+                }
+            }
+        }
+        .padding(.vertical, 4)
+    }
+}
 
 #Preview {
     TodayView()

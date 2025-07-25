@@ -60,10 +60,10 @@ struct TodayView: View {
         let today = Date()
         
         // Calculate how many dates we need based on screen width
-        // Assuming we want to fit as many as possible in 6 rows
+        // Assuming we want to fit as many as possible in the configured number of rows
         let approximateWidth = UIScreen.main.bounds.width - 40
         let columnsPerRow = Int((approximateWidth + DatePickerConstants.spacing) / (DatePickerConstants.circleSize + DatePickerConstants.spacing))
-        let totalDates = columnsPerRow * 6
+        let totalDates = columnsPerRow * DatePickerConstants.numberOfRows
         
         // Calculate the starting date to ensure we end 4 days in the future
         let endDate = 4
@@ -154,6 +154,7 @@ struct TodayView: View {
 private struct DatePickerConstants {
     static let circleSize: CGFloat = 18
     static let spacing: CGFloat = 12
+    static let numberOfRows: Int = 9  // Control the number of date grid rows
 }
 
 private struct SizePreferenceKey: PreferenceKey {
@@ -222,8 +223,8 @@ struct DatePickerGrid: View {
         var result: [[Date]] = []
         var currentRow: [Date] = []
         
-        // Force exactly 6 rows
-        let datesPerRow = (dates.count + 5) / 6 // Round up division
+        // Force exactly the configured number of rows
+        let datesPerRow = (dates.count + DatePickerConstants.numberOfRows - 1) / DatePickerConstants.numberOfRows // Round up division
         
         for (index, date) in dates.enumerated() {
             currentRow.append(date)
@@ -493,10 +494,10 @@ struct TodayViewV1i2: View {
         let today = Date()
         
         // Calculate how many dates we need based on screen width
-        // Assuming we want to fit as many as possible in 6 rows
+        // Assuming we want to fit as many as possible in the configured number of rows
         let approximateWidth = UIScreen.main.bounds.width - 40
         let columnsPerRow = Int((approximateWidth + DatePickerConstants.spacing) / (DatePickerConstants.circleSize + DatePickerConstants.spacing))
-        let totalDates = columnsPerRow * 6
+        let totalDates = columnsPerRow * DatePickerConstants.numberOfRows
         
         // Calculate the starting date to ensure we end 4 days in the future
         let endDate = 4

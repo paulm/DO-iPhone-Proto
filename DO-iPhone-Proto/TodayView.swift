@@ -954,6 +954,8 @@ struct TodayViewV1i2: View {
             .scrollContentBackground(.hidden)
             .background(backgroundColor)
             .ignoresSafeArea(edges: .bottom)
+            .offset(y: -230)
+            .padding(.bottom, -230)
             
                 // Chat elements at bottom
                 VStack {

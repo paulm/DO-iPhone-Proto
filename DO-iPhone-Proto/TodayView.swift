@@ -477,6 +477,7 @@ struct TodayViewV1i2: View {
     
     // Options toggles
     @State private var showGridDates = false
+    @State private var showSectionNames = true
     @State private var showStreak = false
     @Binding var moodRating: Int
     @Binding var energyRating: Int
@@ -793,6 +794,20 @@ struct TodayViewV1i2: View {
                     }
                 }
                 
+                // Entry Carousel Section
+                if showEntryCarousel {
+                    Section {
+                        EntryCarouselView(selectedDate: selectedDate)
+                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                            .listRowBackground(Color.clear)
+                            .padding(.horizontal, -20)
+                    } header: {
+                        if showSectionNames {
+                            Text("Entries")
+                        }
+                    }
+                }
+                
                 // Entry section (shown when entry exists OR is being generated OR chat is completed)
                 if showEntry && (DailyContentManager.shared.hasEntry(for: selectedDate) || isGeneratingEntry || (chatCompleted && !DailyContentManager.shared.hasEntry(for: selectedDate))) {
                     Section {
@@ -855,7 +870,9 @@ struct TodayViewV1i2: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                         }
                     } header: {
-                        Text("Daily Entry")
+                        if showSectionNames {
+                            Text("Daily Entry")
+                        }
                     }
                     .listRowBackground(cellBackgroundColor)
                 }
@@ -893,18 +910,6 @@ struct TodayViewV1i2: View {
                     }
                 }
                 
-                // Entry Carousel Section
-                if showEntryCarousel {
-                    Section {
-                        EntryCarouselView(selectedDate: selectedDate)
-                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                            .listRowBackground(Color.clear)
-                            .padding(.horizontal, -20)
-                    } header: {
-                        Text("Entries")
-                    }
-                }
-                
                 // Daily Moments Section
                 if showMoments {
                     Section {
@@ -920,7 +925,9 @@ struct TodayViewV1i2: View {
                             }
                         )
                     } header: {
-                        Text("Daily Moments")
+                        if showSectionNames {
+                            Text("Daily Moments")
+                        }
                     }
                     .listRowBackground(cellBackgroundColor)
                 }
@@ -933,7 +940,9 @@ struct TodayViewV1i2: View {
                             .listRowBackground(Color.clear)
                             .padding(.horizontal, -20)
                     } header: {
-                        Text("Moments")
+                        if showSectionNames {
+                            Text("Moments")
+                        }
                     }
                 }
                 
@@ -951,7 +960,9 @@ struct TodayViewV1i2: View {
                             }
                         )
                     } header: {
-                        Text("Daily Trackers")
+                        if showSectionNames {
+                            Text("Daily Trackers")
+                        }
                     }
                     .listRowBackground(cellBackgroundColor)
                 }
@@ -1195,6 +1206,17 @@ struct TodayViewV1i2: View {
                                 HStack {
                                     Text("Show Streak & Today")
                                     if showStreak {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showSectionNames.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Show Section Names")
+                                    if showSectionNames {
                                         Image(systemName: "checkmark")
                                     }
                                 }
@@ -2253,8 +2275,8 @@ struct EntryCarouselView: View {
     }
     
     var categories: [EntryCategory] {
-        let entriesCount = DailyContentManager.shared.hasEntry(for: selectedDate) ? 1 : 0
-        let onThisDayCount = 3 // Mock data - would come from actual data source
+        let entriesCount = DailyDataManager.shared.getEntryCount(for: selectedDate)
+        let onThisDayCount = DailyDataManager.shared.getOnThisDayCount(for: selectedDate)
         
         return [
             EntryCategory(
@@ -2266,20 +2288,20 @@ struct EntryCarouselView: View {
                 isDimmed: false
             ),
             EntryCategory(
+                title: entriesCount > 0 ? (entriesCount == 1 ? "Entry" : "Entries") : "Create Entry", 
+                icon: entriesCount > 0 ? "doc.text.fill" : "plus", 
+                count: entriesCount, 
+                color: Color(hex: "333B40"),
+                showPlus: entriesCount == 0,
+                isDimmed: false
+            ),
+            EntryCategory(
                 title: "On This Day", 
                 icon: "calendar", 
                 count: onThisDayCount, 
                 color: Color(hex: "333B40"),
                 showPlus: false,
                 isDimmed: onThisDayCount == 0
-            ),
-            EntryCategory(
-                title: entriesCount > 0 ? "Entries" : "Create Entry", 
-                icon: entriesCount > 0 ? "doc.text.fill" : "plus", 
-                count: entriesCount, 
-                color: Color(hex: "333B40"),
-                showPlus: entriesCount == 0,
-                isDimmed: false
             )
         ]
     }
@@ -2332,10 +2354,10 @@ struct MomentsCarouselView: View {
     }
     
     let categories = [
-        MomentCategory(title: "Visits", icon: "location.fill", count: 5, color: .blue),
-        MomentCategory(title: "Media", icon: "photo.fill", count: 12, color: .orange),
-        MomentCategory(title: "Events", icon: "calendar", count: 3, color: .purple),
-        MomentCategory(title: "Health", icon: "heart.fill", count: 8, color: .red)
+        MomentCategory(title: "Visits", icon: "location.fill", count: 5, color: Color(hex: "44C0FF")),
+        MomentCategory(title: "Media", icon: "photo.fill", count: 12, color: Color(hex: "44C0FF")),
+        MomentCategory(title: "Events", icon: "calendar", count: 3, color: Color(hex: "44C0FF")),
+        MomentCategory(title: "Health", icon: "heart.fill", count: 8, color: Color(hex: "44C0FF"))
     ]
     
     var body: some View {

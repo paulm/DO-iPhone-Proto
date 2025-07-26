@@ -1,0 +1,122 @@
+
+
+
+
+Diminish Resume Chat once entry is created
+
+could take the form of 2 buttons in carousel (Add Media / Resume Chat)
+
+
+A streak can be flame and number
+
+Include a more obvious date picker button?
+
+
+
+Send and respond button and send to log
+
+
+
+# Day One Proto with Daily Chat. 
+# Notes and to do lists
+
+
+
+When chat opens, insert the cursor into the input area to invoke the keyboard
+
+
+
+
+
+
+
+
+
+
+Timeline entry swipe
+Timline long press
+
+
+
+## Refactor
+
+
+
+
+
+## Journal Chat
+
+Chat ability within a single journal or multiple journals
+Limit to X# of entries or tokens, so 
+
+
+
+## Daily Chat
+
+create journal upon first usage - tip to let users know
+show selected journal somewhere in Entry Create
+Show ability to select multiple journals in Daily Chat context
+
+
+chat: select multiple jornals for context
+
+
+Create a functional prototype of Passkey and Email-only auth
+
+
+Rebuild Prompts UI - simpler, better, more native
+
+
+
+Add in-entry snippet with daily chat info in the entry editor https://linear.app/a8c/issue/DOAPPLE-482/add-in-entry-snippet-with-daily-chat-info-in-the-entry-editor
+
+
+Add a 
+
+
+
+Features to add to daily chat:
+
+Auto creates a new journal "Daily Chat", and let's the user know once the first entry is created. 
+
+
+Saves to that journal (but editable)
+
+
+iPad layout / Widescreen view
+macOS version
+
+
+Audio Dictation Mode. tap to start recording/dictating. every session is transcribed and summarized
+
+
+
+
+
+Add a persistent Bio
+
+
+
+Whenever I mention something I'm going to do. give an option to add that item to a global "to do list"
+
+Encourage the summary to create lists and be more diverse and creative in how it presents the information in the easiest and most accurate way. 
+
+
+
+
+
+IDEAS:
+
+
+Map View pins vs other collection methods.
+
+
+Add a new Journals Tab Experiment option for Journal Picker: Horizontal Navigation and Modal
+
+Row above Journal Picker (Remove "Journals" text) - add a horizontal scroll view of "recent entries" making them 1-tap away
+
+Add "recent Jorunals" carousel - horizontal scroll opn journal picker
+
+
+
+

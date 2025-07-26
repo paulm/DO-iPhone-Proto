@@ -998,6 +998,12 @@ struct TodayViewV1i2: View {
                     .listRowBackground(Color.clear)
                     .listRowInsets(EdgeInsets())
                 }
+                
+                // Extra space at bottom to allow scrolling content above bottom elements
+                Color.clear
+                    .frame(height: 200)
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets())
             }
             .listStyle(.insetGrouped)
             .scrollContentBackground(.hidden)

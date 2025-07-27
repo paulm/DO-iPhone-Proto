@@ -1,5 +1,6 @@
 import SwiftUI
 import TipKit
+import UIKit
 
 // MARK: - Style Options
 enum TodayViewStyle: String, CaseIterable {
@@ -1301,6 +1302,13 @@ struct TodayViewV1i2: View {
                 Spacer()
             }
         }
+        .background(
+            KeyboardHandler(
+                onLeftArrow: { navigateToPreviousDay() },
+                onRightArrow: { navigateToNextDay() }
+            )
+            .frame(width: 0, height: 0)
+        )
         .sheet(isPresented: $showingDailyChat) {
             DailyChatView(
                 selectedDate: selectedDate,
@@ -2490,6 +2498,75 @@ struct MomentsCarouselView: View {
             }
         }
         .padding(.vertical, 4)
+    }
+}
+
+// MARK: - Keyboard Handling
+struct KeyboardHandler: UIViewRepresentable {
+    let onLeftArrow: () -> Void
+    let onRightArrow: () -> Void
+    
+    func makeUIView(context: Context) -> UIView {
+        let view = KeyboardView()
+        view.onLeftArrow = onLeftArrow
+        view.onRightArrow = onRightArrow
+        return view
+    }
+    
+    func updateUIView(_ uiView: UIView, context: Context) {}
+    
+    class KeyboardView: UIView {
+        var onLeftArrow: (() -> Void)?
+        var onRightArrow: (() -> Void)?
+        
+        override init(frame: CGRect) {
+            super.init(frame: frame)
+            setup()
+        }
+        
+        required init?(coder: NSCoder) {
+            super.init(coder: coder)
+            setup()
+        }
+        
+        private func setup() {
+            backgroundColor = .clear
+            isUserInteractionEnabled = true
+        }
+        
+        override var canBecomeFirstResponder: Bool { true }
+        
+        override func didMoveToWindow() {
+            super.didMoveToWindow()
+            if window != nil {
+                DispatchQueue.main.async {
+                    self.becomeFirstResponder()
+                }
+            }
+        }
+        
+        @objc private func leftArrowPressed() {
+            onLeftArrow?()
+        }
+        
+        @objc private func rightArrowPressed() {
+            onRightArrow?()
+        }
+        
+        override var keyCommands: [UIKeyCommand]? {
+            return [
+                UIKeyCommand(
+                    input: UIKeyCommand.inputLeftArrow,
+                    modifierFlags: [],
+                    action: #selector(leftArrowPressed)
+                ),
+                UIKeyCommand(
+                    input: UIKeyCommand.inputRightArrow,
+                    modifierFlags: [],
+                    action: #selector(rightArrowPressed)
+                )
+            ]
+        }
     }
 }
 

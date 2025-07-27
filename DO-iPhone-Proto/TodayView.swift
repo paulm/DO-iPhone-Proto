@@ -1019,6 +1019,7 @@ struct TodayViewV1i2: View {
                         // Chat Message Bubble
                         if showChatMessage && !chatCompleted {
                             ChatMessageBubbleView(dayOfWeek: currentDayName)
+                                .id(selectedDate) // Force recreation when date changes
                         }
                         
                         // Chat Input Box
@@ -2197,6 +2198,7 @@ struct TodayInsightItem: View {
 // Chat Message Bubble View
 struct ChatMessageBubbleView: View {
     let dayOfWeek: String
+    @State private var animateIn = false
     
     var body: some View {
         HStack {
@@ -2210,6 +2212,16 @@ struct ChatMessageBubbleView: View {
             Spacer()
         }
         .padding(.horizontal, 16)
+        .offset(y: animateIn ? 0 : 40)
+        .opacity(animateIn ? 1 : 0)
+        .onAppear {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.8, blendDuration: 0)) {
+                animateIn = true
+            }
+        }
+        .onDisappear {
+            animateIn = false
+        }
     }
 }
 

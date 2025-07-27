@@ -26,6 +26,8 @@ This is a Day One iOS prototype built with SwiftUI that explores different UI ap
 - **Build & Run**: Open `DO-iPhone-Proto.xcodeproj` in Xcode and use Cmd+R to build and run
 - **iOS Simulator**: Build for iOS simulator (requires Xcode installed)
 - **Physical Device**: Can be deployed to physical iOS devices through Xcode
+- **Clean Build**: In Xcode, use Product → Clean Build Folder (Shift+Cmd+K)
+- **Run Tests**: No test targets currently configured
 
 ## Architecture
 
@@ -106,9 +108,35 @@ The app includes an AI-powered journaling chat system:
 - **Update Detection**: Detects new messages after entry creation and prompts for updates
 - **Floating Action Button**: Context-aware FAB changes state based on chat/entry status
 
+### Chat Implementation Details
+- **ChatSessionManager**: Singleton managing chat persistence and state
+- **DailyContentManager**: Tracks entries and summaries per date
+- **Message Model**: `DailyChatMessage` with user flag and chat mode
+- **Entry Workflow**: Chat → Generate Summary → Create Entry → Track Updates
+
 ## Data Sources
 
 - **DailyData.json**: Provides daily activity data (steps, water, calories, etc.)
 - **journals.json**: Journal configuration and sample data
 - Data is loaded on app launch by respective managers
 - NotificationCenter broadcasts updates across views
+
+## Common Development Tasks
+
+### Running the App
+1. Open `DO-iPhone-Proto.xcodeproj` in Xcode
+2. Select target device (Simulator or physical device)
+3. Press Cmd+R or click the Run button
+4. For debugging: Use Xcode's debug console and breakpoints
+
+### Working with Experiments
+- To add a new variant: Update `ExperimentVariant` enum in ExperimentsManager.swift
+- To enable variant for a section: Modify `availableVariants(for:)` method
+- Default variants set in `ExperimentsManager.init()`
+- User can override via Settings → Experiments
+
+### Modifying Chat Features
+- Chat messages stored in `ChatSessionManager.messages`
+- Entry generation logic in chat view's `generateEntry()` method
+- FAB states determined by checking `hasChat`, `hasEntry`, and `hasNewMessages`
+- Update detection compares message counts before/after entry creation

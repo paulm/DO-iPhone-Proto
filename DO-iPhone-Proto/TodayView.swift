@@ -466,7 +466,7 @@ struct TodayViewV1i2: View {
     @State private var showEntry = false
     @State private var showMoments = false
     @State private var showTrackers = false
-    @State private var showInsights = false
+    @State private var showInsights = true
     @State private var showBioTooltip = false
     @AppStorage("showChatFAB") private var showChatFAB = false
     @AppStorage("showEntryFAB") private var showEntryFAB = false
@@ -695,6 +695,15 @@ struct TodayViewV1i2: View {
                     .padding(.bottom, 20)
                 }
                 
+                // Entry Links carousel
+                if showInsights {
+                    EntryLinksCarouselView(selectedDate: selectedDate)
+                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                        .listRowBackground(Color.clear)
+                        .padding(.horizontal, -20)
+                        .padding(.top, -10)
+                }
+                
                 // Date navigation section (no section header)
                 if showDateNavigation {
                     HStack {
@@ -749,50 +758,6 @@ struct TodayViewV1i2: View {
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
-                }
-                
-                // Entry Links (no section wrapper)
-                if showInsights {
-                    let entryCount = DailyDataManager.shared.getEntryCount(for: selectedDate)
-                    let onThisDayCount = DailyDataManager.shared.getOnThisDayCount(for: selectedDate)
-                    
-                    // Only show if at least one count is greater than 0
-                    if entryCount > 0 || onThisDayCount > 0 {
-                        HStack {
-                            Spacer()
-                            if entryCount > 0 {
-                                Button(action: { showingEntries = true }) {
-                                    Text("\(entryCount) \(entryCount == 1 ? "Entry" : "Entries")")
-                                        .font(.subheadline)
-                                        .fontWeight(.medium)
-                                        .foregroundStyle(Color(hex: "44C0FF"))
-                                        .padding(.horizontal, 16)
-                                        .padding(.vertical, 8)
-                                        .background(cellBackgroundColor)
-                                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                            }
-                            
-                            if onThisDayCount > 0 {
-                                Button(action: { showingOnThisDay = true }) {
-                                    Text("\(onThisDayCount) On This Day")
-                                        .font(.subheadline)
-                                        .fontWeight(.medium)
-                                        .foregroundStyle(Color(hex: "44C0FF"))
-                                        .padding(.horizontal, 16)
-                                        .padding(.vertical, 8)
-                                        .background(cellBackgroundColor)
-                                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                            }
-                        }
-                        .padding(.top, 20)
-                        .listRowInsets(EdgeInsets())
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
-                    }
                 }
                 
                 // Entry Carousel Section
@@ -2498,6 +2463,79 @@ struct MomentsCarouselView: View {
             }
         }
         .padding(.vertical, 4)
+    }
+}
+
+// MARK: - Entry Links Carousel View
+struct EntryLinksCarouselView: View {
+    let selectedDate: Date
+    
+    var body: some View {
+        let entryCount = DailyDataManager.shared.getEntryCount(for: selectedDate)
+        let onThisDayCount = DailyDataManager.shared.getOnThisDayCount(for: selectedDate)
+        let journalCount = Journal.visibleJournals.count
+        
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                // Journals button (always shown)
+                Button(action: { 
+                    // TODO: Navigate to journals view
+                }) {
+                    Text("\(journalCount) \(journalCount == 1 ? "Journal" : "Journals")")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundStyle(Color(hex: "44C0FF"))
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(Color(UIColor.secondarySystemGroupedBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+                .buttonStyle(PlainButtonStyle())
+                .padding(.leading, 20)
+                
+                if entryCount > 0 {
+                    Button(action: { 
+                        // TODO: Navigate to entries
+                    }) {
+                        Text("\(entryCount) \(entryCount == 1 ? "Entry" : "Entries")")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundStyle(Color(hex: "44C0FF"))
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(Color(UIColor.secondarySystemGroupedBackground))
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+                
+                if onThisDayCount > 0 {
+                    Button(action: { 
+                        // TODO: Navigate to On This Day
+                    }) {
+                        Text("\(onThisDayCount) On This Day")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundStyle(Color(hex: "44C0FF"))
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(Color(UIColor.secondarySystemGroupedBackground))
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .padding(.trailing, entryCount > 0 ? 0 : 20)
+                }
+                
+                // Add trailing padding to the last visible item
+                if entryCount > 0 && onThisDayCount == 0 {
+                    Spacer()
+                        .frame(width: 20)
+                } else if entryCount == 0 && onThisDayCount == 0 {
+                    Spacer()
+                        .frame(width: 20)
+                }
+            }
+        }
     }
 }
 

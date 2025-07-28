@@ -697,11 +697,15 @@ struct TodayViewV1i2: View {
                 
                 // Entry Links carousel
                 if showInsights {
-                    EntryLinksCarouselView(selectedDate: selectedDate)
-                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                        .listRowBackground(Color.clear)
-                        .padding(.horizontal, -20)
-                        .padding(.top, -10)
+                    EntryLinksCarouselView(
+                        selectedDate: selectedDate,
+                        showingEntries: $showingEntries,
+                        showingOnThisDay: $showingOnThisDay
+                    )
+                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                    .listRowBackground(Color.clear)
+                    .padding(.horizontal, -20)
+                    .padding(.top, -10)
                 }
                 
                 // Date navigation section (no section header)
@@ -2469,6 +2473,8 @@ struct MomentsCarouselView: View {
 // MARK: - Entry Links Carousel View
 struct EntryLinksCarouselView: View {
     let selectedDate: Date
+    @Binding var showingEntries: Bool
+    @Binding var showingOnThisDay: Bool
     
     var body: some View {
         let entryCount = DailyDataManager.shared.getEntryCount(for: selectedDate)
@@ -2495,7 +2501,7 @@ struct EntryLinksCarouselView: View {
                 
                 if entryCount > 0 {
                     Button(action: { 
-                        // TODO: Navigate to entries
+                        showingEntries = true
                     }) {
                         Text("\(entryCount) \(entryCount == 1 ? "Entry" : "Entries")")
                             .font(.subheadline)
@@ -2511,7 +2517,7 @@ struct EntryLinksCarouselView: View {
                 
                 if onThisDayCount > 0 {
                     Button(action: { 
-                        // TODO: Navigate to On This Day
+                        showingOnThisDay = true
                     }) {
                         Text("\(onThisDayCount) On This Day")
                             .font(.subheadline)

@@ -53,12 +53,14 @@ struct MomentsView: View {
     @Binding var selectedEvents: Set<String>
     @Binding var selectedPhotos: Set<String>
     @Binding var selectedHealth: Set<String>
+    let initialSection: String?
     
-    init(selectedLocations: Binding<Set<String>>, selectedEvents: Binding<Set<String>>, selectedPhotos: Binding<Set<String>>, selectedHealth: Binding<Set<String>>) {
+    init(selectedLocations: Binding<Set<String>>, selectedEvents: Binding<Set<String>>, selectedPhotos: Binding<Set<String>>, selectedHealth: Binding<Set<String>>, initialSection: String? = nil) {
         self._selectedLocations = selectedLocations
         self._selectedEvents = selectedEvents
         self._selectedPhotos = selectedPhotos
         self._selectedHealth = selectedHealth
+        self.initialSection = initialSection
     }
     
     private var experimentsManager: ExperimentsManager { ExperimentsManager.shared }
@@ -107,14 +109,16 @@ struct MomentsView: View {
                 selectedLocations: $selectedLocations,
                 selectedEvents: $selectedEvents,
                 selectedPhotos: $selectedPhotos,
-                selectedHealth: $selectedHealth
+                selectedHealth: $selectedHealth,
+                initialSection: initialSection
             )
         default:
             MomentsViewOriginal(
                 selectedLocations: $selectedLocations,
                 selectedEvents: $selectedEvents,
                 selectedPhotos: $selectedPhotos,
-                selectedHealth: $selectedHealth
+                selectedHealth: $selectedHealth,
+                initialSection: initialSection
             )
         }
     }
@@ -169,6 +173,7 @@ struct MomentsViewOriginal: View {
     @Binding var selectedEvents: Set<String>
     @Binding var selectedPhotos: Set<String>
     @Binding var selectedHealth: Set<String>
+    let initialSection: String?
     @State private var selectedMoments: Set<Moment> = []
     
     // Section toggles
@@ -416,7 +421,9 @@ struct MomentsViewGrid: View {
     @Binding var selectedEvents: Set<String>
     @Binding var selectedPhotos: Set<String>
     @Binding var selectedHealth: Set<String>
+    let initialSection: String?
     @State private var selectedMoments: Set<Moment> = []
+    @State private var scrollToSection: String? = nil
     
     // Section toggles
     @State private var showVisits = true
@@ -529,6 +536,7 @@ struct MomentsViewGrid: View {
                         hiddenMoments.insert(moment.id)
                     }
                 )
+                .id("Visits")
             }
             
             // Media Section (Grid)
@@ -538,6 +546,7 @@ struct MomentsViewGrid: View {
                     isSelected: isMomentSelected,
                     onTap: toggleMomentSelection
                 )
+                .id("Media")
             }
             
             // Events Section
@@ -554,6 +563,7 @@ struct MomentsViewGrid: View {
                         hiddenMoments.insert(moment.id)
                     }
                 )
+                .id("Events")
             }
             
             // Health Section
@@ -570,19 +580,32 @@ struct MomentsViewGrid: View {
                         hiddenMoments.insert(moment.id)
                     }
                 )
+                .id("Health")
             }
         }
     }
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    headerView
-                    contentSections
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        headerView
+                        contentSections
+                    }
+                }
+                .background(Color(UIColor.systemGroupedBackground))
+                .onAppear {
+                    // Scroll to initial section if provided
+                    if let section = initialSection {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            withAnimation {
+                                proxy.scrollTo(section, anchor: .top)
+                            }
+                        }
+                    }
                 }
             }
-            .background(Color(UIColor.systemGroupedBackground))
             .navigationTitle("Moments")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -979,6 +1002,7 @@ private func timeToMinutes(_ timeString: String) -> Int {
         selectedLocations: .constant(Set(["Home", "Office"])),
         selectedEvents: .constant(Set(["Team Meeting"])),
         selectedPhotos: .constant(Set()),
-        selectedHealth: .constant(Set(["10,000 steps"]))
+        selectedHealth: .constant(Set(["10,000 steps"])),
+        initialSection: nil
     )
 }

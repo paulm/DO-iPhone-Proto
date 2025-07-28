@@ -455,6 +455,7 @@ struct TodayViewV1i2: View {
     @State private var showingBioView = false
     @State private var isGeneratingEntry = false
     @State private var chatUpdateTrigger = false
+    @State private var momentsInitialSection: String? = nil
     
     // Show/hide toggles for Daily Activities
     @State private var showWeather = false
@@ -919,10 +920,13 @@ struct TodayViewV1i2: View {
                 // Moments Carousel Section
                 if showMomentsCarousel {
                     Section {
-                        MomentsCarouselView()
-                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                            .listRowBackground(Color.clear)
-                            .padding(.horizontal, -20)
+                        MomentsCarouselView(
+                            showingMoments: $showingMoments,
+                            momentsInitialSection: $momentsInitialSection
+                        )
+                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                        .listRowBackground(Color.clear)
+                        .padding(.horizontal, -20)
                     } header: {
                         if showSectionNames {
                             Text("Moments")
@@ -1302,8 +1306,13 @@ struct TodayViewV1i2: View {
                 selectedLocations: $selectedLocations,
                 selectedEvents: $selectedEvents,
                 selectedPhotos: $selectedPhotos,
-                selectedHealth: $selectedHealth
+                selectedHealth: $selectedHealth,
+                initialSection: momentsInitialSection
             )
+            .onDisappear {
+                // Reset the initial section when sheet is dismissed
+                momentsInitialSection = nil
+            }
         }
         .sheet(isPresented: $showingTrackers) {
             TrackerView(
@@ -2427,6 +2436,9 @@ struct DailyChatCarouselView: View {
 
 // MARK: - Moments Carousel View
 struct MomentsCarouselView: View {
+    @Binding var showingMoments: Bool
+    @Binding var momentsInitialSection: String?
+    
     struct MomentCategory {
         let title: String
         let icon: String
@@ -2445,22 +2457,28 @@ struct MomentsCarouselView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
                 ForEach(Array(categories.enumerated()), id: \.element.title) { index, category in
-                    VStack(spacing: 0) {
-                        // Icon
-                        Image(systemName: category.icon)
-                            .font(.system(size: 28))
-                            .foregroundStyle(category.color)
-                            .frame(maxHeight: .infinity)
-                        
-                        // Count label
-                        Text("\(category.count) \(category.title)")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.secondary)
-                            .padding(.bottom, 8)
+                    Button(action: {
+                        momentsInitialSection = category.title
+                        showingMoments = true
+                    }) {
+                        VStack(spacing: 0) {
+                            // Icon
+                            Image(systemName: category.icon)
+                                .font(.system(size: 28))
+                                .foregroundStyle(category.color)
+                                .frame(maxHeight: .infinity)
+                            
+                            // Count label
+                            Text("\(category.count) \(category.title)")
+                                .font(.system(size: 11))
+                                .foregroundStyle(.secondary)
+                                .padding(.bottom, 8)
+                        }
+                        .frame(width: 116, height: 84)
+                        .background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
-                    .frame(width: 116, height: 84)
-                    .background(Color.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .buttonStyle(PlainButtonStyle())
                     .padding(.leading, index == 0 ? 20 : 0)
                     .padding(.trailing, index == categories.count - 1 ? 20 : 0)
                 }

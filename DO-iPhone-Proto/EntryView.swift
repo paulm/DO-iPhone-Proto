@@ -628,21 +628,25 @@ I think I'm going to sit here for a while longer before heading back down. This 
                 )
             }
             .sheet(isPresented: $showingAudioPage) {
-                AudioTranscriptionView(
-                    transcriptionText: audioTranscriptionText,
-                    audioDuration: audioDuration,
-                    recordingDate: entryDate,
-                    hasTranscription: true,
-                    audioTitle: "Morning Reflections at Stewart Falls"
+                AudioRecordView(
+                    existingAudio: AudioRecordView.AudioData(
+                        title: "Morning Reflections at Stewart Falls",
+                        duration: audioDuration,
+                        recordingDate: entryDate,
+                        hasTranscription: true,
+                        transcriptionText: audioTranscriptionText
+                    )
                 )
             }
             .sheet(isPresented: $showingAudioPage2) {
-                AudioTranscriptionView(
-                    transcriptionText: "",
-                    audioDuration: audioDuration2,
-                    recordingDate: entryDate,
-                    hasTranscription: false,
-                    audioTitle: "Sounds of the Mountain Stream"
+                AudioRecordView(
+                    existingAudio: AudioRecordView.AudioData(
+                        title: "Sounds of the Mountain Stream",
+                        duration: audioDuration2,
+                        recordingDate: entryDate,
+                        hasTranscription: false,
+                        transcriptionText: ""
+                    )
                 )
             }
             .sheet(isPresented: $showingMediaPage) {

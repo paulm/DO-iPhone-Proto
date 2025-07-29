@@ -43,6 +43,7 @@ struct JournalsTabPagedView: View {
     @State private var viewMode: ViewMode = .list // Default to Icons view
     @State private var selectedJournal: Journal?
     @State private var searchText = ""
+    @State private var showingAudioRecord = false
     
     // Draggable FAB state
     @GestureState private var dragState = CGSize.zero
@@ -74,6 +75,9 @@ struct JournalsTabPagedView: View {
             withAnimation(.easeOut(duration: 0.3)) {
                 showFAB = true
             }
+        }
+        .sheet(isPresented: $showingAudioRecord) {
+            AudioRecordView(journal: journalViewModel.selectedJournal)
         }
     }
     
@@ -295,19 +299,43 @@ struct JournalsTabPagedView: View {
     
     // MARK: - FAB Button
     private func fabButton(in geometry: GeometryProxy) -> some View {
-        ZStack {
-            Circle()
-                .fill(getColorForPosition(dragOffset: dragState, geometry: geometry))
-                .frame(width: 56, height: 56)
-                .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
-            
-            Image(systemName: "plus")
-                .font(.title3)
-                .fontWeight(.semibold)
+        HStack(spacing: 12) {
+            // Create Entry button
+            Button(action: {
+                // TODO: Create entry action
+                selectedJournal = journalViewModel.selectedJournal
+            }) {
+                HStack(spacing: 8) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 18, weight: .semibold))
+                    Text("Create Entry")
+                        .font(.system(size: 16, weight: .semibold))
+                }
                 .foregroundStyle(.white)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 14)
+                .background(getColorForPosition(dragOffset: dragState, geometry: geometry))
+                .clipShape(Capsule())
+            }
+            .buttonStyle(PlainButtonStyle())
+            .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
+            
+            // Record Audio button
+            Button(action: {
+                showingAudioRecord = true
+            }) {
+                Image(systemName: "mic.fill")
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundStyle(.white)
+                    .frame(width: 56, height: 56)
+                    .background(getColorForPosition(dragOffset: dragState, geometry: geometry))
+                    .clipShape(Circle())
+            }
+            .buttonStyle(PlainButtonStyle())
+            .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
         }
         .position(
-            x: geometry.size.width - 46 + dragState.width,
+            x: geometry.size.width - 130 + dragState.width,
             y: geometry.size.height - 80 + dragState.height
         )
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: hoveredJournal?.color)
@@ -345,10 +373,6 @@ struct JournalsTabPagedView: View {
                     lastHapticJournal = nil
                 }
         )
-        .onTapGesture {
-            // Navigate to selected journal when tapped
-            selectedJournal = journalViewModel.selectedJournal
-        }
     }
     
     // Helper function to get color based on position
@@ -612,6 +636,7 @@ struct PagedJournalSheetContent: View {
     @State private var selectedTab = 1
     @State private var showingEntryView = false
     @State private var showFAB = false
+    @State private var showingAudioRecord = false
     
     // Calculate FAB positions to maintain 80pt from bottom of device
     private var fabRegularPosition: CGFloat {
@@ -670,19 +695,41 @@ struct PagedJournalSheetContent: View {
                 }
             }
             
-            // FAB button that animates based on sheet position
+            // FAB buttons that animate based on sheet position
             if showFAB {
-                Button(action: {
-                    showingEntryView = true
-                }) {
-                    Image(systemName: "plus")
-                        .font(.title3)
-                        .fontWeight(.semibold)
+                HStack(spacing: 12) {
+                    // Create Entry button
+                    Button(action: {
+                        showingEntryView = true
+                    }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "plus")
+                                .font(.system(size: 18, weight: .semibold))
+                            Text("Create Entry")
+                                .font(.system(size: 16, weight: .semibold))
+                        }
                         .foregroundStyle(.white)
-                        .frame(width: 56, height: 56)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 14)
                         .background(journal.color)
-                        .clipShape(Circle())
-                        .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
+                        .clipShape(Capsule())
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
+                    
+                    // Record Audio button
+                    Button(action: {
+                        showingAudioRecord = true
+                    }) {
+                        Image(systemName: "mic.fill")
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundStyle(.white)
+                            .frame(width: 56, height: 56)
+                            .background(journal.color)
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
                 }
                 .padding(.trailing, 18)
                 .padding(.top, sheetState.isExpanded ? fabExpandedPosition : fabRegularPosition)
@@ -703,6 +750,9 @@ struct PagedJournalSheetContent: View {
         }
         .sheet(isPresented: $showingEntryView) {
             EntryView(journal: journal)
+        }
+        .sheet(isPresented: $showingAudioRecord) {
+            AudioRecordView(journal: journal)
         }
     }
 }

@@ -782,10 +782,15 @@ struct TodayViewV1i2: View {
                 // Daily Chat Carousel Section
                 if showDailyChatCarousel {
                     Section {
-                        DailyChatCarouselView(selectedDate: selectedDate, chatCompleted: chatCompleted)
-                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                            .listRowBackground(Color.clear)
-                            .padding(.horizontal, -20)
+                        DailyChatCarouselView(
+                            selectedDate: selectedDate, 
+                            chatCompleted: chatCompleted,
+                            showingDailyChat: $showingDailyChat,
+                            showingEntry: $showingEntry
+                        )
+                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                        .listRowBackground(Color.clear)
+                        .padding(.horizontal, -20)
                     } header: {
                         if showSectionNames {
                             Text("Daily Chat")
@@ -2381,6 +2386,8 @@ struct EntryCarouselView: View {
 struct DailyChatCarouselView: View {
     let selectedDate: Date
     let chatCompleted: Bool
+    @Binding var showingDailyChat: Bool
+    @Binding var showingEntry: Bool
     
     private var hasEntry: Bool {
         DailyContentManager.shared.hasEntry(for: selectedDate)
@@ -2390,42 +2397,52 @@ struct DailyChatCarouselView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
                 // Chat item
-                VStack(spacing: 0) {
-                    // Icon
-                    Image(systemName: "bubble.left.and.bubble.right.fill")
-                        .font(.system(size: 28))
-                        .foregroundStyle(Color(hex: "44C0FF"))
-                        .frame(maxHeight: .infinity)
-                    
-                    // Label
-                    Text(chatCompleted ? "Resume" : "Start Chat")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                        .padding(.bottom, 8)
+                Button(action: {
+                    showingDailyChat = true
+                }) {
+                    VStack(spacing: 0) {
+                        // Icon
+                        Image(systemName: "bubble.left.and.bubble.right.fill")
+                            .font(.system(size: 28))
+                            .foregroundStyle(Color(hex: "44C0FF"))
+                            .frame(maxHeight: .infinity)
+                        
+                        // Label
+                        Text(chatCompleted ? "Resume" : "Start Chat")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                            .padding(.bottom, 8)
+                    }
+                    .frame(width: 116, height: 84)
+                    .background(Color.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
-                .frame(width: 116, height: 84)
-                .background(Color.white)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .buttonStyle(PlainButtonStyle())
                 .padding(.leading, 20)
                 
                 // Entry item (only shown when entry exists)
                 if hasEntry {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Morning Reflections")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(.primary)
-                            .lineLimit(1)
-                        
-                        Text("Today I started with my usual morning routine, feeling energized and ready...")
-                            .font(.system(size: 12))
-                            .foregroundStyle(.secondary)
-                            .lineLimit(3)
-                            .multilineTextAlignment(.leading)
+                    Button(action: {
+                        showingEntry = true
+                    }) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Morning Reflections")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(.primary)
+                                .lineLimit(1)
+                            
+                            Text("Today I started with my usual morning routine, feeling energized and ready...")
+                                .font(.system(size: 12))
+                                .foregroundStyle(.secondary)
+                                .lineLimit(3)
+                                .multilineTextAlignment(.leading)
+                        }
+                        .padding(12)
+                        .frame(width: 244, height: 84) // Double wide (116 * 2 + 12 spacing)
+                        .background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
-                    .padding(12)
-                    .frame(width: 244, height: 84) // Double wide (116 * 2 + 12 spacing)
-                    .background(Color.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .buttonStyle(PlainButtonStyle())
                     .padding(.trailing, 20)
                 }
             }

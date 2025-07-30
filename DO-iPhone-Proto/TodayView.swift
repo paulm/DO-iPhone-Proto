@@ -2518,22 +2518,7 @@ struct EntryLinksCarouselView: View {
         
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                // Journals button (always shown)
-                Button(action: { 
-                    // TODO: Navigate to journals view
-                }) {
-                    Text("\(journalCount) \(journalCount == 1 ? "Journal" : "Journals")")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundStyle(Color(hex: "44C0FF"))
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(Color(UIColor.secondarySystemGroupedBackground))
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                }
-                .buttonStyle(PlainButtonStyle())
-                .padding(.leading, 20)
-                
+                // Entries button (shown first if > 0)
                 if entryCount > 0 {
                     Button(action: { 
                         showingEntries = true
@@ -2548,8 +2533,10 @@ struct EntryLinksCarouselView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
                     .buttonStyle(PlainButtonStyle())
+                    .padding(.leading, 20)
                 }
                 
+                // On This Day button (shown second if > 0)
                 if onThisDayCount > 0 {
                     Button(action: { 
                         showingOnThisDay = true
@@ -2564,17 +2551,36 @@ struct EntryLinksCarouselView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
                     .buttonStyle(PlainButtonStyle())
-                    .padding(.trailing, entryCount > 0 ? 0 : 20)
+                    .padding(.leading, entryCount == 0 ? 20 : 0)
                 }
                 
-                // Add trailing padding to the last visible item
-                if entryCount > 0 && onThisDayCount == 0 {
-                    Spacer()
-                        .frame(width: 20)
-                } else if entryCount == 0 && onThisDayCount == 0 {
-                    Spacer()
-                        .frame(width: 20)
+                // Entries Menu button (ellipsis, always shown)
+                Menu {
+                    Section("\(journalCount) \(journalCount == 1 ? "Journal" : "Journals") in All Entries") {
+                        Button(action: {
+                            // TODO: Navigate to journal selection
+                        }) {
+                            Label("Select Journals", systemImage: "checkmark.circle")
+                        }
+                        
+                        Button(action: {
+                            // TODO: Create new entry
+                        }) {
+                            Label("New Entry", systemImage: "square.and.pencil")
+                        }
+                    }
+                } label: {
+                    Text("•••")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundStyle(Color(hex: "44C0FF"))
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(Color(UIColor.secondarySystemGroupedBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
                 }
+                .padding(.leading, (entryCount == 0 && onThisDayCount == 0) ? 20 : 0)
+                .padding(.trailing, 20)
             }
         }
     }

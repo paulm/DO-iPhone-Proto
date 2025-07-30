@@ -43,3 +43,4 @@ fastlane/test_output
 # Code Injection
 *.xccheckout
 *.xcscmblueprint
+DO-iPhone-Proto.xcodeproj/project.xcworkspace/xcuserdata/paulm.xcuserdatad/UserInterfaceState.xcuserstate

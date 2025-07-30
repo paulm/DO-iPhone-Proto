@@ -5,30 +5,27 @@ import MapKit
 struct EntryView: View {
     @Environment(\.dismiss) private var dismiss
     let journal: Journal?
+    let entryData: EntryData?
     
-    @State private var entryText = """
-A Perfect Day at Sundance
-
-Today was one of those rare days where everything seemed to align perfectly. I woke up early, around 6:30 AM, to the sound of birds chirping outside my window at the resort. The morning light was just beginning to filter through the trees, casting long shadows across the mountain slopes. I decided to start the day with a hike on the Stewart Falls trail, something I've been meaning to do since arriving here three days ago.
-
-The trail was quiet, with only a few other early risers making their way up the path. The air was crisp and cool, probably around 55 degrees, and I could see my breath forming small clouds as I walked. About halfway up, I stopped at a clearing that offered a stunning view of the valley below. The aspens were just beginning to turn golden, creating patches of warm color against the dark green of the pines. I sat on a large rock and just took it all in, feeling grateful for this moment of solitude in nature.
-
-After the hike, I returned to the resort for breakfast at the Foundry Grill. I ordered their famous blueberry pancakes and a strong cup of coffee. While eating, I struck up a conversation with an older couple from Colorado who were celebrating their 40th wedding anniversary. They shared stories about how they've been coming to Sundance every fall for the past fifteen years, and how this place has become a sacred tradition for them. Their love for each other and for this place was infectious.
-
-The afternoon was spent exploring the art studios scattered around the resort. I was particularly drawn to the pottery workshop, where a local artist was demonstrating wheel throwing techniques. She invited me to try my hand at it, and despite making quite a mess, I managed to create something that vaguely resembled a bowl. There's something meditative about working with clay, feeling it take shape beneath your hands, requiring both strength and gentleness.
-
-As the sun began to set, painting the sky in shades of orange and pink, I found myself back on the deck of my cabin, wrapped in a warm blanket with a cup of herbal tea. The day felt complete in a way that few days do. No urgent emails, no pressing deadlines, just the simple pleasure of being present in a beautiful place. Tomorrow I'm planning to try the zip line tour, but for now, I'm content to watch the stars emerge one by one in the darkening sky, feeling deeply connected to this moment and this place.
-"""
+    // Entry data structure
+    struct EntryData {
+        let title: String
+        let content: String
+        let date: Date
+        let time: String
+    }
+    
+    @State private var entryText: String
     @State private var showingJournalingTools = false
     @State private var showingEnhancedJournalingTools = false
     @State private var showingContentFocusedJournalingTools = false
     @State private var showingEntryChat = false
     @State private var showingDailyChat = false
     @State private var hasChatActivity = true // Simulating that this entry has chat activity
-    @State private var entryDate = Date()
+    @State private var entryDate: Date
     @State private var showingEditDate = false
     @State private var showEntryChatEmbed = false
-    @State private var showGeneratedFromDailyChat = true
+    @State private var showGeneratedFromDailyChat = false
     @State private var isPlayingAudio = false
     @State private var audioDuration: TimeInterval = 125 // 2:05 duration
     @State private var currentPlayTime: TimeInterval = 0
@@ -47,6 +44,64 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
     
     // Location for the map - Sundance Resort coordinates
     private let entryLocation = CLLocationCoordinate2D(latitude: 40.6006, longitude: -111.5878)
+    private let locationName = "Sundance Mountain Resort"
+    
+    // Default entry content
+    private let defaultEntryContent = """
+A Perfect Day at Sundance
+
+Today was one of those rare days where everything seemed to align perfectly. I woke up early, around 6:30 AM, to the sound of birds chirping outside my window at the resort. The morning light was just beginning to filter through the trees, casting long shadows across the mountain slopes. I decided to start the day with a hike on the Stewart Falls trail, something I've been meaning to do since arriving here three days ago.
+
+The trail was quiet, with only a few other early risers making their way up the path. The air was crisp and cool, probably around 55 degrees, and I could see my breath forming small clouds as I walked. About halfway up, I stopped at a clearing that offered a stunning view of the valley below. The aspens were just beginning to turn golden, creating patches of warm color against the dark green of the pines. I sat on a large rock and just took it all in, feeling grateful for this moment of solitude in nature.
+
+After the hike, I returned to the resort for breakfast at the Foundry Grill. I ordered their famous blueberry pancakes and a strong cup of coffee. While eating, I struck up a conversation with an older couple from Colorado who were celebrating their 40th wedding anniversary. They shared stories about how they've been coming to Sundance every fall for the past fifteen years, and how this place has become a sacred tradition for them. Their love for each other and for this place was infectious.
+
+The afternoon was spent exploring the art studios scattered around the resort. I was particularly drawn to the pottery workshop, where a local artist was demonstrating wheel throwing techniques. She invited me to try my hand at it, and despite making quite a mess, I managed to create something that vaguely resembled a bowl. There's something meditative about working with clay, feeling it take shape beneath your hands, requiring both strength and gentleness.
+
+As the sun began to set, painting the sky in shades of orange and pink, I found myself back on the deck of my cabin, wrapped in a warm blanket with a cup of herbal tea. The day felt complete in a way that few days do. No urgent emails, no pressing deadlines, just the simple pleasure of being present in a beautiful place. Tomorrow I'm planning to try the zip line tour, but for now, I'm content to watch the stars emerge one by one in the darkening sky, feeling deeply connected to this moment and this place.
+"""
+    
+    init(journal: Journal?, entryData: EntryData? = nil) {
+        self.journal = journal
+        self.entryData = entryData
+        
+        if let data = entryData {
+            // Use provided entry data
+            self._entryText = State(initialValue: data.content)
+            
+            // Parse time string and apply to date
+            var finalDate = data.date
+            let timeComponents = data.time.components(separatedBy: " ")
+            if timeComponents.count >= 2 {
+                let timePart = timeComponents[0] // e.g., "6:11"
+                let meridiem = timeComponents[1] // e.g., "PM"
+                
+                let timeSubComponents = timePart.components(separatedBy: ":")
+                if timeSubComponents.count == 2,
+                   let hour = Int(timeSubComponents[0]),
+                   let minute = Int(timeSubComponents[1]) {
+                    
+                    var adjustedHour = hour
+                    if meridiem.hasPrefix("PM") && hour != 12 {
+                        adjustedHour += 12
+                    } else if meridiem.hasPrefix("AM") && hour == 12 {
+                        adjustedHour = 0
+                    }
+                    
+                    let calendar = Calendar.current
+                    if let dateWithTime = calendar.date(bySettingHour: adjustedHour, minute: minute, second: 0, of: data.date) {
+                        finalDate = dateWithTime
+                    }
+                }
+            }
+            
+            self._entryDate = State(initialValue: finalDate)
+        } else {
+            // New entry - use defaults
+            self._entryText = State(initialValue: "")
+            self._entryDate = State(initialValue: Date())
+        }
+    }
     
     // Audio transcription text
     private let audioTranscriptionText = """
@@ -61,7 +116,6 @@ I think I'm going to sit here for a while longer before heading back down. This 
     private var journalName: String {
         journal?.name ?? "Sample Journal"
     }
-    private let locationName = "Sundance Resort"
     private var journalColor: Color {
         journal?.color ?? Color(hex: "4EC3FE")
     }
@@ -731,6 +785,18 @@ I think I'm going to sit here for a while longer before heading back down. This 
     }
 }
 
-#Preview {
+#Preview("New Entry") {
     EntryView(journal: nil)
+}
+
+#Preview("Existing Entry") {
+    EntryView(
+        journal: nil,
+        entryData: EntryView.EntryData(
+            title: "Had a wonderful lunch with Emily today.",
+            content: "It's refreshing to step away from the daily grind and catch up with old friends. We talked about her new job, my recent travels, and how much has changed since college. Time flies but good friendships remain constant.",
+            date: Date(),
+            time: "6:11 PM CDT"
+        )
+    )
 }

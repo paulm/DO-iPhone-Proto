@@ -41,6 +41,7 @@ struct EntryView: View {
     @State private var showImageCaption = false
     @State private var showingMediaPage = false
     @FocusState private var isTextFieldFocused: Bool
+    @State private var isEditMode = false
     
     // Location for the map - Sundance Resort coordinates
     private let entryLocation = CLLocationCoordinate2D(latitude: 40.6006, longitude: -111.5878)
@@ -244,7 +245,7 @@ I think I'm going to sit here for a while longer before heading back down. This 
             ZStack {
                 VStack(spacing: 0) {
                     // Journal info header - only shown in Edit mode
-                    if isTextFieldFocused {
+                    if isEditMode {
                         VStack(alignment: .leading, spacing: 0) {
                             HStack {
                                 Text(journalName)
@@ -261,7 +262,10 @@ I think I'm going to sit here for a while longer before heading back down. This 
                         .padding(.horizontal, 20)
                         .padding(.vertical, 10)
                         .background(.white)
-                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .top).combined(with: .opacity),
+                            removal: .move(edge: .top).combined(with: .opacity)
+                        ))
                     }
                 
                 // Content area with scrollable embeds and text
@@ -327,18 +331,39 @@ I think I'm going to sit here for a while longer before heading back down. This 
                         
                         // Text content with inline audio embeds
                         VStack(alignment: .leading, spacing: 16) {
-                            // First two paragraphs
-                            Text(getTextBeforeAudioEmbed())
-                                .font(.body)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .onTapGesture {
-                                    if !isTextFieldFocused {
-                                        isTextFieldFocused = true
+                            // Show TextEditor when in edit mode, Text otherwise
+                            if isEditMode {
+                                TextEditor(text: $entryText)
+                                    .font(.body)
+                                    .focused($isTextFieldFocused)
+                                    .scrollContentBackground(.hidden)
+                                    .background(Color.clear)
+                                    .frame(maxWidth: .infinity, minHeight: 500)
+                                    .transition(.asymmetric(
+                                        insertion: .move(edge: .top).combined(with: .opacity),
+                                        removal: .opacity
+                                    ))
+                                    .onAppear {
+                                        // Force keyboard to appear after a brief delay
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                            isTextFieldFocused = true
+                                        }
                                     }
-                                }
+                            } else {
+                                // First two paragraphs
+                                Text(getTextBeforeAudioEmbed())
+                                    .font(.body)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .contentShape(Rectangle())
+                                    .onTapGesture {
+                                        withAnimation(.easeInOut(duration: 0.3)) {
+                                            isEditMode = true
+                                        }
+                                    }
+                            }
                             
                             // First audio recording embed (with transcription)
-                            if showAudioEmbedWithTranscription {
+                            if showAudioEmbedWithTranscription && !isEditMode {
                                 audioRecordingEmbed(
                                     hasTranscription: true,
                                     isPlaying: $isPlayingAudio,
@@ -353,7 +378,7 @@ I think I'm going to sit here for a while longer before heading back down. This 
                             }
                             
                             // Image embed
-                            if showImageEmbed {
+                            if showImageEmbed && !isEditMode {
                                 imageEmbed(
                                     imageName: "bike-wide",
                                     caption: "Timeless style on two wheels—vintage charm meets modern café culture",
@@ -364,40 +389,45 @@ I think I'm going to sit here for a while longer before heading back down. This 
                                 )
                             }
                             
-                            // Text between image and second audio
-                            Text(getTextBetweenImageAndSecondAudio())
-                                .font(.body)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .onTapGesture {
-                                    if !isTextFieldFocused {
-                                        isTextFieldFocused = true
+                            // Hide embeds and complex layout when editing
+                            if !isEditMode {
+                                // Text between image and second audio
+                                Text(getTextBetweenImageAndSecondAudio())
+                                    .font(.body)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .contentShape(Rectangle())
+                                    .onTapGesture {
+                                        withAnimation(.easeInOut(duration: 0.3)) {
+                                            isEditMode = true
+                                        }
                                     }
+                                
+                                // Second audio recording embed (without transcription)
+                                if showAudioEmbed {
+                                    audioRecordingEmbed(
+                                        hasTranscription: false,
+                                        isPlaying: $isPlayingAudio2,
+                                        duration: audioDuration2,
+                                        title: "Sounds of the Mountain Stream",
+                                        transcriptionPreview: nil,
+                                        onTap: {
+                                            selectedAudioHasTranscription = false
+                                            showingAudioPage2 = true
+                                        }
+                                    )
                                 }
-                            
-                            // Second audio recording embed (without transcription)
-                            if showAudioEmbed {
-                                audioRecordingEmbed(
-                                    hasTranscription: false,
-                                    isPlaying: $isPlayingAudio2,
-                                    duration: audioDuration2,
-                                    title: "Sounds of the Mountain Stream",
-                                    transcriptionPreview: nil,
-                                    onTap: {
-                                        selectedAudioHasTranscription = false
-                                        showingAudioPage2 = true
+                                
+                                // Remaining text
+                                Text(getTextAfterSecondAudioEmbed())
+                                    .font(.body)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .contentShape(Rectangle())
+                                    .onTapGesture {
+                                        withAnimation(.easeInOut(duration: 0.3)) {
+                                            isEditMode = true
+                                        }
                                     }
-                                )
                             }
-                            
-                            // Remaining text
-                            Text(getTextAfterSecondAudioEmbed())
-                                .font(.body)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .onTapGesture {
-                                    if !isTextFieldFocused {
-                                        isTextFieldFocused = true
-                                    }
-                                }
                         }
                         .padding(.horizontal, 14)
                         .padding(.top, (hasChatActivity && showEntryChatEmbed) || showGeneratedFromDailyChat ? 28 : 12)
@@ -405,26 +435,26 @@ I think I'm going to sit here for a while longer before heading back down. This 
                     }
                 }
                 .scrollDismissesKeyboard(.interactively)
-                .overlay(
-                    // Floating text editor for editing mode
-                    Group {
-                        if isTextFieldFocused {
-                            TextEditor(text: $entryText)
-                                .font(.body)
-                                .focused($isTextFieldFocused)
-                                .scrollContentBackground(.hidden)
-                                .background(.white)
-                                .contentMargins(.horizontal, 14, for: .scrollContent)
-                                .contentMargins(.vertical, 16, for: .scrollContent)
+                .onChange(of: isEditMode) { _, newValue in
+                    if !newValue {
+                        // Ensure keyboard is dismissed when exiting edit mode
+                        isTextFieldFocused = false
+                    }
+                }
+                .onChange(of: isTextFieldFocused) { _, newValue in
+                    if !newValue && isEditMode {
+                        // Exit edit mode when keyboard is dismissed
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            isEditMode = false
                         }
                     }
-                )
+                }
                 .toolbar {
                     ToolbarItemGroup(placement: .keyboard) {
                         HStack(spacing: 20) {
                             Button {
-                                // Collapse action
-                                isTextFieldFocused = false
+                                // Collapse action - just resign focus, let onChange handle the rest
+                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                             } label: {
                                 Image(systemName: "chevron.down")
                                     .font(.title3)
@@ -558,6 +588,21 @@ I think I'm going to sit here for a while longer before heading back down. This 
                 ToolbarItem(placement: .topBarTrailing) {
                     HStack(spacing: 16) {
                         Menu {
+                            Button(action: {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    if isEditMode {
+                                        isEditMode = false
+                                        isTextFieldFocused = false
+                                    } else {
+                                        isEditMode = true
+                                    }
+                                }
+                            }) {
+                                Label(isEditMode ? "Done Editing" : "Edit", systemImage: isEditMode ? "checkmark.circle" : "pencil")
+                            }
+                            
+                            Divider()
+                            
                             Button(action: {}) {
                                 Label("Tag", systemImage: "tag")
                             }
@@ -653,6 +698,7 @@ I think I'm going to sit here for a while longer before heading back down. This 
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .navigationBarTitleDisplayMode(.inline)
+            .animation(.easeInOut(duration: 0.3), value: isEditMode)
             .sheet(isPresented: $showingJournalingTools) {
                 JournalingToolsView()
             }

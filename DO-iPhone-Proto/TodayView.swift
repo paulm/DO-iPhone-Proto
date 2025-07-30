@@ -8,6 +8,49 @@ enum TodayViewStyle: String, CaseIterable {
     case transparent = "Transparent"
 }
 
+// MARK: - Moments Selection Manager
+class MomentsSelectionManager: ObservableObject {
+    static let shared = MomentsSelectionManager()
+    
+    @Published var selectedLocations: Set<String> = []
+    @Published var selectedEvents: Set<String> = []
+    @Published var selectedPhotos: Set<String> = []
+    @Published var selectedHealth: Set<String> = []
+    
+    var hasSelections: Bool {
+        !selectedLocations.isEmpty || !selectedEvents.isEmpty || !selectedPhotos.isEmpty || !selectedHealth.isEmpty
+    }
+    
+    var selectionSummary: String {
+        var items: [String] = []
+        
+        if !selectedLocations.isEmpty {
+            items.append(contentsOf: selectedLocations)
+        }
+        
+        if !selectedEvents.isEmpty {
+            items.append(contentsOf: selectedEvents)
+        }
+        
+        if !selectedPhotos.isEmpty {
+            items.append("\(selectedPhotos.count) Images")
+        }
+        
+        if !selectedHealth.isEmpty {
+            items.append(contentsOf: selectedHealth)
+        }
+        
+        return items.joined(separator: ", ")
+    }
+    
+    func clearAll() {
+        selectedLocations.removeAll()
+        selectedEvents.removeAll()
+        selectedPhotos.removeAll()
+        selectedHealth.removeAll()
+    }
+}
+
 // MARK: - Bio Tip Definition
 struct BioCompletionTip: Tip {
     var title: Text {
@@ -50,10 +93,7 @@ struct TodayView: View {
     @State private var peopleInput = ""
     
     // Moments state
-    @State private var selectedLocations: Set<String> = []
-    @State private var selectedEvents: Set<String> = []
-    @State private var selectedPhotos: Set<String> = []
-    @State private var selectedHealth: Set<String> = []
+    @StateObject private var momentsSelection = MomentsSelectionManager.shared
     
     private var dateRange: [Date] {
         let calendar = Calendar.current
@@ -95,11 +135,7 @@ struct TodayView: View {
             foodInput: $foodInput,
             prioritiesInput: $prioritiesInput,
             mediaInput: $mediaInput,
-            peopleInput: $peopleInput,
-            selectedLocations: $selectedLocations,
-            selectedEvents: $selectedEvents,
-            selectedPhotos: $selectedPhotos,
-            selectedHealth: $selectedHealth
+            peopleInput: $peopleInput
         )
         .sheet(isPresented: $showingSettings) {
             SettingsView()
@@ -131,10 +167,10 @@ struct TodayView: View {
         }
         .sheet(isPresented: $showingMoments) {
             MomentsView(
-                selectedLocations: $selectedLocations,
-                selectedEvents: $selectedEvents,
-                selectedPhotos: $selectedPhotos,
-                selectedHealth: $selectedHealth
+                selectedLocations: $momentsSelection.selectedLocations,
+                selectedEvents: $momentsSelection.selectedEvents,
+                selectedPhotos: $momentsSelection.selectedPhotos,
+                selectedHealth: $momentsSelection.selectedHealth
             )
         }
         .sheet(isPresented: $showingTrackers) {
@@ -433,6 +469,9 @@ struct TodayViewV1i2: View {
     // Create an instance of the bio tip
     private let bioTip = BioCompletionTip()
     
+    // Moments selection manager
+    @StateObject private var momentsSelection = MomentsSelectionManager.shared
+    
     @State private var showingDailyChat = false
     @State private var chatCompleted = false
     @State private var openChatInLogMode = false
@@ -489,10 +528,6 @@ struct TodayViewV1i2: View {
     @Binding var prioritiesInput: String
     @Binding var mediaInput: String
     @Binding var peopleInput: String
-    @Binding var selectedLocations: Set<String>
-    @Binding var selectedEvents: Set<String>
-    @Binding var selectedPhotos: Set<String>
-    @Binding var selectedHealth: Set<String>
     
     private var dateRange: [Date] {
         let calendar = Calendar.current
@@ -520,7 +555,7 @@ struct TodayViewV1i2: View {
     }
     
     private var momentsSummaryText: String {
-        let totalMoments = selectedLocations.count + selectedEvents.count + selectedPhotos.count
+        let totalMoments = momentsSelection.selectedLocations.count + momentsSelection.selectedEvents.count + momentsSelection.selectedPhotos.count
         if totalMoments == 0 {
             return "No moments selected"
         } else {
@@ -543,11 +578,11 @@ struct TodayViewV1i2: View {
     }
     
     private var hasSelectedMoments: Bool {
-        !selectedLocations.isEmpty || !selectedEvents.isEmpty || !selectedPhotos.isEmpty || !selectedHealth.isEmpty
+        !momentsSelection.selectedLocations.isEmpty || !momentsSelection.selectedEvents.isEmpty || !momentsSelection.selectedPhotos.isEmpty || !momentsSelection.selectedHealth.isEmpty
     }
     
     private var momentsCountText: String {
-        let totalSelected = selectedLocations.count + selectedEvents.count + selectedPhotos.count + selectedHealth.count
+        let totalSelected = momentsSelection.selectedLocations.count + momentsSelection.selectedEvents.count + momentsSelection.selectedPhotos.count + momentsSelection.selectedHealth.count
         if totalSelected == 0 {
             return "Capture meaningful moments from your day"
         } else {
@@ -907,7 +942,7 @@ struct TodayViewV1i2: View {
                             icon: "sparkles",
                             iconColor: .purple,
                             title: "Moments",
-                            selectedCount: selectedLocations.count + selectedEvents.count + selectedPhotos.count + selectedHealth.count,
+                            selectedCount: momentsSelection.selectedLocations.count + momentsSelection.selectedEvents.count + momentsSelection.selectedPhotos.count + momentsSelection.selectedHealth.count,
                             isCompleted: hasSelectedMoments,
                             selectedDate: selectedDate,
                             action: { 
@@ -1308,10 +1343,10 @@ struct TodayViewV1i2: View {
         }
         .sheet(isPresented: $showingMoments) {
             MomentsView(
-                selectedLocations: $selectedLocations,
-                selectedEvents: $selectedEvents,
-                selectedPhotos: $selectedPhotos,
-                selectedHealth: $selectedHealth,
+                selectedLocations: $momentsSelection.selectedLocations,
+                selectedEvents: $momentsSelection.selectedEvents,
+                selectedPhotos: $momentsSelection.selectedPhotos,
+                selectedHealth: $momentsSelection.selectedHealth,
                 initialSection: momentsInitialSection
             )
             .onDisappear {
@@ -1357,9 +1392,10 @@ struct TodayViewV1i2: View {
             entryCreated = DailyContentManager.shared.hasEntry(for: newValue)
             
             // Clear moments data
-            selectedLocations.removeAll()
-            selectedEvents.removeAll()
-            selectedPhotos.removeAll()
+            momentsSelection.selectedLocations.removeAll()
+            momentsSelection.selectedEvents.removeAll()
+            momentsSelection.selectedPhotos.removeAll()
+            momentsSelection.selectedHealth.removeAll()
             
             // Clear tracker data
             moodRating = 0
@@ -2455,6 +2491,7 @@ struct DailyChatCarouselView: View {
 struct MomentsCarouselView: View {
     @Binding var showingMoments: Bool
     @Binding var momentsInitialSection: String?
+    @StateObject private var momentsSelection = MomentsSelectionManager.shared
     
     struct MomentCategory {
         let title: String
@@ -2473,6 +2510,21 @@ struct MomentsCarouselView: View {
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
+                // Summary item (shown when there are selections)
+                if momentsSelection.hasSelections {
+                    Text(momentsSelection.selectionSummary)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(3)
+                        .multilineTextAlignment(.leading)
+                        .padding(12)
+                        .frame(width: 163, height: 84) // 2/3 of 244 = ~163
+                        .background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .padding(.leading, 20)
+                }
+                
+                // Regular category items
                 ForEach(Array(categories.enumerated()), id: \.element.title) { index, category in
                     Button(action: {
                         momentsInitialSection = category.title
@@ -2496,9 +2548,23 @@ struct MomentsCarouselView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
                     .buttonStyle(PlainButtonStyle())
-                    .padding(.leading, index == 0 ? 20 : 0)
-                    .padding(.trailing, index == categories.count - 1 ? 20 : 0)
+                    .padding(.leading, index == 0 && !momentsSelection.hasSelections ? 20 : 0)
+                    .padding(.trailing, 0)
                 }
+                
+                // Settings button
+                Button(action: {
+                    // TODO: Open moments settings
+                }) {
+                    Image(systemName: "gearshape.fill")
+                        .font(.system(size: 24))
+                        .foregroundStyle(Color.gray.opacity(0.5))
+                        .frame(width: 60, height: 84)
+                        .background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+                .buttonStyle(PlainButtonStyle())
+                .padding(.trailing, 20)
             }
         }
         .padding(.vertical, 4)

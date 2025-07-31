@@ -2537,11 +2537,45 @@ struct MomentsCarouselView: View {
                                 .foregroundStyle(category.color)
                                 .frame(maxHeight: .infinity)
                             
-                            // Count label
-                            Text("\(category.count) \(category.title)")
-                                .font(.system(size: 11))
-                                .foregroundStyle(.secondary)
+                            // Count label with menu for Visits
+                            if category.title == "Visits" {
+                                HStack(spacing: 4) {
+                                    Text("\(category.count) \(category.title)")
+                                        .font(.system(size: 11))
+                                        .foregroundStyle(.secondary)
+                                    
+                                    Menu {
+                                        Button("Home - 6:00 AM") {
+                                            // TODO: Open new entry for Home visit
+                                        }
+                                        Button("Starbucks - 8:15 AM") {
+                                            // TODO: Open new entry for Starbucks visit
+                                        }
+                                        Button("Office - 9:30 AM") {
+                                            // TODO: Open new entry for Office visit
+                                        }
+                                        Button("Gym - 12:30 PM") {
+                                            // TODO: Open new entry for Gym visit
+                                        }
+                                        Button("Park - 5:30 PM") {
+                                            // TODO: Open new entry for Park visit
+                                        }
+                                    } label: {
+                                        Image(systemName: "ellipsis")
+                                            .font(.system(size: 11))
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    .onTapGesture {
+                                        // Prevent button tap when menu is tapped
+                                    }
+                                }
                                 .padding(.bottom, 8)
+                            } else {
+                                Text("\(category.count) \(category.title)")
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(.secondary)
+                                    .padding(.bottom, 8)
+                            }
                         }
                         .frame(width: 116, height: 84)
                         .background(Color.white)

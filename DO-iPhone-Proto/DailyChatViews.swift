@@ -198,12 +198,179 @@ struct DailyChatView: View {
         }
     }
     
-    private let aiResponses = [
-        "That sounds like a great way to spend your day! How did that make you feel?",
-        "Thanks for sharing that with me. I can tell this was meaningful to you. What was the most memorable part about it?",
-        "Interesting! I'd love to hear more about that experience. It sounds like it had quite an impact on your day.",
-        "That's wonderful that you took the time to do that. Sometimes the simple moments can be the most rewarding ones, don't you think?"
-    ]
+    private func getPromptMessageForTimeOfDay() -> String {
+        let hour = Calendar.current.component(.hour, from: selectedDate)
+        
+        switch hour {
+        case 6..<11: // Morning
+            let morningMessages = [
+                "Good morning! What's one intention you're setting for today?",
+                "How did you sleep, and what's first on your agenda?"
+            ]
+            return morningMessages.randomElement() ?? morningMessages[0]
+            
+        case 11..<17: // Afternoon
+            let afternoonMessages = [
+                "Mid-day check: what's been the highlight so far?",
+                "Anything surprising or amusing happen since breakfast?"
+            ]
+            return afternoonMessages.randomElement() ?? afternoonMessages[0]
+            
+        case 17..<24: // Evening
+            let eveningMessages = [
+                "Day's winding down—what will you remember most about today?",
+                "On a scale of 1-10, how satisfied do you feel right now?"
+            ]
+            return eveningMessages.randomElement() ?? eveningMessages[0]
+            
+        default: // Late Night (0-6)
+            return "Burning the midnight oil? What's keeping you up, and how are you feeling about it?"
+        }
+    }
+    
+    private func getReflectiveSummary(for messages: [DailyChatMessage]) -> String {
+        // Analyze user messages to create a reflective summary
+        let userMessages = messages.filter { $0.isUser }
+        let combinedText = userMessages.map { $0.content }.joined(separator: " ").lowercased()
+        
+        // Check for different day patterns
+        if combinedText.contains("stress") || combinedText.contains("pressure") || combinedText.contains("difficult") || 
+           combinedText.contains("tough") || combinedText.contains("frustrated") || combinedText.contains("anxious") {
+            // Stressful day pattern
+            let stressResponses = [
+                "Rough edges today—travel snafu, high-pressure client call that felt off. Your notes hint at frustration > anxiety. What small win (even micro) can you salvage from the chaos?",
+                "I'm noticing tension threads through your day. Between the challenges, where did you find moments of control or clarity?",
+                "Today tested you in multiple ways. Looking at the pattern, what's one thing you handled better than you might have in the past?"
+            ]
+            return stressResponses.randomElement() ?? stressResponses[0]
+        }
+        
+        if combinedText.contains("dream") || combinedText.contains("dreamt") || combinedText.contains("nightmare") {
+            // Dream pattern
+            let dreamResponses = [
+                "Dream recap: you're steering a boat through fog, searchlight flickers, finally land on a quiet shore. Classic symbols of navigation and arriving at clarity. Any waking-life decisions feel 'foggy' right now?",
+                "Your dream imagery suggests transition and searching. What in your waking life feels like it's shifting or needs direction?",
+                "Dreams often process what we can't during the day. What unresolved feelings might your subconscious be working through?"
+            ]
+            return dreamResponses.randomElement() ?? dreamResponses[0]
+        }
+        
+        // Analyze activities mentioned
+        var activities: [String] = []
+        var emojis: [String] = []
+        
+        if combinedText.contains("hike") || combinedText.contains("walk") || combinedText.contains("run") {
+            activities.append("morning movement")
+            emojis.append("⛰️")
+        }
+        if combinedText.contains("work") || combinedText.contains("meeting") || combinedText.contains("project") || combinedText.contains("design") {
+            activities.append("deep work")
+            emojis.append("⚙️")
+        }
+        if combinedText.contains("family") || combinedText.contains("dinner") || combinedText.contains("kids") {
+            activities.append("family time")
+            emojis.append("🍔")
+        }
+        if combinedText.contains("gym") || combinedText.contains("workout") || combinedText.contains("exercise") {
+            activities.append("physical activity")
+            emojis.append("💪")
+        }
+        if combinedText.contains("friend") || combinedText.contains("coffee") || combinedText.contains("lunch") {
+            activities.append("social connection")
+            emojis.append("☕")
+        }
+        
+        // Generate balanced day response if activities detected
+        if activities.count >= 2 {
+            let activityList = emojis.joined(separator: " ")
+            let themes = ["quality time + productive cadence", "personal care + meaningful connections", "achievement + restoration", "focus + flexibility"]
+            let theme = themes.randomElement() ?? themes[0]
+            
+            return "Here's the shape of your day: \(activityList). Theme emerging: \(theme). Anything about that balance surprise you?"
+        }
+        
+        // Default reflective responses
+        let defaultReflections = [
+            "Looking at your day's arc, I notice moments of both effort and ease. What felt most aligned with who you're becoming?",
+            "Your experiences today paint an interesting pattern. If today had a title, what would it be?",
+            "Reading between the lines, there's a rhythm to how you moved through today. What part of that rhythm serves you best?"
+        ]
+        return defaultReflections.randomElement() ?? defaultReflections[0]
+    }
+    
+    private func getContextualResponse(for userMessage: String) -> String {
+        // Check for various keywords and themes in the user's message
+        let message = userMessage.lowercased()
+        
+        // Sports + work combination (like soccer and design sprint)
+        if (message.contains("soccer") || message.contains("game") || message.contains("match") || message.contains("sport")) &&
+           (message.contains("work") || message.contains("design") || message.contains("sprint") || message.contains("project")) {
+            let comboResponses = [
+                "Soccer wins and design wins—nice combo! Did either leave you energized or wiped out this evening?",
+                "You packed a lot into the afternoon—family sports and a sprint finish. What's one moment you'd like to remember from each?",
+                "Balancing family time at the game with work deadlines—how did you manage that transition?"
+            ]
+            return comboResponses.randomElement() ?? comboResponses[0]
+        }
+        
+        // Kids' activities with follow-up about the child
+        if message.contains("soccer") || message.contains("game") || message.contains("practice") || message.contains("match") {
+            let kidsResponses = [
+                "How's your child feeling after the match? And did the rest of your day wrap up as smoothly as you hoped?",
+                "Sounds like an eventful game! What was the highlight for your family?",
+                "Kids' sports can be such an adventure. How did everyone handle the excitement?"
+            ]
+            return kidsResponses.randomElement() ?? kidsResponses[0]
+        }
+        
+        // Work-related responses
+        if message.contains("work") || message.contains("meeting") || message.contains("project") || message.contains("deadline") || message.contains("sprint") {
+            let workResponses = [
+                "How did the work sprint wrap up? Are you feeling accomplished or is there more on your plate?",
+                "Sounds like a productive push at work! What's been the most challenging part, and what went surprisingly well?",
+                "Work sprints can be intense. Did you manage to find any moments to breathe between all those tasks?"
+            ]
+            return workResponses.randomElement() ?? workResponses[0]
+        }
+        
+        // Family/social responses
+        if message.contains("family") || message.contains("friend") || message.contains("kids") || message.contains("daughter") || message.contains("son") {
+            let socialResponses = [
+                "Family time sounds wonderful! What was the highlight of being together, and did anything unexpected come up?",
+                "It's great you got to connect with loved ones. How's everyone doing, and what made you smile during that time?",
+                "Those moments with family are precious. Was it relaxing or more of an adventure today?"
+            ]
+            return socialResponses.randomElement() ?? socialResponses[0]
+        }
+        
+        // Activity/exercise responses
+        if message.contains("gym") || message.contains("run") || message.contains("walk") || message.contains("exercise") || message.contains("workout") {
+            let exerciseResponses = [
+                "Nice job getting that workout in! How's your body feeling now—energized or ready for some rest?",
+                "Physical activity can really shift the day's energy. What motivated you to get moving, and how do you feel afterward?",
+                "Exercise is such a good reset. Was this part of your routine or something spontaneous today?"
+            ]
+            return exerciseResponses.randomElement() ?? exerciseResponses[0]
+        }
+        
+        // Multiple activities mentioned
+        if message.split(separator: " ").count > 20 || (message.contains("and") && message.contains("then")) {
+            let busyResponses = [
+                "You packed a lot into today! Looking back, what stands out as the most meaningful moment?",
+                "Quite a full day you've had. How are you feeling about the balance between everything you did?",
+                "That's an impressive amount of activity! What gave you energy and what drained it today?"
+            ]
+            return busyResponses.randomElement() ?? busyResponses[0]
+        }
+        
+        // Default contextual responses
+        let defaultResponses = [
+            "Thanks for sharing that with me. What made this particularly meaningful for you today?",
+            "I appreciate you taking the time to reflect on this. How does this connect to what's been on your mind lately?",
+            "That's interesting! What surprised you most about how this unfolded?"
+        ]
+        return defaultResponses.randomElement() ?? defaultResponses[0]
+    }
     
     var body: some View {
         NavigationStack {
@@ -447,17 +614,49 @@ struct DailyChatView: View {
                 // Set initial mode
                 currentMode = initialLogMode ? .capture : .prompt
                 
-                // Auto-insert first AI question based on mode and no messages yet
+                // Auto-insert first AI message based on mode and no messages yet
                 if messages.isEmpty {
-                    if currentMode == .prompt {
-                        let initialMessage = DailyChatMessage(content: "How's your \(dayOfWeek)?", isUser: false, isLogMode: false, mode: currentMode)
-                        messages.append(initialMessage)
-                        chatSessionManager.saveMessages(messages, for: selectedDate)
-                    } else if currentMode == .reflect {
-                        let initialMessage = DailyChatMessage(content: "What stood out to you today?", isUser: false, isLogMode: false, mode: currentMode)
-                        messages.append(initialMessage)
-                        chatSessionManager.saveMessages(messages, for: selectedDate)
+                    let initialMessage: DailyChatMessage
+                    
+                    switch currentMode {
+                    case .prompt:
+                        // Use time-based prompt for Prompt mode
+                        initialMessage = DailyChatMessage(
+                            content: getPromptMessageForTimeOfDay(),
+                            isUser: false,
+                            isLogMode: false,
+                            mode: currentMode
+                        )
+                    case .capture:
+                        // Silent mode message for Capture
+                        let captureMessages = [
+                            "Log any memories or highlights. I'll stay silent until you switch modes.",
+                            "Drop your thoughts here—no replies from me while Capture is on.",
+                            "Capturing only. Type away; I'm in listening mode."
+                        ]
+                        initialMessage = DailyChatMessage(
+                            content: captureMessages.randomElement() ?? captureMessages[0],
+                            isUser: false,
+                            isLogMode: false,
+                            mode: currentMode
+                        )
+                    case .reflect:
+                        // Initial message for Reflect mode
+                        let reflectMessages = [
+                            "What stood out to you today?",
+                            "Take a moment to reflect on today's experiences.",
+                            "What lessons or insights emerged from today?"
+                        ]
+                        initialMessage = DailyChatMessage(
+                            content: reflectMessages.randomElement() ?? reflectMessages[0],
+                            isUser: false,
+                            isLogMode: false,
+                            mode: currentMode
+                        )
                     }
+                    
+                    messages.append(initialMessage)
+                    chatSessionManager.saveMessages(messages, for: selectedDate)
                 }
                 
                 // Notify that chat has been started if there are existing messages
@@ -503,10 +702,22 @@ struct DailyChatView: View {
             // Show thinking indicator
             isThinking = true
             
-            // Generate new response
+            // Generate new response based on the last user message
             DispatchQueue.main.asyncAfter(deadline: .now() + Double.random(in: 0.75...1.5)) {
                 isThinking = false
-                let aiResponse = aiResponses.randomElement() ?? aiResponses[0]
+                
+                // Find the last user message to generate contextual response
+                let lastUserMessage = messages.last(where: { $0.isUser })?.content ?? ""
+                
+                let aiResponse: String
+                if currentMode == .reflect {
+                    // Reflect mode provides reflective summaries
+                    aiResponse = getReflectiveSummary(for: messages)
+                } else {
+                    // Prompt mode uses contextual responses
+                    aiResponse = getContextualResponse(for: lastUserMessage)
+                }
+                
                 let aiMessage = DailyChatMessage(content: aiResponse, isUser: false, isLogMode: false, mode: currentMode)
                 withAnimation(.easeIn(duration: 0.3)) {
                     messages.append(aiMessage)
@@ -548,24 +759,19 @@ struct DailyChatView: View {
             // Show thinking indicator
             isThinking = true
             
-            // Get appropriate AI responses based on mode
-            let responses: [String]
+            // Get appropriate AI response based on mode and context
+            let aiResponse: String
             if currentMode == .reflect {
-                responses = [
-                    "How did that make you feel?",
-                    "What would you do differently next time?",
-                    "What did you learn from this experience?",
-                    "How does this connect to your goals?",
-                    "What are you grateful for in this moment?"
-                ]
+                // Reflect mode provides reflective summaries of the conversation
+                aiResponse = getReflectiveSummary(for: messages)
             } else {
-                responses = aiResponses
+                // Prompt mode uses contextual responses based on user's message
+                aiResponse = getContextualResponse(for: userMessage.content)
             }
             
             // Simulate AI response after a delay (reduced by half)
             DispatchQueue.main.asyncAfter(deadline: .now() + Double.random(in: 0.75...1.5)) {
                 isThinking = false
-                let aiResponse = responses.randomElement() ?? responses[0]
                 let aiMessage = DailyChatMessage(content: aiResponse, isUser: false, isLogMode: false, mode: currentMode)
                 withAnimation(.easeIn(duration: 0.3)) {
                     messages.append(aiMessage)
@@ -590,11 +796,43 @@ struct DailyChatView: View {
                     messages.append(modeMessage)
                 }
             case .prompt:
-                // TODO: Add prompt mode messages
-                break
+                // Use time-based prompt when switching to Prompt mode
+                let promptMessage = DailyChatMessage(
+                    content: getPromptMessageForTimeOfDay(),
+                    isUser: false,
+                    isLogMode: false,
+                    mode: newMode
+                )
+                withAnimation(.easeIn(duration: 0.3)) {
+                    messages.append(promptMessage)
+                }
             case .reflect:
-                // TODO: Add reflect mode messages
-                break
+                // Check if user has sent any messages
+                let hasUserMessages = messages.contains { $0.isUser }
+                
+                let reflectMessage: String
+                if hasUserMessages {
+                    // User has shared messages - provide contextual reflection
+                    reflectMessage = getReflectiveSummary(for: messages)
+                } else {
+                    // No user messages yet - send proactive message
+                    let proactiveMessages = [
+                        "Reflect Mode is on. Just share a bit about today, and I'll help you unpack what it might mean.",
+                        "Start anywhere—something that stood out, challenged you, or made you pause. I'll take it from there.",
+                        "I'm ready to help you surface patterns, turning points, or trends. Start with anything from today—big or small."
+                    ]
+                    reflectMessage = proactiveMessages.randomElement() ?? proactiveMessages[0]
+                }
+                
+                let message = DailyChatMessage(
+                    content: reflectMessage,
+                    isUser: false,
+                    isLogMode: false,
+                    mode: newMode
+                )
+                withAnimation(.easeIn(duration: 0.3)) {
+                    messages.append(message)
+                }
             }
         }
     }

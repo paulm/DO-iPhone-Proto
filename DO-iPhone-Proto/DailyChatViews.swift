@@ -118,6 +118,13 @@ class ChatSessionManager {
     }
 }
 
+// MARK: - Chat Mode Enum
+enum ChatMode: String, CaseIterable, Codable {
+    case capture = "Capture"
+    case prompt = "Prompt"
+    case reflect = "Reflect"
+}
+
 // MARK: - Daily Chat View
 struct DailyChatView: View {
     @Environment(\.dismiss) private var dismiss
@@ -128,7 +135,7 @@ struct DailyChatView: View {
     let onMessageCountChanged: (Int) -> Void
     
     @State private var chatText = ""
-    @State private var isLogDetailsMode: Bool
+    @State private var currentMode: ChatMode
     @State private var messages: [DailyChatMessage] = []
     @State private var isThinking = false
     @FocusState private var isTextFieldFocused: Bool
@@ -158,7 +165,7 @@ struct DailyChatView: View {
         self._entryCreated = entryCreated
         self.onChatStarted = onChatStarted
         self.onMessageCountChanged = onMessageCountChanged
-        self._isLogDetailsMode = State(initialValue: initialLogMode)
+        self._currentMode = State(initialValue: initialLogMode ? .capture : .prompt)
         
         // Load existing messages for the selected date
         let existingMessages = ChatSessionManager.shared.getMessages(for: selectedDate)
@@ -166,11 +173,29 @@ struct DailyChatView: View {
     }
     
     private var placeholderText: String {
-        isLogDetailsMode ? "Log any details about this day" : "Chat about your day"
+        switch currentMode {
+        case .capture:
+            return "Log any details about this day"
+        case .prompt:
+            return "Chat about your day"
+        case .reflect:
+            return "Reflect on your experiences"
+        }
     }
     
     private var showHeaderContent: Bool {
         messages.isEmpty
+    }
+    
+    private func getColorForMode(_ mode: ChatMode) -> Color {
+        switch mode {
+        case .capture:
+            return Color(.darkGray)
+        case .prompt:
+            return Color(hex: "44C0FF")
+        case .reflect:
+            return Color(hex: "FFC107")
+        }
     }
     
     private let aiResponses = [
@@ -253,47 +278,29 @@ struct DailyChatView: View {
                     // Keyboard accessory toolbar
                     HStack {
                         // Chat mode toggle buttons
-                        HStack(spacing: 8) {
-                            Text("Mode:")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                            
-                            HStack(spacing: 4) {
+                        HStack(spacing: 2) {
+                            ForEach(ChatMode.allCases, id: \.self) { mode in
                                 Button(action: {
-                                    isLogDetailsMode = false
+                                    let previousMode = currentMode
+                                    currentMode = mode
+                                    handleModeChange(from: previousMode, to: mode)
                                 }) {
-                                    Text("Chat")
-                                        .font(.subheadline)
+                                    Text(mode.rawValue)
+                                        .font(.caption)
                                         .fontWeight(.medium)
-                                        .padding(.horizontal, 12)
+                                        .padding(.horizontal, 10)
                                         .padding(.vertical, 6)
                                         .background(
-                                            !isLogDetailsMode ? Color(hex: "44C0FF") : Color.clear,
+                                            currentMode == mode ? getColorForMode(mode) : Color.clear,
                                             in: RoundedRectangle(cornerRadius: 16)
                                         )
-                                        .foregroundStyle(!isLogDetailsMode ? .white : .secondary)
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                                
-                                Button(action: {
-                                    isLogDetailsMode = true
-                                }) {
-                                    Text("Log")
-                                        .font(.subheadline)
-                                        .fontWeight(.medium)
-                                        .padding(.horizontal, 12)
-                                        .padding(.vertical, 6)
-                                        .background(
-                                            isLogDetailsMode ? Color(.darkGray) : Color.clear,
-                                            in: RoundedRectangle(cornerRadius: 16)
-                                        )
-                                        .foregroundStyle(isLogDetailsMode ? .white : .secondary)
+                                        .foregroundStyle(currentMode == mode ? .white : .secondary)
                                 }
                                 .buttonStyle(PlainButtonStyle())
                             }
-                            .padding(2)
-                            .background(.white, in: RoundedRectangle(cornerRadius: 18))
                         }
+                        .padding(2)
+                        .background(.white, in: RoundedRectangle(cornerRadius: 18))
                         
                         Spacer()
                         
@@ -437,14 +444,20 @@ struct DailyChatView: View {
                 }
             }
             .onAppear {
-                // Set initial log mode
-                isLogDetailsMode = initialLogMode
+                // Set initial mode
+                currentMode = initialLogMode ? .capture : .prompt
                 
-                // Auto-insert first AI question if in chat mode and no messages yet
-                if !initialLogMode && messages.isEmpty {
-                    let initialMessage = DailyChatMessage(content: "How's your \(dayOfWeek)?", isUser: false, isLogMode: false)
-                    messages.append(initialMessage)
-                    chatSessionManager.saveMessages(messages, for: selectedDate)
+                // Auto-insert first AI question based on mode and no messages yet
+                if messages.isEmpty {
+                    if currentMode == .prompt {
+                        let initialMessage = DailyChatMessage(content: "How's your \(dayOfWeek)?", isUser: false, isLogMode: false, mode: currentMode)
+                        messages.append(initialMessage)
+                        chatSessionManager.saveMessages(messages, for: selectedDate)
+                    } else if currentMode == .reflect {
+                        let initialMessage = DailyChatMessage(content: "What stood out to you today?", isUser: false, isLogMode: false, mode: currentMode)
+                        messages.append(initialMessage)
+                        chatSessionManager.saveMessages(messages, for: selectedDate)
+                    }
                 }
                 
                 // Notify that chat has been started if there are existing messages
@@ -494,7 +507,7 @@ struct DailyChatView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + Double.random(in: 0.75...1.5)) {
                 isThinking = false
                 let aiResponse = aiResponses.randomElement() ?? aiResponses[0]
-                let aiMessage = DailyChatMessage(content: aiResponse, isUser: false, isLogMode: false)
+                let aiMessage = DailyChatMessage(content: aiResponse, isUser: false, isLogMode: false, mode: currentMode)
                 withAnimation(.easeIn(duration: 0.3)) {
                     messages.append(aiMessage)
                 }
@@ -507,16 +520,20 @@ struct DailyChatView: View {
         chatSessionManager.clearSession(for: selectedDate)
         onMessageCountChanged(0)
         
-        // Re-add initial AI message if in chat mode
-        if !isLogDetailsMode {
-            let initialMessage = DailyChatMessage(content: "How's your \(dayOfWeek)?", isUser: false, isLogMode: false)
+        // Re-add initial AI message based on mode
+        if currentMode == .prompt {
+            let initialMessage = DailyChatMessage(content: "How's your \(dayOfWeek)?", isUser: false, isLogMode: false, mode: currentMode)
+            messages.append(initialMessage)
+            chatSessionManager.saveMessages(messages, for: selectedDate)
+        } else if currentMode == .reflect {
+            let initialMessage = DailyChatMessage(content: "What stood out to you today?", isUser: false, isLogMode: false, mode: currentMode)
             messages.append(initialMessage)
             chatSessionManager.saveMessages(messages, for: selectedDate)
         }
     }
     
     private func sendMessage() {
-        let userMessage = DailyChatMessage(content: chatText, isUser: true, isLogMode: isLogDetailsMode)
+        let userMessage = DailyChatMessage(content: chatText, isUser: true, isLogMode: currentMode == .capture, mode: currentMode)
         messages.append(userMessage)
         
         chatText = ""
@@ -526,19 +543,58 @@ struct DailyChatView: View {
             onChatStarted()
         }
         
-        // Only show AI response in Chat mode, not in Log details mode
-        if !isLogDetailsMode {
+        // Only show AI response in Prompt and Reflect modes, not in Capture mode
+        if currentMode != .capture {
             // Show thinking indicator
             isThinking = true
+            
+            // Get appropriate AI responses based on mode
+            let responses: [String]
+            if currentMode == .reflect {
+                responses = [
+                    "How did that make you feel?",
+                    "What would you do differently next time?",
+                    "What did you learn from this experience?",
+                    "How does this connect to your goals?",
+                    "What are you grateful for in this moment?"
+                ]
+            } else {
+                responses = aiResponses
+            }
             
             // Simulate AI response after a delay (reduced by half)
             DispatchQueue.main.asyncAfter(deadline: .now() + Double.random(in: 0.75...1.5)) {
                 isThinking = false
-                let aiResponse = aiResponses.randomElement() ?? aiResponses[0]
-                let aiMessage = DailyChatMessage(content: aiResponse, isUser: false, isLogMode: false)
+                let aiResponse = responses.randomElement() ?? responses[0]
+                let aiMessage = DailyChatMessage(content: aiResponse, isUser: false, isLogMode: false, mode: currentMode)
                 withAnimation(.easeIn(duration: 0.3)) {
                     messages.append(aiMessage)
                 }
+            }
+        }
+    }
+    
+    private func handleModeChange(from previousMode: ChatMode, to newMode: ChatMode) {
+        // Only add mode change messages if switching to a different mode
+        if previousMode != newMode {
+            switch newMode {
+            case .capture:
+                let captureMessages = [
+                    "Log any memories or highlights. I'll stay silent until you switch modes.",
+                    "Drop your thoughts here—no replies from me while Capture is on.",
+                    "Capturing only. Type away; I'm in listening mode."
+                ]
+                let selectedMessage = captureMessages.randomElement() ?? captureMessages[0]
+                let modeMessage = DailyChatMessage(content: selectedMessage, isUser: false, isLogMode: false, mode: newMode)
+                withAnimation(.easeIn(duration: 0.3)) {
+                    messages.append(modeMessage)
+                }
+            case .prompt:
+                // TODO: Add prompt mode messages
+                break
+            case .reflect:
+                // TODO: Add reflect mode messages
+                break
             }
         }
     }
@@ -584,16 +640,40 @@ struct DailyChatView: View {
 
 // MARK: - Daily Chat Message Model
 struct DailyChatMessage: Identifiable, Equatable, Codable {
-    let id = UUID()
+    var id = UUID()
     let content: String
     let isUser: Bool
     let isLogMode: Bool
-    let timestamp = Date()
+    var timestamp = Date()
+    let mode: ChatMode?
+    
+    init(content: String, isUser: Bool, isLogMode: Bool, mode: ChatMode? = nil) {
+        self.content = content
+        self.isUser = isUser
+        self.isLogMode = isLogMode
+        self.mode = mode
+    }
 }
 
 // MARK: - Daily Chat Bubble View
 struct DailyChatBubbleView: View {
     let message: DailyChatMessage
+    
+    private func getBubbleColor(for message: DailyChatMessage) -> Color {
+        if let mode = message.mode {
+            switch mode {
+            case .capture:
+                return Color(.darkGray)
+            case .prompt:
+                return Color(hex: "44C0FF")
+            case .reflect:
+                return Color(hex: "FFC107")
+            }
+        } else {
+            // Fallback for legacy messages
+            return message.isLogMode ? Color(.darkGray) : Color(hex: "44C0FF")
+        }
+    }
     
     var body: some View {
         HStack {
@@ -606,7 +686,7 @@ struct DailyChatBubbleView: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
                     .background(
-                        message.isLogMode ? Color(.darkGray) : Color(hex: "44C0FF"),
+                        getBubbleColor(for: message),
                         in: RoundedRectangle(cornerRadius: 18)
                     )
             } else {

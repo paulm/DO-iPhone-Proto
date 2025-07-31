@@ -42,6 +42,8 @@ struct EntryView: View {
     @State private var showingMediaPage = false
     @FocusState private var isTextFieldFocused: Bool
     @State private var isEditMode = false
+    @State private var shouldShowAudioOnAppear: Bool
+    @State private var showingCompactAudioRecord = false
     
     // Location for the map - Sundance Resort coordinates
     private let entryLocation = CLLocationCoordinate2D(latitude: 40.6006, longitude: -111.5878)
@@ -62,9 +64,10 @@ The afternoon was spent exploring the art studios scattered around the resort. I
 As the sun began to set, painting the sky in shades of orange and pink, I found myself back on the deck of my cabin, wrapped in a warm blanket with a cup of herbal tea. The day felt complete in a way that few days do. No urgent emails, no pressing deadlines, just the simple pleasure of being present in a beautiful place. Tomorrow I'm planning to try the zip line tour, but for now, I'm content to watch the stars emerge one by one in the darkening sky, feeling deeply connected to this moment and this place.
 """
     
-    init(journal: Journal?, entryData: EntryData? = nil) {
+    init(journal: Journal?, entryData: EntryData? = nil, shouldShowAudioOnAppear: Bool = false) {
         self.journal = journal
         self.entryData = entryData
+        self._shouldShowAudioOnAppear = State(initialValue: shouldShowAudioOnAppear)
         
         if let data = entryData {
             // Use provided entry data
@@ -699,6 +702,15 @@ I think I'm going to sit here for a while longer before heading back down. This 
             .toolbarColorScheme(.dark, for: .navigationBar)
             .navigationBarTitleDisplayMode(.inline)
             .animation(.easeInOut(duration: 0.3), value: isEditMode)
+            .onAppear {
+                if shouldShowAudioOnAppear {
+                    // Show audio recording after a short delay to ensure sheet is fully presented
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        showingCompactAudioRecord = true
+                        shouldShowAudioOnAppear = false
+                    }
+                }
+            }
             .sheet(isPresented: $showingJournalingTools) {
                 JournalingToolsView()
             }
@@ -727,28 +739,26 @@ I think I'm going to sit here for a while longer before heading back down. This 
                     onMessageCountChanged: { _ in }
                 )
             }
-            .sheet(isPresented: $showingAudioPage) {
-                AudioRecordView(
-                    existingAudio: AudioRecordView.AudioData(
-                        title: "Morning Reflections at Stewart Falls",
-                        duration: audioDuration,
-                        recordingDate: entryDate,
-                        hasTranscription: true,
-                        transcriptionText: audioTranscriptionText
-                    )
+            .compactAudioSheet(
+                isPresented: $showingAudioPage,
+                existingAudio: AudioRecordView.AudioData(
+                    title: "Morning Reflections at Stewart Falls",
+                    duration: audioDuration,
+                    recordingDate: entryDate,
+                    hasTranscription: true,
+                    transcriptionText: audioTranscriptionText
                 )
-            }
-            .sheet(isPresented: $showingAudioPage2) {
-                AudioRecordView(
-                    existingAudio: AudioRecordView.AudioData(
-                        title: "Sounds of the Mountain Stream",
-                        duration: audioDuration2,
-                        recordingDate: entryDate,
-                        hasTranscription: false,
-                        transcriptionText: ""
-                    )
+            )
+            .compactAudioSheet(
+                isPresented: $showingAudioPage2,
+                existingAudio: AudioRecordView.AudioData(
+                    title: "Sounds of the Mountain Stream",
+                    duration: audioDuration2,
+                    recordingDate: entryDate,
+                    hasTranscription: false,
+                    transcriptionText: ""
                 )
-            }
+            )
             .sheet(isPresented: $showingMediaPage) {
                 MediaDetailView(
                     imageName: "bike-wide",
@@ -757,6 +767,10 @@ I think I'm going to sit here for a while longer before heading back down. This 
                     locationCoordinate: entryLocation
                 )
             }
+            .compactAudioSheet(
+                isPresented: $showingCompactAudioRecord,
+                journal: journal
+            )
         }
     }
     

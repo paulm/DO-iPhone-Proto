@@ -43,7 +43,8 @@ struct JournalsTabPagedView: View {
     @State private var viewMode: ViewMode = .list // Default to Icons view
     @State private var selectedJournal: Journal?
     @State private var searchText = ""
-    @State private var showingAudioRecord = false
+    @State private var showingNewEntry = false
+    @State private var shouldShowAudioAfterEntry = false
     
     // Draggable FAB state
     @GestureState private var dragState = CGSize.zero
@@ -76,8 +77,14 @@ struct JournalsTabPagedView: View {
                 showFAB = true
             }
         }
-        .sheet(isPresented: $showingAudioRecord) {
-            AudioRecordView(journal: journalViewModel.selectedJournal)
+        .sheet(isPresented: $showingNewEntry) {
+            EntryView(
+                journal: journalViewModel.selectedJournal,
+                shouldShowAudioOnAppear: shouldShowAudioAfterEntry
+            )
+            .onDisappear {
+                shouldShowAudioAfterEntry = false
+            }
         }
     }
     
@@ -302,8 +309,7 @@ struct JournalsTabPagedView: View {
         HStack(spacing: 12) {
             // Create Entry button
             Button(action: {
-                // TODO: Create entry action
-                selectedJournal = journalViewModel.selectedJournal
+                showingNewEntry = true
             }) {
                 HStack(spacing: 8) {
                     Image(systemName: "plus")
@@ -322,7 +328,16 @@ struct JournalsTabPagedView: View {
             
             // Record Audio button
             Button(action: {
-                showingAudioRecord = true
+                // Select the journal if hovering over one
+                if let journal = hoveredJournal ?? temporaryHoveredJournal {
+                    journalViewModel.selectedJournal = journal
+                }
+                // Otherwise, keep the currently selected journal
+                
+                // Set flag to show audio after entry
+                shouldShowAudioAfterEntry = true
+                // Open Entry view as sheet
+                showingNewEntry = true
             }) {
                 Image(systemName: "mic.fill")
                     .font(.system(size: 20, weight: .medium))
@@ -751,9 +766,10 @@ struct PagedJournalSheetContent: View {
         .sheet(isPresented: $showingEntryView) {
             EntryView(journal: journal)
         }
-        .sheet(isPresented: $showingAudioRecord) {
-            AudioRecordView(journal: journal)
-        }
+        .compactAudioSheet(
+            isPresented: $showingAudioRecord,
+            journal: journal
+        )
     }
 }
 

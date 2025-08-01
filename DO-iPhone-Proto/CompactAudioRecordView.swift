@@ -12,6 +12,7 @@ struct CompactAudioRecordView: View {
     @State private var isProcessing = false
     @State private var isPlaying = false
     @State private var currentTime: TimeInterval = 0
+    @State private var isPaused = false
     
     // Timer for recording duration
     @State private var recordingTimer: Timer?
@@ -83,13 +84,13 @@ struct CompactAudioRecordView: View {
                     HStack(spacing: 2) {
                         ForEach(0..<40) { index in
                             RoundedRectangle(cornerRadius: 1)
-                                .fill(isRecording ? Color.red.opacity(0.3) : Color.black.opacity(0.2))
-                                .frame(width: 4, height: isRecording ? CGFloat.random(in: 12...30) : CGFloat.random(in: 10...25))
+                                .fill(isRecording && !isPaused ? Color.red.opacity(0.3) : Color.black.opacity(0.2))
+                                .frame(width: 4, height: isRecording && !isPaused ? CGFloat.random(in: 12...30) : CGFloat.random(in: 10...25))
                                 .animation(
-                                    isRecording ? 
+                                    isRecording && !isPaused ? 
                                         .easeInOut(duration: 0.2).repeatForever(autoreverses: true).delay(Double(index) * 0.02) : 
                                         .default,
-                                    value: isRecording
+                                    value: isPaused
                                 )
                         }
                     }
@@ -101,20 +102,52 @@ struct CompactAudioRecordView: View {
                         .fontWeight(.medium)
                         .monospacedDigit()
                     
-                    // Stop recording button
-                    Button {
-                        stopRecording()
-                    } label: {
-                        ZStack {
-                            Circle()
-                                .fill(Color.red)
-                                .frame(width: 56, height: 56)
+                    // Stop and Pause buttons with custom layout
+                    ZStack {
+                        // Stop recording button (centered)
+                        Button {
+                            stopRecording()
+                        } label: {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.red)
+                                    .frame(width: 56, height: 56)
+                                
+                                Image(systemName: "stop.fill")
+                                    .font(.title2)
+                                    .foregroundStyle(.white)
+                            }
+                        }
+                        
+                        // Pause button (positioned to the right)
+                        HStack {
+                            Spacer()
+                            Spacer()
+                            Spacer()
                             
-                            Image(systemName: "stop.fill")
-                                .font(.title2)
-                                .foregroundStyle(.white)
+                            Button {
+                                isPaused.toggle()
+                                if isPaused {
+                                    recordingTimer?.invalidate()
+                                } else {
+                                    startRecording()
+                                }
+                            } label: {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.gray.opacity(0.3))
+                                        .frame(width: 44, height: 44)
+                                    
+                                    Image(systemName: isPaused ? "play.fill" : "pause.fill")
+                                        .font(.title3)
+                                        .foregroundStyle(.gray)
+                                }
+                            }
+                            
+                            Spacer()
                         }
                     }
+                    .frame(maxWidth: .infinity)
                     
                     // Processing indicator
                     if isProcessing {

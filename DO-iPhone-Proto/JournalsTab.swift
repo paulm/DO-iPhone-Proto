@@ -70,7 +70,15 @@ struct JournalsTabPagedView: View {
     var body: some View {
         ZStack {
             navigationContent
-            fabOverlay
+            
+            // FAB overlay always visible
+            if showFAB {
+                GeometryReader { geometry in
+                    fabButton(in: geometry)
+                }
+                .allowsHitTesting(true)
+                .transition(.scale.combined(with: .opacity))
+            }
         }
         .onAppear {
             withAnimation(.easeOut(duration: 0.3)) {
@@ -293,17 +301,6 @@ struct JournalsTabPagedView: View {
         .padding(.bottom, 100)
     }
     
-    // MARK: - FAB Overlay
-    @ViewBuilder
-    private var fabOverlay: some View {
-        if showFAB && selectedJournal == nil {
-            GeometryReader { geometry in
-                fabButton(in: geometry)
-            }
-            .allowsHitTesting(true)
-            .transition(.scale.combined(with: .opacity))
-        }
-    }
     
     // MARK: - FAB Button
     private func fabButton(in geometry: GeometryProxy) -> some View {

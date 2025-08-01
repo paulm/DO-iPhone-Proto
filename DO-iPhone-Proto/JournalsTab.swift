@@ -449,10 +449,7 @@ struct JournalDetailPagedView: View {
     let journal: Journal
     let journalViewModel: JournalSelectionViewModel
     let sheetRegularPosition: CGFloat
-    @State private var showingSheet = false
-    @State private var showingEntryView = false
     @State private var showingEditView = false
-    @StateObject private var sheetState = SheetState()
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -529,28 +526,17 @@ struct JournalDetailPagedView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .zIndex(1)
+            
+            // Custom sheet overlay
+            CustomSheetView(
+                journal: journal,
+                sheetRegularPosition: sheetRegularPosition
+            )
         }
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                showingSheet = true
-            }
-        }
-        .onChange(of: showingSheet) { _, newValue in
-            if !newValue {
-                // When sheet is dismissed, navigate back
-                dismiss()
-            }
-        }
-        .sheet(isPresented: $showingEntryView) {
-            EntryView(journal: journal)
-        }
         .sheet(isPresented: $showingEditView) {
             PagedEditJournalView(journal: journal)
         }
-        .overlay(
-            PagedNativeSheetView(isPresented: $showingSheet, journal: journal, sheetRegularPosition: sheetRegularPosition, sheetState: sheetState)
-        )
     }
 }
 
@@ -559,8 +545,9 @@ class SheetState: ObservableObject {
     @Published var isExpanded: Bool = false
 }
 
-// MARK: - Paged UIKit Sheet Wrapper
+// MARK: - Paged UIKit Sheet Wrapper (No longer used - replaced by CustomSheetView)
 
+/*
 struct PagedNativeSheetView: UIViewControllerRepresentable {
     @Binding var isPresented: Bool
     let journal: Journal
@@ -641,6 +628,7 @@ struct PagedNativeSheetView: UIViewControllerRepresentable {
         }
     }
 }
+*/
 
 // MARK: - Paged Sheet Content
 
@@ -648,9 +636,10 @@ struct PagedJournalSheetContent: View {
     let journal: Journal
     @ObservedObject var sheetState: SheetState
     let sheetRegularPosition: CGFloat
+    var showFAB: Bool = true  // Make this configurable
     @State private var selectedTab = 1
     @State private var showingEntryView = false
-    @State private var showFAB = false
+    @State private var showingFABState = false
     @State private var showingAudioRecord = false
     
     // Calculate FAB positions to maintain 80pt from bottom of device
@@ -711,7 +700,7 @@ struct PagedJournalSheetContent: View {
             }
             
             // FAB buttons that animate based on sheet position
-            if showFAB {
+            if showFAB && showingFABState {
                 HStack(spacing: 12) {
                     // Create Entry button
                     Button(action: {
@@ -756,10 +745,13 @@ struct PagedJournalSheetContent: View {
             }
         }
         .onAppear {
-            // Animate FAB in after a short delay with bounce effect
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                withAnimation(.interpolatingSpring(stiffness: 180, damping: 12)) {
-                    showFAB = true
+            // Only show FAB if enabled
+            if showFAB {
+                // Animate FAB in after a short delay with bounce effect
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    withAnimation(.interpolatingSpring(stiffness: 180, damping: 12)) {
+                        showingFABState = true
+                    }
                 }
             }
         }

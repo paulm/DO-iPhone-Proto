@@ -534,6 +534,7 @@ struct JournalDetailPagedView: View {
                 mediumDetentHeight: 540, // Medium: Fixed 400pt height
                 largeDetentHeight: 750   // Large: Fixed 700pt height
             )
+            .zIndex(2) // Ensure sheet appears above title text (which has zIndex 1)
         }
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showingEditView) {

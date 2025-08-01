@@ -1,35 +1,27 @@
 
 
+2 buttons in Chat carousel (Add Media / Resume Chat)
 
+Daily Entry actions: Add Media
+
+"Set as Daily Entry" for any Entry?
 
 Diminish Resume Chat once entry is created
 
-could take the form of 2 buttons in carousel (Add Media / Resume Chat)
 
 
-A streak can be flame and number
-
-Include a more obvious date picker button?
-
-
+## Feedback Ideas:
 
 Send and respond button and send to log
+A streak can be flame and number
+Include a more obvious date picker button?
 
 
 
 # Day One Proto with Daily Chat. 
 # Notes and to do lists
 
-
-
 When chat opens, insert the cursor into the input area to invoke the keyboard
-
-
-
-
-
-
-
 
 
 
@@ -37,10 +29,7 @@ Timeline entry swipe
 Timline long press
 
 
-
 ## Refactor
-
-
 
 
 

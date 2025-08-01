@@ -169,6 +169,7 @@ struct JournalsTabPagedView: View {
                 JournalDetailPagedView(journal: journal, journalViewModel: journalViewModel, sheetRegularPosition: sheetRegularPosition)
             }
         }
+        .tint(.white) // Set navigation tint to white for all navigation elements
         .sheet(isPresented: $showingSettings) {
             SettingsView()
         }

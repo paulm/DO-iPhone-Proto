@@ -15,17 +15,13 @@ class CustomSheetViewController: UIViewController {
     private var heightConstraint: NSLayoutConstraint!
     private var bottomConstraint: NSLayoutConstraint!
     
-    // Detent positions
-    private let mediumDetentRatio: CGFloat = 0.5  // 50% of screen height
-    private let largeDetentRatio: CGFloat = 0.9   // 90% of screen height
+    // Detent positions - these can be customized
+    private let mediumDetentHeight: CGFloat
+    private let largeDetentHeight: CGFloat
     
-    private var mediumDetentHeight: CGFloat {
-        return UIScreen.main.bounds.height * mediumDetentRatio
-    }
-    
-    private var largeDetentHeight: CGFloat {
-        return UIScreen.main.bounds.height * largeDetentRatio
-    }
+    // Default detent ratios if custom heights aren't provided
+    private static let defaultMediumDetentRatio: CGFloat = 0.5  // 50% of screen height
+    private static let defaultLargeDetentRatio: CGFloat = 0.9   // 90% of screen height
     
     // Current state
     private var currentDetent: Detent = .medium
@@ -57,10 +53,18 @@ class CustomSheetViewController: UIViewController {
     
     // MARK: - Initialization
     
-    init(journal: Journal?, sheetRegularPosition: CGFloat, sheetState: SheetState) {
+    init(journal: Journal?, 
+         sheetRegularPosition: CGFloat, 
+         sheetState: SheetState,
+         mediumDetentHeight: CGFloat? = nil,
+         largeDetentHeight: CGFloat? = nil) {
         self.journal = journal
         self.sheetRegularPosition = sheetRegularPosition
         self.sheetState = sheetState
+        
+        // Use custom heights if provided, otherwise calculate from defaults
+        self.mediumDetentHeight = mediumDetentHeight ?? (UIScreen.main.bounds.height * Self.defaultMediumDetentRatio)
+        self.largeDetentHeight = largeDetentHeight ?? (UIScreen.main.bounds.height * Self.defaultLargeDetentRatio)
         
         // Create the segmented control with shared tab selection
         let segmentedControl = CustomSheetSegmentedControl(tabSelection: tabSelection)

@@ -527,10 +527,12 @@ struct JournalDetailPagedView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .zIndex(1)
             
-            // Custom sheet overlay
+            // Custom sheet overlay with hard-coded detent positions
             CustomSheetView(
                 journal: journal,
-                sheetRegularPosition: sheetRegularPosition
+                sheetRegularPosition: sheetRegularPosition,
+                mediumDetentHeight: 540, // Medium: Fixed 400pt height
+                largeDetentHeight: 750   // Large: Fixed 700pt height
             )
         }
         .navigationBarTitleDisplayMode(.inline)

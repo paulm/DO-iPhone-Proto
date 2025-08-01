@@ -7,7 +7,9 @@ class CustomSheetViewController: UIViewController {
     private let scrollView = UIScrollView()
     private let contentView = UIView()
     private let grabberView = UIView()
+    private let segmentedControlContainer = UIView()
     private let contentHostingController: UIHostingController<AnyView>
+    private let segmentedHostingController: UIHostingController<AnyView>
     
     // Constraints for sheet positioning
     private var heightConstraint: NSLayoutConstraint!
@@ -46,6 +48,7 @@ class CustomSheetViewController: UIViewController {
     private let journal: Journal?
     private let sheetRegularPosition: CGFloat
     private let sheetState: SheetState
+    private let tabSelection = TabSelection()
     
     enum Detent {
         case medium
@@ -59,12 +62,17 @@ class CustomSheetViewController: UIViewController {
         self.sheetRegularPosition = sheetRegularPosition
         self.sheetState = sheetState
         
-        // Create the SwiftUI content
-        let sheetContent = PagedJournalSheetContent(
+        // Create the segmented control with shared tab selection
+        let segmentedControl = CustomSheetSegmentedControl(tabSelection: tabSelection)
+        self.segmentedHostingController = UIHostingController(rootView: AnyView(segmentedControl))
+        
+        // Create the SwiftUI content without the segmented control
+        let sheetContent = PagedJournalSheetContentWithoutSegmented(
             journal: journal ?? Journal(name: "Default", color: .blue, entryCount: 0),
             sheetState: sheetState,
             sheetRegularPosition: sheetRegularPosition,
-            showFAB: false // Disable FAB in sheet content
+            showFAB: false, // Disable FAB in sheet content
+            tabSelection: tabSelection
         )
         
         self.contentHostingController = UIHostingController(rootView: AnyView(sheetContent))
@@ -81,8 +89,9 @@ class CustomSheetViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupView()
-        setupScrollView()
         setupGrabber()
+        setupSegmentedControl()
+        setupScrollView()  // Must be after segmentedControl since it references it
         setupGestures()
         setupContent()
     }
@@ -125,6 +134,33 @@ class CustomSheetViewController: UIViewController {
         ])
     }
     
+    private func setupSegmentedControl() {
+        segmentedControlContainer.backgroundColor = .systemBackground
+        segmentedControlContainer.translatesAutoresizingMaskIntoConstraints = false
+        
+        view.addSubview(segmentedControlContainer)
+        
+        // Add the segmented control SwiftUI view
+        addChild(segmentedHostingController)
+        segmentedHostingController.view.translatesAutoresizingMaskIntoConstraints = false
+        segmentedControlContainer.addSubview(segmentedHostingController.view)
+        segmentedHostingController.didMove(toParent: self)
+        
+        NSLayoutConstraint.activate([
+            // Container constraints
+            segmentedControlContainer.topAnchor.constraint(equalTo: view.topAnchor, constant: 0), // At the very top
+            segmentedControlContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            segmentedControlContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            segmentedControlContainer.heightAnchor.constraint(equalToConstant: 60),
+            
+            // Hosting controller constraints
+            segmentedHostingController.view.topAnchor.constraint(equalTo: segmentedControlContainer.topAnchor),
+            segmentedHostingController.view.leadingAnchor.constraint(equalTo: segmentedControlContainer.leadingAnchor),
+            segmentedHostingController.view.trailingAnchor.constraint(equalTo: segmentedControlContainer.trailingAnchor),
+            segmentedHostingController.view.bottomAnchor.constraint(equalTo: segmentedControlContainer.bottomAnchor)
+        ])
+    }
+    
     private func setupScrollView() {
         scrollView.delegate = self
         scrollView.translatesAutoresizingMaskIntoConstraints = false
@@ -138,7 +174,7 @@ class CustomSheetViewController: UIViewController {
         view.addSubview(scrollView)
         
         NSLayoutConstraint.activate([
-            scrollView.topAnchor.constraint(equalTo: view.topAnchor, constant: 20), // Space for grabber
+            scrollView.topAnchor.constraint(equalTo: segmentedControlContainer.bottomAnchor), // Below segmented control
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
@@ -448,5 +484,71 @@ extension CustomSheetViewController: UIGestureRecognizerDelegate {
             return scrollView.contentOffset.y <= 0
         }
         return false
+    }
+}
+
+// MARK: - SwiftUI Views for Custom Sheet
+
+class TabSelection: ObservableObject {
+    @Published var selectedTab = 1
+}
+
+struct CustomSheetSegmentedControl: View {
+    @ObservedObject var tabSelection: TabSelection
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            Picker("View", selection: $tabSelection.selectedTab) {
+                Text("Cover").tag(0)
+                Text("List").tag(1)
+                Text("Calendar").tag(2)
+                Text("Media").tag(3)
+                Text("Map").tag(4)
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal)
+            .padding(.top, 20)  // Space for grabber
+            .padding(.bottom, 12)
+        }
+        .frame(maxHeight: .infinity)
+        .background(.ultraThinMaterial)
+    }
+}
+
+struct PagedJournalSheetContentWithoutSegmented: View {
+    let journal: Journal
+    @ObservedObject var sheetState: SheetState
+    let sheetRegularPosition: CGFloat
+    var showFAB: Bool = false
+    @ObservedObject var tabSelection: TabSelection
+    @State private var showingEntryView = false
+    @State private var showingAudioRecord = false
+    
+    var body: some View {
+        // Content based on selected tab
+        Group {
+            switch tabSelection.selectedTab {
+            case 0:
+                PagedCoverTabView(journal: journal)
+            case 1:
+                ListTabView(journal: journal)
+            case 2:
+                CalendarTabView(journal: journal)
+            case 3:
+                MediaTabView()
+            case 4:
+                MapTabView()
+            default:
+                ListTabView(journal: journal)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .sheet(isPresented: $showingEntryView) {
+            EntryView(journal: journal)
+        }
+        .compactAudioSheet(
+            isPresented: $showingAudioRecord,
+            journal: journal
+        )
     }
 }

@@ -151,8 +151,8 @@ struct ListTabView: View {
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
-                // Add top padding for floating segmented control
-                Color.clear.frame(height: 70)
+                // Small top padding since segmented control is now fixed
+                Color.clear.frame(height: 20)
                 
                 // March 2025 Section
                 Section(header: MonthHeaderView(monthYear: "March 2025")) {

@@ -449,6 +449,25 @@ struct JournalDetailPagedView: View {
     let sheetRegularPosition: CGFloat
     @State private var showingEditView = false
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
+    
+    // Computed properties for orientation-specific values
+    private var isLandscape: Bool {
+        verticalSizeClass == .compact
+    }
+    
+    private var mediumDetentHeight: CGFloat {
+        isLandscape ? 240 : 540  // Landscape: 320pt, Portrait: 540pt
+    }
+    
+    private var largeDetentHeight: CGFloat {
+        isLandscape ? 350 : 750  // Landscape: 450pt, Portrait: 750pt
+    }
+    
+    private var titleTopPadding: CGFloat {
+        isLandscape ? 50 : (sheetRegularPosition - 100)
+    }
     
     var body: some View {
         ZStack {
@@ -518,19 +537,19 @@ struct JournalDetailPagedView: View {
                     .padding(.trailing, 18)
                 }
                 .padding(.leading, 18)
-                .padding(.top, sheetRegularPosition - 100)
+                .padding(.top, titleTopPadding)
                 
                 Spacer()
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .zIndex(1)
             
-            // Custom sheet overlay with hard-coded detent positions
+            // Custom sheet overlay with orientation-specific detent positions
             CustomSheetView(
                 journal: journal,
                 sheetRegularPosition: sheetRegularPosition,
-                mediumDetentHeight: 540, // Medium: Fixed 400pt height
-                largeDetentHeight: 750   // Large: Fixed 700pt height
+                mediumDetentHeight: mediumDetentHeight,
+                largeDetentHeight: largeDetentHeight
             )
             .zIndex(2) // Ensure sheet appears above title text (which has zIndex 1)
         }

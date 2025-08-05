@@ -1,5 +1,15 @@
 import SwiftUI
 
+// MARK: - Data Models
+struct PromptPack: Identifiable {
+    let id = UUID()
+    let icon: String
+    let title: String
+    let promptCount: Int
+    let author: String
+    let description: String
+}
+
 /// Prompts tab view showing writing prompts gallery and packs
 struct PromptsView: View {
     @State private var selectedTab = 0
@@ -24,6 +34,7 @@ struct PromptsView: View {
 struct PromptsTabOriginalView: View {
     @Binding var selectedTab: Int
     @Binding var showingSettings: Bool
+    @State private var selectedPromptPack: PromptPack?
     
     var body: some View {
         NavigationStack {
@@ -79,13 +90,75 @@ struct PromptsTabOriginalView: View {
                             .padding(.horizontal)
                         
                         VStack(spacing: 0) {
-                            PromptPackRow(icon: "envelope", title: "Friendships Through the Years")
+                            PromptPackRow(
+                                icon: "heart.text.square",
+                                title: "Gratitude",
+                                onTap: {
+                                    selectedPromptPack = PromptPack(
+                                        icon: "heart.text.square",
+                                        title: "Gratitude",
+                                        promptCount: 37,
+                                        author: "Day One Team",
+                                        description: "Spark everyday thankfulness by noticing the large and small blessings that color your life."
+                                    )
+                                }
+                            )
                             Divider().padding(.leading, 56)
-                            PromptPackRow(icon: "figure.child", title: "Childhood Memories")
+                            PromptPackRow(
+                                icon: "envelope",
+                                title: "Friendships Through the Years",
+                                onTap: {
+                                    selectedPromptPack = PromptPack(
+                                        icon: "envelope",
+                                        title: "Friendships Through the Years",
+                                        promptCount: 25,
+                                        author: "Day One Team",
+                                        description: "Explore the bonds that have shaped your life through meaningful friendships."
+                                    )
+                                }
+                            )
                             Divider().padding(.leading, 56)
-                            PromptPackRow(icon: "face.smiling", title: "Firsts in Life")
+                            PromptPackRow(
+                                icon: "figure.child",
+                                title: "Childhood Memories",
+                                onTap: {
+                                    selectedPromptPack = PromptPack(
+                                        icon: "figure.child",
+                                        title: "Childhood Memories",
+                                        promptCount: 42,
+                                        author: "Day One Team",
+                                        description: "Journey back to your earliest experiences and rediscover forgotten moments."
+                                    )
+                                }
+                            )
                             Divider().padding(.leading, 56)
-                            PromptPackRow(icon: "cloud.sun", title: "Seasons of Life")
+                            PromptPackRow(
+                                icon: "face.smiling",
+                                title: "Firsts in Life",
+                                onTap: {
+                                    selectedPromptPack = PromptPack(
+                                        icon: "face.smiling",
+                                        title: "Firsts in Life",
+                                        promptCount: 30,
+                                        author: "Day One Team",
+                                        description: "Celebrate the milestone moments that marked new chapters in your story."
+                                    )
+                                }
+                            )
+                            Divider().padding(.leading, 56)
+                            PromptPackRow(
+                                icon: "cloud.sun",
+                                title: "Seasons of Life",
+                                onTap: {
+                                    selectedPromptPack = PromptPack(
+                                        icon: "cloud.sun",
+                                        title: "Seasons of Life",
+                                        promptCount: 28,
+                                        author: "Day One Team",
+                                        description: "Reflect on how different seasons have influenced your journey and growth."
+                                    )
+                                }
+                            )
                         }
                         .background(.white)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -119,6 +192,14 @@ struct PromptsTabOriginalView: View {
         .sheet(isPresented: $showingSettings) {
             SettingsView()
         }
+        .sheet(item: $selectedPromptPack) { pack in
+            PromptPackDetailView(
+                packTitle: pack.title,
+                packIcon: pack.icon,
+                promptCount: pack.promptCount,
+                author: pack.author
+            )
+        }
     }
 }
 
@@ -136,8 +217,7 @@ struct PromptCard: View {
                 // Card content
                 VStack {
                     Text(question)
-                        .font(.custom("New York", size: 20))
-                        .fontWeight(.medium)
+                        .font(.system(size: 20, weight: .medium, design: .serif))
                         .foregroundStyle(.white)
                         .multilineTextAlignment(.center)
                         .lineLimit(4)
@@ -184,11 +264,10 @@ struct PromptCard: View {
 struct PromptPackRow: View {
     let icon: String
     let title: String
+    let onTap: () -> Void
     
     var body: some View {
-        Button(action: {
-            // TODO: Open prompt pack
-        }) {
+        Button(action: onTap) {
             HStack(spacing: 16) {
                 Image(systemName: icon)
                     .font(.title2)

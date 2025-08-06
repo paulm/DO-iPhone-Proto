@@ -5,6 +5,31 @@ struct PromptItem: Identifiable {
     let text: String
 }
 
+struct AnswerData {
+    var count: Int
+    var lastAnsweredDate: Date
+}
+
+// Helper function to format answer label
+private func formatAnswerLabel(answerData: AnswerData, now: Date = Date()) -> String {
+    let countPart = answerData.count > 1 ? "✓ \(answerData.count)×" : "✓"
+    
+    let calendar = Calendar.current
+    let recencyPart: String
+    
+    if calendar.isDateInToday(answerData.lastAnsweredDate) {
+        recencyPart = "Today"
+    } else if calendar.isDateInYesterday(answerData.lastAnsweredDate) {
+        recencyPart = "Yesterday"
+    } else {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM d ''yy"
+        recencyPart = formatter.string(from: answerData.lastAnsweredDate)
+    }
+    
+    return "\(countPart) • \(recencyPart)"
+}
+
 struct PromptPackDetailView: View {
     let packTitle: String
     let packIcon: String
@@ -13,7 +38,7 @@ struct PromptPackDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var selectedPrompt: String?
     @State private var isSaved = false
-    @State private var answeredPrompts: Set<String> = []
+    @State private var answeredPrompts: [String: AnswerData] = [:]
     @State private var hiddenPrompts: Set<String> = []
     @State private var showingEntryView = false
     @State private var promptForEntry: String?
@@ -107,13 +132,13 @@ struct PromptPackDetailView: View {
                             // Progress fill
                             RoundedRectangle(cornerRadius: 2)
                                 .fill(Color(hex: "44C0FF"))
-                                .frame(width: geometry.size.width * (Double(answeredPrompts.count) / Double(promptTexts.count)), height: 4)
+                                .frame(width: geometry.size.width * (Double(answeredPrompts.keys.count) / Double(promptTexts.count)), height: 4)
                         }
                     }
                     .frame(height: 4)
                     
                     // Progress text
-                    Text("\(answeredPrompts.count) of \(promptTexts.count)")
+                    Text("\(answeredPrompts.keys.count) of \(promptTexts.count)")
                         .font(.caption)
                         .foregroundStyle(.gray)
                         .frame(maxWidth: .infinity, alignment: .trailing)
@@ -125,11 +150,11 @@ struct PromptPackDetailView: View {
     }
     
     private var unansweredPrompts: [PromptItem] {
-        prompts.filter { !hiddenPrompts.contains($0.text) && !answeredPrompts.contains($0.text) }
+        prompts.filter { !hiddenPrompts.contains($0.text) && answeredPrompts[$0.text] == nil }
     }
     
     private var answeredPromptsList: [PromptItem] {
-        prompts.filter { !hiddenPrompts.contains($0.text) && answeredPrompts.contains($0.text) }
+        prompts.filter { !hiddenPrompts.contains($0.text) && answeredPrompts[$0.text] != nil }
     }
     
     private func makePromptCard(for promptItem: PromptItem, isAnswered: Bool) -> some View {
@@ -137,6 +162,7 @@ struct PromptPackDetailView: View {
             prompt: promptItem.text,
             isSelected: selectedPrompt == promptItem.text,
             isAnswered: isAnswered,
+            answerData: answeredPrompts[promptItem.text],
             onTap: {
                 selectedPrompt = promptItem.text
                 promptForEntry = promptItem.text
@@ -219,7 +245,19 @@ struct PromptPackDetailView: View {
         .sheet(isPresented: $showingEntryView) {
             // Mark the prompt as answered when sheet is dismissed
             if let prompt = promptForEntry {
-                _ = answeredPrompts.insert(prompt)
+                if let existingData = answeredPrompts[prompt] {
+                    // Increment count if already answered
+                    answeredPrompts[prompt] = AnswerData(
+                        count: existingData.count + 1,
+                        lastAnsweredDate: Date()
+                    )
+                } else {
+                    // First time answering
+                    answeredPrompts[prompt] = AnswerData(
+                        count: 1,
+                        lastAnsweredDate: Date()
+                    )
+                }
             }
         } content: {
             EntryView(
@@ -239,6 +277,7 @@ struct PromptDetailCard: View {
     let prompt: String
     let isSelected: Bool
     let isAnswered: Bool
+    let answerData: AnswerData?
     let onTap: () -> Void
     let onHide: () -> Void
     
@@ -250,8 +289,8 @@ struct PromptDetailCard: View {
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
             
-            if isAnswered {
-                Text("Answered")
+            if let answerData = answerData {
+                Text(formatAnswerLabel(answerData: answerData))
                     .font(.caption)
                     .foregroundStyle(.gray)
             }

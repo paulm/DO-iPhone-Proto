@@ -36,6 +36,14 @@ struct PromptsTabOriginalView: View {
     @Binding var showingSettings: Bool
     @State private var selectedPromptPack: PromptPack?
     
+    // Track saved packs and answered prompts
+    @State private var savedPacks: Set<String> = ["Gratitude", "Childhood Memories"]
+    @State private var answeredCounts: [String: Int] = [
+        "Gratitude": 2,
+        "Friendships Through the Years": 5,
+        "Childhood Memories": 0
+    ]
+    
     // Sample data for prompt packs
     private let promptPacks = [
         PromptPack(
@@ -130,36 +138,27 @@ struct PromptsTabOriginalView: View {
     }
     
     private func todaysPromptCard(question: String, category: String, icon: String) -> some View {
-        GeometryReader { geometry in
-            HStack(spacing: 0) {
-                Spacer()
-                    .frame(width: geometry.size.width * 0.1) // 10% spacing on left
-                
-                VStack(spacing: 12) {
-                    Text(question)
-                        .font(.system(size: 17, weight: .thin, design: .serif))
-                        .foregroundStyle(.primary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 20)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    
-                    Label(category, systemImage: icon)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .padding(.bottom, 12)
-                }
-                .frame(width: geometry.size.width * 0.8) // 80% width
-                .frame(maxHeight: .infinity)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(.white)
-                        .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 2)
-                )
-                
-                Spacer()
-                    .frame(width: geometry.size.width * 0.1) // 10% spacing on right
-            }
+        VStack(spacing: 12) {
+            Text(question)
+                .font(.system(size: 17, weight: .thin, design: .serif))
+                .foregroundStyle(.primary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 20)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            
+            Label(category, systemImage: icon)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(.bottom, 12)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(.white)
+                .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 2)
+        )
+        .padding(.leading, 6)  // 6pt on each side = 12pt between cards
+        .padding(.trailing, 6)
     }
     
     @ViewBuilder
@@ -187,14 +186,34 @@ struct PromptsTabOriginalView: View {
                     .font(.body)
                     .foregroundStyle(.primary)
                 
-                Text("\(pack.promptCount) prompts")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                // Show saved status and/or answered count
+                if let subtitle = promptPackSubtitle(for: pack) {
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
             
             Spacer()
         }
         .padding(.vertical, 4)
+    }
+    
+    private func promptPackSubtitle(for pack: PromptPack) -> String? {
+        let isSaved = savedPacks.contains(pack.title)
+        let answeredCount = answeredCounts[pack.title] ?? 0
+        
+        var parts: [String] = []
+        
+        if isSaved {
+            parts.append("✓ Saved")
+        }
+        
+        if answeredCount > 0 {
+            parts.append("\(answeredCount) Answered")
+        }
+        
+        return parts.isEmpty ? nil : parts.joined(separator: " • ")
     }
     
     var body: some View {

@@ -83,18 +83,6 @@ struct PromptsTabOriginalView: View {
         )
     ]
     
-    @ViewBuilder
-    private var segmentedControlSection: some View {
-        Section {
-            Picker("View", selection: $selectedTab) {
-                Text("Gallery").tag(0)
-                Text("My Prompts").tag(1)
-            }
-            .pickerStyle(.segmented)
-            .listRowInsets(EdgeInsets())
-            .listRowBackground(Color.clear)
-        }
-    }
     
     // Sample prompts for carousel
     private let todaysPrompts = [
@@ -163,8 +151,25 @@ struct PromptsTabOriginalView: View {
     
     @ViewBuilder
     private var promptPacksSection: some View {
+        let savedPacksList = promptPacks.filter { savedPacks.contains($0.title) }
+        let unsavedPacksList = promptPacks.filter { !savedPacks.contains($0.title) }
+        
+        // Show saved packs section if any exist
+        if !savedPacksList.isEmpty {
+            Section("Saved Packs") {
+                ForEach(savedPacksList) { pack in
+                    Button(action: {
+                        selectedPromptPack = pack
+                    }) {
+                        promptPackRow(for: pack)
+                    }
+                }
+            }
+        }
+        
+        // Show remaining packs in Prompt Packs section
         Section("Prompt Packs") {
-            ForEach(promptPacks) { pack in
+            ForEach(unsavedPacksList) { pack in
                 Button(action: {
                     selectedPromptPack = pack
                 }) {
@@ -219,7 +224,6 @@ struct PromptsTabOriginalView: View {
     var body: some View {
         NavigationStack {
             List {
-                segmentedControlSection
                 todaysPromptSection
                 promptPacksSection
             }

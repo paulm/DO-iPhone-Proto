@@ -21,8 +21,6 @@ struct PromptsView: View {
             switch experimentsManager.variant(for: .promptsTab) {
             case .original:
                 PromptsTabOriginalView(selectedTab: $selectedTab, showingSettings: $showingSettings)
-            case .appleSettings:
-                PromptsTabSettingsStyleView()
             default:
                 PromptsTabOriginalView(selectedTab: $selectedTab, showingSettings: $showingSettings)
             }

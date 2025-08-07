@@ -51,28 +51,6 @@ class MomentsSelectionManager: ObservableObject {
     }
 }
 
-// MARK: - Bio Tip Definition
-struct BioCompletionTip: Tip {
-    var title: Text {
-        Text("Complete Your Bio")
-    }
-    
-    var message: Text? {
-        Text("Add personal details to enhance your daily chat experience with AI-powered insights.")
-    }
-    
-    var image: Image? {
-        Image(systemName: "person.text.rectangle")
-    }
-    
-    var actions: [Action] {
-        [
-            Action(id: "fill-bio", title: "Fill Bio Now"),
-            Action(id: "later", title: "Maybe Later")
-        ]
-    }
-}
-
 /// Today tab view
 struct TodayView: View {
     @State private var showingSettings = false
@@ -466,9 +444,6 @@ struct TodayViewV1i2: View {
     @Binding var selectedDate: Date
     @Binding var surveyCompleted: Bool
     
-    // Create an instance of the bio tip
-    private let bioTip = BioCompletionTip()
-    
     // Moments selection manager
     @StateObject private var momentsSelection = MomentsSelectionManager.shared
     
@@ -491,7 +466,6 @@ struct TodayViewV1i2: View {
     @State private var showingPreviewEntry = false
     @State private var entryCreated = false
     @State private var showingEntry = false
-    @State private var showingBioView = false
     @State private var isGeneratingEntry = false
     @State private var chatUpdateTrigger = false
     @State private var momentsInitialSection: String? = nil
@@ -507,7 +481,6 @@ struct TodayViewV1i2: View {
     @State private var showMoments = false
     @State private var showTrackers = false
     @State private var showInsights = true
-    @State private var showBioTooltip = false
     @AppStorage("showChatFAB") private var showChatFAB = false
     @AppStorage("showEntryFAB") private var showEntryFAB = false
     @AppStorage("showChatInputBox") private var showChatInputBox = true
@@ -995,24 +968,6 @@ struct TodayViewV1i2: View {
                     .listRowBackground(cellBackgroundColor)
                 }
                 
-                
-                // Bio ToolTip (no section wrapper)
-                if showBioTooltip {
-                    TipView(bioTip) { action in
-                        if action.id == "fill-bio" {
-                            // Handle Fill Bio Now action
-                            showingBioView = true
-                            bioTip.invalidate(reason: .actionPerformed)
-                        } else if action.id == "later" {
-                            // Handle Maybe Later action
-                            bioTip.invalidate(reason: .actionPerformed)
-                        }
-                    }
-                    .tipBackground(Color.black.opacity(0.05))
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets())
-                }
-                
                 // Extra space at bottom to allow scrolling content above bottom elements
                 Color.clear
                     .frame(height: 200)
@@ -1166,17 +1121,6 @@ struct TodayViewV1i2: View {
                                 HStack {
                                     Text("Entry Links")
                                     if showInsights {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                            
-                            Button {
-                                showBioTooltip.toggle()
-                            } label: {
-                                HStack {
-                                    Text("Bio ToolTip")
-                                    if showBioTooltip {
                                         Image(systemName: "checkmark")
                                     }
                                 }
@@ -1436,9 +1380,6 @@ struct TodayViewV1i2: View {
         }
         .sheet(isPresented: $showingEntry) {
             EntryView(journal: nil)
-        }
-        .sheet(isPresented: $showingBioView) {
-            BioEditView()
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("TriggerDailyChat"))) { _ in
             // Only respond to Daily Chat trigger if this variant supports it

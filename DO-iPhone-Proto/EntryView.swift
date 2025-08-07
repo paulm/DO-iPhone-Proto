@@ -6,6 +6,7 @@ struct EntryView: View {
     @Environment(\.dismiss) private var dismiss
     let journal: Journal?
     let entryData: EntryData?
+    let prompt: String?
     
     // Entry data structure
     struct EntryData {
@@ -64,9 +65,10 @@ The afternoon was spent exploring the art studios scattered around the resort. I
 As the sun began to set, painting the sky in shades of orange and pink, I found myself back on the deck of my cabin, wrapped in a warm blanket with a cup of herbal tea. The day felt complete in a way that few days do. No urgent emails, no pressing deadlines, just the simple pleasure of being present in a beautiful place. Tomorrow I'm planning to try the zip line tour, but for now, I'm content to watch the stars emerge one by one in the darkening sky, feeling deeply connected to this moment and this place.
 """
     
-    init(journal: Journal?, entryData: EntryData? = nil, shouldShowAudioOnAppear: Bool = false) {
+    init(journal: Journal?, entryData: EntryData? = nil, prompt: String? = nil, shouldShowAudioOnAppear: Bool = false) {
         self.journal = journal
         self.entryData = entryData
+        self.prompt = prompt
         self._shouldShowAudioOnAppear = State(initialValue: shouldShowAudioOnAppear)
         
         if let data = entryData {
@@ -100,6 +102,10 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
             }
             
             self._entryDate = State(initialValue: finalDate)
+        } else if let prompt = prompt {
+            // New entry with prompt
+            self._entryText = State(initialValue: prompt + "\n\n")
+            self._entryDate = State(initialValue: Date())
         } else {
             // New entry - use defaults
             self._entryText = State(initialValue: "")

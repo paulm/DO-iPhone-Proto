@@ -1,5 +1,11 @@
 
 
+
+
+
+
+
+
 2 buttons in Chat carousel (Add Media / Resume Chat)
 
 Daily Entry actions: Add Media
@@ -52,8 +58,6 @@ chat: select multiple jornals for context
 
 Create a functional prototype of Passkey and Email-only auth
 
-
-Rebuild Prompts UI - simpler, better, more native
 
 
 
@@ -108,4 +112,19 @@ Add "recent Jorunals" carousel - horizontal scroll opn journal picker
 
 
 
+
+
+
+## PROMPT PACKS
+
+
+
+Rebuild Prompts UI - simpler, better, more native
+
+
+
+## MACOS
+
+Do iPad First
+Create branch with Mac app build based 
 

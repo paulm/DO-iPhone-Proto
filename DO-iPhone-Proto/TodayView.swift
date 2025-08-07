@@ -481,6 +481,8 @@ struct TodayViewV1i2: View {
     @State private var showMoments = false
     @State private var showTrackers = false
     @State private var showInsights = true
+    @State private var showPrompts = true
+    @State private var selectedPrompt: String? = nil
     @AppStorage("showChatFAB") private var showChatFAB = false
     @AppStorage("showEntryFAB") private var showEntryFAB = false
     @AppStorage("showChatInputBox") private var showChatInputBox = true
@@ -488,6 +490,7 @@ struct TodayViewV1i2: View {
     @AppStorage("showMomentsCarousel") private var showMomentsCarousel = false
     @AppStorage("showEntryCarousel") private var showEntryCarousel = false
     @AppStorage("showDailyChatCarousel") private var showDailyChatCarousel = true
+    @AppStorage("showPromptsCarousel") private var showPromptsCarousel = true
     @AppStorage("todayViewStyle") private var selectedStyle = TodayViewStyle.standard
     
     // Options toggles
@@ -802,6 +805,23 @@ struct TodayViewV1i2: View {
                     } header: {
                         if showSectionNames {
                             Text("Daily Chat")
+                        }
+                    }
+                }
+                
+                // Prompts Carousel Section
+                if showPromptsCarousel {
+                    Section {
+                        PromptsCarouselView(
+                            showingEntry: $showingEntry,
+                            selectedPrompt: $selectedPrompt
+                        )
+                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                        .listRowBackground(Color.clear)
+                        .padding(.horizontal, -20)
+                    } header: {
+                        if showSectionNames {
+                            Text("Today's Prompts")
                         }
                     }
                 }
@@ -1180,6 +1200,17 @@ struct TodayViewV1i2: View {
                                     }
                                 }
                             }
+                            
+                            Button {
+                                showPromptsCarousel.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Prompts Carousel")
+                                    if showPromptsCarousel {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
                         }
                         
                         Section("Options") {
@@ -1379,7 +1410,11 @@ struct TodayViewV1i2: View {
             }
         }
         .sheet(isPresented: $showingEntry) {
-            EntryView(journal: nil)
+            EntryView(journal: nil, prompt: selectedPrompt)
+                .onDisappear {
+                    // Clear the selected prompt after the sheet is dismissed
+                    selectedPrompt = nil
+                }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("TriggerDailyChat"))) { _ in
             // Only respond to Daily Chat trigger if this variant supports it
@@ -2624,6 +2659,48 @@ struct EntryLinksCarouselView: View {
                 .padding(.trailing, 20)
             }
         }
+    }
+}
+
+// MARK: - Prompts Carousel View
+struct PromptsCarouselView: View {
+    @Binding var showingEntry: Bool
+    @Binding var selectedPrompt: String?
+    
+    // Sample prompts with colors
+    private let todaysPrompts = [
+        ("What moment made you smile today?", Color(hex: "44C0FF")),
+        ("What are you grateful for right now?", Color(hex: "FF6B6B")),
+        ("What did you learn today?", Color(hex: "9B59B6"))
+    ]
+    
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(Array(todaysPrompts.enumerated()), id: \.0) { index, prompt in
+                    Button(action: {
+                        selectedPrompt = prompt.0
+                        showingEntry = true
+                    }) {
+                        Text(prompt.0)
+                            .font(.system(size: 14, weight: .light, design: .serif))
+                            .foregroundStyle(.white)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
+                            .frame(width: 200, height: 84)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(prompt.1)
+                            )
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .padding(.leading, index == 0 ? 20 : 0)
+                    .padding(.trailing, index == todaysPrompts.count - 1 ? 20 : 0)
+                }
+            }
+        }
+        .padding(.vertical, 4)
     }
 }
 

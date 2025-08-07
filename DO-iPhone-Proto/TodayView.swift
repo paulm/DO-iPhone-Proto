@@ -479,6 +479,7 @@ struct TodayViewV1i2: View {
     @State private var showDailyEntry = true
     @State private var showEntry = false
     @State private var showMoments = false
+    @State private var showMomentsList = true
     @State private var showTrackers = false
     @State private var showInsights = true
     @State private var showPrompts = true
@@ -967,6 +968,99 @@ struct TodayViewV1i2: View {
                     }
                 }
                 
+                // Moments List Section
+                if showMomentsList {
+                    Section {
+                        // Calculate dynamic counts based on selected date
+                        let calendar = Calendar.current
+                        let dayOfWeek = calendar.component(.weekday, from: selectedDate)
+                        let isWeekend = dayOfWeek == 1 || dayOfWeek == 7
+                        let isFuture = selectedDate > Date()
+                        
+                        // Dynamic counts based on day characteristics
+                        let visitsCount = isFuture ? 0 : (isWeekend ? 8 : 5)
+                        let eventsCount = isFuture ? 0 : (isWeekend ? 2 : 3)
+                        let mediaCount = isFuture ? 0 : (isWeekend ? 18 : 12)
+                        
+                        // Visits row
+                        Button(action: {
+                            momentsInitialSection = "Visits"
+                            showingMoments = true
+                        }) {
+                            HStack {
+                                Label {
+                                    Text("Visits")
+                                        .foregroundStyle(.primary)
+                                } icon: {
+                                    Image(systemName: "location.fill")
+                                        .foregroundStyle(Color(hex: "44C0FF"))
+                                        .imageScale(.medium)
+                                }
+                                
+                                Spacer()
+                                
+                                Text("\(visitsCount)")
+                                    .foregroundStyle(.secondary)
+                            }
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        
+                        // Events row
+                        Button(action: {
+                            momentsInitialSection = "Events"
+                            showingMoments = true
+                        }) {
+                            HStack {
+                                Label {
+                                    Text("Events")
+                                        .foregroundStyle(.primary)
+                                } icon: {
+                                    Image(systemName: "calendar")
+                                        .foregroundStyle(Color(hex: "44C0FF"))
+                                        .imageScale(.medium)
+                                }
+                                
+                                Spacer()
+                                
+                                Text("\(eventsCount)")
+                                    .foregroundStyle(.secondary)
+                            }
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        
+                        // Media row
+                        Button(action: {
+                            momentsInitialSection = "Media"
+                            showingMoments = true
+                        }) {
+                            HStack {
+                                Label {
+                                    Text("Media")
+                                        .foregroundStyle(.primary)
+                                } icon: {
+                                    Image(systemName: "photo.fill")
+                                        .foregroundStyle(Color(hex: "44C0FF"))
+                                        .imageScale(.medium)
+                                }
+                                
+                                Spacer()
+                                
+                                Text("\(mediaCount)")
+                                    .foregroundStyle(.secondary)
+                            }
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    } header: {
+                        if showSectionNames {
+                            Text("Moments")
+                        }
+                    }
+                    .listRowBackground(cellBackgroundColor)
+                }
+                
                 // Daily Trackers Section
                 if showTrackers {
                     Section {
@@ -1119,6 +1213,17 @@ struct TodayViewV1i2: View {
                                 HStack {
                                     Text("Moments Carousel")
                                     if showMomentsCarousel {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showMomentsList.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Moments List")
+                                    if showMomentsList {
                                         Image(systemName: "checkmark")
                                     }
                                 }

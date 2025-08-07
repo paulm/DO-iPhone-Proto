@@ -33,6 +33,7 @@ struct PromptsTabOriginalView: View {
     @Binding var selectedTab: Int
     @Binding var showingSettings: Bool
     @State private var selectedPromptPack: PromptPack?
+    @State private var currentPromptIndex = 0
     
     // Track saved packs and answered prompts
     @State private var savedPacks: Set<String> = ["Gratitude", "Childhood Memories"]
@@ -82,38 +83,46 @@ struct PromptsTabOriginalView: View {
     ]
     
     
-    // Sample prompts for carousel
+    // Sample prompts for carousel with Day One Journal colors
     private let todaysPrompts = [
-        ("What is my earliest childhood memory?", "Childhood Memories", "figure.child"),
-        ("What moment changed my perspective?", "Life Lessons", "lightbulb"),
-        ("If I could have dinner with anyone, who would it be and why?", "Imagination", "person.2")
+        ("What is my earliest childhood memory?", "Childhood Memories", "figure.child", BrandColors.journalBlue),
+        ("What moment changed my perspective?", "Life Lessons", "lightbulb", BrandColors.journalFire),
+        ("If I could have dinner with anyone, who would it be and why?", "Imagination", "person.2", BrandColors.journalLavender)
     ]
     
     @ViewBuilder
     private var todaysPromptSection: some View {
         Section {
             VStack(spacing: 0) {
-                TabView {
-                    ForEach(todaysPrompts, id: \.0) { prompt in
+                TabView(selection: $currentPromptIndex) {
+                    ForEach(Array(todaysPrompts.enumerated()), id: \.0) { index, prompt in
                         todaysPromptCard(
                             question: prompt.0,
-                            category: prompt.1,
-                            icon: prompt.2
+                            backgroundColor: prompt.3
                         )
+                        .tag(index)
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never)) // Hide default indicators
                 .frame(height: 150) // 75% of 200
                 
-                // Custom page indicator
+                // Category name (centered below card)
+                Text("from \(todaysPrompts[currentPromptIndex].1)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 12)
+                
+                // Custom page indicator (centered)
                 HStack(spacing: 8) {
                     ForEach(0..<todaysPrompts.count, id: \.self) { index in
                         Circle()
-                            .fill(Color.gray.opacity(0.3))
+                            .fill(index == currentPromptIndex ? Color.gray : Color.gray.opacity(0.3))
                             .frame(width: 6, height: 6)
                     }
                 }
-                .padding(.top, 12)
+                .frame(maxWidth: .infinity)
+                .padding(.top, 8)
                 .padding(.bottom, 8)
             }
             .listRowInsets(EdgeInsets())
@@ -123,25 +132,17 @@ struct PromptsTabOriginalView: View {
         }
     }
     
-    private func todaysPromptCard(question: String, category: String, icon: String) -> some View {
-        VStack(spacing: 12) {
-            Text(question)
-                .font(.system(size: 17, weight: .thin, design: .serif))
-                .foregroundStyle(.primary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 20)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            
-            Label(category, systemImage: icon)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .padding(.bottom, 12)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    private func todaysPromptCard(question: String, backgroundColor: Color) -> some View {
+        Text(question)
+            .font(.system(size: 19, weight: .thin, design: .serif)) // Increased from 17 to 19
+            .foregroundStyle(.white)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 20)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(.white)
-                .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 2)
+                .fill(backgroundColor)
+                .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
         )
         .padding(.leading, 6)  // 6pt on each side = 12pt between cards
         .padding(.trailing, 6)

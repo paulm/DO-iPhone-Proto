@@ -18,9 +18,6 @@ struct EntryView: View {
     
     @State private var entryText: String
     @State private var showingJournalingTools = false
-    @State private var showingEnhancedJournalingTools = false
-    @State private var showingContentFocusedJournalingTools = false
-    @State private var showingEntryChat = false
     @State private var showingDailyChat = false
     @State private var hasChatActivity = true // Simulating that this entry has chat activity
     @State private var entryDate: Date
@@ -65,11 +62,12 @@ The afternoon was spent exploring the art studios scattered around the resort. I
 As the sun began to set, painting the sky in shades of orange and pink, I found myself back on the deck of my cabin, wrapped in a warm blanket with a cup of herbal tea. The day felt complete in a way that few days do. No urgent emails, no pressing deadlines, just the simple pleasure of being present in a beautiful place. Tomorrow I'm planning to try the zip line tour, but for now, I'm content to watch the stars emerge one by one in the darkening sky, feeling deeply connected to this moment and this place.
 """
     
-    init(journal: Journal?, entryData: EntryData? = nil, prompt: String? = nil, shouldShowAudioOnAppear: Bool = false) {
+    init(journal: Journal?, entryData: EntryData? = nil, prompt: String? = nil, shouldShowAudioOnAppear: Bool = false, startInEditMode: Bool = false) {
         self.journal = journal
         self.entryData = entryData
         self.prompt = prompt
         self._shouldShowAudioOnAppear = State(initialValue: shouldShowAudioOnAppear)
+        self._isEditMode = State(initialValue: startInEditMode)
         
         if let data = entryData {
             // Use provided entry data
@@ -286,7 +284,7 @@ I think I'm going to sit here for a while longer before heading back down. This 
                                 // Chat activity indicator
                                 if hasChatActivity && showEntryChatEmbed {
                                     Button {
-                                        showingEntryChat = true
+                                        // Entry chat removed - do nothing
                                     } label: {
                                         HStack(spacing: 10) {
                                             Text("Entry Chat Session")
@@ -460,63 +458,159 @@ I think I'm going to sit here for a while longer before heading back down. This 
                 }
                 .toolbar {
                     ToolbarItemGroup(placement: .keyboard) {
-                        HStack(spacing: 20) {
+                        HStack(spacing: 24) {
+                            // Dismiss keyboard
                             Button {
-                                // Collapse action - just resign focus, let onChange handle the rest
                                 UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                             } label: {
                                 Image(systemName: "chevron.down")
-                                    .font(.title3)
+                                    .font(.system(size: 16))
                             }
                             
                             Spacer()
                             
+                            // Entry Tools (Journaling Tools)
                             Button {
                                 showingJournalingTools = true
                             } label: {
                                 Image(systemName: "sparkles")
-                                    .font(.title3)
+                                    .font(.system(size: 16))
                             }
                             
+                            // Photo Library
                             Button {
-                                showingEnhancedJournalingTools = true
+                                // TODO: Open photo picker
                             } label: {
-                                Image(systemName: "sparkles")
-                                    .font(.title3)
-                                    .foregroundStyle(.black)
+                                Image(systemName: "photo")
+                                    .font(.system(size: 16))
                             }
                             
-                            Button {
-                                showingContentFocusedJournalingTools = true
-                            } label: {
-                                Image(systemName: "sparkles")
-                                    .font(.title3)
-                                    .foregroundStyle(.purple)
-                            }
-                            
-                            Button {
-                                showingEntryChat = true
-                            } label: {
-                                Image(systemName: "message.circle")
-                                    .font(.title3)
-                            }
-                            
-                            Button {
-                                // Attachment action
+                            // Attachments Menu
+                            Menu {
+                                Button {
+                                    // Tag action
+                                } label: {
+                                    Label("Tag", systemImage: "tag")
+                                }
+                                
+                                Button {
+                                    // Audio action
+                                } label: {
+                                    Label("Audio", systemImage: "mic")
+                                }
+                                
+                                Button {
+                                    // Camera action
+                                } label: {
+                                    Label("Camera", systemImage: "camera")
+                                }
+                                
+                                Button {
+                                    // Photo Library action
+                                } label: {
+                                    Label("Photo Library", systemImage: "photo")
+                                }
+                                
+                                Button {
+                                    // Draw action
+                                } label: {
+                                    Label("Draw", systemImage: "pencil.tip")
+                                }
+                                
+                                Button {
+                                    // Scan to PDF action
+                                } label: {
+                                    Label("Scan to PDF", systemImage: "doc.text.viewfinder")
+                                }
+                                
+                                Button {
+                                    // File action
+                                } label: {
+                                    Label("File", systemImage: "doc")
+                                }
+                                
+                                Button {
+                                    // Template action
+                                } label: {
+                                    Label("Template", systemImage: "doc.text")
+                                }
+                                
+                                Button {
+                                    // Scan Text action
+                                } label: {
+                                    Label("Scan Text", systemImage: "text.viewfinder")
+                                }
                             } label: {
                                 Image(systemName: "paperclip")
-                                    .font(.title3)
+                                    .font(.system(size: 16))
                             }
                             
-                            Button {
-                                // Text formatting action
+                            // Editor Features Menu
+                            Menu {
+                                Button {
+                                    // Body text
+                                } label: {
+                                    Label("Body", systemImage: "text.alignleft")
+                                }
+                                
+                                Button {
+                                    // Title text
+                                } label: {
+                                    Label("Title", systemImage: "textformat")
+                                }
+                                
+                                Button {
+                                    // Subtitle text
+                                } label: {
+                                    Label("Subtitle", systemImage: "text.badge.minus")
+                                }
+                                
+                                Divider()
+                                
+                                Button {
+                                    // List
+                                } label: {
+                                    Label("List", systemImage: "list.bullet")
+                                }
+                                
+                                Button {
+                                    // Checklist
+                                } label: {
+                                    Label("Checklist", systemImage: "checklist")
+                                }
+                                
+                                Button {
+                                    // Indent
+                                } label: {
+                                    Label("Indent", systemImage: "increase.indent")
+                                }
+                                
+                                Divider()
+                                
+                                Button {
+                                    // Quote Block
+                                } label: {
+                                    Label("Quote Block", systemImage: "text.quote")
+                                }
+                                
+                                Button {
+                                    // Code Block
+                                } label: {
+                                    Label("Code Block", systemImage: "curlybraces")
+                                }
+                                
+                                Button {
+                                    // Line
+                                } label: {
+                                    Label("Line", systemImage: "minus")
+                                }
                             } label: {
                                 Image(systemName: "textformat")
-                                    .font(.title3)
+                                    .font(.system(size: 16))
                             }
                         }
                         .foregroundStyle(.primary)
-                        .padding(.horizontal, 18)
+                        .padding(.horizontal, 16)
                     }
                 }
             }
@@ -718,20 +812,7 @@ I think I'm going to sit here for a while longer before heading back down. This 
                 }
             }
             .sheet(isPresented: $showingJournalingTools) {
-                JournalingToolsView()
-            }
-            .sheet(isPresented: $showingEnhancedJournalingTools) {
-                EnhancedJournalingToolsView()
-            }
-            .sheet(isPresented: $showingContentFocusedJournalingTools) {
-                ContentFocusedJournalingToolsView()
-            }
-            .sheet(isPresented: $showingEntryChat) {
-                EntryChatView(
-                    entryText: entryText,
-                    entryDate: entryDate,
-                    journal: journal
-                )
+                SimpleJournalingToolsView()
             }
             .sheet(isPresented: $showingEditDate) {
                 EditDateView(selectedDate: $entryDate)

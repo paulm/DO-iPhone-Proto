@@ -110,8 +110,7 @@ struct MainTabView: View {
                             }
                             if showEntryFAB {
                                 FloatingActionButton {
-                                    // FAB action - will be defined later
-                                    print("FAB tapped on tab \(selectedTab)")
+                                    showingEntry = true
                                 }
                             }
                         }
@@ -122,7 +121,7 @@ struct MainTabView: View {
             }
         }
         .sheet(isPresented: $showingEntry) {
-            EntryView(journal: nil)
+            EntryView(journal: nil, startInEditMode: true)
         }
         .onAppear {
             // Check for chat messages on appear

@@ -797,8 +797,10 @@ struct TodayViewV1i2: View {
                         DailyChatCarouselView(
                             selectedDate: selectedDate, 
                             chatCompleted: chatCompleted,
+                            isGeneratingEntry: isGeneratingEntry,
                             showingDailyChat: $showingDailyChat,
-                            showingEntry: $showingEntry
+                            showingEntry: $showingEntry,
+                            showingPreviewEntry: $showingPreviewEntry
                         )
                         .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                         .listRowBackground(Color.clear)
@@ -1402,7 +1404,15 @@ struct TodayViewV1i2: View {
             )
             .frame(width: 0, height: 0)
         )
-        .sheet(isPresented: $showingDailyChat) {
+        .sheet(isPresented: $showingDailyChat, onDismiss: {
+            // Refresh carousel state when sheet is dismissed
+            DispatchQueue.main.async {
+                // Update entry created state
+                entryCreated = DailyContentManager.shared.hasEntry(for: selectedDate)
+                // Force view refresh
+                chatUpdateTrigger.toggle()
+            }
+        }) {
             DailyChatView(
                 selectedDate: selectedDate,
                 initialLogMode: openChatInLogMode,
@@ -2503,11 +2513,32 @@ struct EntryCarouselView: View {
 struct DailyChatCarouselView: View {
     let selectedDate: Date
     let chatCompleted: Bool
+    let isGeneratingEntry: Bool
     @Binding var showingDailyChat: Bool
     @Binding var showingEntry: Bool
+    @Binding var showingPreviewEntry: Bool
     
     private var hasEntry: Bool {
         DailyContentManager.shared.hasEntry(for: selectedDate)
+    }
+    
+    private var hasNewMessages: Bool {
+        DailyContentManager.shared.hasNewMessagesSinceEntry(for: selectedDate)
+    }
+    
+    private var shouldShowEntryButton: Bool {
+        // Show button if chat has been interacted with and either:
+        // 1. No entry exists yet
+        // 2. Entry exists and there are new messages
+        return chatCompleted && (!hasEntry || hasNewMessages) && !isGeneratingEntry
+    }
+    
+    private var entryButtonText: String {
+        if hasEntry && hasNewMessages {
+            return "Update Entry"
+        } else {
+            return "Generate Entry"
+        }
     }
     
     var body: some View {
@@ -2518,14 +2549,14 @@ struct DailyChatCarouselView: View {
                     showingDailyChat = true
                 }) {
                     VStack(spacing: 0) {
-                        // Icon
-                        Image(systemName: "bubble.left.and.bubble.right.fill")
+                        // Icon - filled for Start, outline for Resume
+                        Image(systemName: chatCompleted ? "bubble.left.and.bubble.right" : "bubble.left.and.bubble.right.fill")
                             .font(.system(size: 28))
                             .foregroundStyle(Color(hex: "44C0FF"))
                             .frame(maxHeight: .infinity)
                         
                         // Label
-                        Text(chatCompleted ? "Resume" : "Start Chat")
+                        Text(chatCompleted ? "Resume Chat" : "Start Chat")
                             .font(.system(size: 11))
                             .foregroundStyle(.secondary)
                             .padding(.bottom, 8)
@@ -2536,6 +2567,49 @@ struct DailyChatCarouselView: View {
                 }
                 .buttonStyle(PlainButtonStyle())
                 .padding(.leading, 20)
+                
+                // Create/Update Entry button (shown when chat exists but no entry, or when there are new messages)
+                if shouldShowEntryButton {
+                    Button(action: {
+                        if hasEntry && hasNewMessages {
+                            // Show preview for update
+                            showingPreviewEntry = true
+                        } else {
+                            // Generate new entry directly
+                            NotificationCenter.default.post(
+                                name: NSNotification.Name("TriggerEntryGeneration"),
+                                object: selectedDate
+                            )
+                        }
+                    }) {
+                        // Label only, vertically centered
+                        Text(entryButtonText)
+                            .font(.system(size: hasEntry && hasNewMessages ? 10 : 12))
+                            .fontWeight(.medium)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .frame(width: hasEntry && hasNewMessages ? 60 : 180, height: 84) // Narrow for Update, wide for Generate
+                        .background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                } else if isGeneratingEntry {
+                    // Show spinner while generating
+                    HStack(spacing: 8) {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle())
+                            .scaleEffect(0.8)
+                        
+                        Text("Generating...")
+                            .font(.system(size: 12))
+                            .fontWeight(.medium)
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(width: 180, height: 84) // Same width as button
+                    .background(Color.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
                 
                 // Entry item (only shown when entry exists)
                 if hasEntry {

@@ -2585,13 +2585,13 @@ struct DailyChatCarouselView: View {
                         if hasEntry {
                             // Short button without icon when entry exists
                             Text(chatCompleted ? "Resume Chat" : "Start Chat")
-                                .font(.system(size: 12))
-                                .fontWeight(.medium)
+                                .font(.system(size: 13))
+                                .fontWeight(.regular)
                                 .foregroundStyle(.secondary)
                                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                .frame(width: 140, height: 44)
+                                .frame(width: 130, height: 38)
                                 .background(Color.white)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
                         } else {
                             // Full height with icon when no entry - reversed colors for Start Chat
                             VStack(spacing: 0) {
@@ -2607,9 +2607,9 @@ struct DailyChatCarouselView: View {
                                     .foregroundStyle(chatCompleted ? Color.secondary : Color.white)
                                     .padding(.bottom, 8)
                             }
-                            .frame(width: 140, height: 64)
+                            .frame(width: 140, height: 70)
                             .background(chatCompleted ? Color.white : Color(hex: "44C0FF"))
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
                         }
                     }
                     .buttonStyle(PlainButtonStyle())
@@ -2632,9 +2632,9 @@ struct DailyChatCarouselView: View {
                                     .foregroundStyle(.secondary)
                                     .padding(.bottom, 8)
                             }
-                            .frame(width: 140, height: 64)
+                            .frame(width: 140, height: 70)
                             .background(Color.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
                         }
                         .buttonStyle(PlainButtonStyle())
                     }
@@ -2656,12 +2656,12 @@ struct DailyChatCarouselView: View {
                             if hasEntry {
                                 // Short button without icon when entry exists - same width as Resume Chat
                                 Text(entryButtonText)
-                                    .font(.system(size: 12))
-                                    .fontWeight(.medium)
+                                    .font(.system(size: 13))
+                                    .fontWeight(.regular)
                                     .foregroundStyle(.secondary)
                                     .multilineTextAlignment(.center)
                                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                    .frame(width: 140, height: 44)
+                                    .frame(width: 130, height: 38)
                                     .background(Color.white)
                                     .clipShape(RoundedRectangle(cornerRadius: 12))
                             } else {
@@ -2672,7 +2672,7 @@ struct DailyChatCarouselView: View {
                                     .foregroundStyle(.secondary)
                                     .multilineTextAlignment(.center)
                                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                    .frame(width: 180, height: 64)
+                                    .frame(width: 180, height: 70)
                                     .background(Color.white)
                                     .clipShape(RoundedRectangle(cornerRadius: 12))
                             }

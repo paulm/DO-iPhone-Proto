@@ -450,6 +450,7 @@ struct TodayViewV1i2: View {
     @State private var showingDailyChat = false
     @State private var chatCompleted = false
     @State private var openChatInLogMode = false
+    @State private var openDailyChatInLogMode = false
     @State private var chatMessageCount = 0
     @State private var momentsCompleted = false
     @State private var trackersCompleted = false
@@ -800,14 +801,15 @@ struct TodayViewV1i2: View {
                             isGeneratingEntry: isGeneratingEntry,
                             showingDailyChat: $showingDailyChat,
                             showingEntry: $showingEntry,
-                            showingPreviewEntry: $showingPreviewEntry
+                            showingPreviewEntry: $showingPreviewEntry,
+                            openDailyChatInLogMode: $openDailyChatInLogMode
                         )
                         .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                         .listRowBackground(Color.clear)
                         .padding(.horizontal, -20)
                     } header: {
                         if showSectionNames {
-                            Text("Daily Chat")
+                            Text("Daily Chat + Entry")
                         }
                     }
                 }
@@ -1415,12 +1417,14 @@ struct TodayViewV1i2: View {
         }) {
             DailyChatView(
                 selectedDate: selectedDate,
-                initialLogMode: openChatInLogMode,
+                initialLogMode: openDailyChatInLogMode,
                 entryCreated: $entryCreated,
                 onChatStarted: {
                     // Mark that user has interacted with chat
                     hasInteractedWithChat = true
                     // Don't automatically show Daily Chat section unless manually enabled
+                    // Reset the log mode flag
+                    openDailyChatInLogMode = false
                 },
                 onMessageCountChanged: { count in
                     chatMessageCount = count
@@ -2517,6 +2521,7 @@ struct DailyChatCarouselView: View {
     @Binding var showingDailyChat: Bool
     @Binding var showingEntry: Bool
     @Binding var showingPreviewEntry: Bool
+    @Binding var openDailyChatInLogMode: Bool
     
     private var hasEntry: Bool {
         DailyContentManager.shared.hasEntry(for: selectedDate)
@@ -2542,103 +2547,160 @@ struct DailyChatCarouselView: View {
     }
     
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                // Chat item
+        VStack(spacing: 12) {
+            // Entry row (full width, shown when entry exists)
+            if hasEntry {
                 Button(action: {
-                    showingDailyChat = true
+                    showingEntry = true
                 }) {
-                    VStack(spacing: 0) {
-                        // Icon - filled for Start, outline for Resume
-                        Image(systemName: chatCompleted ? "bubble.left.and.bubble.right" : "bubble.left.and.bubble.right.fill")
-                            .font(.system(size: 28))
-                            .foregroundStyle(Color(hex: "44C0FF"))
-                            .frame(maxHeight: .infinity)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Morning Reflections")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.primary)
+                            .multilineTextAlignment(.leading)
                         
-                        // Label
-                        Text(chatCompleted ? "Resume Chat" : "Start Chat")
-                            .font(.system(size: 11))
+                        Text("Today I started with my usual morning routine, feeling energized and ready for the day ahead. The weather was perfect...")
+                            .font(.subheadline)
                             .foregroundStyle(.secondary)
-                            .padding(.bottom, 8)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
                     }
-                    .frame(width: 116, height: 84)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(16)
                     .background(Color.white)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
                 .buttonStyle(PlainButtonStyle())
-                .padding(.leading, 20)
-                
-                // Create/Update Entry button (shown when chat exists but no entry, or when there are new messages)
-                if shouldShowEntryButton {
+                .padding(.horizontal, 20)
+            }
+            
+            // Buttons carousel row
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    // Chat item
                     Button(action: {
-                        if hasEntry && hasNewMessages {
-                            // Show preview for update
-                            showingPreviewEntry = true
-                        } else {
-                            // Generate new entry directly
-                            NotificationCenter.default.post(
-                                name: NSNotification.Name("TriggerEntryGeneration"),
-                                object: selectedDate
-                            )
-                        }
+                        showingDailyChat = true
                     }) {
-                        // Label only, vertically centered
-                        Text(entryButtonText)
-                            .font(.system(size: hasEntry && hasNewMessages ? 10 : 12))
-                            .fontWeight(.medium)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .frame(width: hasEntry && hasNewMessages ? 60 : 180, height: 84) // Narrow for Update, wide for Generate
-                        .background(Color.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                } else if isGeneratingEntry {
-                    // Show spinner while generating
-                    HStack(spacing: 8) {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle())
-                            .scaleEffect(0.8)
-                        
-                        Text("Generating...")
-                            .font(.system(size: 12))
-                            .fontWeight(.medium)
-                            .foregroundStyle(.secondary)
-                    }
-                    .frame(width: 180, height: 84) // Same width as button
-                    .background(Color.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                }
-                
-                // Entry item (only shown when entry exists)
-                if hasEntry {
-                    Button(action: {
-                        showingEntry = true
-                    }) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Morning Reflections")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(.primary)
-                                .lineLimit(1)
-                            
-                            Text("Today I started with my usual morning routine, feeling energized and ready...")
+                        if hasEntry {
+                            // Short button without icon when entry exists
+                            Text(chatCompleted ? "Resume Chat" : "Start Chat")
                                 .font(.system(size: 12))
+                                .fontWeight(.medium)
                                 .foregroundStyle(.secondary)
-                                .lineLimit(3)
-                                .multilineTextAlignment(.leading)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .frame(width: 140, height: 44)
+                                .background(Color.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                        } else {
+                            // Full height with icon when no entry - reversed colors for Start Chat
+                            VStack(spacing: 0) {
+                                // Icon - filled for Start, outline for Resume
+                                Image(systemName: chatCompleted ? "bubble.left.and.bubble.right" : "bubble.left.and.bubble.right.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundStyle(chatCompleted ? Color(hex: "44C0FF") : .white)
+                                    .frame(maxHeight: .infinity)
+                                
+                                // Label
+                                Text(chatCompleted ? "Resume Chat" : "Start Chat")
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(chatCompleted ? Color.secondary : Color.white)
+                                    .padding(.bottom, 8)
+                            }
+                            .frame(width: 140, height: 64)
+                            .background(chatCompleted ? Color.white : Color(hex: "44C0FF"))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
                         }
-                        .padding(12)
-                        .frame(width: 244, height: 84) // Double wide (116 * 2 + 12 spacing)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .padding(.leading, 20)
+                    
+                    // Log Highlights button - only show when no entry exists
+                    if !hasEntry && !chatCompleted {
+                        Button(action: {
+                            openDailyChatInLogMode = true
+                            showingDailyChat = true
+                        }) {
+                            VStack(spacing: 0) {
+                                Image(systemName: "bubble.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundStyle(Color(hex: "333B40"))
+                                    .frame(maxHeight: .infinity)
+                                
+                                Text("Log Highlights")
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(.secondary)
+                                    .padding(.bottom, 8)
+                            }
+                            .frame(width: 140, height: 64)
+                            .background(Color.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                    
+                    // Create/Update Entry button (shown when chat exists but no entry, or when there are new messages)
+                    if shouldShowEntryButton {
+                        Button(action: {
+                            if hasEntry && hasNewMessages {
+                                // Show preview for update
+                                showingPreviewEntry = true
+                            } else {
+                                // Generate new entry directly
+                                NotificationCenter.default.post(
+                                    name: NSNotification.Name("TriggerEntryGeneration"),
+                                    object: selectedDate
+                                )
+                            }
+                        }) {
+                            if hasEntry {
+                                // Short button without icon when entry exists - same width as Resume Chat
+                                Text(entryButtonText)
+                                    .font(.system(size: 12))
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(.secondary)
+                                    .multilineTextAlignment(.center)
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                    .frame(width: 140, height: 44)
+                                    .background(Color.white)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                            } else {
+                                // Full height when no entry exists - wider for Generate Entry
+                                Text(entryButtonText)
+                                    .font(.system(size: 12))
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(.secondary)
+                                    .multilineTextAlignment(.center)
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                    .frame(width: 180, height: 64)
+                                    .background(Color.white)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                            }
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    } else if isGeneratingEntry {
+                        // Show spinner while generating
+                        HStack(spacing: 8) {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle())
+                                .scaleEffect(0.8)
+                            
+                            Text("Generating...")
+                                .font(.system(size: 12))
+                                .fontWeight(.medium)
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(width: 180, height: 84) // Same width as button
                         .background(Color.white)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
-                    .buttonStyle(PlainButtonStyle())
-                    .padding(.trailing, 20)
+                    
+                    // Add padding at the end
+                    Color.clear
+                        .frame(width: 20, height: 1)
                 }
             }
         }
-        .padding(.vertical, 4)
     }
 }
 

@@ -2961,6 +2961,8 @@ struct EntryLinksCarouselView: View {
 // MARK: - Visits Sheet View
 struct VisitsSheetView: View {
     @Environment(\.dismiss) private var dismiss
+    @State private var showingEntryView = false
+    @State private var selectedVisitName: String = ""
     
     // Sample visits data matching MomentsView
     private let visits = [
@@ -2986,57 +2988,63 @@ struct VisitsSheetView: View {
                 ScrollView {
                     VStack(spacing: 0) {
                         ForEach(visits, id: \.name) { visit in
-                            HStack(spacing: 12) {
-                                // Icon
-                                Image(systemName: visit.icon)
-                                    .font(.system(size: 20))
-                                    .foregroundStyle(Color(hex: "44C0FF"))
-                                    .frame(width: 32, height: 32)
-                                
-                                // Visit details
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(visit.name)
-                                        .font(.body)
-                                        .foregroundStyle(.primary)
+                            Button(action: {
+                                selectedVisitName = visit.name
+                                showingEntryView = true
+                            }) {
+                                HStack(spacing: 12) {
+                                    // Icon
+                                    Image(systemName: visit.icon)
+                                        .font(.system(size: 20))
+                                        .foregroundStyle(Color(hex: "44C0FF"))
+                                        .frame(width: 32, height: 32)
                                     
-                                    Text(visit.time)
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
+                                    // Visit details
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(visit.name)
+                                            .font(.body)
+                                            .foregroundStyle(.primary)
+                                        
+                                        Text(visit.time)
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    // Ellipsis menu
+                                    Menu {
+                                        Button(action: {
+                                            selectedVisitName = visit.name
+                                            showingEntryView = true
+                                        }) {
+                                            Label("Create Entry", systemImage: "square.and.pencil")
+                                        }
+                                        
+                                        Button(action: {
+                                            // Handle select nearby place
+                                        }) {
+                                            Label("Select Nearby Place", systemImage: "location.circle")
+                                        }
+                                        
+                                        Button(action: {
+                                            // Handle hide
+                                        }) {
+                                            Label("Hide", systemImage: "eye.slash")
+                                        }
+                                    } label: {
+                                        Image(systemName: "ellipsis")
+                                            .font(.system(size: 16))
+                                            .foregroundStyle(.secondary)
+                                            .frame(width: 44, height: 44)
+                                            .contentShape(Rectangle())
+                                    }
+                                    .menuStyle(.borderlessButton)
                                 }
-                                
-                                Spacer()
-                                
-                                // Ellipsis menu
-                                Menu {
-                                    Button(action: {
-                                        // Handle create entry
-                                        dismiss()
-                                    }) {
-                                        Label("Create Entry", systemImage: "square.and.pencil")
-                                    }
-                                    
-                                    Button(action: {
-                                        // Handle select nearby place
-                                    }) {
-                                        Label("Select Nearby Place", systemImage: "location.circle")
-                                    }
-                                    
-                                    Button(action: {
-                                        // Handle hide
-                                    }) {
-                                        Label("Hide", systemImage: "eye.slash")
-                                    }
-                                } label: {
-                                    Image(systemName: "ellipsis")
-                                        .font(.system(size: 16))
-                                        .foregroundStyle(.secondary)
-                                        .frame(width: 44, height: 44)
-                                        .contentShape(Rectangle())
-                                }
-                                .menuStyle(.borderlessButton)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 8)
                             }
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 8)
+                            .buttonStyle(PlainButtonStyle())
                             
                             // Divider
                             if visit.name != visits.last?.name {
@@ -3063,6 +3071,13 @@ struct VisitsSheetView: View {
         }
         .presentationDetents([.medium])
         .presentationDragIndicator(.visible)
+        .sheet(isPresented: $showingEntryView) {
+            EntryView(
+                journal: nil,
+                prompt: selectedVisitName + "\n\n",
+                startInEditMode: true
+            )
+        }
     }
 }
 

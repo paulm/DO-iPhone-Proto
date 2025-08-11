@@ -5,6 +5,7 @@ struct CompactAudioRecordView: View {
     let journal: Journal?
     let existingAudio: AudioRecordView.AudioData?
     @Binding var currentDetent: PresentationDetent
+    let onInsertTranscription: ((String, AudioRecordView.AudioData) -> Void)?
     
     @State private var editableTitle: String = ""
     @State private var isRecording = false
@@ -16,6 +17,7 @@ struct CompactAudioRecordView: View {
     @State private var isPaused = false
     @State private var showingTranscription = false
     @State private var transcriptionMode: TranscriptionMode = .voice
+    @State private var includeTitle = true
     
     // Timer for recording duration
     @State private var recordingTimer: Timer?
@@ -68,10 +70,11 @@ struct CompactAudioRecordView: View {
         "Tuesday Reflections: Reconnections & Routines"
     }
     
-    init(journal: Journal? = nil, existingAudio: AudioRecordView.AudioData? = nil, currentDetent: Binding<PresentationDetent>) {
+    init(journal: Journal? = nil, existingAudio: AudioRecordView.AudioData? = nil, currentDetent: Binding<PresentationDetent>, onInsertTranscription: ((String, AudioRecordView.AudioData) -> Void)? = nil) {
         self.journal = journal
         self.existingAudio = existingAudio
         self._currentDetent = currentDetent
+        self.onInsertTranscription = onInsertTranscription
         
         if let audio = existingAudio {
             // Existing audio - playback mode
@@ -96,30 +99,52 @@ struct CompactAudioRecordView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Header bar
-            HStack {
-                Button("Cancel") {
-                    recordingTimer?.invalidate()
-                    dismiss()
+            HStack(alignment: .center) {
+                // Ellipsis menu button (left)
+                Menu {
+                    Button(action: {
+                        // Edit action
+                    }) {
+                        Label("Edit", systemImage: "pencil")
+                    }
+                    
+                    Button(action: {
+                        // Share action
+                    }) {
+                        Label("Share", systemImage: "square.and.arrow.up")
+                    }
+                    
+                    Button(role: .destructive, action: {
+                        recordingTimer?.invalidate()
+                        dismiss()
+                    }) {
+                        Label("Delete", systemImage: "trash")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 17, weight: .regular))
+                        .foregroundStyle(.primary)
                 }
-                .foregroundStyle(.primary)
                 
                 Spacer()
                 
-                Text(editableTitle)
-                    .font(.headline)
-                    .lineLimit(1)
+                // Duration-based title
+                Text("\(formatTime(recordingTime)) Audio")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(.primary)
                 
                 Spacer()
                 
-                Button("Save") {
+                // Done button (right)
+                Button("Done") {
                     dismiss()
                 }
-                .fontWeight(.semibold)
+                .font(.system(size: 17, weight: .semibold))
                 .foregroundStyle(.primary)
-                .disabled(mode == .record && !hasRecorded)
             }
-            .padding(.horizontal)
-            .padding(.vertical, 16)
+            .frame(height: 44)
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
             
             Divider()
             
@@ -263,7 +288,7 @@ struct CompactAudioRecordView: View {
                         } label: {
                             Image(systemName: "gobackward.15")
                                 .font(.title3)
-                                .foregroundStyle(.primary)
+                                .foregroundStyle(.black)
                         }
                         
                         Button {
@@ -286,7 +311,7 @@ struct CompactAudioRecordView: View {
                         } label: {
                             Image(systemName: "goforward.15")
                                 .font(.title3)
-                                .foregroundStyle(.primary)
+                                .foregroundStyle(.black)
                         }
                     }
                     
@@ -305,6 +330,55 @@ struct CompactAudioRecordView: View {
                             .pickerStyle(SegmentedPickerStyle())
                             .padding(.horizontal)
                             
+                            // Controls section
+                            VStack(spacing: 12) {
+                                // Include Title toggle (only show for AI mode)
+                                if transcriptionMode == .ai {
+                                    Toggle("Include Title", isOn: $includeTitle)
+                                        .font(.system(size: 15))
+                                        .padding(.horizontal)
+                                }
+                                
+                                // Insert into Entry button
+                                Button(action: {
+                                    // Prepare the text to insert
+                                    let textToInsert: String
+                                    if transcriptionMode == .voice {
+                                        textToInsert = voiceTranscription
+                                    } else {
+                                        if includeTitle {
+                                            textToInsert = aiTitle + "\n\n" + aiProcessedContent
+                                        } else {
+                                            textToInsert = aiProcessedContent
+                                        }
+                                    }
+                                    
+                                    // Create audio data for the embed
+                                    let audioData = AudioRecordView.AudioData(
+                                        title: editableTitle,
+                                        duration: recordingTime,
+                                        recordingDate: Date(),
+                                        hasTranscription: true,
+                                        transcriptionText: voiceTranscription
+                                    )
+                                    
+                                    // Call the callback if available
+                                    onInsertTranscription?(textToInsert, audioData)
+                                    
+                                    dismiss()
+                                }) {
+                                    Text("Insert into Entry")
+                                        .font(.system(size: 16, weight: .medium))
+                                        .foregroundStyle(.white)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 12)
+                                        .background(Color(hex: "44C0FF"))
+                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                                }
+                                .padding(.horizontal)
+                            }
+                            .padding(.top, 4)
+                            
                             // Transcription content
                             ScrollView {
                                 VStack(alignment: .leading, spacing: 12) {
@@ -315,12 +389,14 @@ struct CompactAudioRecordView: View {
                                             .frame(maxWidth: .infinity, alignment: .leading)
                                             .padding(.horizontal)
                                     } else {
-                                        // AI processed content with title
+                                        // AI processed content with optional title
                                         VStack(alignment: .leading, spacing: 8) {
-                                            Text(aiTitle)
-                                                .font(.headline)
-                                                .foregroundStyle(.primary)
-                                                .padding(.horizontal)
+                                            if includeTitle {
+                                                Text(aiTitle)
+                                                    .font(.headline)
+                                                    .foregroundStyle(.primary)
+                                                    .padding(.horizontal)
+                                            }
                                             
                                             Text(aiProcessedContent)
                                                 .font(.body)
@@ -366,6 +442,7 @@ struct CompactAudioRecordView: View {
             withAnimation {
                 isProcessing = false
                 showingTranscription = true
+                transcriptionMode = .ai  // Auto-select AI mode
                 mode = .playback
                 // Expand sheet to full height
                 currentDetent = .large
@@ -395,13 +472,15 @@ struct CompactSheetModifier: ViewModifier {
     let height: CGFloat
     let journal: Journal?
     let existingAudio: AudioRecordView.AudioData?
+    let onInsertTranscription: ((String, AudioRecordView.AudioData) -> Void)?
     @State private var currentDetent: PresentationDetent
     
-    init(isPresented: Binding<Bool>, height: CGFloat, journal: Journal?, existingAudio: AudioRecordView.AudioData?) {
+    init(isPresented: Binding<Bool>, height: CGFloat, journal: Journal?, existingAudio: AudioRecordView.AudioData?, onInsertTranscription: ((String, AudioRecordView.AudioData) -> Void)? = nil) {
         self._isPresented = isPresented
         self.height = height
         self.journal = journal
         self.existingAudio = existingAudio
+        self.onInsertTranscription = onInsertTranscription
         // Start at full height if existing audio has transcription
         let initialDetent: PresentationDetent = (existingAudio?.hasTranscription == true) ? .large : .height(height)
         self._currentDetent = State(initialValue: initialDetent)
@@ -413,7 +492,8 @@ struct CompactSheetModifier: ViewModifier {
                 CompactAudioRecordView(
                     journal: journal,
                     existingAudio: existingAudio,
-                    currentDetent: $currentDetent
+                    currentDetent: $currentDetent,
+                    onInsertTranscription: onInsertTranscription
                 )
                 .presentationDetents([.height(height), .large], selection: $currentDetent)
                 .presentationDragIndicator(.hidden)
@@ -429,13 +509,15 @@ extension View {
         isPresented: Binding<Bool>,
         height: CGFloat = 300,
         journal: Journal? = nil,
-        existingAudio: AudioRecordView.AudioData? = nil
+        existingAudio: AudioRecordView.AudioData? = nil,
+        onInsertTranscription: ((String, AudioRecordView.AudioData) -> Void)? = nil
     ) -> some View {
         modifier(CompactSheetModifier(
             isPresented: isPresented,
             height: height,
             journal: journal,
-            existingAudio: existingAudio
+            existingAudio: existingAudio,
+            onInsertTranscription: onInsertTranscription
         ))
     }
 }
@@ -450,7 +532,8 @@ extension View {
                 .sheet(isPresented: .constant(true)) {
                     CompactAudioRecordView(
                         journal: Journal(name: "Journal", color: Color(hex: "44C0FF"), entryCount: 22),
-                        currentDetent: $detent
+                        currentDetent: $detent,
+                        onInsertTranscription: nil
                     )
                     .presentationDetents([.height(300), .large], selection: $detent)
                     .presentationDragIndicator(.hidden)
@@ -477,7 +560,8 @@ extension View {
                             hasTranscription: true,
                             transcriptionText: "Sample transcription text..."
                         ),
-                        currentDetent: $detent
+                        currentDetent: $detent,
+                        onInsertTranscription: nil
                     )
                     .presentationDetents([.height(300), .large], selection: $detent)
                     .presentationDragIndicator(.hidden)

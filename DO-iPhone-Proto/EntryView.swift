@@ -42,6 +42,7 @@ struct EntryView: View {
     @State private var isEditMode = false
     @State private var shouldShowAudioOnAppear: Bool
     @State private var showingCompactAudioRecord = false
+    @State private var insertedAudioData: AudioRecordView.AudioData?
     
     // Location for the map - Sundance Resort coordinates
     private let entryLocation = CLLocationCoordinate2D(latitude: 40.6006, longitude: -111.5878)
@@ -371,17 +372,33 @@ I think I'm going to sit here for a while longer before heading back down. This 
                             
                             // First audio recording embed (with transcription)
                             if showAudioEmbedWithTranscription && !isEditMode {
-                                audioRecordingEmbed(
-                                    hasTranscription: true,
-                                    isPlaying: $isPlayingAudio,
-                                    duration: audioDuration,
-                                    title: "Morning Reflections at Stewart Falls",
-                                    transcriptionPreview: "So, I'm sitting here at Stewart Falls, and I just... I can't even put into words how beautiful this is. The water is just cascading down, and there's this mist that's catching the morning light. It's creating these tiny rainbows everywhere I look.",
-                                    onTap: {
-                                        selectedAudioHasTranscription = true
-                                        showingAudioPage = true
-                                    }
-                                )
+                                if let audioData = insertedAudioData {
+                                    // Use inserted audio data
+                                    audioRecordingEmbed(
+                                        hasTranscription: true,
+                                        isPlaying: $isPlayingAudio,
+                                        duration: audioData.duration,
+                                        title: audioData.title,
+                                        transcriptionPreview: String(audioData.transcriptionText.prefix(200)),
+                                        onTap: {
+                                            selectedAudioHasTranscription = true
+                                            showingAudioPage = true
+                                        }
+                                    )
+                                } else {
+                                    // Use default audio embed
+                                    audioRecordingEmbed(
+                                        hasTranscription: true,
+                                        isPlaying: $isPlayingAudio,
+                                        duration: audioDuration,
+                                        title: "Morning Reflections at Stewart Falls",
+                                        transcriptionPreview: "So, I'm sitting here at Stewart Falls, and I just... I can't even put into words how beautiful this is. The water is just cascading down, and there's this mist that's catching the morning light. It's creating these tiny rainbows everywhere I look.",
+                                        onTap: {
+                                            selectedAudioHasTranscription = true
+                                            showingAudioPage = true
+                                        }
+                                    )
+                                }
                             }
                             
                             // Image embed
@@ -828,7 +845,7 @@ I think I'm going to sit here for a while longer before heading back down. This 
             }
             .compactAudioSheet(
                 isPresented: $showingAudioPage,
-                existingAudio: AudioRecordView.AudioData(
+                existingAudio: insertedAudioData ?? AudioRecordView.AudioData(
                     title: "Morning Reflections at Stewart Falls",
                     duration: audioDuration,
                     recordingDate: entryDate,
@@ -856,7 +873,18 @@ I think I'm going to sit here for a while longer before heading back down. This 
             }
             .compactAudioSheet(
                 isPresented: $showingCompactAudioRecord,
-                journal: journal
+                journal: journal,
+                onInsertTranscription: { transcriptionText, audioData in
+                    // Insert the transcription text into the entry
+                    if !entryText.isEmpty && !entryText.hasSuffix("\n\n") {
+                        entryText += "\n\n"
+                    }
+                    entryText += transcriptionText
+                    
+                    // Store the audio data and show the embed
+                    insertedAudioData = audioData
+                    showAudioEmbedWithTranscription = true
+                }
             )
         }
     }

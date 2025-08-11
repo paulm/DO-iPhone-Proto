@@ -672,6 +672,14 @@ struct TodayViewV1i2: View {
         ZStack {
             // Main content
             List {
+                // Add top spacing when Date Picker Grid is hidden
+                if !showDatePickerGrid {
+                    Color.clear
+                        .frame(height: 20)
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                }
                     
                     // Weather section at the very top
                 if showWeather {

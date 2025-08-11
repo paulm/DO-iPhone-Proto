@@ -493,6 +493,7 @@ struct TodayViewV1i2: View {
     @AppStorage("showEntryCarousel") private var showEntryCarousel = false
     @AppStorage("showDailyChatCarousel") private var showDailyChatCarousel = true
     @AppStorage("showPromptsCarousel") private var showPromptsCarousel = true
+    @AppStorage("showLogVoiceModeButtons") private var showLogVoiceModeButtons = false
     @AppStorage("todayViewStyle") private var selectedStyle = TodayViewStyle.standard
     
     // Options toggles
@@ -802,7 +803,8 @@ struct TodayViewV1i2: View {
                             showingDailyChat: $showingDailyChat,
                             showingEntry: $showingEntry,
                             showingPreviewEntry: $showingPreviewEntry,
-                            openDailyChatInLogMode: $openDailyChatInLogMode
+                            openDailyChatInLogMode: $openDailyChatInLogMode,
+                            showLogVoiceModeButtons: showLogVoiceModeButtons
                         )
                         .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                         .listRowBackground(Color.clear)
@@ -1305,6 +1307,17 @@ struct TodayViewV1i2: View {
                                 HStack {
                                     Text("Daily Chat Carousel")
                                     if showDailyChatCarousel {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showLogVoiceModeButtons.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Log and Voice Mode Buttons")
+                                    if showLogVoiceModeButtons {
                                         Image(systemName: "checkmark")
                                     }
                                 }
@@ -2522,6 +2535,7 @@ struct DailyChatCarouselView: View {
     @Binding var showingEntry: Bool
     @Binding var showingPreviewEntry: Bool
     @Binding var openDailyChatInLogMode: Bool
+    let showLogVoiceModeButtons: Bool
     
     private var hasEntry: Bool {
         DailyContentManager.shared.hasEntry(for: selectedDate)
@@ -2536,10 +2550,9 @@ struct DailyChatCarouselView: View {
     }
     
     private var shouldShowEntryButton: Bool {
-        // Show button if chat has been interacted with and either:
-        // 1. No entry exists yet
-        // 2. Entry exists and there are new messages
-        return chatCompleted && (!hasEntry || hasNewMessages) && !isGeneratingEntry
+        // Only show Update Entry button when entry exists and there are new messages
+        // Generate Entry is now shown as a full-width cell above
+        return hasEntry && hasNewMessages && !isGeneratingEntry
     }
     
     private var entryButtonText: String {
@@ -2552,8 +2565,9 @@ struct DailyChatCarouselView: View {
     
     var body: some View {
         VStack(spacing: 12) {
-            // Entry row (full width, shown when entry exists)
+            // Entry row (full width, shown when entry exists OR when chat has happened but no entry)
             if hasEntry {
+                // Show actual entry when it exists
                 Button(action: {
                     showingEntry = true
                 }) {
@@ -2577,13 +2591,54 @@ struct DailyChatCarouselView: View {
                 }
                 .buttonStyle(PlainButtonStyle())
                 .padding(.horizontal, 20)
+            } else if chatCompleted {
+                // Show Generate Entry link when chat exists but no entry
+                Button(action: {
+                    if !isGeneratingEntry {
+                        // Trigger entry generation
+                        NotificationCenter.default.post(
+                            name: NSNotification.Name("TriggerEntryGeneration"),
+                            object: selectedDate
+                        )
+                    }
+                }) {
+                    if isGeneratingEntry {
+                        // Show loading state within the cell
+                        HStack(spacing: 8) {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle())
+                                .scaleEffect(0.8)
+                            
+                            Text("Generating...")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(16)
+                        .background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    } else {
+                        Text("Generate Entry")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundStyle(Color(hex: "44C0FF"))
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding(16)
+                            .background(Color.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+                }
+                .buttonStyle(PlainButtonStyle())
+                .disabled(isGeneratingEntry)
+                .padding(.horizontal, 20)
             }
             
             // Buttons carousel row
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
-                    // Log Mode button - only show when no entry exists (moved to first position)
-                    if !hasEntry && !chatCompleted {
+                    // Log Mode button - only show when enabled and no entry/chat exists (moved to first position)
+                    if showLogVoiceModeButtons && !hasEntry && !chatCompleted {
                         Button(action: {
                             openDailyChatInLogMode = true
                             showingDailyChat = true
@@ -2611,8 +2666,8 @@ struct DailyChatCarouselView: View {
                     Button(action: {
                         showingDailyChat = true
                     }) {
-                        if hasEntry {
-                            // Short button without icon when entry exists
+                        if hasEntry || chatCompleted {
+                            // Short button without icon when entry exists OR when in generate entry mode
                             // Blue with white text for today's Resume Chat
                             let isResumeToday = chatCompleted && isToday
                             Text(chatCompleted ? "Resume Chat" : "Start Chat")
@@ -2646,10 +2701,10 @@ struct DailyChatCarouselView: View {
                         }
                     }
                     .buttonStyle(PlainButtonStyle())
-                    .padding(.leading, !hasEntry && !chatCompleted ? 0 : 20)
+                    .padding(.leading, showLogVoiceModeButtons && !hasEntry && !chatCompleted ? 0 : 20)
                     
-                    // Voice Mode button - only show when no entry exists  
-                    if !hasEntry && !chatCompleted {
+                    // Voice Mode button - only show when enabled and no entry exists  
+                    if showLogVoiceModeButtons && !hasEntry && !chatCompleted {
                         Button(action: {
                             // Voice mode action
                             showingDailyChat = true
@@ -2672,65 +2727,24 @@ struct DailyChatCarouselView: View {
                         .buttonStyle(PlainButtonStyle())
                     }
                     
-                    // Create/Update Entry button (shown when chat exists but no entry, or when there are new messages)
+                    // Update Entry button (only shown when entry exists and there are new messages)
                     if shouldShowEntryButton {
                         Button(action: {
-                            if hasEntry && hasNewMessages {
-                                // Show preview for update
-                                showingPreviewEntry = true
-                            } else {
-                                // Generate new entry directly
-                                NotificationCenter.default.post(
-                                    name: NSNotification.Name("TriggerEntryGeneration"),
-                                    object: selectedDate
-                                )
-                            }
+                            // Show preview for update
+                            showingPreviewEntry = true
                         }) {
-                            if hasEntry {
-                                // Short button without icon when entry exists - honey yellow with white text for Update Entry
-                                Text(entryButtonText)
-                                    .font(.system(size: 13))
-                                    .fontWeight(.regular)
-                                    .foregroundStyle(Color.white)
-                                    .multilineTextAlignment(.center)
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                    .frame(width: 130, height: 38)
-                                    .background(Color(hex: "FFC107"))
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                            } else {
-                                // Full height when no entry exists - honey color with sparkles icon
-                                VStack(spacing: 0) {
-                                    Image(systemName: "sparkles")
-                                        .font(.system(size: 20))
-                                        .foregroundStyle(.white)
-                                        .frame(maxHeight: .infinity)
-                                    
-                                    Text(entryButtonText)
-                                        .font(.system(size: 11))
-                                        .foregroundStyle(.white)
-                                        .padding(.bottom, 8)
-                                }
-                                .frame(width: 140, height: 70)
-                                .background(Color(hex: "FFC107"))
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                            }
+                            // Short button without icon - white with blue text for Update Entry
+                            Text(entryButtonText)
+                                .font(.system(size: 13))
+                                .fontWeight(.regular)
+                                .foregroundStyle(Color(hex: "44C0FF"))
+                                .multilineTextAlignment(.center)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .frame(width: 130, height: 38)
+                                .background(Color.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
                         }
                         .buttonStyle(PlainButtonStyle())
-                    } else if isGeneratingEntry {
-                        // Show spinner while generating
-                        HStack(spacing: 8) {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle())
-                                .scaleEffect(0.8)
-                            
-                            Text("Generating...")
-                                .font(.system(size: 12))
-                                .fontWeight(.regular)
-                                .foregroundStyle(.secondary)
-                        }
-                        .frame(width: 120, height: 70) // Same width as button
-                        .background(Color.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
                     
                     // Add padding at the end

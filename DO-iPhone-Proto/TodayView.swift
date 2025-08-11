@@ -2531,6 +2531,10 @@ struct DailyChatCarouselView: View {
         DailyContentManager.shared.hasNewMessagesSinceEntry(for: selectedDate)
     }
     
+    private var isToday: Bool {
+        Calendar.current.isDateInToday(selectedDate)
+    }
+    
     private var shouldShowEntryButton: Bool {
         // Show button if chat has been interacted with and either:
         // 1. No entry exists yet
@@ -2578,61 +2582,90 @@ struct DailyChatCarouselView: View {
             // Buttons carousel row
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
-                    // Chat item
-                    Button(action: {
-                        showingDailyChat = true
-                    }) {
-                        if hasEntry {
-                            // Short button without icon when entry exists
-                            Text(chatCompleted ? "Resume Chat" : "Start Chat")
-                                .font(.system(size: 13))
-                                .fontWeight(.regular)
-                                .foregroundStyle(.secondary)
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                .frame(width: 130, height: 38)
-                                .background(Color.white)
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                        } else {
-                            // Full height with icon when no entry - reversed colors for Start Chat
-                            VStack(spacing: 0) {
-                                // Icon - filled for Start, outline for Resume
-                                Image(systemName: chatCompleted ? "bubble.left.and.bubble.right" : "bubble.left.and.bubble.right.fill")
-                                    .font(.system(size: 20))
-                                    .foregroundStyle(chatCompleted ? Color(hex: "44C0FF") : .white)
-                                    .frame(maxHeight: .infinity)
-                                
-                                // Label
-                                Text(chatCompleted ? "Resume Chat" : "Start Chat")
-                                    .font(.system(size: 11))
-                                    .foregroundStyle(chatCompleted ? Color.secondary : Color.white)
-                                    .padding(.bottom, 8)
-                            }
-                            .frame(width: 140, height: 70)
-                            .background(chatCompleted ? Color.white : Color(hex: "44C0FF"))
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                        }
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .padding(.leading, 20)
-                    
-                    // Log Highlights button - only show when no entry exists
+                    // Log Mode button - only show when no entry exists (moved to first position)
                     if !hasEntry && !chatCompleted {
                         Button(action: {
                             openDailyChatInLogMode = true
                             showingDailyChat = true
                         }) {
                             VStack(spacing: 0) {
-                                Image(systemName: "bubble.fill")
+                                Image(systemName: "bubble")
                                     .font(.system(size: 20))
                                     .foregroundStyle(Color(hex: "333B40"))
                                     .frame(maxHeight: .infinity)
                                 
-                                Text("Log Highlights")
+                                Text("Log Mode")
                                     .font(.system(size: 11))
                                     .foregroundStyle(.secondary)
                                     .padding(.bottom, 8)
                             }
+                            .frame(width: 80, height: 70)
+                            .background(Color.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .padding(.leading, 20)
+                    }
+                    
+                    // Chat item
+                    Button(action: {
+                        showingDailyChat = true
+                    }) {
+                        if hasEntry {
+                            // Short button without icon when entry exists
+                            // Blue with white text for today's Resume Chat
+                            let isResumeToday = chatCompleted && isToday
+                            Text(chatCompleted ? "Resume Chat" : "Start Chat")
+                                .font(.system(size: 13))
+                                .fontWeight(.regular)
+                                .foregroundStyle(isResumeToday ? Color.white : .secondary)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .frame(width: 130, height: 38)
+                                .background(isResumeToday ? Color(hex: "44C0FF") : Color.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                        } else {
+                            // Full height with icon when no entry
+                            // Blue background only for Start Chat on current day
+                            let isStartToday = !chatCompleted && isToday
+                            VStack(spacing: 0) {
+                                // Icon - filled for Start, outline for Resume
+                                Image(systemName: chatCompleted ? "bubble.left.and.bubble.right" : "bubble.left.and.bubble.right.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundStyle(chatCompleted ? Color(hex: "44C0FF") : (isStartToday ? .white : Color(hex: "44C0FF")))
+                                    .frame(maxHeight: .infinity)
+                                
+                                // Label
+                                Text(chatCompleted ? "Resume Chat" : "Start Chat")
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(chatCompleted ? Color.secondary : (isStartToday ? Color.white : Color.secondary))
+                                    .padding(.bottom, 8)
+                            }
                             .frame(width: 140, height: 70)
+                            .background(isStartToday ? Color(hex: "44C0FF") : Color.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                        }
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .padding(.leading, !hasEntry && !chatCompleted ? 0 : 20)
+                    
+                    // Voice Mode button - only show when no entry exists  
+                    if !hasEntry && !chatCompleted {
+                        Button(action: {
+                            // Voice mode action
+                            showingDailyChat = true
+                        }) {
+                            VStack(spacing: 0) {
+                                Image(systemName: "waveform")
+                                    .font(.system(size: 20))
+                                    .foregroundStyle(Color(hex: "333B40"))
+                                    .frame(maxHeight: .infinity)
+                                
+                                Text("Voice Mode")
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(.secondary)
+                                    .padding(.bottom, 8)
+                            }
+                            .frame(width: 80, height: 70)
                             .background(Color.white)
                             .clipShape(RoundedRectangle(cornerRadius: 10))
                         }
@@ -2654,27 +2687,32 @@ struct DailyChatCarouselView: View {
                             }
                         }) {
                             if hasEntry {
-                                // Short button without icon when entry exists - same width as Resume Chat
+                                // Short button without icon when entry exists - honey yellow with white text for Update Entry
                                 Text(entryButtonText)
                                     .font(.system(size: 13))
                                     .fontWeight(.regular)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(Color.white)
                                     .multilineTextAlignment(.center)
                                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                                     .frame(width: 130, height: 38)
-                                    .background(Color.white)
+                                    .background(Color(hex: "FFC107"))
                                     .clipShape(RoundedRectangle(cornerRadius: 12))
                             } else {
-                                // Full height when no entry exists - wider for Generate Entry
-                                Text(entryButtonText)
-                                    .font(.system(size: 12))
-                                    .fontWeight(.medium)
-                                    .foregroundStyle(.secondary)
-                                    .multilineTextAlignment(.center)
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                    .frame(width: 180, height: 70)
-                                    .background(Color.white)
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                // Full height when no entry exists - honey color with sparkles icon
+                                VStack(spacing: 0) {
+                                    Image(systemName: "sparkles")
+                                        .font(.system(size: 20))
+                                        .foregroundStyle(.white)
+                                        .frame(maxHeight: .infinity)
+                                    
+                                    Text(entryButtonText)
+                                        .font(.system(size: 11))
+                                        .foregroundStyle(.white)
+                                        .padding(.bottom, 8)
+                                }
+                                .frame(width: 140, height: 70)
+                                .background(Color(hex: "FFC107"))
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
                             }
                         }
                         .buttonStyle(PlainButtonStyle())
@@ -2687,10 +2725,10 @@ struct DailyChatCarouselView: View {
                             
                             Text("Generating...")
                                 .font(.system(size: 12))
-                                .fontWeight(.medium)
+                                .fontWeight(.regular)
                                 .foregroundStyle(.secondary)
                         }
-                        .frame(width: 180, height: 84) // Same width as button
+                        .frame(width: 120, height: 70) // Same width as button
                         .background(Color.white)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                     }

@@ -470,6 +470,7 @@ struct TodayViewV1i2: View {
     @State private var isGeneratingEntry = false
     @State private var chatUpdateTrigger = false
     @State private var momentsInitialSection: String? = nil
+    @State private var showingVisitsSheet = false
     
     // Show/hide toggles for Daily Activities
     @State private var showWeather = false
@@ -990,8 +991,7 @@ struct TodayViewV1i2: View {
                         
                         // Visits row
                         Button(action: {
-                            momentsInitialSection = "Visits"
-                            showingMoments = true
+                            showingVisitsSheet = true
                         }) {
                             HStack {
                                 Label {
@@ -1460,6 +1460,9 @@ struct TodayViewV1i2: View {
                 // Reset the initial section when sheet is dismissed
                 momentsInitialSection = nil
             }
+        }
+        .sheet(isPresented: $showingVisitsSheet) {
+            VisitsSheetView()
         }
         .sheet(isPresented: $showingTrackers) {
             TrackerView(
@@ -2952,6 +2955,114 @@ struct EntryLinksCarouselView: View {
                 .padding(.trailing, 20)
             }
         }
+    }
+}
+
+// MARK: - Visits Sheet View
+struct VisitsSheetView: View {
+    @Environment(\.dismiss) private var dismiss
+    
+    // Sample visits data matching MomentsView
+    private let visits = [
+        (name: "Sundance Mountain Resort", icon: "figure.skiing.downhill", time: "3 hours"),
+        (name: "Whole Foods Market", icon: "cart.fill", time: "45 min"),
+        (name: "Park City Library", icon: "books.vertical.fill", time: "1 hour"),
+        (name: "Starbucks Coffee", icon: "cup.and.saucer.fill", time: "30 min"),
+        (name: "Silver Lake Trail", icon: "figure.hiking", time: "2 hours")
+    ]
+    
+    var body: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 0) {
+                // Header text
+                Text("Create an entry from any visit")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
+                    .padding(.bottom, 16)
+                
+                // Visits list
+                ScrollView {
+                    VStack(spacing: 0) {
+                        ForEach(visits, id: \.name) { visit in
+                            HStack(spacing: 12) {
+                                // Icon
+                                Image(systemName: visit.icon)
+                                    .font(.system(size: 20))
+                                    .foregroundStyle(Color(hex: "44C0FF"))
+                                    .frame(width: 32, height: 32)
+                                
+                                // Visit details
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(visit.name)
+                                        .font(.body)
+                                        .foregroundStyle(.primary)
+                                    
+                                    Text(visit.time)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                
+                                Spacer()
+                                
+                                // Ellipsis menu
+                                Menu {
+                                    Button(action: {
+                                        // Handle create entry
+                                        dismiss()
+                                    }) {
+                                        Label("Create Entry", systemImage: "square.and.pencil")
+                                    }
+                                    
+                                    Button(action: {
+                                        // Handle select nearby place
+                                    }) {
+                                        Label("Select Nearby Place", systemImage: "location.circle")
+                                    }
+                                    
+                                    Button(action: {
+                                        // Handle hide
+                                    }) {
+                                        Label("Hide", systemImage: "eye.slash")
+                                    }
+                                } label: {
+                                    Image(systemName: "ellipsis")
+                                        .font(.system(size: 16))
+                                        .foregroundStyle(.secondary)
+                                        .frame(width: 44, height: 44)
+                                        .contentShape(Rectangle())
+                                }
+                                .menuStyle(.borderlessButton)
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 8)
+                            
+                            // Divider
+                            if visit.name != visits.last?.name {
+                                Divider()
+                                    .padding(.leading, 64)
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Visits")
+                        .font(.headline)
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.visible)
     }
 }
 

@@ -4,6 +4,7 @@ struct CompactAudioRecordView: View {
     @Environment(\.dismiss) private var dismiss
     let journal: Journal?
     let existingAudio: AudioRecordView.AudioData?
+    @Binding var currentDetent: PresentationDetent
     
     @State private var editableTitle: String = ""
     @State private var isRecording = false
@@ -13,6 +14,8 @@ struct CompactAudioRecordView: View {
     @State private var isPlaying = false
     @State private var currentTime: TimeInterval = 0
     @State private var isPaused = false
+    @State private var showingTranscription = false
+    @State private var transcriptionMode: TranscriptionMode = .voice
     
     // Timer for recording duration
     @State private var recordingTimer: Timer?
@@ -22,11 +25,53 @@ struct CompactAudioRecordView: View {
         case playback
     }
     
+    enum TranscriptionMode: String, CaseIterable {
+        case voice = "Voice"
+        case ai = "AI"
+    }
+    
     @State private var mode: Mode
     
-    init(journal: Journal? = nil, existingAudio: AudioRecordView.AudioData? = nil) {
+    // Transcription data
+    private var voiceTranscription: String {
+        if let audio = existingAudio, !audio.transcriptionText.isEmpty {
+            return audio.transcriptionText
+        }
+        return """
+        So today was really interesting. I went to the coffee shop this morning and ran into Sarah. We hadn't seen each other in months, so we ended up talking for like an hour. She told me about her new job at the tech startup downtown, and it sounds really exciting. They're working on some kind of AI-powered fitness app.
+        
+        After that, I headed to the gym for my usual workout. I'm finally getting back into a routine after the holidays, which feels good. Did legs today and I can already feel it.
+        
+        Oh, and I almost forgot - I booked tickets for that concert next month. Can't wait to see them live again. It's been way too long since I've been to a proper show.
+        
+        The weather was perfect today too. Sunny but not too hot. Made me think about planning a weekend trip somewhere soon. Maybe the coast?
+        """
+    }
+    
+    private var aiProcessedContent: String {
+        """
+        **Coffee Shop Encounter**
+        Met Sarah at coffee shop after months apart. She shared exciting news about her new position at a downtown tech startup developing an AI-powered fitness application.
+        
+        **Fitness Progress**
+        Completed leg workout at gym, successfully returning to regular exercise routine post-holidays. Already experiencing muscle engagement from the session.
+        
+        **Entertainment Plans**
+        Secured concert tickets for next month's show. Looking forward to first live music experience in extended period.
+        
+        **Weather & Travel Thoughts**
+        Perfect sunny conditions inspired considerations for upcoming weekend coastal trip.
+        """
+    }
+    
+    private var aiTitle: String {
+        "Tuesday Reflections: Reconnections & Routines"
+    }
+    
+    init(journal: Journal? = nil, existingAudio: AudioRecordView.AudioData? = nil, currentDetent: Binding<PresentationDetent>) {
         self.journal = journal
         self.existingAudio = existingAudio
+        self._currentDetent = currentDetent
         
         if let audio = existingAudio {
             // Existing audio - playback mode
@@ -35,6 +80,8 @@ struct CompactAudioRecordView: View {
             self._hasRecorded = State(initialValue: true)
             self._recordingTime = State(initialValue: audio.duration)
             self._isRecording = State(initialValue: false)
+            // Show transcription immediately if audio has transcription
+            self._showingTranscription = State(initialValue: audio.hasTranscription)
         } else {
             // New recording - record mode
             let formatter = DateFormatter()
@@ -242,6 +289,51 @@ struct CompactAudioRecordView: View {
                                 .foregroundStyle(.primary)
                         }
                     }
+                    
+                    // Transcription section
+                    if showingTranscription {
+                        VStack(alignment: .leading, spacing: 16) {
+                            Divider()
+                                .padding(.vertical, 8)
+                            
+                            // Segmented Control for transcription mode
+                            Picker("Transcription Mode", selection: $transcriptionMode) {
+                                ForEach(TranscriptionMode.allCases, id: \.self) { mode in
+                                    Text(mode.rawValue)
+                                }
+                            }
+                            .pickerStyle(SegmentedPickerStyle())
+                            .padding(.horizontal)
+                            
+                            // Transcription content
+                            ScrollView {
+                                VStack(alignment: .leading, spacing: 12) {
+                                    if transcriptionMode == .voice {
+                                        Text(voiceTranscription)
+                                            .font(.body)
+                                            .foregroundStyle(.primary)
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                            .padding(.horizontal)
+                                    } else {
+                                        // AI processed content with title
+                                        VStack(alignment: .leading, spacing: 8) {
+                                            Text(aiTitle)
+                                                .font(.headline)
+                                                .foregroundStyle(.primary)
+                                                .padding(.horizontal)
+                                            
+                                            Text(aiProcessedContent)
+                                                .font(.body)
+                                                .foregroundStyle(.primary)
+                                                .frame(maxWidth: .infinity, alignment: .leading)
+                                                .padding(.horizontal)
+                                        }
+                                    }
+                                }
+                                .padding(.vertical)
+                            }
+                        }
+                    }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color(hex: "F8F8F8"))
@@ -273,7 +365,10 @@ struct CompactAudioRecordView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             withAnimation {
                 isProcessing = false
+                showingTranscription = true
                 mode = .playback
+                // Expand sheet to full height
+                currentDetent = .large
             }
         }
     }
@@ -298,16 +393,33 @@ struct CompactAudioRecordView: View {
 struct CompactSheetModifier: ViewModifier {
     @Binding var isPresented: Bool
     let height: CGFloat
-    let content: () -> CompactAudioRecordView
+    let journal: Journal?
+    let existingAudio: AudioRecordView.AudioData?
+    @State private var currentDetent: PresentationDetent
+    
+    init(isPresented: Binding<Bool>, height: CGFloat, journal: Journal?, existingAudio: AudioRecordView.AudioData?) {
+        self._isPresented = isPresented
+        self.height = height
+        self.journal = journal
+        self.existingAudio = existingAudio
+        // Start at full height if existing audio has transcription
+        let initialDetent: PresentationDetent = (existingAudio?.hasTranscription == true) ? .large : .height(height)
+        self._currentDetent = State(initialValue: initialDetent)
+    }
     
     func body(content: Content) -> some View {
         content
             .sheet(isPresented: $isPresented) {
-                self.content()
-                    .presentationDetents([.height(height)])
-                    .presentationDragIndicator(.hidden)
-                    .presentationCornerRadius(20)
-                    .presentationBackgroundInteraction(.disabled)
+                CompactAudioRecordView(
+                    journal: journal,
+                    existingAudio: existingAudio,
+                    currentDetent: $currentDetent
+                )
+                .presentationDetents([.height(height), .large], selection: $currentDetent)
+                .presentationDragIndicator(.hidden)
+                .presentationCornerRadius(20)
+                .presentationBackgroundInteraction(.disabled)
+                .interactiveDismissDisabled()
             }
     }
 }
@@ -322,37 +434,56 @@ extension View {
         modifier(CompactSheetModifier(
             isPresented: isPresented,
             height: height,
-            content: {
-                CompactAudioRecordView(journal: journal, existingAudio: existingAudio)
-            }
+            journal: journal,
+            existingAudio: existingAudio
         ))
     }
 }
 
 #Preview("Recording Mode") {
-    Color.gray
-        .ignoresSafeArea()
-        .sheet(isPresented: .constant(true)) {
-            CompactAudioRecordView(journal: Journal(name: "Journal", color: Color(hex: "44C0FF"), entryCount: 22))
-                .presentationDetents([.height(300)])
-                .presentationDragIndicator(.hidden)
+    struct PreviewWrapper: View {
+        @State private var detent: PresentationDetent = .height(300)
+        
+        var body: some View {
+            Color.gray
+                .ignoresSafeArea()
+                .sheet(isPresented: .constant(true)) {
+                    CompactAudioRecordView(
+                        journal: Journal(name: "Journal", color: Color(hex: "44C0FF"), entryCount: 22),
+                        currentDetent: $detent
+                    )
+                    .presentationDetents([.height(300), .large], selection: $detent)
+                    .presentationDragIndicator(.hidden)
+                }
         }
+    }
+    
+    return PreviewWrapper()
 }
 
 #Preview("Playback Mode") {
-    Color.gray
-        .ignoresSafeArea()
-        .sheet(isPresented: .constant(true)) {
-            CompactAudioRecordView(
-                existingAudio: AudioRecordView.AudioData(
-                    title: "Morning Thoughts",
-                    duration: 125,
-                    recordingDate: Date(),
-                    hasTranscription: true,
-                    transcriptionText: "Sample transcription text..."
-                )
-            )
-            .presentationDetents([.height(300)])
-            .presentationDragIndicator(.hidden)
+    struct PreviewWrapper: View {
+        @State private var detent: PresentationDetent = .height(300)
+        
+        var body: some View {
+            Color.gray
+                .ignoresSafeArea()
+                .sheet(isPresented: .constant(true)) {
+                    CompactAudioRecordView(
+                        existingAudio: AudioRecordView.AudioData(
+                            title: "Morning Thoughts",
+                            duration: 125,
+                            recordingDate: Date(),
+                            hasTranscription: true,
+                            transcriptionText: "Sample transcription text..."
+                        ),
+                        currentDetent: $detent
+                    )
+                    .presentationDetents([.height(300), .large], selection: $detent)
+                    .presentationDragIndicator(.hidden)
+                }
         }
+    }
+    
+    return PreviewWrapper()
 }

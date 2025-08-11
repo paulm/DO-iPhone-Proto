@@ -164,8 +164,8 @@ struct DailyChatView: View {
         self._entryCreated = entryCreated
         self.onChatStarted = onChatStarted
         self.onMessageCountChanged = onMessageCountChanged
-        // Always default to log mode
-        self._currentMode = State(initialValue: .log)
+        // Default to chat mode unless explicitly set to log mode
+        self._currentMode = State(initialValue: initialLogMode ? .log : .chat)
         
         // Load existing messages for the selected date
         let existingMessages = ChatSessionManager.shared.getMessages(for: selectedDate)
@@ -628,8 +628,8 @@ struct DailyChatView: View {
                 }
             }
             .onAppear {
-                // Always set to log mode initially
-                currentMode = .log
+                // Set to the initial mode (chat by default unless specified)
+                currentMode = initialLogMode ? .log : .chat
                 
                 // Auto-insert first AI message based on mode and no messages yet
                 if messages.isEmpty {
@@ -637,7 +637,7 @@ struct DailyChatView: View {
                     
                     switch currentMode {
                     case .chat:
-                        // Use time-based prompt for Prompt mode
+                        // Use time-based contextual prompt for Chat mode
                         initialMessage = DailyChatMessage(
                             content: getPromptMessageForTimeOfDay(),
                             isUser: false,
@@ -647,7 +647,7 @@ struct DailyChatView: View {
                     case .log:
                         // Initial log mode message
                         initialMessage = DailyChatMessage(
-                            content: "Log any memories or highlights from this day to generate a journal entry. Toggle on chat mode to get prompts and responses.",
+                            content: "Log memories and highlights from this day without a reply.",
                             isUser: false,
                             isLogMode: false,
                             mode: currentMode
@@ -725,11 +725,15 @@ struct DailyChatView: View {
         onMessageCountChanged(0)
         
         // Re-add initial AI message based on mode
-        if currentMode == .chat {
-            let initialMessage = DailyChatMessage(content: "How's your \(dayOfWeek)?", isUser: false, isLogMode: false, mode: currentMode)
-            messages.append(initialMessage)
-            chatSessionManager.saveMessages(messages, for: selectedDate)
+        let initialMessage: DailyChatMessage
+        switch currentMode {
+        case .chat:
+            initialMessage = DailyChatMessage(content: getPromptMessageForTimeOfDay(), isUser: false, isLogMode: false, mode: currentMode)
+        case .log:
+            initialMessage = DailyChatMessage(content: "Log memories and highlights from this day without a reply.", isUser: false, isLogMode: false, mode: currentMode)
         }
+        messages.append(initialMessage)
+        chatSessionManager.saveMessages(messages, for: selectedDate)
     }
     
     private func sendMessage() {
@@ -767,9 +771,9 @@ struct DailyChatView: View {
         if previousMode != newMode {
             switch newMode {
             case .log:
-                // When switching back to log mode
+                // When switching to log mode
                 let modeMessage = DailyChatMessage(
-                    content: "Log any memories or highlights from this day to generate a journal entry. Toggle on chat mode to get prompts and responses.",
+                    content: "Log memories and highlights from this day without a reply.",
                     isUser: false,
                     isLogMode: false,
                     mode: newMode

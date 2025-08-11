@@ -97,61 +97,12 @@ struct CompactAudioRecordView: View {
     }
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Header bar
-            HStack(alignment: .center) {
-                // Ellipsis menu button (left)
-                Menu {
-                    Button(action: {
-                        // Edit action
-                    }) {
-                        Label("Edit", systemImage: "pencil")
-                    }
-                    
-                    Button(action: {
-                        // Share action
-                    }) {
-                        Label("Share", systemImage: "square.and.arrow.up")
-                    }
-                    
-                    Button(role: .destructive, action: {
-                        recordingTimer?.invalidate()
-                        dismiss()
-                    }) {
-                        Label("Delete", systemImage: "trash")
-                    }
-                } label: {
-                    Image(systemName: "ellipsis")
-                        .font(.system(size: 17, weight: .regular))
-                        .foregroundStyle(.primary)
-                }
-                
-                Spacer()
-                
-                // Duration-based title
-                Text("\(formatTime(recordingTime)) Audio")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(.primary)
-                
-                Spacer()
-                
-                // Done button (right)
-                Button("Done") {
-                    dismiss()
-                }
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundStyle(.primary)
-            }
-            .frame(height: 44)
-            .padding(.horizontal, 16)
-            .padding(.top, 8)
-            
-            Divider()
-            
-            // Main content area
-            if mode == .record && !hasRecorded {
-                // Recording mode
-                VStack(spacing: 20) {
+        NavigationStack {
+            VStack(spacing: 0) {
+                // Main content area
+                if mode == .record && !hasRecorded {
+                    // Recording mode
+                    VStack(spacing: 20) {
                     // Compact waveform visualization
                     HStack(spacing: 2) {
                         ForEach(0..<40) { index in
@@ -413,6 +364,42 @@ struct CompactAudioRecordView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color(hex: "F8F8F8"))
+                }
+            }
+            .navigationTitle("\(formatTime(recordingTime)) Audio")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Menu {
+                        Button(action: {
+                            // Edit action
+                        }) {
+                            Label("Edit", systemImage: "pencil")
+                        }
+                        
+                        Button(action: {
+                            // Share action
+                        }) {
+                            Label("Share", systemImage: "square.and.arrow.up")
+                        }
+                        
+                        Button(role: .destructive, action: {
+                            recordingTimer?.invalidate()
+                            dismiss()
+                        }) {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                    .fontWeight(.semibold)
+                }
             }
         }
         .onAppear {
@@ -496,10 +483,9 @@ struct CompactSheetModifier: ViewModifier {
                     onInsertTranscription: onInsertTranscription
                 )
                 .presentationDetents([.height(height), .large], selection: $currentDetent)
-                .presentationDragIndicator(.hidden)
+                .presentationDragIndicator(.visible)
                 .presentationCornerRadius(20)
                 .presentationBackgroundInteraction(.disabled)
-                .interactiveDismissDisabled()
             }
     }
 }
@@ -536,7 +522,7 @@ extension View {
                         onInsertTranscription: nil
                     )
                     .presentationDetents([.height(300), .large], selection: $detent)
-                    .presentationDragIndicator(.hidden)
+                    .presentationDragIndicator(.visible)
                 }
         }
     }
@@ -564,7 +550,7 @@ extension View {
                         onInsertTranscription: nil
                     )
                     .presentationDetents([.height(300), .large], selection: $detent)
-                    .presentationDragIndicator(.hidden)
+                    .presentationDragIndicator(.visible)
                 }
         }
     }

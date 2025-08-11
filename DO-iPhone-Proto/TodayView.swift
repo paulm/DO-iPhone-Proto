@@ -471,6 +471,8 @@ struct TodayViewV1i2: View {
     @State private var chatUpdateTrigger = false
     @State private var momentsInitialSection: String? = nil
     @State private var showingVisitsSheet = false
+    @State private var showingEventsSheet = false
+    @State private var showingMediaSheet = false
     
     // Show/hide toggles for Daily Activities
     @State private var showWeather = false
@@ -486,6 +488,17 @@ struct TodayViewV1i2: View {
     @State private var showInsights = true
     @State private var showPrompts = true
     @State private var selectedPrompt: String? = nil
+    
+    // Moments visibility toggles
+    @State private var showMomentsVisits = true
+    @State private var showMomentsEvents = true
+    @State private var showMomentsMedia = true
+    
+    // Daily Entry Chat Context toggles
+    @State private var includeBio = true
+    @State private var includePreviousChats = true
+    @State private var includeJournal = true
+    
     @AppStorage("showChatFAB") private var showChatFAB = false
     @AppStorage("showEntryFAB") private var showEntryFAB = false
     @AppStorage("showChatInputBox") private var showChatInputBox = true
@@ -820,7 +833,7 @@ struct TodayViewV1i2: View {
                         .padding(.horizontal, -20)
                     } header: {
                         if showSectionNames {
-                            Text("Daily Chat + Entry")
+                            Text("Daily Entry Chat")
                         }
                     }
                 }
@@ -998,75 +1011,79 @@ struct TodayViewV1i2: View {
                         let mediaCount = isFuture ? 0 : (isWeekend ? 18 : 12)
                         
                         // Visits row
-                        Button(action: {
-                            showingVisitsSheet = true
-                        }) {
-                            HStack {
-                                Label {
-                                    Text("Visits")
-                                        .foregroundStyle(.primary)
-                                } icon: {
-                                    Image(systemName: "location.fill")
-                                        .foregroundStyle(Color(hex: "44C0FF"))
-                                        .imageScale(.medium)
+                        if showMomentsVisits {
+                            Button(action: {
+                                showingVisitsSheet = true
+                            }) {
+                                HStack {
+                                    Label {
+                                        Text("Visits")
+                                            .foregroundStyle(.primary)
+                                    } icon: {
+                                        Image(systemName: "location.fill")
+                                            .foregroundStyle(Color(hex: "44C0FF"))
+                                            .imageScale(.medium)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Text("\(visitsCount)")
+                                        .foregroundStyle(.secondary)
                                 }
-                                
-                                Spacer()
-                                
-                                Text("\(visitsCount)")
-                                    .foregroundStyle(.secondary)
+                                .contentShape(Rectangle())
                             }
-                            .contentShape(Rectangle())
+                            .buttonStyle(PlainButtonStyle())
                         }
-                        .buttonStyle(PlainButtonStyle())
                         
                         // Events row
-                        Button(action: {
-                            momentsInitialSection = "Events"
-                            showingMoments = true
-                        }) {
-                            HStack {
-                                Label {
-                                    Text("Events")
-                                        .foregroundStyle(.primary)
-                                } icon: {
-                                    Image(systemName: "calendar")
-                                        .foregroundStyle(Color(hex: "44C0FF"))
-                                        .imageScale(.medium)
+                        if showMomentsEvents {
+                            Button(action: {
+                                showingEventsSheet = true
+                            }) {
+                                HStack {
+                                    Label {
+                                        Text("Events")
+                                            .foregroundStyle(.primary)
+                                    } icon: {
+                                        Image(systemName: "calendar")
+                                            .foregroundStyle(Color(hex: "44C0FF"))
+                                            .imageScale(.medium)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Text("\(eventsCount)")
+                                        .foregroundStyle(.secondary)
                                 }
-                                
-                                Spacer()
-                                
-                                Text("\(eventsCount)")
-                                    .foregroundStyle(.secondary)
+                                .contentShape(Rectangle())
                             }
-                            .contentShape(Rectangle())
+                            .buttonStyle(PlainButtonStyle())
                         }
-                        .buttonStyle(PlainButtonStyle())
                         
                         // Media row
-                        Button(action: {
-                            momentsInitialSection = "Media"
-                            showingMoments = true
-                        }) {
-                            HStack {
-                                Label {
-                                    Text("Media")
-                                        .foregroundStyle(.primary)
-                                } icon: {
-                                    Image(systemName: "photo.fill")
-                                        .foregroundStyle(Color(hex: "44C0FF"))
-                                        .imageScale(.medium)
+                        if showMomentsMedia {
+                            Button(action: {
+                                showingMediaSheet = true
+                            }) {
+                                HStack {
+                                    Label {
+                                        Text("Media")
+                                            .foregroundStyle(.primary)
+                                    } icon: {
+                                        Image(systemName: "photo.fill")
+                                            .foregroundStyle(Color(hex: "44C0FF"))
+                                            .imageScale(.medium)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Text("\(mediaCount)")
+                                        .foregroundStyle(.secondary)
                                 }
-                                
-                                Spacer()
-                                
-                                Text("\(mediaCount)")
-                                    .foregroundStyle(.secondary)
+                                .contentShape(Rectangle())
                             }
-                            .contentShape(Rectangle())
+                            .buttonStyle(PlainButtonStyle())
                         }
-                        .buttonStyle(PlainButtonStyle())
                     } header: {
                         if showSectionNames {
                             Text("Moments")
@@ -1130,15 +1147,127 @@ struct TodayViewV1i2: View {
                     .padding(.bottom, 16) // Fixed 16pt from bottom
                 }
             
-            // Floating menu button
+            // Floating menu buttons
             VStack {
                 HStack {
                     Spacer()
+                    
+                    // Calendar button
+                    Button(action: {
+                        showingDatePicker = true
+                    }) {
+                        Image(systemName: "calendar")
+                            .font(.system(size: 24))
+                            .foregroundStyle(.primary)
+                            .frame(width: 44, height: 44)
+                            .background(.thinMaterial, in: Circle())
+                    }
+                    .padding(.trailing, 8)
+                    
+                    // Ellipsis menu for Moments visibility and Daily Entry Chat
                     Menu {
-                        Button("Select Date") {
-                            showingDatePicker = true
+                        Section {
+                            Button {
+                                selectedDate = Date()
+                            } label: {
+                                Label("Today", systemImage: "calendar.badge.clock")
+                            }
                         }
                         
+                        Section("Daily Entry Chat") {
+                            Button {
+                                // TODO: Edit Bio action
+                            } label: {
+                                Label("Edit Bio", systemImage: "person.text.rectangle")
+                            }
+                            
+                            Button {
+                                // TODO: Edit Journal action
+                            } label: {
+                                Label("Edit Journal", systemImage: "book.and.wrench")
+                            }
+                        }
+                        
+                        Section("Daily Entry Chat Context") {
+                            Button {
+                                includeBio.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Include Bio")
+                                    if includeBio {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                includePreviousChats.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Include Previous Chats")
+                                    if includePreviousChats {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                includeJournal.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Include Journal")
+                                    if includeJournal {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        }
+                        
+                        Section("Show Moments") {
+                            Button {
+                                showMomentsVisits.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Visits")
+                                    if showMomentsVisits {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showMomentsEvents.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Events")
+                                    if showMomentsEvents {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showMomentsMedia.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Media")
+                                    if showMomentsMedia {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .font(.system(size: 24))
+                            .foregroundStyle(.primary)
+                            .frame(width: 44, height: 44)
+                            .background(.thinMaterial, in: Circle())
+                    }
+                    .padding(.trailing, 8)
+                    
+                    // Profile menu button (changed from ellipsis to person.circle)
+                    Menu {
                         Button("Settings") {
                             showingSettings = true
                         }
@@ -1407,11 +1536,11 @@ struct TodayViewV1i2: View {
                             }
                         }
                     } label: {
-                        Image(systemName: "ellipsis")
-                            .font(.system(size: 18, weight: .medium))
+                        Image(systemName: "person.circle")
+                            .font(.system(size: 24))
                             .foregroundStyle(.primary)
                             .frame(width: 44, height: 44)
-                            .background(Color.clear)
+                            .background(.thinMaterial, in: Circle())
                     }
                     .accessibilityLabel("Profile Menu")
                 }
@@ -1471,6 +1600,12 @@ struct TodayViewV1i2: View {
         }
         .sheet(isPresented: $showingVisitsSheet) {
             VisitsSheetView()
+        }
+        .sheet(isPresented: $showingEventsSheet) {
+            EventsSheetView()
+        }
+        .sheet(isPresented: $showingMediaSheet) {
+            MediaSheetView()
         }
         .sheet(isPresented: $showingTrackers) {
             TrackerView(
@@ -3083,6 +3218,220 @@ struct VisitsSheetView: View {
             EntryView(
                 journal: nil,
                 prompt: selectedVisitName + "\n\n",
+                startInEditMode: true
+            )
+        }
+    }
+}
+
+// MARK: - Events Sheet View
+struct EventsSheetView: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var showingEntryView = false
+    @State private var selectedEventName: String = ""
+    
+    // Sample events data
+    private let events = [
+        (name: "Morning Team Standup", icon: "person.3.fill", time: "9:00 AM - 9:30 AM", type: "Work"),
+        (name: "Dentist Appointment", icon: "cross.case.fill", time: "11:00 AM - 12:00 PM", type: "Health"),
+        (name: "Lunch with Sarah", icon: "fork.knife", time: "12:30 PM - 1:30 PM", type: "Personal"),
+        (name: "Project Review Meeting", icon: "chart.bar.doc.horizontal.fill", time: "2:00 PM - 3:00 PM", type: "Work"),
+        (name: "Yoga Class", icon: "figure.yoga", time: "5:30 PM - 6:30 PM", type: "Wellness")
+    ]
+    
+    var body: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 0) {
+                // Header text
+                Text("Create an entry from any event")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
+                    .padding(.bottom, 16)
+                
+                // Events list
+                ScrollView {
+                    VStack(spacing: 0) {
+                        ForEach(events, id: \.name) { event in
+                            Button(action: {
+                                selectedEventName = event.name
+                                showingEntryView = true
+                            }) {
+                                HStack(spacing: 12) {
+                                    // Icon
+                                    Image(systemName: event.icon)
+                                        .font(.system(size: 20))
+                                        .foregroundStyle(Color(hex: "44C0FF"))
+                                        .frame(width: 32, height: 32)
+                                    
+                                    // Event details
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(event.name)
+                                            .font(.body)
+                                            .foregroundStyle(.primary)
+                                        
+                                        HStack(spacing: 4) {
+                                            Text(event.time)
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
+                                            
+                                            Text("·")
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
+                                            
+                                            Text(event.type)
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
+                                        }
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    // Ellipsis menu
+                                    Menu {
+                                        Button(action: {
+                                            selectedEventName = event.name
+                                            showingEntryView = true
+                                        }) {
+                                            Label("Create Entry", systemImage: "square.and.pencil")
+                                        }
+                                        
+                                        Button(action: {
+                                            // Handle edit event
+                                        }) {
+                                            Label("Edit Event", systemImage: "pencil")
+                                        }
+                                        
+                                        Button(action: {
+                                            // Handle hide
+                                        }) {
+                                            Label("Hide", systemImage: "eye.slash")
+                                        }
+                                    } label: {
+                                        Image(systemName: "ellipsis")
+                                            .font(.system(size: 16))
+                                            .foregroundStyle(.secondary)
+                                            .frame(width: 44, height: 44)
+                                            .contentShape(Rectangle())
+                                    }
+                                    .menuStyle(.borderlessButton)
+                                }
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 8)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            
+                            // Divider
+                            if event.name != events.last?.name {
+                                Divider()
+                                    .padding(.leading, 64)
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Events")
+                        .font(.headline)
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.visible)
+        .sheet(isPresented: $showingEntryView) {
+            EntryView(
+                journal: nil,
+                prompt: selectedEventName + "\n\n",
+                startInEditMode: true
+            )
+        }
+    }
+}
+
+struct MediaSheetView: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var showingEntryView = false
+    @State private var selectedImageIndex: Int = 0
+    
+    // Placeholder colors for the media grid
+    private let mediaColors: [Color] = [
+        Color(hex: "44C0FF").opacity(0.3),
+        Color(hex: "FF6B6B").opacity(0.3),
+        Color(hex: "4ECDC4").opacity(0.3),
+        Color(hex: "FFD93D").opacity(0.3),
+        Color(hex: "6BCF7F").opacity(0.3),
+        Color(hex: "A8E6CF").opacity(0.3),
+        Color(hex: "FF8B94").opacity(0.3),
+        Color(hex: "C1E1DC").opacity(0.3),
+        Color(hex: "FFB6C1").opacity(0.3),
+        Color(hex: "B4A7D6").opacity(0.3),
+        Color(hex: "FFE4B5").opacity(0.3),
+        Color(hex: "E0BBE4").opacity(0.3)
+    ]
+    
+    var body: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 0) {
+                // Header text
+                Text("Tap any photo to create an entry")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
+                    .padding(.bottom, 16)
+                
+                // Media grid - 4 columns x 3 rows
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), spacing: 8) {
+                    ForEach(0..<12) { index in
+                        Button(action: {
+                            selectedImageIndex = index
+                            showingEntryView = true
+                        }) {
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(mediaColors[index])
+                                .aspectRatio(1, contentMode: .fit)
+                                .overlay(
+                                    Image(systemName: "photo")
+                                        .font(.system(size: 24))
+                                        .foregroundStyle(.white.opacity(0.5))
+                                )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                }
+                .padding(.horizontal, 20)
+                
+                Spacer()
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Media")
+                        .font(.headline)
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.visible)
+        .sheet(isPresented: $showingEntryView) {
+            EntryView(
+                journal: nil,
+                prompt: "Photo memory\n\n",
                 startInEditMode: true
             )
         }

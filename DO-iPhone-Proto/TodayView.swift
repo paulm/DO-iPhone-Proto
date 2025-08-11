@@ -474,7 +474,7 @@ struct TodayViewV1i2: View {
     
     // Show/hide toggles for Daily Activities
     @State private var showWeather = false
-    @State private var showDatePickerGrid = true
+    @State private var showDatePickerGrid = false
     @State private var showDateNavigation = true
     @State private var showChat = false
     @State private var showChatSimple = true
@@ -1098,8 +1098,8 @@ struct TodayViewV1i2: View {
             .scrollContentBackground(.hidden)
             .background(backgroundColor)
             .ignoresSafeArea(edges: .bottom)
-            .offset(y: -230)
-            .padding(.bottom, -230)
+            .offset(y: showDatePickerGrid ? -230 : 0)
+            .padding(.bottom, showDatePickerGrid ? -230 : 0)
             
                 // Chat elements at bottom
                 VStack {
@@ -2676,7 +2676,7 @@ struct DailyChatCarouselView: View {
                             Text(chatCompleted ? "Resume Chat" : "Start Chat")
                                 .font(.system(size: 13))
                                 .fontWeight(.regular)
-                                .foregroundStyle(isResumeToday ? Color.white : .secondary)
+                                .foregroundStyle(isResumeToday ? Color.white : (hasEntry ? Color.primary.opacity(0.8) : .secondary))
                                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                                 .frame(width: 130, height: 38)
                                 .background(isResumeToday ? Color(hex: "44C0FF") : Color.white)
@@ -2695,7 +2695,7 @@ struct DailyChatCarouselView: View {
                                 // Label
                                 Text(chatCompleted ? "Resume Chat" : "Start Chat")
                                     .font(.system(size: 11))
-                                    .foregroundStyle(chatCompleted ? Color.secondary : (isStartToday ? Color.white : Color.secondary))
+                                    .foregroundStyle(chatCompleted ? Color.primary.opacity(0.8) : (isStartToday ? Color.white : Color.secondary))
                                     .padding(.bottom, 8)
                             }
                             .frame(width: 140, height: 70)

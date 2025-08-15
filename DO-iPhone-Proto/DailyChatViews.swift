@@ -699,6 +699,7 @@ struct DailyChatView: View {
             ChatSettingsView()
                 .presentationDetents([.medium])
                 .presentationDragIndicator(.visible)
+                .presentationBackgroundInteraction(.enabled(upThrough: .medium))
         }
     }
     

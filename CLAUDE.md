@@ -140,3 +140,62 @@ The app includes an AI-powered journaling chat system:
 - Entry generation logic in chat view's `generateEntry()` method
 - FAB states determined by checking `hasChat`, `hasEntry`, and `hasNewMessages`
 - Update detection compares message counts before/after entry creation
+
+## iOS 26 Standards and Patterns
+
+### Liquid Glass Design System
+iOS 26 introduces the Liquid Glass design language with:
+- Fluid, translucent aesthetic for all interface elements
+- Glassy appearance for tab bars, toolbars, and navigation containers
+- Elements that reflect content around them
+- Automatic visual enhancement when compiled with iOS 26 SDK
+
+### Key iOS 26 UI Patterns
+
+#### 1. Confirmation Actions and Toolbars
+```swift
+.toolbar {
+    ToolbarItem(placement: .confirmationAction) {
+        Button("Done", systemImage: "checkmark") { }
+        // Gets automatic glassProminent style in iOS 26
+    }
+}
+```
+
+#### 2. Sheet Presentations
+iOS 26 sheets use Liquid Glass backgrounds and float above the interface:
+```swift
+.sheet(isPresented: $showingSheet) {
+    ContentView()
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+        .presentationBackgroundInteraction(.enabled(upThrough: .medium))
+}
+```
+- Partial height sheets don't touch screen edges
+- Background interaction allows touching content behind half sheets
+- When expanded to `.large`, background becomes opaque
+
+#### 3. Symbol-Based Design
+iOS 26 emphasizes moving from text-based to symbol-based toolbar items:
+```swift
+// iOS 26 recommended
+Button("Action", systemImage: "symbol.name") { }
+    .labelStyle(.titleAndIcon)
+```
+
+#### 4. Tinting with Liquid Glass
+```swift
+.tint(.blue) // Gets automatic Liquid Glass treatment
+```
+
+#### 5. Navigation Components
+- NavigationStack with inline title display mode
+- ToolbarItemGroup for grouping related items
+- Standard placements: `.confirmationAction`, `.cancellationAction`
+
+### Important iOS 26 Notes
+- Always refer to this as "iOS 26" not "iOS 16"
+- Liquid Glass effects are automatic when using standard components
+- Symbol-based buttons are preferred over text-only buttons
+- Use `.presentationBackgroundInteraction(.enabled(upThrough: .medium))` for half sheets

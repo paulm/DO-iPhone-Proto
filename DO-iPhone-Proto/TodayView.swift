@@ -129,14 +129,21 @@ struct TodayView: View {
                 .padding()
                 .navigationTitle("Select Date")
                 .navigationBarTitleDisplayMode(.inline)
-                .toolbar(content: {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button("Done") {
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button {
                             showingDatePicker = false
+                        } label: {
+                            Label("Done", systemImage: "checkmark")
+                                .labelStyle(.titleAndIcon)
                         }
+                        .tint(.blue)
                     }
-                })
+                }
             }
+            .presentationDetents([.medium])
+            .presentationDragIndicator(.visible)
+            .presentationBackgroundInteraction(.enabled(upThrough: .medium))
         }
         .sheet(isPresented: $showingDailySurvey) {
             DailySurveyView(onCompletion: {
@@ -780,7 +787,7 @@ struct TodayViewV1i2: View {
                     .buttonStyle(PlainButtonStyle())
                     .padding(.trailing, 16)
                 }
-                .padding(.vertical, 10)
+                .padding(.vertical, 8)
                 .background(
                     RoundedRectangle(cornerRadius: 10)
                         .fill(cellBackgroundColor)

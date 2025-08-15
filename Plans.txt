@@ -3,6 +3,59 @@
 
 
 
+You are a succinct AI chatbot in a journal app, asking questions to help the writer add more to their journal.  {{context}}
+
+
+Paul Mayne. In 2011, Paul founded the Day One Journal app, ultimately selling it to Automattic Inc., where he continues to lead as Head of Day One. He resides in Alpine, Utah, with his wife of 20 years, Jana, and their four children—Jackson, Eli, Dylan, and Amelia
+
+
+
+
+
+"Daily Entry Chat" section with "Edit Bio", "Edit Journal"
+
+add a "Daily Entry Chat Context" section checkmark-able: Include Bio, Include Previous Chats, Include Journal
+
+
+BIO
+JOurnal Selector - Auto create a journal
+
+
+
+
+
+Today Tab - Rename: "Daily"
+
+
+"Daily Entry"
+"Daily Entry Chat"
+
+
+
+
+Creates a new journal
+New system to append information to a single entry, chat, moments, media, audio
+
+
+Daily Audio - Log record 1 or many audio messages throughout the day, transcribes
+
+4 capture options from courosel: Chat (dark reverced, CTA), Log, Audio log, audio chat
+
+
+
+
+
+
+
+Move the record button and send button to be right alighned in the chat unput area (above the row they are in now) also update them to have 2 states (no text and text inputted) when no text is inputted yet show the record button and next to it the "Voice Mode" button (using an audio levels icon), when any text is input into the chat input the buttons change to jsut 1 Send button (Up arrow)
+
+
+
+
+consider the complexity of the TodayView code, can this be refactired in a slight way to reduce the amount of code in this single file?   
+
+
+
 
 
 

@@ -478,6 +478,7 @@ struct TodayViewV1i2: View {
     @State private var showWeather = false
     @State private var showDatePickerGrid = false
     @State private var showDateNavigation = true
+    @State private var showDateNavigation2 = false
     @State private var showChat = false
     @State private var showChatSimple = true
     @State private var showDailyEntry = true
@@ -732,19 +733,6 @@ struct TodayViewV1i2: View {
                     .padding(.bottom, 20)
                 }
                 
-                // Entry Links carousel
-                if showInsights {
-                    EntryLinksCarouselView(
-                        selectedDate: selectedDate,
-                        showingEntries: $showingEntries,
-                        showingOnThisDay: $showingOnThisDay
-                    )
-                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                    .listRowBackground(Color.clear)
-                    .padding(.horizontal, -20)
-                    .padding(.top, -10)
-                }
-                
                 // Date navigation section (no section header)
                 if showDateNavigation {
                     HStack {
@@ -799,6 +787,97 @@ struct TodayViewV1i2: View {
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
+                }
+                
+                // Date Navigation 2 section
+                if showDateNavigation2 {
+                    VStack(spacing: 0) {
+                        // Row 1: Relative date (Today, Yesterday, etc.)
+                        Text(relativeDateText(for: selectedDate))
+                            .font(.title)
+                            .fontWeight(.regular)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 0)
+                            .padding(.top, 10)
+                            .padding(.bottom, 4)
+                        
+                        // Row 2: Full date
+                        Text(selectedDate.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day().year()))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 0)
+                            .padding(.bottom, 10)
+                        
+                        // Row 3: Circle Navigation
+                        ScrollViewReader { proxy in
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 12) {
+                                    // Show 30 days centered around today (more dates for scrolling)
+                                    ForEach(-14...15, id: \.self) { dayOffset in
+                                        let date = Calendar.current.date(byAdding: .day, value: dayOffset, to: Date()) ?? Date()
+                                        let isToday = Calendar.current.isDateInToday(date)
+                                        let isSelected = Calendar.current.isDate(date, inSameDayAs: selectedDate)
+                                        let dayNumber = Calendar.current.component(.day, from: date)
+                                        
+                                        Button(action: {
+                                            selectedDate = date
+                                            // Scroll to center the selected date
+                                            withAnimation(.easeInOut(duration: 0.3)) {
+                                                proxy.scrollTo(dayOffset, anchor: .center)
+                                            }
+                                        }) {
+                                            ZStack {
+                                                Circle()
+                                                    .fill(isSelected ? Color(hex: "44C0FF") : (isToday ? Color.black : Color(UIColor.systemGray5)))
+                                                    .frame(width: 44, height: 44)
+                                                
+                                                Text("\(dayNumber)")
+                                                    .font(.system(size: 18, weight: .medium))
+                                                    .foregroundStyle(isSelected || isToday ? .white : .primary)
+                                            }
+                                        }
+                                        .id(dayOffset)
+                                        .buttonStyle(PlainButtonStyle())
+                                    }
+                                }
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 8)
+                            }
+                            .onAppear {
+                                // Find the offset for the selected date and center it
+                                let daysSinceToday = Calendar.current.dateComponents([.day], from: Date(), to: selectedDate).day ?? 0
+                                if daysSinceToday >= -14 && daysSinceToday <= 15 {
+                                    proxy.scrollTo(daysSinceToday, anchor: .center)
+                                }
+                            }
+                            .onChange(of: selectedDate) { newDate in
+                                // When date changes from external source, recenter view
+                                let daysSinceToday = Calendar.current.dateComponents([.day], from: Date(), to: newDate).day ?? 0
+                                if daysSinceToday >= -14 && daysSinceToday <= 15 {
+                                    withAnimation(.easeInOut(duration: 0.3)) {
+                                        proxy.scrollTo(daysSinceToday, anchor: .center)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color(UIColor.systemGroupedBackground))
+                    .listRowSeparator(.hidden)
+                }
+                
+                // Entry Links carousel
+                if showInsights {
+                    EntryLinksCarouselView(
+                        selectedDate: selectedDate,
+                        showingEntries: $showingEntries,
+                        showingOnThisDay: $showingOnThisDay
+                    )
+                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                    .listRowBackground(Color.clear)
+                    .padding(.horizontal, -20)
+                    .padding(.top, 0)
                 }
                 
                 // Entry Carousel Section
@@ -1028,6 +1107,7 @@ struct TodayViewV1i2: View {
                                     Spacer()
                                     
                                     Text("\(visitsCount)")
+                                        .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
                                 .contentShape(Rectangle())
@@ -1053,6 +1133,7 @@ struct TodayViewV1i2: View {
                                     Spacer()
                                     
                                     Text("\(eventsCount)")
+                                        .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
                                 .contentShape(Rectangle())
@@ -1078,6 +1159,7 @@ struct TodayViewV1i2: View {
                                     Spacer()
                                     
                                     Text("\(mediaCount)")
+                                        .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
                                 .contentShape(Rectangle())
@@ -1150,22 +1232,21 @@ struct TodayViewV1i2: View {
             // Floating menu buttons
             VStack {
                 HStack {
-                    Spacer()
-                    
-                    // Calendar button
-                    Button(action: {
-                        showingDatePicker = true
-                    }) {
-                        Image(systemName: "calendar")
-                            .font(.system(size: 24))
-                            .foregroundStyle(.primary)
-                            .frame(width: 44, height: 44)
-                            .background(.thinMaterial, in: Circle())
-                    }
-                    .padding(.trailing, 8)
-                    
-                    // Ellipsis menu for Moments visibility and Daily Entry Chat
-                    Menu {
+                    // Left side buttons (Calendar and Ellipsis)
+                    HStack(spacing: 8) {
+                        // Calendar button
+                        Button(action: {
+                            showingDatePicker = true
+                        }) {
+                            Image(systemName: "calendar")
+                                .font(.system(size: 24))
+                                .foregroundStyle(.primary)
+                                .frame(width: 44, height: 44)
+                                .background(.thinMaterial, in: Circle())
+                        }
+                        
+                        // Ellipsis menu for Moments visibility and Daily Entry Chat
+                        Menu {
                         Section {
                             Button {
                                 selectedDate = Date()
@@ -1264,9 +1345,12 @@ struct TodayViewV1i2: View {
                             .frame(width: 44, height: 44)
                             .background(.thinMaterial, in: Circle())
                     }
-                    .padding(.trailing, 8)
+                    }
+                    .padding(.leading, 20)
                     
-                    // Profile menu button (changed from ellipsis to person.circle)
+                    Spacer()
+                    
+                    // Profile menu button (changed from ellipsis to person.circle) - Right aligned
                     Menu {
                         Button("Settings") {
                             showingSettings = true
@@ -1301,6 +1385,17 @@ struct TodayViewV1i2: View {
                                 HStack {
                                     Text("Date Navigation")
                                     if showDateNavigation {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                showDateNavigation2.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Date Navigation 2")
+                                    if showDateNavigation2 {
                                         Image(systemName: "checkmark")
                                     }
                                 }
@@ -1542,10 +1637,10 @@ struct TodayViewV1i2: View {
                             .frame(width: 44, height: 44)
                             .background(.thinMaterial, in: Circle())
                     }
+                    .padding(.trailing, 20)
                     .accessibilityLabel("Profile Menu")
                 }
                 .padding(.top, 14) // Moved up 36pt (was 50pt, now 14pt)
-                .padding(.trailing, 16)
                 Spacer()
             }
         }
@@ -3039,13 +3134,13 @@ struct EntryLinksCarouselView: View {
                         showingEntries = true
                     }) {
                         Text("\(entryCount) \(entryCount == 1 ? "Entry" : "Entries")")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                            .foregroundStyle(Color(hex: "44C0FF"))
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(Color(UIColor.secondarySystemGroupedBackground))
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .font(.system(size: 13))
+                            .fontWeight(.regular)
+                            .foregroundStyle(Color.primary.opacity(0.8))
+                            .frame(height: 38)
+                            .padding(.horizontal, 20)
+                            .background(Color.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
                     .buttonStyle(PlainButtonStyle())
                     .padding(.leading, 20)
@@ -3057,13 +3152,13 @@ struct EntryLinksCarouselView: View {
                         showingOnThisDay = true
                     }) {
                         Text("\(onThisDayCount) On This Day")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                            .foregroundStyle(Color(hex: "44C0FF"))
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(Color(UIColor.secondarySystemGroupedBackground))
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .font(.system(size: 13))
+                            .fontWeight(.regular)
+                            .foregroundStyle(Color.primary.opacity(0.8))
+                            .frame(height: 38)
+                            .padding(.horizontal, 20)
+                            .background(Color.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
                     .buttonStyle(PlainButtonStyle())
                     .padding(.leading, entryCount == 0 ? 20 : 0)
@@ -3086,17 +3181,18 @@ struct EntryLinksCarouselView: View {
                     }
                 } label: {
                     Text("•••")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundStyle(Color(hex: "44C0FF"))
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(Color(UIColor.secondarySystemGroupedBackground))
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .font(.system(size: 13))
+                        .fontWeight(.regular)
+                        .foregroundStyle(Color.primary.opacity(0.8))
+                        .frame(height: 38)
+                        .padding(.horizontal, 20)
+                        .background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
                 .padding(.leading, (entryCount == 0 && onThisDayCount == 0) ? 20 : 0)
                 .padding(.trailing, 20)
             }
+            .padding(.top, 12) // Add padding above buttons
         }
     }
 }

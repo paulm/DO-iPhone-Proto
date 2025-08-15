@@ -3002,7 +3002,7 @@ struct EntryLinksCarouselView: View {
                             .foregroundStyle(Color.primary.opacity(0.8))
                             .frame(height: 38)
                             .padding(.horizontal, 20)
-                            .background(Color.white)
+                            .background(Color(hex: "F3F1F8"))
                             .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
                     .buttonStyle(PlainButtonStyle())
@@ -3020,40 +3020,13 @@ struct EntryLinksCarouselView: View {
                             .foregroundStyle(Color.primary.opacity(0.8))
                             .frame(height: 38)
                             .padding(.horizontal, 20)
-                            .background(Color.white)
+                            .background(Color(hex: "F3F1F8"))
                             .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
                     .buttonStyle(PlainButtonStyle())
                     .padding(.leading, entryCount == 0 ? 20 : 0)
+                    .padding(.trailing, 20)
                 }
-                
-                // Entries Menu button (ellipsis, always shown)
-                Menu {
-                    Section("\(journalCount) \(journalCount == 1 ? "Journal" : "Journals") in All Entries") {
-                        Button(action: {
-                            // TODO: Navigate to journal selection
-                        }) {
-                            Label("Select Journals", systemImage: "checkmark.circle")
-                        }
-                        
-                        Button(action: {
-                            // TODO: Create new entry
-                        }) {
-                            Label("New Entry", systemImage: "square.and.pencil")
-                        }
-                    }
-                } label: {
-                    Text("•••")
-                        .font(.system(size: 13))
-                        .fontWeight(.regular)
-                        .foregroundStyle(Color.primary.opacity(0.8))
-                        .frame(height: 38)
-                        .padding(.horizontal, 20)
-                        .background(Color.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                }
-                .padding(.leading, (entryCount == 0 && onThisDayCount == 0) ? 20 : 0)
-                .padding(.trailing, 20)
             }
             .padding(.top, 12) // Add padding above buttons
         }

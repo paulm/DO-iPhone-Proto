@@ -488,37 +488,11 @@ struct DailyChatView: View {
                     .padding(.horizontal, 8)
                     .padding(.top, 8)
                     
-                    // Keyboard accessory toolbar with mode toggle
+                    // Keyboard accessory toolbar (removed mode toggle - now in menu)
                     HStack {
-                        // Chat mode toggle buttons
-                        HStack(spacing: 2) {
-                            ForEach(ChatMode.allCases, id: \.self) { mode in
-                                Button(action: {
-                                    let previousMode = currentMode
-                                    currentMode = mode
-                                    handleModeChange(from: previousMode, to: mode)
-                                }) {
-                                    Text(mode.rawValue)
-                                        .font(.caption)
-                                        .fontWeight(.medium)
-                                        .padding(.horizontal, 10)
-                                        .padding(.vertical, 6)
-                                        .background(
-                                            currentMode == mode ? getColorForMode(mode) : Color.clear,
-                                            in: RoundedRectangle(cornerRadius: 16)
-                                        )
-                                        .foregroundStyle(currentMode == mode ? .white : .secondary)
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                            }
-                        }
-                        .padding(2)
-                        .background(.white, in: RoundedRectangle(cornerRadius: 18))
-                        
                         Spacer()
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
+                    .frame(height: 44)
                     .background(Color(.systemGroupedBackground))
                 }
             }
@@ -581,9 +555,35 @@ struct DailyChatView: View {
                         }
                         
                         Button(action: {
+                            // TODO: Show chat settings
+                        }) {
+                            Label("Chat Settings", systemImage: "gearshape")
+                        }
+                        
+                        Button(action: {
                             showingBioView = true
                         }) {
                             Label("Edit Bio", systemImage: "person.circle")
+                        }
+                        
+                        Divider()
+                        
+                        Section("Chat Mode") {
+                            Button(action: {
+                                let previousMode = currentMode
+                                currentMode = .chat
+                                handleModeChange(from: previousMode, to: .chat)
+                            }) {
+                                Label("Chat", systemImage: currentMode == .chat ? "checkmark" : "")
+                            }
+                            
+                            Button(action: {
+                                let previousMode = currentMode
+                                currentMode = .log
+                                handleModeChange(from: previousMode, to: .log)
+                            }) {
+                                Label("Log (no response)", systemImage: currentMode == .log ? "checkmark" : "")
+                            }
                         }
                         
                         Divider()

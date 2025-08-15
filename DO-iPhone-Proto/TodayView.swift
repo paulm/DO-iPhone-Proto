@@ -691,7 +691,8 @@ struct TodayViewV1i2: View {
             List {
                 // Removed top spacing - Date Navigation 2 now appears at standard top position
                     
-                    // Weather section at the very top
+                    // Weather section at the very top - REMOVED per user request
+                /*
                 if showWeather {
                     VStack(spacing: 4) {
                         Image(systemName: "cloud.sun")
@@ -713,6 +714,7 @@ struct TodayViewV1i2: View {
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
                 }
+                */
                 
                 // Date picker grid at top of scrollable content
                 if showDatePickerGrid {
@@ -729,7 +731,8 @@ struct TodayViewV1i2: View {
                     .padding(.bottom, 20)
                 }
                 
-                // Date navigation section (no section header)
+                // Date navigation section (no section header) - REMOVED per user request
+                /*
                 if showDateNavigation {
                     HStack {
                     // Left arrow
@@ -784,6 +787,7 @@ struct TodayViewV1i2: View {
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
                 }
+                */
                 
                 // Date Navigation 2 section
                 if showDateNavigation2 {
@@ -1058,7 +1062,8 @@ struct TodayViewV1i2: View {
                     }
                 }
                 
-                // Daily Moments Section
+                // Daily Moments Section - REMOVED per user request
+                /*
                 if showMoments {
                     Section {
                         TodayActivityRowWithMomentsSubtitle(
@@ -1079,6 +1084,7 @@ struct TodayViewV1i2: View {
                     }
                     .listRowBackground(Color(hex: "F3F1F8"))
                 }
+                */
                 
                 // Moments Carousel Section
                 if showMomentsCarousel {

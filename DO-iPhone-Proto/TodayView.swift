@@ -848,16 +848,6 @@ struct TodayViewV1i2: View {
                     .listRowSeparator(.hidden)
                 }
                 
-                // Separator between Date Navigation and Entry Links
-                if showDateNavigation2 && showInsights {
-                    Color.clear
-                        .frame(height: 8)
-                        .listRowInsets(EdgeInsets())
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
-                }
-                
-                // Entry Links carousel - removed per user request
                 
                 // Entries Section - Two buttons side by side (no title)
                 Group {
@@ -918,7 +908,7 @@ struct TodayViewV1i2: View {
                                 .frame(maxWidth: .infinity)
                         }
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, 0)
                     .padding(.vertical, 12)
                     .listRowInsets(EdgeInsets())
                     .listRowBackground(Color.clear)
@@ -1087,7 +1077,7 @@ struct TodayViewV1i2: View {
                             Text("Daily Moments")
                         }
                     }
-                    .listRowBackground(cellBackgroundColor)
+                    .listRowBackground(Color(hex: "F3F1F8"))
                 }
                 
                 // Moments Carousel Section

@@ -848,6 +848,15 @@ struct TodayViewV1i2: View {
                     .listRowSeparator(.hidden)
                 }
                 
+                // Separator between Date Navigation and Entry Links
+                if showDateNavigation2 && showInsights {
+                    Color.clear
+                        .frame(height: 8)
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                }
+                
                 // Entry Links carousel
                 if showInsights {
                     EntryLinksCarouselView(
@@ -857,8 +866,73 @@ struct TodayViewV1i2: View {
                     )
                     .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                     .listRowBackground(Color.clear)
-                    .padding(.horizontal, -20)
+                    .padding(.horizontal, 0)
                     .padding(.top, 0)
+                }
+                
+                // Entries Section - Two buttons side by side (no title)
+                Group {
+                    let entryCount = DailyDataManager.shared.getEntryCount(for: selectedDate)
+                    let onThisDayCount = DailyDataManager.shared.getOnThisDayCount(for: selectedDate)
+                    
+                    HStack(spacing: 12) {
+                        // Entries button - always shown
+                        Button(action: {
+                            showingEntries = true
+                        }) {
+                            HStack {
+                                Text("\(entryCount) \(entryCount == 1 ? "Entry" : "Entries")")
+                                    .font(.system(size: 15, weight: .medium))
+                                    .foregroundStyle(.primary)
+                                
+                                Spacer()
+                                
+                                Image(systemName: entryCount > 0 ? "chevron.right" : "plus")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundStyle(entryCount > 0 ? Color.secondary : Color(hex: "44C0FF"))
+                            }
+                            .padding(.horizontal, 16)
+                            .frame(height: 48)
+                            .frame(maxWidth: .infinity)
+                            .background(Color(hex: "F3F1F8"))
+                            .clipShape(RoundedRectangle(cornerRadius: 24))
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        
+                        // On This Day button - only shown when count > 0
+                        if onThisDayCount > 0 {
+                            Button(action: {
+                                showingOnThisDay = true
+                            }) {
+                                HStack {
+                                    Text("\(onThisDayCount) On This Day")
+                                        .font(.system(size: 15, weight: .medium))
+                                        .foregroundStyle(.primary)
+                                    
+                                    Spacer()
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundStyle(.secondary)
+                                }
+                                .padding(.horizontal, 16)
+                                .frame(height: 48)
+                                .frame(maxWidth: .infinity)
+                                .background(Color(hex: "F3F1F8"))
+                                .clipShape(RoundedRectangle(cornerRadius: 24))
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        } else {
+                            // Invisible spacer to maintain Entries button width
+                            Color.clear
+                                .frame(height: 48)
+                                .frame(maxWidth: .infinity)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
                 }
                 
                 // Entry Carousel Section - removed per user request
@@ -2892,7 +2966,7 @@ struct MomentsCarouselView: View {
                         .multilineTextAlignment(.leading)
                         .padding(12)
                         .frame(width: 163, height: 84) // 2/3 of 244 = ~163
-                        .background(Color.white)
+                        .background(Color(hex: "F3F1F8"))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                         .padding(.leading, 20)
                 }
@@ -2951,7 +3025,7 @@ struct MomentsCarouselView: View {
                             }
                         }
                         .frame(width: 116, height: 84)
-                        .background(Color.white)
+                        .background(Color(hex: "F3F1F8"))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
                     .buttonStyle(PlainButtonStyle())
@@ -2967,7 +3041,7 @@ struct MomentsCarouselView: View {
                         .font(.system(size: 24))
                         .foregroundStyle(Color.gray.opacity(0.5))
                         .frame(width: 60, height: 84)
-                        .background(Color.white)
+                        .background(Color(hex: "F3F1F8"))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
                 .buttonStyle(PlainButtonStyle())

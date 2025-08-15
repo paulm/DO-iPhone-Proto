@@ -145,6 +145,7 @@ struct DailyChatView: View {
     @State private var contextBio = false
     @State private var isGeneratingEntry = false
     @State private var showingEntry = false
+    @State private var showingChatSettings = false
     
     private let chatSessionManager = ChatSessionManager.shared
     
@@ -407,6 +408,7 @@ struct DailyChatView: View {
                     }
                     .padding(.vertical, 16)
                 }
+                .scrollDismissesKeyboard(.interactively)
                 .onChange(of: messages.count) { _, _ in
                     if let lastMessage = messages.last {
                         withAnimation(.easeOut(duration: 0.3)) {
@@ -470,8 +472,12 @@ struct DailyChatView: View {
                 .padding(.leading, 16)
                 .padding(.trailing, 8)
                 .padding(.vertical, 8)
-                .background(Color(.systemGray6))
+                .background(Color.white)
                 .clipShape(Capsule())
+                .overlay(
+                    Capsule()
+                        .stroke(Color(.systemGray5), lineWidth: 1)
+                )
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
@@ -550,7 +556,7 @@ struct DailyChatView: View {
                         }
                         
                         Button(action: {
-                            // TODO: Show chat settings
+                            showingChatSettings = true
                         }) {
                             Label("Chat Settings", systemImage: "gearshape")
                         }
@@ -617,8 +623,12 @@ struct DailyChatView: View {
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                    Button(action: {
                         dismiss()
+                    }) {
+                        Image(systemName: "checkmark")
+                            .font(.body)
+                            .fontWeight(.semibold)
                     }
                 }
             }
@@ -684,6 +694,11 @@ struct DailyChatView: View {
         }
         .sheet(isPresented: $showingEntry) {
             EntryView(journal: nil)
+        }
+        .sheet(isPresented: $showingChatSettings) {
+            ChatSettingsView()
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.visible)
         }
     }
     
@@ -1254,5 +1269,103 @@ struct ChatEntryPreviewView: View {
     private func deleteEntry() {
         entryCreated = false
         dismiss()
+    }
+}
+
+// MARK: - Chat Settings View
+struct ChatSettingsView: View {
+    @Environment(\.dismiss) private var dismiss
+    @AppStorage("selectedJournalForChat") private var selectedJournalName = "My Journal"
+    @AppStorage("userBioName") private var userName = ""
+    @AppStorage("userBioBio") private var userBio = ""
+    @State private var showingJournalPicker = false
+    @State private var showingBioEdit = false
+    
+    var body: some View {
+        NavigationStack {
+            List {
+                // Journal Section
+                Section {
+                    Button(action: {
+                        showingJournalPicker = true
+                    }) {
+                        HStack(spacing: 12) {
+                            // Journal icon/color - smaller for standard row
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(Color.green)
+                                .frame(width: 28, height: 28)
+                            
+                            Text(selectedJournalName)
+                                .font(.body)
+                                .foregroundStyle(.primary)
+                            
+                            Spacer()
+                        }
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                } header: {
+                    Text("Journal")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.secondary)
+                        .textCase(.uppercase)
+                } footer: {
+                    Text("The assigned journal is where your Daily Chat entries will be saved.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                
+                // Contexts Section
+                Section {
+                    HStack {
+                        Text("Bio")
+                            .font(.body)
+                            .foregroundStyle(.primary)
+                        
+                        Spacer()
+                        
+                        Button(action: {
+                            showingBioEdit = true
+                        }) {
+                            Text(userBio.isEmpty ? "Add Bio" : "Edit Bio")
+                                .font(.body)
+                                .foregroundStyle(Color(hex: "44C0FF"))
+                        }
+                    }
+                } header: {
+                    Text("Contexts")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.secondary)
+                        .textCase(.uppercase)
+                } footer: {
+                    Text("Contexts are used by Day One AI to improve its responses across all Daily Chat sessions.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .listStyle(.insetGrouped)
+            .navigationTitle("Chat Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        dismiss()
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title2)
+                            .symbolRenderingMode(.hierarchical)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $showingJournalPicker) {
+            // TODO: Journal picker view
+            Text("Journal Picker")
+        }
+        .sheet(isPresented: $showingBioEdit) {
+            BioEditView()
+        }
     }
 }

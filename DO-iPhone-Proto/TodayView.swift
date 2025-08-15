@@ -603,12 +603,7 @@ struct TodayViewV1i2: View {
     }
     
     private var backgroundColor: Color {
-        switch selectedStyle {
-        case .standard:
-            return Color(UIColor.systemGroupedBackground)
-        case .transparent:
-            return .white
-        }
+        return .white
     }
     
     private var cellBackgroundColor: Color {

@@ -477,8 +477,8 @@ struct TodayViewV1i2: View {
     // Show/hide toggles for Daily Activities
     @State private var showWeather = false
     @State private var showDatePickerGrid = false
-    @State private var showDateNavigation = true
-    @State private var showDateNavigation2 = false
+    @State private var showDateNavigation = false
+    @State private var showDateNavigation2 = true
     @State private var showChat = false
     @State private var showChatSimple = true
     @State private var showDailyEntry = true
@@ -791,77 +791,61 @@ struct TodayViewV1i2: View {
                 
                 // Date Navigation 2 section
                 if showDateNavigation2 {
-                    VStack(spacing: 0) {
-                        // Row 1: Relative date (Today, Yesterday, etc.)
-                        Text(relativeDateText(for: selectedDate))
-                            .font(.title)
-                            .fontWeight(.regular)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 0)
-                            .padding(.top, 10)
-                            .padding(.bottom, 4)
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            // Row 1: "Today" or relative date
+                            Text(relativeDateText(for: selectedDate))
+                                .font(.largeTitle)
+                                .fontWeight(.bold)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            // Row 2: Full date
+                            Text(selectedDate.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day().year()))
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundStyle(.secondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
                         
-                        // Row 2: Full date
-                        Text(selectedDate.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day().year()))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 0)
-                            .padding(.bottom, 10)
+                        Spacer()
                         
-                        // Row 3: Circle Navigation
-                        ScrollViewReader { proxy in
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 12) {
-                                    // Show 30 days centered around today (more dates for scrolling)
-                                    ForEach(-14...15, id: \.self) { dayOffset in
-                                        let date = Calendar.current.date(byAdding: .day, value: dayOffset, to: Date()) ?? Date()
-                                        let isToday = Calendar.current.isDateInToday(date)
-                                        let isSelected = Calendar.current.isDate(date, inSameDayAs: selectedDate)
-                                        let dayNumber = Calendar.current.component(.day, from: date)
-                                        
-                                        Button(action: {
-                                            selectedDate = date
-                                            // Scroll to center the selected date
-                                            withAnimation(.easeInOut(duration: 0.3)) {
-                                                proxy.scrollTo(dayOffset, anchor: .center)
-                                            }
-                                        }) {
-                                            ZStack {
-                                                Circle()
-                                                    .fill(isSelected ? Color(hex: "44C0FF") : (isToday ? Color.black : Color(UIColor.systemGray5)))
-                                                    .frame(width: 44, height: 44)
-                                                
-                                                Text("\(dayNumber)")
-                                                    .font(.system(size: 18, weight: .medium))
-                                                    .foregroundStyle(isSelected || isToday ? .white : .primary)
-                                            }
-                                        }
-                                        .id(dayOffset)
-                                        .buttonStyle(PlainButtonStyle())
+                        // Arrow navigation buttons
+                        HStack(spacing: 12) {
+                            // Previous day button
+                            Button(action: {
+                                if let previousDay = Calendar.current.date(byAdding: .day, value: -1, to: selectedDate) {
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        selectedDate = previousDay
                                     }
                                 }
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 8)
+                            }) {
+                                Image(systemName: "chevron.left")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundStyle(.primary)
+                                    .frame(width: 36, height: 36)
+                                    .background(Color(.systemGray5))
+                                    .clipShape(Circle())
                             }
-                            .onAppear {
-                                // Find the offset for the selected date and center it
-                                let daysSinceToday = Calendar.current.dateComponents([.day], from: Date(), to: selectedDate).day ?? 0
-                                if daysSinceToday >= -14 && daysSinceToday <= 15 {
-                                    proxy.scrollTo(daysSinceToday, anchor: .center)
-                                }
-                            }
-                            .onChange(of: selectedDate) { newDate in
-                                // When date changes from external source, recenter view
-                                let daysSinceToday = Calendar.current.dateComponents([.day], from: Date(), to: newDate).day ?? 0
-                                if daysSinceToday >= -14 && daysSinceToday <= 15 {
-                                    withAnimation(.easeInOut(duration: 0.3)) {
-                                        proxy.scrollTo(daysSinceToday, anchor: .center)
+                            .buttonStyle(PlainButtonStyle())
+                            
+                            // Next day button
+                            Button(action: {
+                                if let nextDay = Calendar.current.date(byAdding: .day, value: 1, to: selectedDate) {
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        selectedDate = nextDay
                                     }
                                 }
+                            }) {
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundStyle(.primary)
+                                    .frame(width: 36, height: 36)
+                                    .background(Color(.systemGray5))
+                                    .clipShape(Circle())
                             }
+                            .buttonStyle(PlainButtonStyle())
                         }
                     }
+                    .padding(.vertical, 12)
                     .listRowInsets(EdgeInsets())
                     .listRowBackground(Color(UIColor.systemGroupedBackground))
                     .listRowSeparator(.hidden)

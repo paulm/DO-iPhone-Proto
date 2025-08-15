@@ -622,14 +622,14 @@ struct DailyChatView: View {
                     }
                 }
                 
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button {
                         dismiss()
-                    }) {
-                        Image(systemName: "checkmark")
-                            .font(.body)
-                            .fontWeight(.semibold)
+                    } label: {
+                        Label("Done", systemImage: "checkmark")
+                            .labelStyle(.titleAndIcon)
                     }
+                    .tint(.blue)
                 }
             }
             .onAppear {
@@ -1384,15 +1384,14 @@ struct ChatSettingsView: View {
             .navigationTitle("Chat Settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button {
                         dismiss()
-                    }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.title2)
-                            .symbolRenderingMode(.hierarchical)
-                            .foregroundStyle(.secondary)
+                    } label: {
+                        Label("Done", systemImage: "checkmark")
+                            .labelStyle(.titleAndIcon)
                     }
+                    .tint(.blue)
                 }
             }
         }

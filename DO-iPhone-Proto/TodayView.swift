@@ -689,14 +689,7 @@ struct TodayViewV1i2: View {
             ZStack {
             // Main content
             List {
-                // Add top spacing when Date Picker Grid is hidden
-                if !showDatePickerGrid {
-                    Color.clear
-                        .frame(height: 20)
-                        .listRowInsets(EdgeInsets())
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
-                }
+                // Removed top spacing - Date Navigation 2 now appears at standard top position
                     
                     // Weather section at the very top
                 if showWeather {
@@ -800,6 +793,7 @@ struct TodayViewV1i2: View {
                             Text(relativeDateText(for: selectedDate))
                                 .font(.largeTitle)
                                 .fontWeight(.bold)
+                                .foregroundStyle(Color(hex: "292F33")) // Day One Deep Blue
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             
                             // Row 2: Full date
@@ -850,7 +844,7 @@ struct TodayViewV1i2: View {
                     }
                     .padding(.vertical, 12)
                     .listRowInsets(EdgeInsets())
-                    .listRowBackground(Color(UIColor.systemGroupedBackground))
+                    .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
                 }
                 

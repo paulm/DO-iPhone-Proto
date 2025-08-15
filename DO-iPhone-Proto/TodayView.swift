@@ -857,18 +857,7 @@ struct TodayViewV1i2: View {
                         .listRowSeparator(.hidden)
                 }
                 
-                // Entry Links carousel
-                if showInsights {
-                    EntryLinksCarouselView(
-                        selectedDate: selectedDate,
-                        showingEntries: $showingEntries,
-                        showingOnThisDay: $showingOnThisDay
-                    )
-                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                    .listRowBackground(Color.clear)
-                    .padding(.horizontal, 0)
-                    .padding(.top, 0)
-                }
+                // Entry Links carousel - removed per user request
                 
                 // Entries Section - Two buttons side by side (no title)
                 Group {

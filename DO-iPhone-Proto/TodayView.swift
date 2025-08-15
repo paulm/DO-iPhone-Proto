@@ -861,19 +861,7 @@ struct TodayViewV1i2: View {
                     .padding(.top, 0)
                 }
                 
-                // Entry Carousel Section
-                if showEntryCarousel {
-                    Section {
-                        EntryCarouselView(selectedDate: selectedDate)
-                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                            .listRowBackground(Color.clear)
-                            .padding(.horizontal, -20)
-                    } header: {
-                        if showSectionNames {
-                            Text("Entries")
-                        }
-                    }
-                }
+                // Entry Carousel Section - removed per user request
                 
                 // Daily Chat Carousel Section
                 if showDailyChatCarousel {

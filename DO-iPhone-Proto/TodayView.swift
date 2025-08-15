@@ -816,10 +816,10 @@ struct TodayViewV1i2: View {
                                 }
                             }) {
                                 Image(systemName: "chevron.left")
-                                    .font(.system(size: 16, weight: .medium))
-                                    .foregroundStyle(.primary)
-                                    .frame(width: 36, height: 36)
-                                    .background(Color(.systemGray5))
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundStyle(Color(.systemGray2))
+                                    .frame(width: 48, height: 48)
+                                    .background(Color(.systemGray6))
                                     .clipShape(Circle())
                             }
                             .buttonStyle(PlainButtonStyle())
@@ -833,10 +833,10 @@ struct TodayViewV1i2: View {
                                 }
                             }) {
                                 Image(systemName: "chevron.right")
-                                    .font(.system(size: 16, weight: .medium))
-                                    .foregroundStyle(.primary)
-                                    .frame(width: 36, height: 36)
-                                    .background(Color(.systemGray5))
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundStyle(Color(.systemGray2))
+                                    .frame(width: 48, height: 48)
+                                    .background(Color(.systemGray6))
                                     .clipShape(Circle())
                             }
                             .buttonStyle(PlainButtonStyle())

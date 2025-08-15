@@ -484,8 +484,7 @@ struct TodayViewV1i2: View {
     // Show/hide toggles for Daily Activities
     @State private var showWeather = false
     @State private var showDatePickerGrid = false
-    @State private var showDateNavigation = false
-    @State private var showDateNavigation2 = true
+    @State private var showDateNavigation = true
     @State private var showChat = false
     @State private var showChatSimple = true
     @State private var showDailyEntry = true
@@ -689,32 +688,6 @@ struct TodayViewV1i2: View {
             ZStack {
             // Main content
             List {
-                // Removed top spacing - Date Navigation 2 now appears at standard top position
-                    
-                    // Weather section at the very top - REMOVED per user request
-                /*
-                if showWeather {
-                    VStack(spacing: 4) {
-                        Image(systemName: "cloud.sun")
-                            .font(.system(size: 40, weight: .thin))
-                            .foregroundStyle(Color(hex: "44C0FF"))
-                        
-                        Text("72°F Sunny")
-                            .font(.system(size: 13))
-                            .foregroundStyle(.primary)
-                        
-                        Text("Alpine, Utah")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.secondary)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 8)
-                    .padding(.bottom, 16)
-                    .listRowInsets(EdgeInsets())
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-                }
-                */
                 
                 // Date picker grid at top of scrollable content
                 if showDatePickerGrid {
@@ -731,125 +704,67 @@ struct TodayViewV1i2: View {
                     .padding(.bottom, 20)
                 }
                 
-                // Date navigation section (no section header) - REMOVED per user request
-                /*
-                if showDateNavigation {
-                    HStack {
-                    // Left arrow
-                    Button(action: navigateToPreviousDay) {
-                        Image(systemName: "chevron.left")
-                            .font(.title3)
-                            .foregroundStyle(.secondary)
-                            .frame(width: 44, height: 44)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .padding(.leading, 16)
-                    
-                    Spacer()
-                    
-                    // Center content - tappable to open date picker
-                    Button(action: {
-                        showingDatePicker = true
-                    }) {
-                        VStack(spacing: 2) {
-                            Text(selectedDate, format: .dateTime.weekday(.abbreviated).month(.abbreviated).day().year())
-                                .font(.body)
-                                .fontWeight(.medium)
-                                .foregroundStyle(.primary)
-                            
-                            Text(relativeDateText(for: selectedDate))
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    
-                    Spacer()
-                    
-                    // Right arrow
-                    Button(action: navigateToNextDay) {
-                        Image(systemName: "chevron.right")
-                            .font(.title3)
-                            .foregroundStyle(.secondary)
-                            .frame(width: 44, height: 44)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .padding(.trailing, 16)
-                }
-                .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(cellBackgroundColor)
-                )
-                .listRowInsets(EdgeInsets())
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
-                }
-                */
-                
                 // Date Navigation 2 section
-                if showDateNavigation2 {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            // Row 1: "Today" or relative date
-                            Text(relativeDateText(for: selectedDate))
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                                .foregroundStyle(Color(hex: "292F33")) // Day One Deep Blue
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            
-                            // Row 2: Full date
-                            Text(selectedDate.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day().year()))
-                                .font(.system(size: 15, weight: .medium))
-                                .foregroundStyle(.secondary)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                        
-                        Spacer()
-                        
-                        // Arrow navigation buttons
-                        HStack(spacing: 12) {
-                            // Previous day button
-                            Button(action: {
-                                if let previousDay = Calendar.current.date(byAdding: .day, value: -1, to: selectedDate) {
-                                    withAnimation(.easeInOut(duration: 0.2)) {
-                                        selectedDate = previousDay
-                                    }
-                                }
-                            }) {
-                                Image(systemName: "chevron.left")
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundStyle(Color(.systemGray2))
-                                    .frame(width: 48, height: 48)
-                                    .background(Color(.systemGray6))
-                                    .clipShape(Circle())
+                if showDateNavigation {
+                    Section {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 0) {
+                                // Row 1: "Today" or relative date
+                                Text(relativeDateText(for: selectedDate))
+                                    .font(.largeTitle)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(Color(hex: "292F33")) // Day One Deep Blue
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                
+                                // Row 2: Full date
+                                Text(selectedDate.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day().year()))
+                                    .font(.system(size: 15, weight: .medium))
+                                    .foregroundStyle(.secondary)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
                             }
-                            .buttonStyle(PlainButtonStyle())
                             
-                            // Next day button
-                            Button(action: {
-                                if let nextDay = Calendar.current.date(byAdding: .day, value: 1, to: selectedDate) {
-                                    withAnimation(.easeInOut(duration: 0.2)) {
-                                        selectedDate = nextDay
+                            Spacer()
+                            
+                            // Arrow navigation buttons
+                            HStack(spacing: 12) {
+                                // Previous day button
+                                Button(action: {
+                                    if let previousDay = Calendar.current.date(byAdding: .day, value: -1, to: selectedDate) {
+                                        withAnimation(.easeInOut(duration: 0.2)) {
+                                            selectedDate = previousDay
+                                        }
                                     }
+                                }) {
+                                    Image(systemName: "chevron.left")
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundStyle(Color(.systemGray2))
+                                        .frame(width: 48, height: 48)
+                                        .background(Color(.systemGray6))
+                                        .clipShape(Circle())
                                 }
-                            }) {
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundStyle(Color(.systemGray2))
-                                    .frame(width: 48, height: 48)
-                                    .background(Color(.systemGray6))
-                                    .clipShape(Circle())
+                                .buttonStyle(PlainButtonStyle())
+                                
+                                // Next day button
+                                Button(action: {
+                                    if let nextDay = Calendar.current.date(byAdding: .day, value: 1, to: selectedDate) {
+                                        withAnimation(.easeInOut(duration: 0.2)) {
+                                            selectedDate = nextDay
+                                        }
+                                    }
+                                }) {
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundStyle(Color(.systemGray2))
+                                        .frame(width: 48, height: 48)
+                                        .background(Color(.systemGray6))
+                                        .clipShape(Circle())
+                                }
+                                .buttonStyle(PlainButtonStyle())
                             }
-                            .buttonStyle(PlainButtonStyle())
                         }
+                        .padding(.vertical, 0)
                     }
-                    .padding(.vertical, 12)
-                    .listRowInsets(EdgeInsets())
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
+                    .listRowBackground(cellBackgroundColor)
                 }
                 
                 
@@ -933,14 +848,12 @@ struct TodayViewV1i2: View {
                             openDailyChatInLogMode: $openDailyChatInLogMode,
                             showLogVoiceModeButtons: showLogVoiceModeButtons
                         )
-                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                        .listRowBackground(Color.clear)
-                        .padding(.horizontal, -20)
                     } header: {
                         if showSectionNames {
                             Text("Daily Entry Chat")
                         }
                     }
+                    .listRowBackground(cellBackgroundColor)
                 }
                 
                 // Prompts Carousel Section
@@ -1106,100 +1019,110 @@ struct TodayViewV1i2: View {
                 // Moments List Section
                 if showMomentsList {
                     Section {
-                        // Calculate dynamic counts based on selected date
-                        let calendar = Calendar.current
-                        let dayOfWeek = calendar.component(.weekday, from: selectedDate)
-                        let isWeekend = dayOfWeek == 1 || dayOfWeek == 7
-                        let isFuture = selectedDate > Date()
-                        
-                        // Dynamic counts based on day characteristics
-                        let visitsCount = isFuture ? 0 : (isWeekend ? 8 : 5)
-                        let eventsCount = isFuture ? 0 : (isWeekend ? 2 : 3)
-                        let mediaCount = isFuture ? 0 : (isWeekend ? 18 : 12)
-                        
-                        // Visits row
-                        if showMomentsVisits {
-                            Button(action: {
-                                showingVisitsSheet = true
-                            }) {
-                                HStack {
-                                    Label {
-                                        Text("Visits")
-                                            .foregroundStyle(.primary)
-                                    } icon: {
-                                        Image(systemName: "location.fill")
-                                            .foregroundStyle(Color(hex: "44C0FF"))
-                                            .imageScale(.medium)
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    Text("\(visitsCount)")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                                .contentShape(Rectangle())
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                        }
-                        
-                        // Events row
-                        if showMomentsEvents {
-                            Button(action: {
-                                showingEventsSheet = true
-                            }) {
-                                HStack {
-                                    Label {
-                                        Text("Events")
-                                            .foregroundStyle(.primary)
-                                    } icon: {
-                                        Image(systemName: "calendar")
-                                            .foregroundStyle(Color(hex: "44C0FF"))
-                                            .imageScale(.medium)
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    Text("\(eventsCount)")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                                .contentShape(Rectangle())
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                        }
-                        
-                        // Media row
-                        if showMomentsMedia {
+                        VStack(alignment: .leading, spacing: 0) {
+                            // Photos row
                             Button(action: {
                                 showingMediaSheet = true
                             }) {
                                 HStack {
-                                    Label {
-                                        Text("Media")
-                                            .foregroundStyle(.primary)
-                                    } icon: {
-                                        Image(systemName: "photo.fill")
-                                            .foregroundStyle(Color(hex: "44C0FF"))
-                                            .imageScale(.medium)
-                                    }
+                                    Image(systemName: "photo")
+                                        .font(.system(size: 20))
+                                        .foregroundStyle(.primary)
+                                        .frame(width: 28)
+                                    
+                                    Text("Photos")
+                                        .font(.system(size: 17))
+                                        .foregroundStyle(.primary)
                                     
                                     Spacer()
                                     
-                                    Text("\(mediaCount)")
-                                        .font(.caption)
+                                    Text("5")
+                                        .font(.system(size: 17))
                                         .foregroundStyle(.secondary)
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundStyle(Color(.systemGray3))
                                 }
+                                .padding(.vertical, 12)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            
+                            Divider()
+                                .padding(.leading, 44)
+                            
+                            // Places row
+                            Button(action: {
+                                showingVisitsSheet = true
+                            }) {
+                                HStack {
+                                    Image(systemName: "location")
+                                        .font(.system(size: 20))
+                                        .foregroundStyle(.primary)
+                                        .frame(width: 28)
+                                    
+                                    Text("Places")
+                                        .font(.system(size: 17))
+                                        .foregroundStyle(.primary)
+                                    
+                                    Spacer()
+                                    
+                                    Text("4")
+                                        .font(.system(size: 17))
+                                        .foregroundStyle(.secondary)
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundStyle(Color(.systemGray3))
+                                }
+                                .padding(.vertical, 12)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            
+                            Divider()
+                                .padding(.leading, 44)
+                            
+                            // Events row
+                            Button(action: {
+                                showingEventsSheet = true
+                            }) {
+                                HStack {
+                                    Image(systemName: "calendar")
+                                        .font(.system(size: 20))
+                                        .foregroundStyle(.primary)
+                                        .frame(width: 28)
+                                    
+                                    Text("Events")
+                                        .font(.system(size: 17))
+                                        .foregroundStyle(.primary)
+                                    
+                                    Spacer()
+                                    
+                                    Text("3")
+                                        .font(.system(size: 17))
+                                        .foregroundStyle(.secondary)
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundStyle(Color(.systemGray3))
+                                }
+                                .padding(.vertical, 12)
                                 .contentShape(Rectangle())
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
                     } header: {
-                        if showSectionNames {
+                        VStack(alignment: .leading, spacing: 4) {
                             Text("Moments")
+                                .font(.headline)
+                            Text("Create an entry from a moment ...")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
                         }
                     }
-                    .listRowBackground(cellBackgroundColor)
+                    .listRowBackground(Color(.systemGray6))
                 }
                 
                 // Daily Trackers Section
@@ -1273,16 +1196,6 @@ struct TodayViewV1i2: View {
                     }
                     
                     Section("Show in Today") {
-                        Button {
-                            showWeather.toggle()
-                        } label: {
-                            HStack {
-                                Text("Weather")
-                                if showWeather {
-                                    Image(systemName: "checkmark")
-                                }
-                            }
-                        }
                         
                         Button {
                             showDatePickerGrid.toggle()
@@ -1301,17 +1214,6 @@ struct TodayViewV1i2: View {
                             HStack {
                                 Text("Date Navigation")
                                 if showDateNavigation {
-                                    Image(systemName: "checkmark")
-                                }
-                            }
-                        }
-                        
-                        Button {
-                            showDateNavigation2.toggle()
-                        } label: {
-                            HStack {
-                                Text("Date Navigation 2")
-                                if showDateNavigation2 {
                                     Image(systemName: "checkmark")
                                 }
                             }

@@ -368,133 +368,128 @@ struct DailyChatView: View {
         return defaultResponses.randomElement() ?? defaultResponses[0]
     }
     
+    @ViewBuilder
+    private var headerView: some View {
+        if showHeaderContent {
+            VStack {
+                Spacer()
+                
+                Image(systemName: "bubble.left.and.bubble.right.fill")
+                    .font(.system(size: 60))
+                    .foregroundStyle(Color(hex: "44C0FF"))
+                
+                Spacer()
+            }
+            .transition(.opacity)
+        }
+    }
+    
+    @ViewBuilder
+    private var messagesScrollView: some View {
+        if !messages.isEmpty || isThinking {
+            ScrollViewReader { proxy in
+                ScrollView {
+                    LazyVStack(spacing: 12) {
+                        ForEach(messages) { message in
+                            DailyChatBubbleView(message: message)
+                                .id(message.id)
+                        }
+                        
+                        // Thinking indicator
+                        if isThinking {
+                            HStack {
+                                ThinkingIndicatorView()
+                                Spacer()
+                            }
+                            .padding(.horizontal, 16)
+                            .id("thinking")
+                        }
+                    }
+                    .padding(.vertical, 16)
+                }
+                .onChange(of: messages.count) { _, _ in
+                    if let lastMessage = messages.last {
+                        withAnimation(.easeOut(duration: 0.3)) {
+                            proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                        }
+                    }
+                }
+                .onChange(of: isThinking) { _, newValue in
+                    if newValue {
+                        withAnimation(.easeOut(duration: 0.3)) {
+                            proxy.scrollTo("thinking", anchor: .bottom)
+                        }
+                    }
+                }
+            }
+        } else {
+            Spacer()
+        }
+    }
+    
+    private var chatInputView: some View {
+        VStack(spacing: 0) {
+            // Text input field with buttons
+            HStack(alignment: .center, spacing: 0) {
+                // Rounded text field container
+                HStack(spacing: 12) {
+                    TextField(placeholderText, text: $chatText, axis: .vertical)
+                        .focused($isTextFieldFocused)
+                        .textFieldStyle(.plain)
+                        .lineLimit(1...6)
+                        .tint(Color(hex: "44C0FF"))
+                    
+                    // Microphone button (always visible)
+                    Button(action: {
+                        // TODO: Audio recording functionality
+                    }) {
+                        Image(systemName: "mic.fill")
+                            .font(.system(size: 20))
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    
+                    // Send button
+                    Button(action: {
+                        if !chatText.isEmpty {
+                            sendMessage()
+                        }
+                    }) {
+                        Image(systemName: "arrow.up")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(chatText.isEmpty ? Color.secondary : Color.white)
+                            .frame(width: 32, height: 32)
+                            .background(
+                                chatText.isEmpty ? Color(.systemGray5) : Color(hex: "44C0FF"),
+                                in: Circle()
+                            )
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .disabled(isThinking || chatText.isEmpty)
+                }
+                .padding(.leading, 16)
+                .padding(.trailing, 8)
+                .padding(.vertical, 8)
+                .background(Color(.systemGray6))
+                .clipShape(Capsule())
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Color(.systemBackground))
+        }
+    }
+    
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
                 // Header content (disappears when user has messages)
-                if showHeaderContent {
-                    VStack {
-                        Spacer()
-                        
-                        Image(systemName: "bubble.left.and.bubble.right.fill")
-                            .font(.system(size: 60))
-                            .foregroundStyle(Color(hex: "44C0FF"))
-                        
-                        Spacer()
-                    }
-                    .transition(.opacity)
-                }
+                headerView
                 
                 // Chat messages area
-                if !messages.isEmpty || isThinking {
-                    ScrollViewReader { proxy in
-                        ScrollView {
-                            LazyVStack(spacing: 12) {
-                                ForEach(messages) { message in
-                                    DailyChatBubbleView(message: message)
-                                        .id(message.id)
-                                }
-                                
-                                // Thinking indicator
-                                if isThinking {
-                                    HStack {
-                                        ThinkingIndicatorView()
-                                        Spacer()
-                                    }
-                                    .padding(.horizontal, 16)
-                                    .id("thinking")
-                                }
-                            }
-                            .padding(.vertical, 16)
-                        }
-                        .onChange(of: messages.count) { _, _ in
-                            if let lastMessage = messages.last {
-                                withAnimation(.easeOut(duration: 0.3)) {
-                                    proxy.scrollTo(lastMessage.id, anchor: .bottom)
-                                }
-                            }
-                        }
-                        .onChange(of: isThinking) { _, newValue in
-                            if newValue {
-                                withAnimation(.easeOut(duration: 0.3)) {
-                                    proxy.scrollTo("thinking", anchor: .bottom)
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    Spacer()
-                }
+                messagesScrollView
                 
                 // Chat input area
-                VStack(spacing: 0) {
-                    // Text input field with buttons
-                    HStack(alignment: .bottom, spacing: 8) {
-                        TextField(placeholderText, text: $chatText, axis: .vertical)
-                            .focused($isTextFieldFocused)
-                            .textFieldStyle(.plain)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(Color(.systemBackground))
-                            .lineLimit(1...6)
-                            .tint(Color(hex: "44C0FF"))
-                        
-                        // Right-aligned buttons that change based on text input
-                        HStack(spacing: 8) {
-                            if chatText.isEmpty {
-                                // Show record and voice mode buttons when no text
-                                Button(action: {
-                                    // TODO: Audio recording functionality
-                                }) {
-                                    Image(systemName: "mic.fill")
-                                        .font(.system(size: 16))
-                                        .foregroundStyle(.secondary)
-                                        .frame(width: 32, height: 32)
-                                        .background(Color(.systemGray5), in: Circle())
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                                
-                                Button(action: {
-                                    // TODO: Voice mode functionality
-                                }) {
-                                    Image(systemName: "waveform")
-                                        .font(.system(size: 16))
-                                        .foregroundStyle(.secondary)
-                                        .frame(width: 32, height: 32)
-                                        .background(Color(.systemGray5), in: Circle())
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                            } else {
-                                // Show send button when text is entered
-                                Button(action: {
-                                    sendMessage()
-                                }) {
-                                    Image(systemName: "arrow.up")
-                                        .font(.system(size: 16, weight: .semibold))
-                                        .foregroundStyle(.white)
-                                        .frame(width: 32, height: 32)
-                                        .background(
-                                            Color(hex: "44C0FF"),
-                                            in: Circle()
-                                        )
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                                .disabled(isThinking)
-                            }
-                        }
-                        .padding(.trailing, 8)
-                        .padding(.bottom, 8)
-                    }
-                    .padding(.horizontal, 8)
-                    .padding(.top, 8)
-                    
-                    // Keyboard accessory toolbar (removed mode toggle - now in menu)
-                    HStack {
-                        Spacer()
-                    }
-                    .frame(height: 44)
-                    .background(Color(.systemGroupedBackground))
-                }
+                chatInputView
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

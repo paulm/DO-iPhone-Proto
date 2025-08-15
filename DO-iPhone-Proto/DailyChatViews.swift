@@ -781,26 +781,30 @@ struct DailyChatView: View {
         if previousMode != newMode {
             switch newMode {
             case .log:
-                // When switching to log mode
-                let modeMessage = DailyChatMessage(
-                    content: "Log memories and highlights from this day without a reply.",
+                // When switching to log mode - show system notification
+                let notification = DailyChatMessage(
+                    content: "Jot down moments of your day as they happen. Responses will be paused until you turn it back on.",
                     isUser: false,
                     isLogMode: false,
-                    mode: newMode
+                    mode: newMode,
+                    isSystemNotification: true,
+                    notificationTitle: "Log Mode On"
                 )
                 withAnimation(.easeIn(duration: 0.3)) {
-                    messages.append(modeMessage)
+                    messages.append(notification)
                 }
             case .chat:
-                // Use time-based prompt when switching to Prompt mode
-                let promptMessage = DailyChatMessage(
-                    content: getPromptMessageForTimeOfDay(),
+                // When switching to chat mode - show system notification
+                let notification = DailyChatMessage(
+                    content: "AI responses are now active. Continue your conversation.",
                     isUser: false,
                     isLogMode: false,
-                    mode: newMode
+                    mode: newMode,
+                    isSystemNotification: true,
+                    notificationTitle: "Chat Mode On"
                 )
                 withAnimation(.easeIn(duration: 0.3)) {
-                    messages.append(promptMessage)
+                    messages.append(notification)
                 }
             }
         }
@@ -853,12 +857,37 @@ struct DailyChatMessage: Identifiable, Equatable, Codable {
     let isLogMode: Bool
     var timestamp = Date()
     let mode: ChatMode?
+    let isSystemNotification: Bool
+    let notificationTitle: String?
     
-    init(content: String, isUser: Bool, isLogMode: Bool, mode: ChatMode? = nil) {
+    init(content: String, isUser: Bool, isLogMode: Bool, mode: ChatMode? = nil, isSystemNotification: Bool = false, notificationTitle: String? = nil) {
         self.content = content
         self.isUser = isUser
         self.isLogMode = isLogMode
         self.mode = mode
+        self.isSystemNotification = isSystemNotification
+        self.notificationTitle = notificationTitle
+    }
+}
+
+// MARK: - System Notification View
+struct SystemNotificationView: View {
+    let title: String
+    let description: String
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            Text(title)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(.primary.opacity(0.4))
+            
+            Text(description)
+                .font(.system(size: 13))
+                .foregroundStyle(.primary.opacity(0.4))
+                .multilineTextAlignment(.center)
+        }
+        .padding(.horizontal, 32)
+        .padding(.vertical, 16)
     }
 }
 
@@ -881,31 +910,38 @@ struct DailyChatBubbleView: View {
     }
     
     var body: some View {
-        HStack {
-            if message.isUser {
-                Spacer(minLength: 50)
-                
-                Text(message.content)
-                    .font(.body)
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .background(
-                        getBubbleColor(for: message),
-                        in: RoundedRectangle(cornerRadius: 18)
-                    )
-            } else {
-                Text(message.content)
-                    .font(.body)
-                    .foregroundStyle(.primary)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .background(Color(.systemGray5), in: RoundedRectangle(cornerRadius: 18))
-                
-                Spacer(minLength: 50)
+        if message.isSystemNotification {
+            SystemNotificationView(
+                title: message.notificationTitle ?? "",
+                description: message.content
+            )
+        } else {
+            HStack {
+                if message.isUser {
+                    Spacer(minLength: 50)
+                    
+                    Text(message.content)
+                        .font(.body)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(
+                            getBubbleColor(for: message),
+                            in: RoundedRectangle(cornerRadius: 18)
+                        )
+                } else {
+                    Text(message.content)
+                        .font(.body)
+                        .foregroundStyle(.primary)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(Color(.systemGray5), in: RoundedRectangle(cornerRadius: 18))
+                    
+                    Spacer(minLength: 50)
+                }
             }
+            .padding(.horizontal, 16)
         }
-        .padding(.horizontal, 16)
     }
 }
 

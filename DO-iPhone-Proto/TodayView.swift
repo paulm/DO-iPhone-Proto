@@ -836,8 +836,6 @@ struct TodayViewV1i2: View {
                     .listRowSeparator(.hidden)
                 }
                 
-                // Entry Carousel Section - removed per user request
-                
                 // Daily Chat Carousel Section
                 if showDailyChatCarousel {
                     Section {
@@ -981,30 +979,6 @@ struct TodayViewV1i2: View {
                     }
                 }
                 
-                // Daily Moments Section - REMOVED per user request
-                /*
-                if showMoments {
-                    Section {
-                        TodayActivityRowWithMomentsSubtitle(
-                            icon: "sparkles",
-                            iconColor: .purple,
-                            title: "Moments",
-                            selectedCount: momentsSelection.selectedLocations.count + momentsSelection.selectedEvents.count + momentsSelection.selectedPhotos.count + momentsSelection.selectedHealth.count,
-                            isCompleted: hasSelectedMoments,
-                            selectedDate: selectedDate,
-                            action: { 
-                                showingMoments = true
-                            }
-                        )
-                    } header: {
-                        if showSectionNames {
-                            Text("Daily Moments")
-                        }
-                    }
-                    .listRowBackground(Color(hex: "F3F1F8"))
-                }
-                */
-                
                 // Moments Carousel Section
                 if showMomentsCarousel {
                     Section {
@@ -1032,22 +1006,22 @@ struct TodayViewV1i2: View {
                             }) {
                                 HStack {
                                     Image(systemName: "photo")
-                                        .font(.system(size: 20))
+                                        .font(.system(size: 16))
                                         .foregroundStyle(.primary)
                                         .frame(width: 28)
                                     
                                     Text("Photos")
-                                        .font(.system(size: 17))
+                                        .font(.system(size: 16))
                                         .foregroundStyle(.primary)
                                     
                                     Spacer()
                                     
                                     Text("5")
-                                        .font(.system(size: 17))
+                                        .font(.system(size: 15))
                                         .foregroundStyle(.secondary)
                                     
                                     Image(systemName: "chevron.right")
-                                        .font(.system(size: 14, weight: .medium))
+                                        .font(.system(size: 13, weight: .medium))
                                         .foregroundStyle(Color(.systemGray3))
                                 }
                                 .padding(.vertical, 12)
@@ -1064,22 +1038,22 @@ struct TodayViewV1i2: View {
                             }) {
                                 HStack {
                                     Image(systemName: "location")
-                                        .font(.system(size: 20))
+                                        .font(.system(size: 16))
                                         .foregroundStyle(.primary)
                                         .frame(width: 28)
                                     
                                     Text("Places")
-                                        .font(.system(size: 17))
+                                        .font(.system(size: 16))
                                         .foregroundStyle(.primary)
                                     
                                     Spacer()
                                     
                                     Text("4")
-                                        .font(.system(size: 17))
+                                        .font(.system(size: 15))
                                         .foregroundStyle(.secondary)
                                     
                                     Image(systemName: "chevron.right")
-                                        .font(.system(size: 14, weight: .medium))
+                                        .font(.system(size: 13, weight: .medium))
                                         .foregroundStyle(Color(.systemGray3))
                                 }
                                 .padding(.vertical, 12)
@@ -1096,22 +1070,22 @@ struct TodayViewV1i2: View {
                             }) {
                                 HStack {
                                     Image(systemName: "calendar")
-                                        .font(.system(size: 20))
+                                        .font(.system(size: 16))
                                         .foregroundStyle(.primary)
                                         .frame(width: 28)
                                     
                                     Text("Events")
-                                        .font(.system(size: 17))
+                                        .font(.system(size: 16))
                                         .foregroundStyle(.primary)
                                     
                                     Spacer()
                                     
                                     Text("3")
-                                        .font(.system(size: 17))
+                                        .font(.system(size: 15))
                                         .foregroundStyle(.secondary)
                                     
                                     Image(systemName: "chevron.right")
-                                        .font(.system(size: 14, weight: .medium))
+                                        .font(.system(size: 13, weight: .medium))
                                         .foregroundStyle(Color(.systemGray3))
                                 }
                                 .padding(.vertical, 12)
@@ -1188,7 +1162,6 @@ struct TodayViewV1i2: View {
                     .padding(.bottom, 16) // Fixed 16pt from bottom
                 }
             
-            // Removed floating menu buttons - moved to toolbar
         }
         .toolbar {
             ToolbarItemGroup(placement: .navigationBarTrailing) {

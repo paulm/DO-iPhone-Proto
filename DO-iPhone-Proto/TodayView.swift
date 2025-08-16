@@ -861,6 +861,7 @@ struct TodayViewV1i2: View {
                                     .foregroundStyle(.secondary)
                             }
                             .padding(.bottom, 8)
+                            .animation(.none, value: selectedDate)
                             
                             DailyChatCarouselView(
                                 selectedDate: selectedDate, 
@@ -872,6 +873,7 @@ struct TodayViewV1i2: View {
                                 openDailyChatInLogMode: $openDailyChatInLogMode,
                                 showLogVoiceModeButtons: showLogVoiceModeButtons
                             )
+                            .animation(.none, value: selectedDate)
                         }
                     }
                     .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))

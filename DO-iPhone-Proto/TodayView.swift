@@ -486,8 +486,7 @@ struct TodayViewV1i2: View {
     @State private var showDatePickerGrid = false
     @State private var showDateNavigation = true
     @State private var showChat = false
-    // @State private var showChatSimple = true  // Commented out Chat Simple
-    // Removed showDailyEntry and showEntry - Daily Entry is always shown
+    @State private var showEntry = true
     // Removed showMoments
     @State private var showMomentsList = true
     @State private var showTrackers = false
@@ -848,6 +847,16 @@ struct TodayViewV1i2: View {
                             openDailyChatInLogMode: $openDailyChatInLogMode,
                             showLogVoiceModeButtons: showLogVoiceModeButtons
                         )
+                    } header: {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Daily Entry Chat")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundStyle(Color(hex: "292F33"))
+                            Text("How is your \(selectedDate.formatted(.dateTime.weekday(.wide)))?")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                     .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                     .listRowBackground(showGuides ? Color.green.opacity(0.2) : cellBackgroundColor)
@@ -855,8 +864,8 @@ struct TodayViewV1i2: View {
                 }
                 
                 
-                // Entry section (always shown when entry exists OR is being generated OR chat is completed)
-                if DailyContentManager.shared.hasEntry(for: selectedDate) || isGeneratingEntry || (chatCompleted && !DailyContentManager.shared.hasEntry(for: selectedDate)) {
+                // Entry section (shown when entry exists OR is being generated OR chat is completed)
+                if showEntry && (DailyContentManager.shared.hasEntry(for: selectedDate) || isGeneratingEntry || (chatCompleted && !DailyContentManager.shared.hasEntry(for: selectedDate))) {
                     Section {
                         if isGeneratingEntry {
                             // Loading state
@@ -921,7 +930,7 @@ struct TodayViewV1i2: View {
                 }
                 
                 // Update text (shown below Daily Entry when entry exists and chat has updates)
-                if DailyContentManager.shared.hasEntry(for: selectedDate) {
+                if showEntry && DailyContentManager.shared.hasEntry(for: selectedDate) {
                     let _ = chatUpdateTrigger // Force dependency on chatUpdateTrigger
                     let hasNewMessages = DailyContentManager.shared.hasNewMessagesSinceEntry(for: selectedDate)
                     
@@ -1066,7 +1075,9 @@ struct TodayViewV1i2: View {
                     } header: {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Moments")
-                                .font(.headline)
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundStyle(Color(hex: "292F33"))
                             Text("Create an entry from a moment ...")
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
@@ -1179,7 +1190,16 @@ struct TodayViewV1i2: View {
                         }
                         */
                         
-                        // Removed Daily Entry toggle - always shown
+                        Button {
+                            showEntry.toggle()
+                        } label: {
+                            HStack {
+                                Text("Daily Entry")
+                                if showEntry {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
                         
                         // Removed Entry Carousel toggle
                         
@@ -2526,123 +2546,53 @@ struct DailyChatCarouselView: View {
                 .padding(.horizontal, 20)
             }
             
-            // Buttons carousel row
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    // Log Mode button - only show when enabled and no entry/chat exists (moved to first position)
-                    if showLogVoiceModeButtons && !hasEntry && !chatCompleted {
-                        Button(action: {
-                            openDailyChatInLogMode = true
-                            showingDailyChat = true
-                        }) {
-                            VStack(spacing: 0) {
-                                Image(systemName: "bubble")
-                                    .font(.system(size: 20))
-                                    .foregroundStyle(Color(hex: "333B40"))
-                                    .frame(maxHeight: .infinity)
-                                
-                                Text("Log Mode")
-                                    .font(.system(size: 11))
-                                    .foregroundStyle(.secondary)
-                                    .padding(.bottom, 8)
-                            }
-                            .frame(width: 80, height: 70)
-                            .background(Color.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        .padding(.leading, 20)
-                    }
+            // Single full-width Start Chat button
+            Button(action: {
+                showingDailyChat = true
+            }) {
+                HStack {
+                    Text(chatCompleted ? "Resume Chat" : "Start Chat")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(.white)
                     
-                    // Chat item
-                    Button(action: {
-                        showingDailyChat = true
-                    }) {
-                        if hasEntry || chatCompleted {
-                            // Short button without icon when entry exists OR when in generate entry mode
-                            // Blue with white text for today's Resume Chat
-                            let isResumeToday = chatCompleted && isToday
-                            Text(chatCompleted ? "Resume Chat" : "Start Chat")
-                                .font(.system(size: 13))
-                                .fontWeight(.regular)
-                                .foregroundStyle(isResumeToday ? Color.white : (hasEntry ? Color.primary.opacity(0.8) : .secondary))
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                .frame(width: 130, height: 38)
-                                .background(isResumeToday ? Color(hex: "44C0FF") : Color.white)
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                        } else {
-                            // Full height with icon when no entry
-                            // Blue background only for Start Chat on current day
-                            let isStartToday = !chatCompleted && isToday
-                            VStack(spacing: 0) {
-                                // Icon - filled for Start, outline for Resume
-                                Image(systemName: chatCompleted ? "bubble.left.and.bubble.right" : "bubble.left.and.bubble.right.fill")
-                                    .font(.system(size: 20))
-                                    .foregroundStyle(chatCompleted ? Color(hex: "44C0FF") : (isStartToday ? .white : Color(hex: "44C0FF")))
-                                    .frame(maxHeight: .infinity)
-                                
-                                // Label
-                                Text(chatCompleted ? "Resume Chat" : "Start Chat")
-                                    .font(.system(size: 11))
-                                    .foregroundStyle(chatCompleted ? Color.primary.opacity(0.8) : (isStartToday ? Color.white : Color.secondary))
-                                    .padding(.bottom, 8)
-                            }
-                            .frame(width: 140, height: 70)
-                            .background(isStartToday ? Color(hex: "44C0FF") : Color.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                        }
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .padding(.leading, showLogVoiceModeButtons && !hasEntry && !chatCompleted ? 0 : 20)
+                    Spacer()
                     
-                    // Voice Mode button - only show when enabled and no entry exists  
-                    if showLogVoiceModeButtons && !hasEntry && !chatCompleted {
-                        Button(action: {
-                            // Voice mode action
-                            showingDailyChat = true
-                        }) {
-                            VStack(spacing: 0) {
-                                Image(systemName: "waveform")
-                                    .font(.system(size: 20))
-                                    .foregroundStyle(Color(hex: "333B40"))
-                                    .frame(maxHeight: .infinity)
-                                
-                                Text("Voice Mode")
-                                    .font(.system(size: 11))
-                                    .foregroundStyle(.secondary)
-                                    .padding(.bottom, 8)
-                            }
-                            .frame(width: 80, height: 70)
-                            .background(Color.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                    }
-                    
-                    // Update Entry button (only shown when entry exists and there are new messages)
-                    if shouldShowEntryButton {
-                        Button(action: {
-                            // Show preview for update
-                            showingPreviewEntry = true
-                        }) {
-                            // Short button without icon - white with blue text for Update Entry
-                            Text(entryButtonText)
-                                .font(.system(size: 13))
-                                .fontWeight(.regular)
-                                .foregroundStyle(Color(hex: "44C0FF"))
-                                .multilineTextAlignment(.center)
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                .frame(width: 130, height: 38)
-                                .background(Color.white)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                    }
-                    
-                    // Add padding at the end
-                    Color.clear
-                        .frame(width: 20, height: 1)
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.8))
                 }
+                .padding(.horizontal, 16)
+                .frame(height: 48)
+                .frame(maxWidth: .infinity)
+                .background(Color(hex: "44C0FF"))
+                .clipShape(RoundedRectangle(cornerRadius: 24))
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            // Update Entry button (only shown when entry exists and there are new messages)
+            if shouldShowEntryButton {
+                Button(action: {
+                    // Show preview for update
+                    showingPreviewEntry = true
+                }) {
+                    HStack {
+                        Text(entryButtonText)
+                            .font(.system(size: 15, weight: .medium))
+                            .foregroundStyle(.primary)
+                        
+                        Spacer()
+                        
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.horizontal, 16)
+                    .frame(height: 48)
+                    .frame(maxWidth: .infinity)
+                    .background(Color(hex: "F3F1F8"))
+                    .clipShape(RoundedRectangle(cornerRadius: 24))
+                }
+                .buttonStyle(PlainButtonStyle())
             }
         }
     }

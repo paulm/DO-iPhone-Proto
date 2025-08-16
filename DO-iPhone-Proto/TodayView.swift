@@ -700,6 +700,250 @@ struct TodayViewV1i2: View {
         }
     }
     
+    // Extract Daily Entry Chat section as computed property
+    @ViewBuilder
+    private var dailyEntryChatSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 12) {
+                // Header content (now part of the section body so it scrolls)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Daily Entry Chat")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundStyle(Color(hex: "292F33"))
+                    Text("How is your \(selectedDate.formatted(.dateTime.weekday(.wide)))?")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.bottom, 8)
+                .animation(.none, value: selectedDate)
+                
+                DailyChatCarouselView(
+                    selectedDate: selectedDate,
+                    chatCompleted: chatCompleted,
+                    isGeneratingEntry: isGeneratingEntry,
+                    showingDailyChat: $showingDailyChat,
+                    showingEntry: $showingEntry,
+                    showingPreviewEntry: $showingPreviewEntry,
+                    openDailyChatInLogMode: $openDailyChatInLogMode,
+                    showLogVoiceModeButtons: showLogVoiceModeButtons
+                )
+                .animation(.none, value: selectedDate)
+            }
+        }
+        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+        .listRowBackground(showGuides ? Color.green.opacity(0.2) : cellBackgroundColor)
+        .listRowSeparator(.hidden)
+    }
+    
+    // Extract Moments List section as computed property
+    @ViewBuilder
+    private var momentsListSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 12) {
+                // Header content (now part of the section body so it scrolls)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Moments")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundStyle(Color(hex: "292F33"))
+                    Text("Create an entry from a moment ...")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                // Moments Types
+                VStack(alignment: .leading, spacing: 0) {
+                    // Photos row
+                    Button(action: {
+                        showingMediaSheet = true
+                    }) {
+                        HStack {
+                            Image(systemName: "photo")
+                                .font(.system(size: 16))
+                                .foregroundStyle(.primary)
+                                .frame(width: 28)
+                            
+                            Text("Photos")
+                                .font(.system(size: 16))
+                                .foregroundStyle(.primary)
+                            
+                            Spacer()
+                            
+                            Text("5")
+                                .font(.system(size: 15))
+                                .foregroundStyle(.secondary)
+                            
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(Color(.systemGray3))
+                        }
+                        .padding(.vertical, 16)
+                        .padding(.horizontal, 16)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    
+                    Divider()
+                        .padding(.leading, 60)
+                    
+                    // Places row
+                    Button(action: {
+                        showingVisitsSheet = true
+                    }) {
+                        HStack {
+                            Image(systemName: "location")
+                                .font(.system(size: 16))
+                                .foregroundStyle(.primary)
+                                .frame(width: 28)
+                            
+                            Text("Places")
+                                .font(.system(size: 16))
+                                .foregroundStyle(.primary)
+                            
+                            Spacer()
+                            
+                            Text("4")
+                                .font(.system(size: 15))
+                                .foregroundStyle(.secondary)
+                            
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(Color(.systemGray3))
+                        }
+                        .padding(.vertical, 16)
+                        .padding(.horizontal, 16)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    
+                    Divider()
+                        .padding(.leading, 60)
+                    
+                    // Events row
+                    Button(action: {
+                        showingEventsSheet = true
+                    }) {
+                        HStack {
+                            Image(systemName: "calendar")
+                                .font(.system(size: 16))
+                                .foregroundStyle(.primary)
+                                .frame(width: 28)
+                            
+                            Text("Events")
+                                .font(.system(size: 16))
+                                .foregroundStyle(.primary)
+                            
+                            Spacer()
+                            
+                            Text("3")
+                                .font(.system(size: 15))
+                                .foregroundStyle(.secondary)
+                            
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(Color(.systemGray3))
+                        }
+                        .padding(.vertical, 16)
+                        .padding(.horizontal, 16)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+                .background(Color(.systemGray6))
+                .clipShape(RoundedRectangle(cornerRadius: 24))
+            }
+        }
+        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+        .listRowBackground(showGuides ? Color.orange.opacity(0.2) : Color.clear)
+        .listRowSeparator(.hidden)
+    }
+    
+    @ViewBuilder
+    private var entryLinksSection: some View {
+        let entryCount = DailyDataManager.shared.getEntryCount(for: selectedDate)
+        let onThisDayCount = DailyDataManager.shared.getOnThisDayCount(for: selectedDate)
+        
+        Group {
+            if onThisDayCount > 0 {
+                // Show both buttons side by side when there are On This Day entries
+                HStack(spacing: 12) {
+                    // Entries button
+                    Button(action: {
+                        showingEntries = true
+                    }) {
+                        HStack {
+                            Text("\(entryCount) \(entryCount == 1 ? "Entry" : "Entries")")
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundStyle(.primary)
+                            
+                            Spacer()
+                            
+                            Image(systemName: entryCount > 0 ? "chevron.right" : "plus")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(entryCount > 0 ? Color.secondary : Color(hex: "44C0FF"))
+                        }
+                        .padding(.horizontal, 16)
+                        .frame(height: 48)
+                        .frame(maxWidth: .infinity)
+                        .background(Color(hex: "F3F1F8"))
+                        .clipShape(RoundedRectangle(cornerRadius: 24))
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    
+                    // On This Day button
+                    Button(action: {
+                        showingOnThisDay = true
+                    }) {
+                        HStack {
+                            Text("\(onThisDayCount) On This Day")
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundStyle(.primary)
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.horizontal, 16)
+                        .frame(height: 48)
+                        .frame(maxWidth: .infinity)
+                        .background(Color(hex: "F3F1F8"))
+                        .clipShape(RoundedRectangle(cornerRadius: 24))
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+            } else {
+                // Show full-width Entries button when no On This Day entries
+                Button(action: {
+                    showingEntries = true
+                }) {
+                    HStack {
+                        Text("\(entryCount) \(entryCount == 1 ? "Entry" : "Entries")")
+                            .font(.system(size: 15, weight: .medium))
+                            .foregroundStyle(.primary)
+                        
+                        Spacer()
+                        
+                        Image(systemName: entryCount > 0 ? "chevron.right" : "plus")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(entryCount > 0 ? Color.secondary : Color(hex: "44C0FF"))
+                    }
+                    .padding(.horizontal, 16)
+                    .frame(height: 48)
+                    .frame(maxWidth: .infinity)
+                    .background(Color(hex: "F3F1F8"))
+                    .clipShape(RoundedRectangle(cornerRadius: 24))
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+        }
+        .padding(.vertical, 12)
+        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+        .listRowBackground(showGuides ? Color.blue.opacity(0.2) : Color.clear)
+        .listRowSeparator(.hidden)
+    }
+    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -792,32 +1036,33 @@ struct TodayViewV1i2: View {
                     let entryCount = DailyDataManager.shared.getEntryCount(for: selectedDate)
                     let onThisDayCount = DailyDataManager.shared.getOnThisDayCount(for: selectedDate)
                     
-                    HStack(spacing: 12) {
-                        // Entries button - always shown
-                        Button(action: {
-                            showingEntries = true
-                        }) {
-                            HStack {
-                                Text("\(entryCount) \(entryCount == 1 ? "Entry" : "Entries")")
-                                    .font(.system(size: 15, weight: .medium))
-                                    .foregroundStyle(.primary)
-                                
-                                Spacer()
-                                
-                                Image(systemName: entryCount > 0 ? "chevron.right" : "plus")
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundStyle(entryCount > 0 ? Color.secondary : Color(hex: "44C0FF"))
+                    if onThisDayCount > 0 {
+                        // Show both buttons side by side when there are On This Day entries
+                        HStack(spacing: 12) {
+                            // Entries button
+                            Button(action: {
+                                showingEntries = true
+                            }) {
+                                HStack {
+                                    Text("\(entryCount) \(entryCount == 1 ? "Entry" : "Entries")")
+                                        .font(.system(size: 15, weight: .medium))
+                                        .foregroundStyle(.primary)
+                                    
+                                    Spacer()
+                                    
+                                    Image(systemName: entryCount > 0 ? "chevron.right" : "plus")
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundStyle(entryCount > 0 ? Color.secondary : Color(hex: "44C0FF"))
+                                }
+                                .padding(.horizontal, 16)
+                                .frame(height: 48)
+                                .frame(maxWidth: .infinity)
+                                .background(Color(hex: "F3F1F8"))
+                                .clipShape(RoundedRectangle(cornerRadius: 24))
                             }
-                            .padding(.horizontal, 16)
-                            .frame(height: 48)
-                            .frame(maxWidth: .infinity)
-                            .background(Color(hex: "F3F1F8"))
-                            .clipShape(RoundedRectangle(cornerRadius: 24))
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        
-                        // On This Day button - only shown when count > 0
-                        if onThisDayCount > 0 {
+                            .buttonStyle(PlainButtonStyle())
+                            
+                            // On This Day button
                             Button(action: {
                                 showingOnThisDay = true
                             }) {
@@ -839,12 +1084,30 @@ struct TodayViewV1i2: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 24))
                             }
                             .buttonStyle(PlainButtonStyle())
-                        } else {
-                            // Invisible spacer to maintain Entries button width
-                            Color.clear
-                                .frame(height: 48)
-                                .frame(maxWidth: .infinity)
                         }
+                    } else {
+                        // Show full-width Entries button when no On This Day entries
+                        Button(action: {
+                            showingEntries = true
+                        }) {
+                            HStack {
+                                Text("\(entryCount) \(entryCount == 1 ? "Entry" : "Entries")")
+                                    .font(.system(size: 15, weight: .medium))
+                                    .foregroundStyle(.primary)
+                                
+                                Spacer()
+                                
+                                Image(systemName: entryCount > 0 ? "chevron.right" : "plus")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundStyle(entryCount > 0 ? Color.secondary : Color(hex: "44C0FF"))
+                            }
+                            .padding(.horizontal, 16)
+                            .frame(height: 48)
+                            .frame(maxWidth: .infinity)
+                            .background(Color(hex: "F3F1F8"))
+                            .clipShape(RoundedRectangle(cornerRadius: 24))
+                        }
+                        .buttonStyle(PlainButtonStyle())
                     }
                     .padding(.vertical, 12)
                     .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
@@ -853,39 +1116,8 @@ struct TodayViewV1i2: View {
                 }
                 
                 // Daily Chat Carousel Section
-                
                 if showDailyEntryChat {
-                    Section {
-                        VStack(alignment: .leading, spacing: 12) {
-                            // Header content (now part of the section body so it scrolls)
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Daily Entry Chat")
-                                    .font(.title2)
-                                    .fontWeight(.bold)
-                                    .foregroundStyle(Color(hex: "292F33"))
-                                Text("How is your \(selectedDate.formatted(.dateTime.weekday(.wide)))?")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                            }
-                            .padding(.bottom, 8)
-                            .animation(.none, value: selectedDate)
-                            
-                            DailyChatCarouselView(
-                                selectedDate: selectedDate, 
-                                chatCompleted: chatCompleted,
-                                isGeneratingEntry: isGeneratingEntry,
-                                showingDailyChat: $showingDailyChat,
-                                showingEntry: $showingEntry,
-                                showingPreviewEntry: $showingPreviewEntry,
-                                openDailyChatInLogMode: $openDailyChatInLogMode,
-                                showLogVoiceModeButtons: showLogVoiceModeButtons
-                            )
-                            .animation(.none, value: selectedDate)
-                        }
-                    }
-                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                    .listRowBackground(showGuides ? Color.green.opacity(0.2) : cellBackgroundColor)
-                    .listRowSeparator(.hidden)
+                    dailyEntryChatSection
                 }
                 
                 // Moments Carousel Section
@@ -903,123 +1135,7 @@ struct TodayViewV1i2: View {
                 
                 // Moments List Section
                 if showMomentsList {
-                    Section {
-                        VStack(alignment: .leading, spacing: 12) {
-                            // Header content (now part of the section body so it scrolls)
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Moments")
-                                    .font(.title2)
-                                    .fontWeight(.bold)
-                                    .foregroundStyle(Color(hex: "292F33"))
-                                Text("Create an entry from a moment ...")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                            }
-                            // Moments Types
-                            VStack(alignment: .leading, spacing: 0) {
-                                // Photos row
-                                Button(action: {
-                                    showingMediaSheet = true
-                                }) {
-                                    HStack {
-                                        Image(systemName: "photo")
-                                            .font(.system(size: 16))
-                                            .foregroundStyle(.primary)
-                                            .frame(width: 28)
-                                        
-                                        Text("Photos")
-                                            .font(.system(size: 16))
-                                            .foregroundStyle(.primary)
-                                        
-                                        Spacer()
-                                        
-                                        Text("5")
-                                            .font(.system(size: 15))
-                                            .foregroundStyle(.secondary)
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .font(.system(size: 13, weight: .medium))
-                                            .foregroundStyle(Color(.systemGray3))
-                                    }
-                                    .padding(.vertical, 16)
-                                    .padding(.horizontal, 16)
-                                    .contentShape(Rectangle())
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                                
-                                Divider()
-                                    .padding(.leading, 60)
-                                
-                                // Places row
-                                Button(action: {
-                                    showingVisitsSheet = true
-                                }) {
-                                    HStack {
-                                        Image(systemName: "location")
-                                            .font(.system(size: 16))
-                                            .foregroundStyle(.primary)
-                                            .frame(width: 28)
-                                        
-                                        Text("Places")
-                                            .font(.system(size: 16))
-                                            .foregroundStyle(.primary)
-                                        
-                                        Spacer()
-                                        
-                                        Text("4")
-                                            .font(.system(size: 15))
-                                            .foregroundStyle(.secondary)
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .font(.system(size: 13, weight: .medium))
-                                            .foregroundStyle(Color(.systemGray3))
-                                    }
-                                    .padding(.vertical, 16)
-                                    .padding(.horizontal, 16)
-                                    .contentShape(Rectangle())
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                                
-                                Divider()
-                                    .padding(.leading, 60)
-                                
-                                // Events row
-                                Button(action: {
-                                    showingEventsSheet = true
-                                }) {
-                                    HStack {
-                                        Image(systemName: "calendar")
-                                            .font(.system(size: 16))
-                                            .foregroundStyle(.primary)
-                                            .frame(width: 28)
-                                        
-                                        Text("Events")
-                                            .font(.system(size: 16))
-                                            .foregroundStyle(.primary)
-                                        
-                                        Spacer()
-                                        
-                                        Text("3")
-                                            .font(.system(size: 15))
-                                            .foregroundStyle(.secondary)
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .font(.system(size: 13, weight: .medium))
-                                            .foregroundStyle(Color(.systemGray3))
-                                    }
-                                    .padding(.vertical, 16)
-                                    .padding(.horizontal, 16)
-                                    .contentShape(Rectangle())
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                            }
-                            .background(Color(.systemGray6))
-                            .clipShape(RoundedRectangle(cornerRadius: 24))
-                        }
-                    }
-                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                    .listRowBackground(showGuides ? Color.orange.opacity(0.2) : Color.clear)
-                    .listRowSeparator(.hidden)
+                    momentsListSection
                 }
                 
                 // Trackers Section

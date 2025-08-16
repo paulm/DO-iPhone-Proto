@@ -2449,31 +2449,64 @@ struct DailyChatCarouselView: View {
                 }
                 .buttonStyle(PlainButtonStyle())
                 
-                // Entry row (full width, shown when entry exists OR when chat has happened but no entry)
+                // Entry Row (full width, shown when entry exists OR when chat has happened but no entry)
                 if hasEntry {
                     // Show actual entry when it exists
-                    Button(action: {
-                        showingEntry = true
-                    }) {
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text("Morning Reflections")
-                                .font(.footnote)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(.primary)
-                                .multilineTextAlignment(.leading)
-                            
-                            Text("Today I started with my usual morning routine, feeling energized and ready for the day ahead. The weather was perfect...")
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(3)
-                                .multilineTextAlignment(.leading)
+                    VStack(spacing: 0) {
+                        // Divider line
+                        Divider()
+                            .padding(.vertical, 12)
+                        
+                        Button(action: {
+                            showingEntry = true
+                        }) {
+                            VStack(alignment: .leading, spacing: 8) {
+
+                                // Entry content
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Text("Morning Reflections")
+                                        .font(.footnote)
+                                        .fontWeight(.semibold)
+                                        .foregroundStyle(.primary)
+                                        .multilineTextAlignment(.leading)
+                                    
+                                    Text("Today I started with my usual morning routine, feeling energized and ready for the day ahead. The weather was perfect...")
+                                        .font(.footnote)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(3)
+                                        .multilineTextAlignment(.leading)
+                                }
+                                // Metadata row
+                                HStack(spacing: 4) {
+                                    Text("Daily")
+                                        .font(.caption2)
+                                        .fontWeight(.medium)
+                                        .foregroundStyle(Color(hex: "44C0FF"))
+                                    
+                                    Text("•")
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                    
+                                    Text("Salt Lake City, Utah")
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                    
+                                    Text("•")
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                    
+                                    Text("Partly Cloudy 63° - 82°")
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                }
+                                
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 0)
+                            .padding(.bottom, 0)
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(16)
-                        .background(Color.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .buttonStyle(PlainButtonStyle())
                     }
-                    .buttonStyle(PlainButtonStyle())
                 } else if chatCompleted {
                     // Show Generate Entry link when chat exists but no entry
                     Button(action: {
@@ -2528,28 +2561,34 @@ struct DailyChatCarouselView: View {
                 
                 // Update Entry button (only shown when entry exists and there are new messages)
                 if shouldShowEntryButton {
-                    Button(action: {
-                        // Show preview for update
-                        showingPreviewEntry = true
-                    }) {
-                        HStack {
-                            Text(entryButtonText)
-                                .font(.system(size: 15, weight: .medium))
-                                .foregroundStyle(.white)
-                            
-                            Spacer()
-                            
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundStyle(.secondary)
+                    VStack(spacing: 0) {
+                        // Divider line above Update Entry button
+                        Divider()
+                            .padding(.vertical, 12)
+                        
+                        Button(action: {
+                            // Show preview for update
+                            showingPreviewEntry = true
+                        }) {
+                            HStack {
+                                Text(entryButtonText)
+                                    .font(.system(size: 15, weight: .medium))
+                                    .foregroundStyle(.white)
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding(.horizontal, 16)
+                            .frame(height: 48)
+                            .frame(maxWidth: .infinity)
+                            .background(Color(hex: "44C0FF"))
+                            .clipShape(RoundedRectangle(cornerRadius: 24))
                         }
-                        .padding(.horizontal, 16)
-                        .frame(height: 48)
-                        .frame(maxWidth: .infinity)
-                        .background(Color(hex: "44C0FF"))
-                        .clipShape(RoundedRectangle(cornerRadius: 24))
+                        .buttonStyle(PlainButtonStyle())
                     }
-                    .buttonStyle(PlainButtonStyle())
                 }
                 
 

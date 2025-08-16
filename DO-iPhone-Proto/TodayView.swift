@@ -2373,82 +2373,148 @@ struct DailyChatCarouselView: View {
     }
     
     var body: some View {
-        VStack(spacing: 12) {
-            // Entry row (full width, shown when entry exists OR when chat has happened but no entry)
-            if hasEntry {
-                // Show actual entry when it exists
+        // Wrap in gray rounded rectangle when chat has taken place
+        if chatCompleted || hasEntry {
+            VStack(spacing: 12) {
+                
+                // Resume Chat button
                 Button(action: {
-                    showingEntry = true
+                    showingDailyChat = true
                 }) {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("Morning Reflections")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
+                    HStack {
+                        Text("Resume Chat")
+                            .font(.system(size: 15, weight: .medium))
                             .foregroundStyle(.primary)
-                            .multilineTextAlignment(.leading)
                         
-                        Text("Today I started with my usual morning routine, feeling energized and ready for the day ahead. The weather was perfect...")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(2)
-                            .multilineTextAlignment(.leading)
+                        Spacer()
+                        
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(.white.opacity(0.8))
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(16)
-                    .background(Color.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .padding(.horizontal, 16)
+                    .frame(height: 48)
+                    .frame(maxWidth: .infinity)
+                    .background(Color(hex: "E0DEE5"))
+                    .clipShape(RoundedRectangle(cornerRadius: 24))
                 }
                 .buttonStyle(PlainButtonStyle())
-                .padding(.horizontal, 20)
-            } else if chatCompleted {
-                // Show Generate Entry link when chat exists but no entry
-                Button(action: {
-                    if !isGeneratingEntry {
-                        // Trigger entry generation
-                        NotificationCenter.default.post(
-                            name: NSNotification.Name("TriggerEntryGeneration"),
-                            object: selectedDate
-                        )
-                    }
-                }) {
-                    if isGeneratingEntry {
-                        // Show loading state within the cell
-                        HStack(spacing: 8) {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle())
-                                .scaleEffect(0.8)
-                            
-                            Text("Generating...")
+                
+                // Entry row (full width, shown when entry exists OR when chat has happened but no entry)
+                if hasEntry {
+                    // Show actual entry when it exists
+                    Button(action: {
+                        showingEntry = true
+                    }) {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("Morning Reflections")
                                 .font(.subheadline)
-                                .fontWeight(.medium)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.primary)
+                                .multilineTextAlignment(.leading)
+                            
+                            Text("Today I started with my usual morning routine, feeling energized and ready for the day ahead. The weather was perfect...")
+                                .font(.subheadline)
                                 .foregroundStyle(.secondary)
+                                .lineLimit(2)
+                                .multilineTextAlignment(.leading)
                         }
-                        .frame(maxWidth: .infinity, alignment: .center)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(16)
                         .background(Color.white)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
-                    } else {
-                        Text("Generate Entry")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                            .foregroundStyle(Color(hex: "44C0FF"))
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                } else if chatCompleted {
+                    // Show Generate Entry link when chat exists but no entry
+                    Button(action: {
+                        if !isGeneratingEntry {
+                            // Trigger entry generation
+                            NotificationCenter.default.post(
+                                name: NSNotification.Name("TriggerEntryGeneration"),
+                                object: selectedDate
+                            )
+                        }
+                    }) {
+                        if isGeneratingEntry {
+                            // Show loading state within the cell
+                            HStack(spacing: 8) {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle())
+                                    .scaleEffect(0.8)
+                                
+                                Text("Generating...")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(.secondary)
+                            }
                             .frame(maxWidth: .infinity, alignment: .center)
                             .padding(16)
                             .background(Color.white)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
+                        } else {
+                            HStack {
+                                Text("Generate Entry")
+                                    .font(.system(size: 15, weight: .medium))
+                                    .foregroundStyle(.white)
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundStyle(.white.opacity(0.8))
+                            }
+                            .padding(.horizontal, 16)
+                            .frame(height: 48)
+                            .frame(maxWidth: .infinity)
+                            .background(Color(hex: "44C0FF"))
+                            .clipShape(RoundedRectangle(cornerRadius: 24))
+                        }
                     }
+                    .buttonStyle(PlainButtonStyle())
+                    .disabled(isGeneratingEntry)
                 }
-                .buttonStyle(PlainButtonStyle())
-                .disabled(isGeneratingEntry)
-                .padding(.horizontal, 20)
+                
+
+                
+                // Update Entry button (only shown when entry exists and there are new messages)
+                if shouldShowEntryButton {
+                    Button(action: {
+                        // Show preview for update
+                        showingPreviewEntry = true
+                    }) {
+                        HStack {
+                            Text(entryButtonText)
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundStyle(.white)
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.horizontal, 16)
+                        .frame(height: 48)
+                        .frame(maxWidth: .infinity)
+                        .background(Color(hex: "44C0FF"))
+                        .clipShape(RoundedRectangle(cornerRadius: 24))
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+                
+
             }
-            
-            // Single full-width Start Chat button
+            .padding(16)
+            .background(Color(.systemGray6))
+            .clipShape(RoundedRectangle(cornerRadius: 24))
+        } else {
+            // No chat yet - show Start Chat button only
             Button(action: {
                 showingDailyChat = true
             }) {
                 HStack {
-                    Text(chatCompleted ? "Resume Chat" : "Start Chat")
+                    Text("Start Chat")
                         .font(.system(size: 15, weight: .medium))
                         .foregroundStyle(.white)
                     
@@ -2465,32 +2531,6 @@ struct DailyChatCarouselView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 24))
             }
             .buttonStyle(PlainButtonStyle())
-            
-            // Update Entry button (only shown when entry exists and there are new messages)
-            if shouldShowEntryButton {
-                Button(action: {
-                    // Show preview for update
-                    showingPreviewEntry = true
-                }) {
-                    HStack {
-                        Text(entryButtonText)
-                            .font(.system(size: 15, weight: .medium))
-                            .foregroundStyle(.primary)
-                        
-                        Spacer()
-                        
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(.horizontal, 16)
-                    .frame(height: 48)
-                    .frame(maxWidth: .infinity)
-                    .background(Color(hex: "F3F1F8"))
-                    .clipShape(RoundedRectangle(cornerRadius: 24))
-                }
-                .buttonStyle(PlainButtonStyle())
-            }
         }
     }
 }

@@ -509,8 +509,8 @@ struct TodayViewV1i2: View {
     
     @AppStorage("showChatFAB") private var showChatFAB = false
     @AppStorage("showEntryFAB") private var showEntryFAB = false
-    @AppStorage("showChatInputBox") private var showChatInputBox = true
-    @AppStorage("showChatMessage") private var showChatMessage = true
+    @AppStorage("showChatInputBox") private var showChatInputBox = false
+    @AppStorage("showChatMessage") private var showChatMessage = false
     @AppStorage("showMomentsCarousel") private var showMomentsCarousel = false
     @AppStorage("showEntryCarousel") private var showEntryCarousel = false
     @AppStorage("showDailyChatCarousel") private var showDailyChatCarousel = true
@@ -520,8 +520,7 @@ struct TodayViewV1i2: View {
     
     // Options toggles
     @State private var showGridDates = false
-    @State private var showSectionNames = true
-    @State private var showStreak = false
+    // Removed showSectionNames and showStreak toggles
     @Binding var moodRating: Int
     @Binding var energyRating: Int
     @Binding var stressRating: Int
@@ -696,7 +695,7 @@ struct TodayViewV1i2: View {
                         dates: dateRange,
                         selectedDate: $selectedDate,
                         showDates: showGridDates,
-                        showStreak: showStreak
+                        showStreak: false
                     )
                     .id(chatUpdateTrigger) // Force refresh when data changes
                     .background(Color.clear)
@@ -849,11 +848,6 @@ struct TodayViewV1i2: View {
                             openDailyChatInLogMode: $openDailyChatInLogMode,
                             showLogVoiceModeButtons: showLogVoiceModeButtons
                         )
-                    } header: {
-                        if showSectionNames {
-                            Text("Daily Entry Chat")
-                                .padding(.horizontal, 16)
-                        }
                     }
                     .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                     .listRowBackground(showGuides ? Color.green.opacity(0.2) : cellBackgroundColor)
@@ -870,10 +864,6 @@ struct TodayViewV1i2: View {
                         .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                         .listRowBackground(Color.clear)
                         .padding(.horizontal, -20)
-                    } header: {
-                        if showSectionNames {
-                            Text("Today's Prompts")
-                        }
                     }
                 }
                 
@@ -938,10 +928,6 @@ struct TodayViewV1i2: View {
                             .padding(.vertical, 8)
                             .frame(maxWidth: .infinity, alignment: .leading)
                         }
-                    } header: {
-                        if showSectionNames {
-                            Text("Daily Entry")
-                        }
                     }
                     .listRowBackground(cellBackgroundColor)
                 }
@@ -989,10 +975,6 @@ struct TodayViewV1i2: View {
                         .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                         .listRowBackground(Color.clear)
                         .padding(.horizontal, -20)
-                    } header: {
-                        if showSectionNames {
-                            Text("Moments")
-                        }
                     }
                 }
                 
@@ -1120,10 +1102,6 @@ struct TodayViewV1i2: View {
                                 showingTrackers = true
                             }
                         )
-                    } header: {
-                        if showSectionNames {
-                            Text("Daily Trackers")
-                        }
                     }
                     .listRowBackground(cellBackgroundColor)
                 }
@@ -1300,6 +1278,41 @@ struct TodayViewV1i2: View {
                         }
                         
                         Button {
+                            showDailyChatCarousel.toggle()
+                        } label: {
+                            HStack {
+                                Text("Daily Chat Carousel")
+                                if showDailyChatCarousel {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                        
+                        Button {
+                            showLogVoiceModeButtons.toggle()
+                        } label: {
+                            HStack {
+                                Text("Log and Voice Mode Buttons")
+                                if showLogVoiceModeButtons {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                        
+                        Button {
+                            showPromptsCarousel.toggle()
+                        } label: {
+                            HStack {
+                                Text("Prompts Carousel")
+                                if showPromptsCarousel {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                    }
+                    
+                    Section("Show HUD") {
+                        Button {
                             showChatFAB.toggle()
                         } label: {
                             HStack {
@@ -1342,39 +1355,6 @@ struct TodayViewV1i2: View {
                                 }
                             }
                         }
-                        
-                        Button {
-                            showDailyChatCarousel.toggle()
-                        } label: {
-                            HStack {
-                                Text("Daily Chat Carousel")
-                                if showDailyChatCarousel {
-                                    Image(systemName: "checkmark")
-                                }
-                            }
-                        }
-                        
-                        Button {
-                            showLogVoiceModeButtons.toggle()
-                        } label: {
-                            HStack {
-                                Text("Log and Voice Mode Buttons")
-                                if showLogVoiceModeButtons {
-                                    Image(systemName: "checkmark")
-                                }
-                            }
-                        }
-                        
-                        Button {
-                            showPromptsCarousel.toggle()
-                        } label: {
-                            HStack {
-                                Text("Prompts Carousel")
-                                if showPromptsCarousel {
-                                    Image(systemName: "checkmark")
-                                }
-                            }
-                        }
                     }
                     
                     Section("Options") {
@@ -1389,27 +1369,7 @@ struct TodayViewV1i2: View {
                             }
                         }
                         
-                        Button {
-                            showStreak.toggle()
-                        } label: {
-                            HStack {
-                                Text("Show Streak & Today")
-                                if showStreak {
-                                    Image(systemName: "checkmark")
-                                }
-                            }
-                        }
-                        
-                        Button {
-                            showSectionNames.toggle()
-                        } label: {
-                            HStack {
-                                Text("Show Section Names")
-                                if showSectionNames {
-                                    Image(systemName: "checkmark")
-                                }
-                            }
-                        }
+                        // Removed Show Streak & Today and Show Section Names toggles
                     }
                     
                     Section("Style") {

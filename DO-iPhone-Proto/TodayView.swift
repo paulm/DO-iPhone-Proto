@@ -494,6 +494,7 @@ struct TodayViewV1i2: View {
     @State private var showTrackers = false
     @State private var showInsights = true
     @State private var showPrompts = true
+    @State private var showGuides = false
     @State private var selectedPrompt: String? = nil
     
     // Moments visibility toggles
@@ -689,7 +690,7 @@ struct TodayViewV1i2: View {
             // Main content
             List {
                 
-                // Date picker grid at top of scrollable content
+                // Date picker grid at top of scrollable content (off by default for now)
                 if showDatePickerGrid {
                     DatePickerGrid(
                         dates: dateRange,
@@ -704,7 +705,7 @@ struct TodayViewV1i2: View {
                     .padding(.bottom, 20)
                 }
                 
-                // Date Navigation 2 section
+                // Date Navigation section
                 if showDateNavigation {
                     Section {
                         HStack {
@@ -764,7 +765,9 @@ struct TodayViewV1i2: View {
                         }
                         .padding(.vertical, 0)
                     }
-                    .listRowBackground(cellBackgroundColor)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                    .listRowBackground(showGuides ? Color.red.opacity(0.2) : cellBackgroundColor)
+                    .listRowSeparator(.hidden)
                 }
                 
                 
@@ -827,10 +830,10 @@ struct TodayViewV1i2: View {
                                 .frame(maxWidth: .infinity)
                         }
                     }
-                    .padding(.horizontal, 0)
                     .padding(.vertical, 12)
-                    .listRowInsets(EdgeInsets())
-                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                    .listRowBackground(showGuides ? Color.blue.opacity(0.2) : Color.clear)
+                    .listRowSeparator(.hidden)
                 }
                 
                 // Entry Carousel Section - removed per user request
@@ -851,9 +854,12 @@ struct TodayViewV1i2: View {
                     } header: {
                         if showSectionNames {
                             Text("Daily Entry Chat")
+                                .padding(.horizontal, 16)
                         }
                     }
-                    .listRowBackground(cellBackgroundColor)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                    .listRowBackground(showGuides ? Color.green.opacity(0.2) : cellBackgroundColor)
+                    .listRowSeparator(.hidden)
                 }
                 
                 // Prompts Carousel Section
@@ -1122,7 +1128,9 @@ struct TodayViewV1i2: View {
                                 .foregroundStyle(.secondary)
                         }
                     }
-                    .listRowBackground(Color(.systemGray6))
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                    .listRowBackground(showGuides ? Color.orange.opacity(0.2) : Color(.systemGray6))
+                    .listRowSeparator(.hidden)
                 }
                 
                 // Daily Trackers Section
@@ -1152,7 +1160,7 @@ struct TodayViewV1i2: View {
                     .listRowBackground(Color.clear)
                     .listRowInsets(EdgeInsets())
             }
-            .listStyle(.insetGrouped)
+            .listStyle(.plain)
             .scrollContentBackground(.hidden)
             .background(backgroundColor)
             .ignoresSafeArea(edges: .bottom)
@@ -1291,6 +1299,17 @@ struct TodayViewV1i2: View {
                             HStack {
                                 Text("Daily Trackers")
                                 if showTrackers {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                        
+                        Button {
+                            showGuides.toggle()
+                        } label: {
+                            HStack {
+                                Text("Guides")
+                                if showGuides {
                                     Image(systemName: "checkmark")
                                 }
                             }

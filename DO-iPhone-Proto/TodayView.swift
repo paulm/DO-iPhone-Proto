@@ -130,6 +130,18 @@ struct TodayView: View {
                 .navigationTitle("Select Date")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button {
+                            withAnimation {
+                                selectedDate = Date()
+                            }
+                        } label: {
+                            Text("Today")
+                                .foregroundStyle(Calendar.current.isDateInToday(selectedDate) ? Color(.systemGray3) : .blue)
+                        }
+                        .disabled(Calendar.current.isDateInToday(selectedDate))
+                    }
+                    
                     ToolbarItem(placement: .confirmationAction) {
                         Button {
                             showingDatePicker = false
@@ -486,7 +498,7 @@ struct TodayViewV1i2: View {
     @State private var showDatePickerGrid = false
     @State private var showDateNavigation = true
     @State private var showChat = false
-    @State private var showEntry = true
+
     // Removed showMoments
     @State private var showMomentsList = true
     @State private var showTrackers = false
@@ -511,7 +523,7 @@ struct TodayViewV1i2: View {
     @AppStorage("showChatMessage") private var showChatMessage = false
     @AppStorage("showMomentsCarousel") private var showMomentsCarousel = false
     // Removed showEntryCarousel
-    @AppStorage("showDailyChatCarousel") private var showDailyChatCarousel = true
+    @AppStorage("showDailyEntryChat") private var showDailyEntryChat = true
     // Removed showPromptsCarousel
     @AppStorage("showLogVoiceModeButtons") private var showLogVoiceModeButtons = false
     @AppStorage("todayViewStyle") private var selectedStyle = TodayViewStyle.standard
@@ -835,7 +847,7 @@ struct TodayViewV1i2: View {
                 
                 // Daily Chat Carousel Section
                 
-                if showDailyChatCarousel {
+                if showDailyEntryChat {
                     Section {
                         DailyChatCarouselView(
                             selectedDate: selectedDate, 
@@ -861,105 +873,6 @@ struct TodayViewV1i2: View {
                     .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                     .listRowBackground(showGuides ? Color.green.opacity(0.2) : cellBackgroundColor)
                     .listRowSeparator(.hidden)
-                }
-                
-                
-                // Entry section (shown when entry exists OR is being generated OR chat is completed)
-                if showEntry && (DailyContentManager.shared.hasEntry(for: selectedDate) || isGeneratingEntry || (chatCompleted && !DailyContentManager.shared.hasEntry(for: selectedDate))) {
-                    Section {
-                        if isGeneratingEntry {
-                            // Loading state
-                            HStack {
-                                Spacer()
-                                VStack(spacing: 12) {
-                                    ProgressView()
-                                        .scaleEffect(0.8)
-                                    Text("Generating entry...")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                                Spacer()
-                            }
-                            .padding(.vertical, 20)
-                        } else if !DailyContentManager.shared.hasEntry(for: selectedDate) && chatCompleted {
-                            // Show Generate Entry link when chat is completed but no entry exists
-                            Button(action: {
-                                // Trigger entry generation
-                                NotificationCenter.default.post(name: NSNotification.Name("TriggerEntryGeneration"), object: selectedDate)
-                            }) {
-                                Text("Generate Entry from Chat")
-                                    .font(.body)
-                                    .foregroundStyle(Color(hex: "44C0FF"))
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                            .padding(.vertical, 12)
-                        } else {
-                            // Show existing entry
-                            Button(action: {
-                                showingEntry = true
-                            }) {
-                                HStack {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text("Morning Reflections and Evening Plans")
-                                            .font(.subheadline)
-                                            .fontWeight(.bold)
-                                            .foregroundStyle(.primary)
-                                            .multilineTextAlignment(.leading)
-                                        
-                                        Text("Today I started with my usual morning routine, feeling energized and ready to tackle the day ahead. I spent some time thinking about my work goals and how I want to approach the various projects I have on my plate. The conversation helped me organize my thoughts around what's most important right now.")
-                                            .font(.subheadline)
-                                            .foregroundStyle(.secondary)
-                                            .lineLimit(3)
-                                            .multilineTextAlignment(.leading)
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    Image(systemName: "chevron.right")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                            .padding(.vertical, 8)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                    }
-                    .listRowBackground(cellBackgroundColor)
-                }
-                
-                // Update text (shown below Daily Entry when entry exists and chat has updates)
-                if showEntry && DailyContentManager.shared.hasEntry(for: selectedDate) {
-                    let _ = chatUpdateTrigger // Force dependency on chatUpdateTrigger
-                    let hasNewMessages = DailyContentManager.shared.hasNewMessagesSinceEntry(for: selectedDate)
-                    
-                    if hasNewMessages {
-                        let entryMessageCount = DailyContentManager.shared.getEntryMessageCount(for: selectedDate)
-                        let currentMessages = ChatSessionManager.shared.getMessages(for: selectedDate)
-                        let currentUserMessageCount = currentMessages.filter { $0.isUser }.count
-                        let newMessageCount = currentUserMessageCount - entryMessageCount
-                        
-                        HStack(spacing: 0) {
-                            Button(action: {
-                                showingPreviewEntry = true
-                            }) {
-                                Text("Update Entry")
-                                    .font(.caption)
-                                    .foregroundStyle(Color(hex: "44C0FF"))
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                            
-                            Text(" to apply \(newMessageCount) chat update\(newMessageCount == 1 ? "" : "s").")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            
-                            Spacer()
-                        }
-                        .listRowInsets(EdgeInsets(top: -16, leading: 16, bottom: 8, trailing: 16))
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
-                    }
                 }
                 
                 // Moments Carousel Section
@@ -1177,34 +1090,6 @@ struct TodayViewV1i2: View {
                             }
                         }
                         
-                        /*
-                        Button {
-                            showChatSimple.toggle()
-                        } label: {
-                            HStack {
-                                Text("Chat Simple")
-                                if showChatSimple {
-                                    Image(systemName: "checkmark")
-                                }
-                            }
-                        }
-                        */
-                        
-                        Button {
-                            showEntry.toggle()
-                        } label: {
-                            HStack {
-                                Text("Daily Entry")
-                                if showEntry {
-                                    Image(systemName: "checkmark")
-                                }
-                            }
-                        }
-                        
-                        // Removed Entry Carousel toggle
-                        
-                        // Removed Daily Moments toggle
-                        
                         Button {
                             showMomentsCarousel.toggle()
                         } label: {
@@ -1262,11 +1147,11 @@ struct TodayViewV1i2: View {
                         
                         
                         Button {
-                            showDailyChatCarousel.toggle()
+                            showDailyEntryChat.toggle()
                         } label: {
                             HStack {
-                                Text("Daily Chat Carousel")
-                                if showDailyChatCarousel {
+                                Text("Daily Entry Chat")
+                                if showDailyEntryChat {
                                     Image(systemName: "checkmark")
                                 }
                             }

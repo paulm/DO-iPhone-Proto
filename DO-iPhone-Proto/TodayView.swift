@@ -849,25 +849,29 @@ struct TodayViewV1i2: View {
                 
                 if showDailyEntryChat {
                     Section {
-                        DailyChatCarouselView(
-                            selectedDate: selectedDate, 
-                            chatCompleted: chatCompleted,
-                            isGeneratingEntry: isGeneratingEntry,
-                            showingDailyChat: $showingDailyChat,
-                            showingEntry: $showingEntry,
-                            showingPreviewEntry: $showingPreviewEntry,
-                            openDailyChatInLogMode: $openDailyChatInLogMode,
-                            showLogVoiceModeButtons: showLogVoiceModeButtons
-                        )
-                    } header: {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Daily Entry Chat")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .foregroundStyle(Color(hex: "292F33"))
-                            Text("How is your \(selectedDate.formatted(.dateTime.weekday(.wide)))?")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                        VStack(alignment: .leading, spacing: 12) {
+                            // Header content (now part of the section body so it scrolls)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Daily Entry Chat")
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(Color(hex: "292F33"))
+                                Text("How is your \(selectedDate.formatted(.dateTime.weekday(.wide)))?")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding(.bottom, 8)
+                            
+                            DailyChatCarouselView(
+                                selectedDate: selectedDate, 
+                                chatCompleted: chatCompleted,
+                                isGeneratingEntry: isGeneratingEntry,
+                                showingDailyChat: $showingDailyChat,
+                                showingEntry: $showingEntry,
+                                showingPreviewEntry: $showingPreviewEntry,
+                                openDailyChatInLogMode: $openDailyChatInLogMode,
+                                showLogVoiceModeButtons: showLogVoiceModeButtons
+                            )
                         }
                     }
                     .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
@@ -891,7 +895,19 @@ struct TodayViewV1i2: View {
                 // Moments List Section
                 if showMomentsList {
                     Section {
-                        VStack(alignment: .leading, spacing: 0) {
+                        VStack(alignment: .leading, spacing: 12) {
+                            // Header content (now part of the section body so it scrolls)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Moments")
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(Color(hex: "292F33"))
+                                Text("Create an entry from a moment ...")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 0) {
                             // Photos row
                             Button(action: {
                                 showingMediaSheet = true
@@ -984,16 +1000,7 @@ struct TodayViewV1i2: View {
                                 .contentShape(Rectangle())
                             }
                             .buttonStyle(PlainButtonStyle())
-                        }
-                    } header: {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Moments")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .foregroundStyle(Color(hex: "292F33"))
-                            Text("Create an entry from a moment ...")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                            }
                         }
                     }
                     .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))

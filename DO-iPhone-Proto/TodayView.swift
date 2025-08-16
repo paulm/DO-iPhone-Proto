@@ -906,105 +906,110 @@ struct TodayViewV1i2: View {
                                     .font(.subheadline)
                                     .foregroundStyle(.secondary)
                             }
-                            
+                            // Moments Types
                             VStack(alignment: .leading, spacing: 0) {
-                            // Photos row
-                            Button(action: {
-                                showingMediaSheet = true
-                            }) {
-                                HStack {
-                                    Image(systemName: "photo")
-                                        .font(.system(size: 16))
-                                        .foregroundStyle(.primary)
-                                        .frame(width: 28)
-                                    
-                                    Text("Photos")
-                                        .font(.system(size: 16))
-                                        .foregroundStyle(.primary)
-                                    
-                                    Spacer()
-                                    
-                                    Text("5")
-                                        .font(.system(size: 15))
-                                        .foregroundStyle(.secondary)
-                                    
-                                    Image(systemName: "chevron.right")
-                                        .font(.system(size: 13, weight: .medium))
-                                        .foregroundStyle(Color(.systemGray3))
+                                // Photos row
+                                Button(action: {
+                                    showingMediaSheet = true
+                                }) {
+                                    HStack {
+                                        Image(systemName: "photo")
+                                            .font(.system(size: 16))
+                                            .foregroundStyle(.primary)
+                                            .frame(width: 28)
+                                        
+                                        Text("Photos")
+                                            .font(.system(size: 16))
+                                            .foregroundStyle(.primary)
+                                        
+                                        Spacer()
+                                        
+                                        Text("5")
+                                            .font(.system(size: 15))
+                                            .foregroundStyle(.secondary)
+                                        
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 13, weight: .medium))
+                                            .foregroundStyle(Color(.systemGray3))
+                                    }
+                                    .padding(.vertical, 16)
+                                    .padding(.horizontal, 16)
+                                    .contentShape(Rectangle())
                                 }
-                                .padding(.vertical, 12)
-                                .contentShape(Rectangle())
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                            
-                            Divider()
-                                .padding(.leading, 44)
-                            
-                            // Places row
-                            Button(action: {
-                                showingVisitsSheet = true
-                            }) {
-                                HStack {
-                                    Image(systemName: "location")
-                                        .font(.system(size: 16))
-                                        .foregroundStyle(.primary)
-                                        .frame(width: 28)
-                                    
-                                    Text("Places")
-                                        .font(.system(size: 16))
-                                        .foregroundStyle(.primary)
-                                    
-                                    Spacer()
-                                    
-                                    Text("4")
-                                        .font(.system(size: 15))
-                                        .foregroundStyle(.secondary)
-                                    
-                                    Image(systemName: "chevron.right")
-                                        .font(.system(size: 13, weight: .medium))
-                                        .foregroundStyle(Color(.systemGray3))
+                                .buttonStyle(PlainButtonStyle())
+                                
+                                Divider()
+                                    .padding(.leading, 60)
+                                
+                                // Places row
+                                Button(action: {
+                                    showingVisitsSheet = true
+                                }) {
+                                    HStack {
+                                        Image(systemName: "location")
+                                            .font(.system(size: 16))
+                                            .foregroundStyle(.primary)
+                                            .frame(width: 28)
+                                        
+                                        Text("Places")
+                                            .font(.system(size: 16))
+                                            .foregroundStyle(.primary)
+                                        
+                                        Spacer()
+                                        
+                                        Text("4")
+                                            .font(.system(size: 15))
+                                            .foregroundStyle(.secondary)
+                                        
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 13, weight: .medium))
+                                            .foregroundStyle(Color(.systemGray3))
+                                    }
+                                    .padding(.vertical, 16)
+                                    .padding(.horizontal, 16)
+                                    .contentShape(Rectangle())
                                 }
-                                .padding(.vertical, 12)
-                                .contentShape(Rectangle())
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                            
-                            Divider()
-                                .padding(.leading, 44)
-                            
-                            // Events row
-                            Button(action: {
-                                showingEventsSheet = true
-                            }) {
-                                HStack {
-                                    Image(systemName: "calendar")
-                                        .font(.system(size: 16))
-                                        .foregroundStyle(.primary)
-                                        .frame(width: 28)
-                                    
-                                    Text("Events")
-                                        .font(.system(size: 16))
-                                        .foregroundStyle(.primary)
-                                    
-                                    Spacer()
-                                    
-                                    Text("3")
-                                        .font(.system(size: 15))
-                                        .foregroundStyle(.secondary)
-                                    
-                                    Image(systemName: "chevron.right")
-                                        .font(.system(size: 13, weight: .medium))
-                                        .foregroundStyle(Color(.systemGray3))
+                                .buttonStyle(PlainButtonStyle())
+                                
+                                Divider()
+                                    .padding(.leading, 60)
+                                
+                                // Events row
+                                Button(action: {
+                                    showingEventsSheet = true
+                                }) {
+                                    HStack {
+                                        Image(systemName: "calendar")
+                                            .font(.system(size: 16))
+                                            .foregroundStyle(.primary)
+                                            .frame(width: 28)
+                                        
+                                        Text("Events")
+                                            .font(.system(size: 16))
+                                            .foregroundStyle(.primary)
+                                        
+                                        Spacer()
+                                        
+                                        Text("3")
+                                            .font(.system(size: 15))
+                                            .foregroundStyle(.secondary)
+                                        
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 13, weight: .medium))
+                                            .foregroundStyle(Color(.systemGray3))
+                                    }
+                                    .padding(.vertical, 16)
+                                    .padding(.horizontal, 16)
+                                    .contentShape(Rectangle())
                                 }
-                                .padding(.vertical, 12)
-                                .contentShape(Rectangle())
+                                .buttonStyle(PlainButtonStyle())
                             }
-                            .buttonStyle(PlainButtonStyle())
-                            }
+                            .background(Color(.systemGray6))
+                            .clipShape(RoundedRectangle(cornerRadius: 24))
                         }
                     }
                     .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                    .listRowBackground(showGuides ? Color.orange.opacity(0.2) : Color(.systemGray6))
+                    .listRowBackground(showGuides ? Color.orange.opacity(0.2) : Color.clear)
                     .listRowSeparator(.hidden)
                 }
                 

@@ -135,6 +135,7 @@ struct TodayView: View {
                             withAnimation {
                                 selectedDate = Date()
                             }
+                            showingDatePicker = false
                         } label: {
                             Text("Today")
                                 .foregroundStyle(Calendar.current.isDateInToday(selectedDate) ? Color(.systemGray3) : .blue)
@@ -150,6 +151,12 @@ struct TodayView: View {
                                 .labelStyle(.titleAndIcon)
                         }
                         .tint(.blue)
+                    }
+                }
+                .onChange(of: selectedDate) { oldValue, newValue in
+                    // Dismiss when user taps a date (but not on initial load)
+                    if oldValue != newValue {
+                        showingDatePicker = false
                     }
                 }
             }

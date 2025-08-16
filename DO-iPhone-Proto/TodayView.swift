@@ -486,10 +486,9 @@ struct TodayViewV1i2: View {
     @State private var showDatePickerGrid = false
     @State private var showDateNavigation = true
     @State private var showChat = false
-    @State private var showChatSimple = true
-    @State private var showDailyEntry = true
-    @State private var showEntry = false
-    @State private var showMoments = false
+    // @State private var showChatSimple = true  // Commented out Chat Simple
+    // Removed showDailyEntry and showEntry - Daily Entry is always shown
+    // Removed showMoments
     @State private var showMomentsList = true
     @State private var showTrackers = false
     @State private var showInsights = true
@@ -512,9 +511,9 @@ struct TodayViewV1i2: View {
     @AppStorage("showChatInputBox") private var showChatInputBox = false
     @AppStorage("showChatMessage") private var showChatMessage = false
     @AppStorage("showMomentsCarousel") private var showMomentsCarousel = false
-    @AppStorage("showEntryCarousel") private var showEntryCarousel = false
+    // Removed showEntryCarousel
     @AppStorage("showDailyChatCarousel") private var showDailyChatCarousel = true
-    @AppStorage("showPromptsCarousel") private var showPromptsCarousel = true
+    // Removed showPromptsCarousel
     @AppStorage("showLogVoiceModeButtons") private var showLogVoiceModeButtons = false
     @AppStorage("todayViewStyle") private var selectedStyle = TodayViewStyle.standard
     
@@ -836,6 +835,7 @@ struct TodayViewV1i2: View {
                 }
                 
                 // Daily Chat Carousel Section
+                
                 if showDailyChatCarousel {
                     Section {
                         DailyChatCarouselView(
@@ -854,21 +854,9 @@ struct TodayViewV1i2: View {
                     .listRowSeparator(.hidden)
                 }
                 
-                // Prompts Carousel Section
-                if showPromptsCarousel {
-                    Section {
-                        PromptsCarouselView(
-                            showingEntry: $showingEntry,
-                            selectedPrompt: $selectedPrompt
-                        )
-                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                        .listRowBackground(Color.clear)
-                        .padding(.horizontal, -20)
-                    }
-                }
                 
-                // Entry section (shown when entry exists OR is being generated OR chat is completed)
-                if showEntry && (DailyContentManager.shared.hasEntry(for: selectedDate) || isGeneratingEntry || (chatCompleted && !DailyContentManager.shared.hasEntry(for: selectedDate))) {
+                // Entry section (always shown when entry exists OR is being generated OR chat is completed)
+                if DailyContentManager.shared.hasEntry(for: selectedDate) || isGeneratingEntry || (chatCompleted && !DailyContentManager.shared.hasEntry(for: selectedDate)) {
                     Section {
                         if isGeneratingEntry {
                             // Loading state
@@ -933,7 +921,7 @@ struct TodayViewV1i2: View {
                 }
                 
                 // Update text (shown below Daily Entry when entry exists and chat has updates)
-                if showEntry && DailyContentManager.shared.hasEntry(for: selectedDate) {
+                if DailyContentManager.shared.hasEntry(for: selectedDate) {
                     let _ = chatUpdateTrigger // Force dependency on chatUpdateTrigger
                     let hasNewMessages = DailyContentManager.shared.hasNewMessagesSinceEntry(for: selectedDate)
                     
@@ -1178,6 +1166,7 @@ struct TodayViewV1i2: View {
                             }
                         }
                         
+                        /*
                         Button {
                             showChatSimple.toggle()
                         } label: {
@@ -1188,39 +1177,13 @@ struct TodayViewV1i2: View {
                                 }
                             }
                         }
+                        */
                         
-                        Button {
-                            showEntry.toggle()
-                        } label: {
-                            HStack {
-                                Text("Daily Entry")
-                                if showEntry {
-                                    Image(systemName: "checkmark")
-                                }
-                            }
-                        }
+                        // Removed Daily Entry toggle - always shown
                         
-                        Button {
-                            showEntryCarousel.toggle()
-                        } label: {
-                            HStack {
-                                Text("Entry Carousel")
-                                if showEntryCarousel {
-                                    Image(systemName: "checkmark")
-                                }
-                            }
-                        }
+                        // Removed Entry Carousel toggle
                         
-                        Button {
-                            showMoments.toggle()
-                        } label: {
-                            HStack {
-                                Text("Daily Moments")
-                                if showMoments {
-                                    Image(systemName: "checkmark")
-                                }
-                            }
-                        }
+                        // Removed Daily Moments toggle
                         
                         Button {
                             showMomentsCarousel.toggle()
@@ -1277,6 +1240,7 @@ struct TodayViewV1i2: View {
                             }
                         }
                         
+                        
                         Button {
                             showDailyChatCarousel.toggle()
                         } label: {
@@ -1287,6 +1251,7 @@ struct TodayViewV1i2: View {
                                 }
                             }
                         }
+                        
                         
                         Button {
                             showLogVoiceModeButtons.toggle()
@@ -1299,16 +1264,7 @@ struct TodayViewV1i2: View {
                             }
                         }
                         
-                        Button {
-                            showPromptsCarousel.toggle()
-                        } label: {
-                            HStack {
-                                Text("Prompts Carousel")
-                                if showPromptsCarousel {
-                                    Image(systemName: "checkmark")
-                                }
-                            }
-                        }
+                        // Removed Prompts Carousel toggle
                     }
                     
                     Section("Show HUD") {
@@ -2460,88 +2416,7 @@ struct TodayInsightItemView: View {
 
 // MARK: - ChatEntryPreviewView moved to DailyChatViews.swift
 
-// MARK: - Entry Carousel View
-struct EntryCarouselView: View {
-    let selectedDate: Date
-    
-    struct EntryCategory {
-        let title: String
-        let icon: String
-        let count: Int
-        let color: Color
-        let showPlus: Bool
-        let isDimmed: Bool
-    }
-    
-    var categories: [EntryCategory] {
-        let entriesCount = DailyDataManager.shared.getEntryCount(for: selectedDate)
-        let onThisDayCount = DailyDataManager.shared.getOnThisDayCount(for: selectedDate)
-        
-        return [
-            EntryCategory(
-                title: "Journals", 
-                icon: "books.vertical.fill", 
-                count: 13, 
-                color: Color(hex: "333B40"),
-                showPlus: false,
-                isDimmed: false
-            ),
-            EntryCategory(
-                title: entriesCount > 0 ? (entriesCount == 1 ? "Entry" : "Entries") : "Create Entry", 
-                icon: entriesCount > 0 ? "doc.text.fill" : "plus", 
-                count: entriesCount, 
-                color: Color(hex: "333B40"),
-                showPlus: entriesCount == 0,
-                isDimmed: false
-            ),
-            EntryCategory(
-                title: "On This Day", 
-                icon: "calendar", 
-                count: onThisDayCount, 
-                color: Color(hex: "333B40"),
-                showPlus: false,
-                isDimmed: onThisDayCount == 0
-            )
-        ]
-    }
-    
-    var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                ForEach(Array(categories.enumerated()), id: \.element.title) { index, category in
-                    VStack(spacing: 0) {
-                        // Icon
-                        Image(systemName: category.icon)
-                            .font(.system(size: 28))
-                            .foregroundStyle(category.isDimmed ? category.color.opacity(0.4) : category.color)
-                            .frame(maxHeight: .infinity)
-                        
-                        // Count label
-                        if category.showPlus {
-                            Text(category.title)
-                                .font(.system(size: 11))
-                                .foregroundStyle(.secondary)
-                                .padding(.bottom, 8)
-                        } else {
-                            Text("\(category.count) \(category.title)")
-                                .font(.system(size: 11))
-                                .foregroundStyle(.secondary)
-                                .opacity(category.isDimmed ? 0.4 : 1.0)
-                                .padding(.bottom, 8)
-                        }
-                    }
-                    .frame(width: 116, height: 84)
-                    .background(Color.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .opacity(category.isDimmed ? 0.6 : 1.0)
-                    .padding(.leading, index == 0 ? 20 : 0)
-                    .padding(.trailing, index == categories.count - 1 ? 20 : 0)
-                }
-            }
-        }
-        .padding(.vertical, 4)
-    }
-}
+// Entry Carousel View removed
 
 // MARK: - Daily Chat Carousel View
 struct DailyChatCarouselView: View {
@@ -3283,47 +3158,7 @@ struct MediaSheetView: View {
     }
 }
 
-// MARK: - Prompts Carousel View
-struct PromptsCarouselView: View {
-    @Binding var showingEntry: Bool
-    @Binding var selectedPrompt: String?
-    
-    // Sample prompts with colors
-    private let todaysPrompts = [
-        ("What moment made you smile today?", Color(hex: "44C0FF")),
-        ("What are you grateful for right now?", Color(hex: "FF6B6B")),
-        ("What did you learn today?", Color(hex: "9B59B6"))
-    ]
-    
-    var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                ForEach(Array(todaysPrompts.enumerated()), id: \.0) { index, prompt in
-                    Button(action: {
-                        selectedPrompt = prompt.0
-                        showingEntry = true
-                    }) {
-                        Text(prompt.0)
-                            .font(.system(size: 14, weight: .light, design: .serif))
-                            .foregroundStyle(.white)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 12)
-                            .frame(width: 200, height: 84)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(prompt.1)
-                            )
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .padding(.leading, index == 0 ? 20 : 0)
-                    .padding(.trailing, index == todaysPrompts.count - 1 ? 20 : 0)
-                }
-            }
-        }
-        .padding(.vertical, 4)
-    }
-}
+// Prompts Carousel View removed
 
 // MARK: - Keyboard Handling
 struct KeyboardHandler: UIViewRepresentable {

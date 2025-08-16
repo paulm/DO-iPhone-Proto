@@ -1077,7 +1077,7 @@ struct TodayViewV1i2: View {
                     .listRowSeparator(.hidden)
                 }
                 
-                // Daily Trackers Section
+                // Trackers Section
                 if showTrackers {
                     Section {
                         TodayActivityRowWithCheckbox(
@@ -1211,7 +1211,7 @@ struct TodayViewV1i2: View {
                             showTrackers.toggle()
                         } label: {
                             HStack {
-                                Text("Daily Trackers")
+                                Text("Trackers")
                                 if showTrackers {
                                     Image(systemName: "checkmark")
                                 }

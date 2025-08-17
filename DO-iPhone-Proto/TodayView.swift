@@ -51,145 +51,6 @@ class MomentsSelectionManager: ObservableObject {
     }
 }
 
-/// Today tab view
-struct TodayView: View {
-    @State private var showingSettings = false
-    @State private var showingDatePicker = false
-    @State private var showingDailySurvey = false
-    @State private var showingMoments = false
-    @State private var showingTrackers = false
-    @State private var selectedDate = Date()
-    @State private var surveyCompleted = false
-    
-    // Trackers state
-    @State private var moodRating = 0
-    @State private var energyRating = 0
-    @State private var stressRating = 0
-    @State private var foodInput = ""
-    @State private var prioritiesInput = ""
-    @State private var mediaInput = ""
-    @State private var peopleInput = ""
-    
-    // Moments state
-    @StateObject private var momentsSelection = MomentsSelectionManager.shared
-    
-    private var dateRange: [Date] {
-        let calendar = Calendar.current
-        var dates: [Date] = []
-        let today = Date()
-        
-        // Calculate how many dates we need based on screen width
-        // Assuming we want to fit as many as possible in the configured number of rows
-        let approximateWidth = UIScreen.main.bounds.width - 40
-        let columnsPerRow = Int((approximateWidth + DatePickerConstants.spacing) / (DatePickerConstants.circleSize + DatePickerConstants.spacing))
-        let totalDates = columnsPerRow * DatePickerConstants.numberOfRows
-        
-        // Calculate the starting date to ensure we end 4 days in the future
-        let endDate = 4
-        let startDate = endDate - totalDates + 1
-        
-        // Generate dates from calculated start to 4 days in the future
-        for i in startDate...endDate {
-            if let date = calendar.date(byAdding: .day, value: i, to: today) {
-                dates.append(date)
-            }
-        }
-        
-        return dates
-    }
-    
-    var body: some View {
-        TodayViewV1i2(
-            showingSettings: $showingSettings,
-            showingDatePicker: $showingDatePicker,
-            showingDailySurvey: $showingDailySurvey,
-            showingMoments: $showingMoments,
-            showingTrackers: $showingTrackers,
-            selectedDate: $selectedDate,
-            surveyCompleted: $surveyCompleted,
-            moodRating: $moodRating,
-            energyRating: $energyRating,
-            stressRating: $stressRating,
-            foodInput: $foodInput,
-            prioritiesInput: $prioritiesInput,
-            mediaInput: $mediaInput,
-            peopleInput: $peopleInput
-        )
-        .sheet(isPresented: $showingSettings) {
-            SettingsView()
-        }
-        .sheet(isPresented: $showingDatePicker) {
-            NavigationStack {
-                DatePicker(
-                    "Select Date",
-                    selection: $selectedDate,
-                    displayedComponents: .date
-                )
-                .datePickerStyle(.graphical)
-                .padding()
-                .navigationTitle("Select Date")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        Button {
-                            withAnimation {
-                                selectedDate = Date()
-                            }
-                            showingDatePicker = false
-                        } label: {
-                            Text("Today")
-                                .foregroundStyle(Calendar.current.isDateInToday(selectedDate) ? Color(.systemGray3) : .blue)
-                        }
-                        .disabled(Calendar.current.isDateInToday(selectedDate))
-                    }
-                    
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button {
-                            showingDatePicker = false
-                        } label: {
-                            Label("Done", systemImage: "checkmark")
-                                .labelStyle(.titleAndIcon)
-                        }
-                        .tint(.blue)
-                    }
-                }
-                .onChange(of: selectedDate) { oldValue, newValue in
-                    // Dismiss when user taps a date (but not on initial load)
-                    if oldValue != newValue {
-                        showingDatePicker = false
-                    }
-                }
-            }
-            .presentationDetents([.medium])
-            .presentationDragIndicator(.visible)
-            .presentationBackgroundInteraction(.enabled(upThrough: .medium))
-        }
-        .sheet(isPresented: $showingDailySurvey) {
-            DailySurveyView(onCompletion: {
-                surveyCompleted = true
-            })
-        }
-        .sheet(isPresented: $showingMoments) {
-            MomentsView(
-                selectedLocations: $momentsSelection.selectedLocations,
-                selectedEvents: $momentsSelection.selectedEvents,
-                selectedPhotos: $momentsSelection.selectedPhotos,
-                selectedHealth: $momentsSelection.selectedHealth
-            )
-        }
-        .sheet(isPresented: $showingTrackers) {
-            TrackerView(
-                moodRating: $moodRating,
-                energyRating: $energyRating,
-                stressRating: $stressRating,
-                foodInput: $foodInput,
-                prioritiesInput: $prioritiesInput,
-                mediaInput: $mediaInput,
-                peopleInput: $peopleInput
-            )
-        }
-    }
-}
 
 // MARK: - Date Picker Components
 private struct DatePickerConstants {
@@ -460,15 +321,24 @@ struct DateCircle: View {
     }
 }
 
-/// V1i2 Today tab layout - Enhanced with Daily Activities section
-struct TodayViewV1i2: View {
-    @Binding var showingSettings: Bool
-    @Binding var showingDatePicker: Bool
-    @Binding var showingDailySurvey: Bool
-    @Binding var showingMoments: Bool
-    @Binding var showingTrackers: Bool
-    @Binding var selectedDate: Date
-    @Binding var surveyCompleted: Bool
+/// Today tab view
+struct TodayView: View {
+    @State private var showingSettings = false
+    @State private var showingDatePicker = false
+    @State private var showingDailySurvey = false
+    @State private var showingMoments = false
+    @State private var showingTrackers = false
+    @State private var selectedDate = Date()
+    @State private var surveyCompleted = false
+    
+    // Trackers state
+    @State private var moodRating = 0
+    @State private var energyRating = 0
+    @State private var stressRating = 0
+    @State private var foodInput = ""
+    @State private var prioritiesInput = ""
+    @State private var mediaInput = ""
+    @State private var peopleInput = ""
     
     // Moments selection manager
     @StateObject private var momentsSelection = MomentsSelectionManager.shared
@@ -533,13 +403,6 @@ struct TodayViewV1i2: View {
     
     // Options toggles
     @State private var showGridDates = false
-    @Binding var moodRating: Int
-    @Binding var energyRating: Int
-    @Binding var stressRating: Int
-    @Binding var foodInput: String
-    @Binding var prioritiesInput: String
-    @Binding var mediaInput: String
-    @Binding var peopleInput: String
     
     private var dateRange: [Date] {
         let calendar = Calendar.current

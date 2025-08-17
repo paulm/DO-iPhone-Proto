@@ -569,11 +569,14 @@ struct TodayView: View {
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundStyle(Color(hex: "292F33"))
-                    Text("How is your \(selectedDate.formatted(.dateTime.weekday(.wide)))?")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                    // Only show welcome prompt when no chat has taken place
+                    if !chatCompleted && !DailyContentManager.shared.hasEntry(for: selectedDate) {
+                        Text("How is your \(selectedDate.formatted(.dateTime.weekday(.wide)))?")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
                 }
-                .padding(.bottom, 8)
+                .padding(.bottom, chatCompleted || DailyContentManager.shared.hasEntry(for: selectedDate) ? 4 : 8)
                 .animation(.none, value: selectedDate)
                 
                 DailyEntryChatView(

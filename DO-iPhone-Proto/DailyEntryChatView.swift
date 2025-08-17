@@ -42,6 +42,24 @@ struct DailyEntryChatView: View {
         if chatCompleted || hasEntry {
             VStack(spacing: 12) {
                 
+                // Last chat message preview (only show when chat exists)
+                if chatCompleted {
+                    VStack(alignment: .leading, spacing: 12) {
+                        // Get last AI message
+                        let messages = ChatSessionManager.shared.getMessages(for: selectedDate)
+                        let lastAIMessage = messages.last(where: { !$0.isUser })
+                        
+                        if let lastMessage = lastAIMessage {
+                            Text(lastMessage.content)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(3)
+                                .multilineTextAlignment(.leading)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
+                }
+                
                 // Resume Chat button
                 Button(action: {
                     showingDailyChat = true

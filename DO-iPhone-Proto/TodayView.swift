@@ -576,7 +576,7 @@ struct TodayView: View {
                 .padding(.bottom, 8)
                 .animation(.none, value: selectedDate)
                 
-                DailyChatCarouselView(
+                DailyEntryChatView(
                     selectedDate: selectedDate,
                     chatCompleted: chatCompleted,
                     isGeneratingEntry: isGeneratingEntry,

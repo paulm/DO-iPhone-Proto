@@ -1,7 +1,7 @@
 import SwiftUI
 
-// MARK: - Daily Chat Carousel View
-struct DailyChatCarouselView: View {
+// MARK: - Daily Entry Chat View
+struct DailyEntryChatView: View {
     let selectedDate: Date
     let chatCompleted: Bool
     let isGeneratingEntry: Bool

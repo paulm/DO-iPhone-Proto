@@ -505,8 +505,6 @@ struct TodayViewV1i2: View {
     @State private var showDatePickerGrid = false
     @State private var showDateNavigation = true
     @State private var showChat = false
-
-    // Removed showMoments
     @State private var showMomentsList = true
     @State private var showTrackers = false
     @State private var showInsights = true
@@ -529,15 +527,12 @@ struct TodayViewV1i2: View {
     @AppStorage("showChatInputBox") private var showChatInputBox = false
     @AppStorage("showChatMessage") private var showChatMessage = false
     @AppStorage("showMomentsCarousel") private var showMomentsCarousel = false
-    // Removed showEntryCarousel
     @AppStorage("showDailyEntryChat") private var showDailyEntryChat = true
-    // Removed showPromptsCarousel
     @AppStorage("showLogVoiceModeButtons") private var showLogVoiceModeButtons = false
     @AppStorage("todayViewStyle") private var selectedStyle = TodayViewStyle.standard
     
     // Options toggles
     @State private var showGridDates = false
-    // Removed showSectionNames and showStreak toggles
     @Binding var moodRating: Int
     @Binding var energyRating: Int
     @Binding var stressRating: Int
@@ -1230,7 +1225,6 @@ struct TodayViewV1i2: View {
                             }
                         }
                         
-                        // Removed Prompts Carousel toggle
                     }
                     
                     Section("Show HUD") {
@@ -1290,8 +1284,7 @@ struct TodayViewV1i2: View {
                                 }
                             }
                         }
-                        
-                        // Removed Show Streak & Today and Show Section Names toggles
+
                     }
                     
                     Section("Style") {
@@ -2382,8 +2375,6 @@ struct TodayInsightItemView: View {
 
 // MARK: - ChatEntryPreviewView moved to DailyChatViews.swift
 
-// Entry Carousel View removed
-
 
 // MARK: - Moments Carousel View
 struct MomentsCarouselView: View {
@@ -2894,8 +2885,6 @@ struct MediaSheetView: View {
         }
     }
 }
-
-// Prompts Carousel View removed
 
 // MARK: - Keyboard Handling
 struct KeyboardHandler: UIViewRepresentable {

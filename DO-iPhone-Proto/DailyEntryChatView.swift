@@ -55,7 +55,8 @@ struct DailyEntryChatView: View {
                         
                         Image(systemName: "chevron.right")
                             .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.8))
+                            .foregroundStyle(.primary)
+                            
                     }
                     .padding(.horizontal, 16)
                     .frame(height: 48)
@@ -77,6 +78,23 @@ struct DailyEntryChatView: View {
                             showingEntry = true
                         }) {
                             VStack(alignment: .leading, spacing: 8) {
+
+                                
+                                // Entry content
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Text("Morning Reflections")
+                                        .font(.footnote)
+                                        .fontWeight(.semibold)
+                                        .foregroundStyle(.primary)
+                                        .multilineTextAlignment(.leading)
+                                    
+                                    Text("Today I started with my usual morning routine, feeling energized and ready for the day ahead. The weather was perfect...")
+                                        .font(.footnote)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(3)
+                                        .multilineTextAlignment(.leading)
+                                }
+                                
                                 // Metadata row
                                 HStack(spacing: 4) {
                                     Text("Daily")
@@ -99,21 +117,6 @@ struct DailyEntryChatView: View {
                                     Text("Partly Cloudy 63° - 82°")
                                         .font(.caption2)
                                         .foregroundStyle(.secondary)
-                                }
-                                
-                                // Entry content
-                                VStack(alignment: .leading, spacing: 3) {
-                                    Text("Morning Reflections")
-                                        .font(.footnote)
-                                        .fontWeight(.semibold)
-                                        .foregroundStyle(.primary)
-                                        .multilineTextAlignment(.leading)
-                                    
-                                    Text("Today I started with my usual morning routine, feeling energized and ready for the day ahead. The weather was perfect...")
-                                        .font(.footnote)
-                                        .foregroundStyle(.secondary)
-                                        .lineLimit(3)
-                                        .multilineTextAlignment(.leading)
                                 }
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -192,7 +195,7 @@ struct DailyEntryChatView: View {
                                 
                                 Image(systemName: "chevron.right")
                                     .font(.system(size: 14, weight: .medium))
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(.white.opacity(0.8))
                             }
                             .padding(.horizontal, 16)
                             .frame(height: 48)

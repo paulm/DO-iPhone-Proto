@@ -46,19 +46,15 @@ struct DailyEntryChatView: View {
                 Button(action: {
                     showingDailyChat = true
                 }) {
-                    HStack {
+                    HStack(spacing: 8) {
+                        Image(systemName: "bubble.left.and.bubble.right")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(.primary)
+                        
                         Text("Resume Chat")
-                            .font(.system(size: 15, weight: .medium))
+                            .font(.system(size: 17, weight: .semibold))
                             .foregroundStyle(.primary)
-                        
-                        Spacer()
-                        
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(.primary)
-                            
                     }
-                    .padding(.horizontal, 16)
                     .frame(height: 48)
                     .frame(maxWidth: .infinity)
                     .background(Color(hex: "E0DEE5"))
@@ -72,7 +68,8 @@ struct DailyEntryChatView: View {
                     VStack(spacing: 0) {
                         // Divider line
                         Divider()
-                            .padding(.vertical, 12)
+                            .padding(.top, 2)
+                            .padding(.bottom, 12)
                         
                         Button(action: {
                             showingEntry = true
@@ -83,13 +80,13 @@ struct DailyEntryChatView: View {
                                 // Entry content
                                 VStack(alignment: .leading, spacing: 3) {
                                     Text("Morning Reflections")
-                                        .font(.footnote)
+                                        .font(.subheadline)
                                         .fontWeight(.semibold)
                                         .foregroundStyle(.primary)
                                         .multilineTextAlignment(.leading)
                                     
                                     Text("Today I started with my usual morning routine, feeling energized and ready for the day ahead. The weather was perfect...")
-                                        .font(.footnote)
+                                        .font(.subheadline)
                                         .foregroundStyle(.secondary)
                                         .lineLimit(3)
                                         .multilineTextAlignment(.leading)
@@ -98,30 +95,30 @@ struct DailyEntryChatView: View {
                                 // Metadata row
                                 HStack(spacing: 4) {
                                     Text("Daily")
-                                        .font(.caption2)
+                                        .font(.footnote)
                                         .fontWeight(.medium)
                                         .foregroundStyle(Color(hex: "44C0FF"))
                                     
                                     Text("•")
-                                        .font(.caption2)
+                                        .font(.footnote)
                                         .foregroundStyle(.secondary)
                                     
                                     Text("Salt Lake City, Utah")
-                                        .font(.caption2)
+                                        .font(.footnote)
                                         .foregroundStyle(.secondary)
                                     
                                     Text("•")
-                                        .font(.caption2)
+                                        .font(.footnote)
                                         .foregroundStyle(.secondary)
                                     
                                     Text("Partly Cloudy 63° - 82°")
-                                        .font(.caption2)
+                                        .font(.footnote)
                                         .foregroundStyle(.secondary)
                                 }
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 16)
-                            .padding(.bottom, 16)
+                            .padding(.horizontal, 0)
+                            .padding(.bottom, 0)
                         }
                         .buttonStyle(PlainButtonStyle())
                     }
@@ -153,18 +150,15 @@ struct DailyEntryChatView: View {
                             .background(Color.white)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                         } else {
-                            HStack {
-                                Text("Generate Entry")
-                                    .font(.system(size: 15, weight: .medium))
+                            HStack(spacing: 8) {
+                                Image(systemName: "doc.text")
+                                    .font(.system(size: 16, weight: .semibold))
                                     .foregroundStyle(.white)
                                 
-                                Spacer()
-                                
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundStyle(.white.opacity(0.8))
+                                Text("Generate Entry")
+                                    .font(.system(size: 17, weight: .semibold))
+                                    .foregroundStyle(.white)
                             }
-                            .padding(.horizontal, 16)
                             .frame(height: 48)
                             .frame(maxWidth: .infinity)
                             .background(Color(hex: "44C0FF"))
@@ -180,24 +174,22 @@ struct DailyEntryChatView: View {
                     VStack(spacing: 0) {
                         // Divider line above Update Entry button
                         Divider()
-                            .padding(.vertical, 12)
+                            .padding(.top, 2)
+                            .padding(.bottom, 14)
                         
                         Button(action: {
                             // Show preview for update
                             showingPreviewEntry = true
                         }) {
-                            HStack {
-                                Text(entryButtonText)
-                                    .font(.system(size: 15, weight: .medium))
+                            HStack(spacing: 8) {
+                                Image(systemName: "arrow.triangle.2.circlepath")
+                                    .font(.system(size: 16, weight: .semibold))
                                     .foregroundStyle(.white)
                                 
-                                Spacer()
-                                
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundStyle(.white.opacity(0.8))
+                                Text(entryButtonText)
+                                    .font(.system(size: 17, weight: .semibold))
+                                    .foregroundStyle(.white)
                             }
-                            .padding(.horizontal, 16)
                             .frame(height: 48)
                             .frame(maxWidth: .infinity)
                             .background(Color(hex: "44C0FF"))
@@ -215,18 +207,15 @@ struct DailyEntryChatView: View {
             Button(action: {
                 showingDailyChat = true
             }) {
-                HStack {
-                    Text("Start Chat")
-                        .font(.system(size: 15, weight: .medium))
+                HStack(spacing: 8) {
+                    Image(systemName: "bubble.left")
+                        .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(.white)
                     
-                    Spacer()
-                    
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.8))
+                    Text("Chat About Today")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(.white)
                 }
-                .padding(.horizontal, 16)
                 .frame(height: 48)
                 .frame(maxWidth: .infinity)
                 .background(Color(hex: "44C0FF"))

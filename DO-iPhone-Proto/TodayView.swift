@@ -577,7 +577,6 @@ struct TodayView: View {
                     }
                 }
                 .padding(.bottom, chatCompleted || DailyContentManager.shared.hasEntry(for: selectedDate) ? 4 : 8)
-                .animation(.none, value: selectedDate)
                 
                 DailyEntryChatView(
                     selectedDate: selectedDate,
@@ -589,9 +588,9 @@ struct TodayView: View {
                     openDailyChatInLogMode: $openDailyChatInLogMode,
                     showLogVoiceModeButtons: showLogVoiceModeButtons
                 )
-                .animation(.none, value: selectedDate)
             }
         }
+        .animation(nil)
         .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
         .listRowBackground(showGuides ? Color.green.opacity(0.2) : cellBackgroundColor)
         .listRowSeparator(.hidden)

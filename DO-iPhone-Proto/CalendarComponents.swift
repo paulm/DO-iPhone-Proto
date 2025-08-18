@@ -319,7 +319,7 @@ struct CalendarGridView: View {
     }
     
     private var monthDates: [Date] {
-        guard let monthInterval = calendar.dateInterval(of: .month, for: month),
+        guard let _ = calendar.dateInterval(of: .month, for: month),
               let firstOfMonth = calendar.dateInterval(of: .month, for: month)?.start else {
             return []
         }

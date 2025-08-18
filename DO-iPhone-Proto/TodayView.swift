@@ -2540,7 +2540,6 @@ struct EntryLinksCarouselView: View {
     var body: some View {
         let entryCount = DailyDataManager.shared.getEntryCount(for: selectedDate)
         let onThisDayCount = DailyDataManager.shared.getOnThisDayCount(for: selectedDate)
-        let journalCount = Journal.visibleJournals.count
         
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {

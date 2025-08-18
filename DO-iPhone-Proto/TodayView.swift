@@ -507,7 +507,6 @@ struct TodayView: View {
     
     private func relativeDateText(for date: Date) -> String {
         let calendar = Calendar.current
-        let now = Date()
         
         if calendar.isDateInToday(date) {
             return "Today"
@@ -516,29 +515,82 @@ struct TodayView: View {
         } else if calendar.isDateInTomorrow(date) {
             return "Tomorrow"
         } else {
-            let days = calendar.dateComponents([.day], from: date, to: now).day ?? 0
-            if days > 0 {
-                if days < 7 {
-                    return "\(days) day\(days == 1 ? "" : "s") ago"
-                } else if days < 14 {
-                    return "1 week ago"
-                } else if days < 30 {
-                    return "\(days / 7) week\(days / 7 == 1 ? "" : "s") ago"
-                } else if days < 60 {
-                    return "1 month ago"
-                } else {
-                    return "\(days / 30) month\(days / 30 == 1 ? "" : "s") ago"
-                }
+            // For all other dates, show the day of the week
+            let formatter = DateFormatter()
+            formatter.dateFormat = "EEEE" // Full weekday name (Monday, Tuesday, etc.)
+            return formatter.string(from: date)
+        }
+    }
+    
+    private func formattedDateForNavigation(_ date: Date) -> String {
+        let calendar = Calendar.current
+        
+        // Check if it's Today, Yesterday, or Tomorrow
+        if calendar.isDateInToday(date) || 
+           calendar.isDateInYesterday(date) || 
+           calendar.isDateInTomorrow(date) {
+            // Show full format with weekday for these special days
+            return date.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day().year())
+        } else {
+            // For all other dates, exclude the weekday but add relative time
+            let baseDate = date.formatted(.dateTime.month(.abbreviated).day().year())
+            let relativeTime = getRelativeTimeText(for: date)
+            return "\(baseDate) (\(relativeTime))"
+        }
+    }
+    
+    private func getRelativeTimeText(for date: Date) -> String {
+        let calendar = Calendar.current
+        let now = Date()
+        let days = calendar.dateComponents([.day], from: date, to: now).day ?? 0
+        
+        if days > 0 {
+            // Past dates
+            if days == 1 {
+                return "1 day ago"
+            } else if days < 7 {
+                return "\(days) days ago"
+            } else if days == 7 {
+                return "1 week ago"
+            } else if days < 14 {
+                return "\(days) days ago"
+            } else if days < 30 {
+                let weeks = days / 7
+                return weeks == 1 ? "1 week ago" : "\(weeks) weeks ago"
+            } else if days < 60 {
+                return "1 month ago"
+            } else if days < 365 {
+                let months = days / 30
+                return months == 1 ? "1 month ago" : "\(months) months ago"
             } else {
-                let futureDays = abs(days)
-                if futureDays < 7 {
-                    return "in \(futureDays) day\(futureDays == 1 ? "" : "s")"
-                } else if futureDays < 14 {
-                    return "in 1 week"
-                } else {
-                    return "in \(futureDays / 7) week\(futureDays / 7 == 1 ? "" : "s")"
-                }
+                let years = days / 365
+                return years == 1 ? "1 year ago" : "\(years) years ago"
             }
+        } else if days < 0 {
+            // Future dates
+            let futureDays = abs(days)
+            if futureDays == 1 {
+                return "in 1 day"
+            } else if futureDays < 7 {
+                return "in \(futureDays) days"
+            } else if futureDays == 7 {
+                return "in 1 week"
+            } else if futureDays < 14 {
+                return "in \(futureDays) days"
+            } else if futureDays < 30 {
+                let weeks = futureDays / 7
+                return weeks == 1 ? "in 1 week" : "in \(weeks) weeks"
+            } else if futureDays < 60 {
+                return "in 1 month"
+            } else if futureDays < 365 {
+                let months = futureDays / 30
+                return months == 1 ? "in 1 month" : "in \(months) months"
+            } else {
+                let years = futureDays / 365
+                return years == 1 ? "in 1 year" : "in \(years) years"
+            }
+        } else {
+            return "today"
         }
     }
     
@@ -590,7 +642,7 @@ struct TodayView: View {
                 )
             }
         }
-        .animation(nil)
+        .animation(nil, value: selectedDate)
         .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
         .listRowBackground(showGuides ? Color.green.opacity(0.2) : cellBackgroundColor)
         .listRowSeparator(.hidden)
@@ -818,8 +870,8 @@ struct TodayView: View {
                             .foregroundStyle(Color(hex: "292F33")) // Day One Deep Blue
                             .frame(maxWidth: .infinity, alignment: .leading)
                         
-                        // Row 2: Full date
-                        Text(selectedDate.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day().year()))
+                        // Row 2: Full date - show weekday only for Today/Yesterday/Tomorrow
+                        Text(formattedDateForNavigation(selectedDate))
                             .font(.system(size: 15, weight: .medium))
                             .foregroundStyle(.secondary)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -1209,12 +1261,27 @@ struct TodayView: View {
         } // End NavigationStack
         .sheet(isPresented: $showingDatePicker) {
             NavigationStack {
-                DatePicker("Select Date", selection: $selectedDate, displayedComponents: .date)
+                DatePicker("Select Date", selection: Binding(
+                    get: { selectedDate },
+                    set: { newDate in
+                        selectedDate = newDate
+                        // Dismiss the sheet when a date is selected
+                        showingDatePicker = false
+                    }
+                ), displayedComponents: .date)
                     .datePickerStyle(.graphical)
                     .padding()
                     .navigationTitle("Select Date")
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button("Today") {
+                                selectedDate = Date()
+                                showingDatePicker = false
+                            }
+                            .disabled(Calendar.current.isDateInToday(selectedDate))
+                        }
+                        
                         ToolbarItem(placement: .confirmationAction) {
                             Button("Done") {
                                 showingDatePicker = false
@@ -1230,6 +1297,19 @@ struct TodayView: View {
             DispatchQueue.main.async {
                 // Update entry created state
                 entryCreated = DailyContentManager.shared.hasEntry(for: selectedDate)
+                
+                // Check if there are messages to show the last AI response
+                let messages = ChatSessionManager.shared.getMessages(for: selectedDate)
+                if !messages.isEmpty && messages.contains(where: { $0.isUser }) {
+                    chatCompleted = true
+                    chatMessageCount = messages.filter { $0.isUser }.count
+                    hasInteractedWithChat = true
+                } else {
+                    chatCompleted = false
+                    chatMessageCount = 0
+                    hasInteractedWithChat = false
+                }
+                
                 // Force view refresh
                 chatUpdateTrigger.toggle()
             }

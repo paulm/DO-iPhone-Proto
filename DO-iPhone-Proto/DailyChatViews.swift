@@ -143,6 +143,7 @@ struct DailyChatView: View {
     @State private var isGeneratingEntry = false
     @State private var showingEntry = false
     @State private var showingChatSettings = false
+    @State private var showingClearChatAlert = false
     
     private let chatSessionManager = ChatSessionManager.shared
     
@@ -598,7 +599,7 @@ struct DailyChatView: View {
                         Divider()
                         
                         Button(role: .destructive, action: {
-                            clearChat()
+                            showingClearChatAlert = true
                         }) {
                             Label("Clear Chat", systemImage: "trash")
                                 .foregroundStyle(.red)
@@ -687,6 +688,14 @@ struct DailyChatView: View {
                 .presentationDetents([.medium])
                 .presentationDragIndicator(.visible)
                 .presentationBackgroundInteraction(.enabled(upThrough: .medium))
+        }
+        .alert("Clear Chat?", isPresented: $showingClearChatAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Clear Chat", role: .destructive) {
+                clearChat()
+            }
+        } message: {
+            Text("This will remove all messages from the current chat. This action can't be undone.")
         }
     }
     

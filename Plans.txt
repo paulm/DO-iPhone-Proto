@@ -1,5 +1,50 @@
+## APP 
+
+Let's update the icons to the custom icon font now included in the project. do your best to match the current SF icons to the new icons 
 
 
+## iOS 26
+
+
+
+
+
+## CHAT UI
+
+
+when the chat input field grows in height from wrapping multiple lines of text. keep the corner radious for the rectangle at 24pr, currently it keeps increasing the corner radius with multiple lines
+
+
+
+
+
+## TODAY TAB
+
+
+When the Resume Chat button exists, add the last chat message as text above the Resume Chat button.
+
+
+
+
+
+Update the Daily Entry Chat section to match this design with these specs:
+
+Two primary states: New/no chat engaged and Chat engaged
+
+
+
+one section with these vertical stacked elements:
+
+
+
+
+- Latest Chat Message
+- 
+
+
+
+
+Remove these sections from Today Page:
 
 
 

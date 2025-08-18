@@ -440,6 +440,15 @@ struct DailyChatView: View {
                         .textFieldStyle(.plain)
                         .lineLimit(1...6)
                         .tint(Color(hex: "44C0FF"))
+                        .onSubmit {
+                            if !chatText.isEmpty && !isThinking {
+                                sendMessage()
+                                // Refocus the text field after sending
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                    isTextFieldFocused = true
+                                }
+                            }
+                        }
                     
                     // Microphone button (always visible)
                     Button(action: {
@@ -472,17 +481,19 @@ struct DailyChatView: View {
                 .padding(.leading, 16)
                 .padding(.trailing, 8)
                 .padding(.vertical, 8)
-                .background(Color.white)
+                .background(.regularMaterial)
                 .clipShape(Capsule())
                 .overlay(
                     Capsule()
-                        .stroke(Color(.systemGray5), lineWidth: 1)
+                        .stroke(Color.white.opacity(0.2), lineWidth: 1)
                 )
+                .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
+                .shadow(color: .black.opacity(0.04), radius: 4, x: 0, y: 2)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(Color(.systemBackground))
         }
+        .background(Color.clear)
     }
     
     var body: some View {

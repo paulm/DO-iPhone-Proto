@@ -140,9 +140,6 @@ struct DailyChatView: View {
     @FocusState private var isTextFieldFocused: Bool
     @State private var showingPreviewEntry = false
     @State private var showingBioView = false
-    @State private var contextPreviousChats = false
-    @State private var contextDailyEntries = false
-    @State private var contextBio = false
     @State private var isGeneratingEntry = false
     @State private var showingEntry = false
     @State private var showingChatSettings = false
@@ -600,32 +597,11 @@ struct DailyChatView: View {
                         
                         Divider()
                         
-                        Section("Include Context") {
-                            Button(action: {
-                                contextPreviousChats.toggle()
-                            }) {
-                                Label("Previous Chats", systemImage: contextPreviousChats ? "checkmark" : "")
-                            }
-                            
-                            Button(action: {
-                                contextDailyEntries.toggle()
-                            }) {
-                                Label("Daily Entries", systemImage: contextDailyEntries ? "checkmark" : "")
-                            }
-                            
-                            Button(action: {
-                                contextBio.toggle()
-                            }) {
-                                Label("Bio", systemImage: contextBio ? "checkmark" : "")
-                            }
-                        }
-                        
-                        Divider()
-                        
                         Button(role: .destructive, action: {
                             clearChat()
                         }) {
                             Label("Clear Chat", systemImage: "trash")
+                                .foregroundStyle(.red)
                         }
                     } label: {
                         Image(systemName: "ellipsis")
@@ -1323,7 +1299,7 @@ struct ChatEntryPreviewView: View {
 // MARK: - Chat Settings View
 struct ChatSettingsView: View {
     @Environment(\.dismiss) private var dismiss
-    @AppStorage("selectedJournalForChat") private var selectedJournalName = "My Journal"
+    @AppStorage("selectedJournalForChat") private var selectedJournalName = "Daily"
     @AppStorage("userBioName") private var userName = ""
     @AppStorage("userBioBio") private var userBio = ""
     @State private var showingJournalPicker = false

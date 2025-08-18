@@ -893,17 +893,8 @@ struct DailyChatBubbleView: View {
     let message: DailyChatMessage
     
     private func getBubbleColor(for message: DailyChatMessage) -> Color {
-        if let mode = message.mode {
-            switch mode {
-            case .log:
-                return Color(.darkGray)
-            case .chat:
-                return Color(hex: "44C0FF")
-            }
-        } else {
-            // Fallback for legacy messages
-            return message.isLogMode ? Color(.darkGray) : Color(hex: "44C0FF")
-        }
+        // Use the same blue color for both chat and log modes
+        return Color(hex: "44C0FF")
     }
     
     var body: some View {

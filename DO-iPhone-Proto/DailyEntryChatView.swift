@@ -1,34 +1,53 @@
 import SwiftUI
 
 // MARK: - Daily Entry Chat View
+/// Main view for the Daily Entry Chat section in Today tab
+/// Manages three states: no chat, active chat, and entry generated
 struct DailyEntryChatView: View {
+    // MARK: - Properties
+    
+    // Date being viewed
     let selectedDate: Date
-    let chatCompleted: Bool
-    let isGeneratingEntry: Bool
-    @Binding var showingDailyChat: Bool
-    @Binding var showingEntry: Bool
-    @Binding var showingPreviewEntry: Bool
-    @Binding var openDailyChatInLogMode: Bool
+    
+    // Chat state flags
+    let chatCompleted: Bool  // True when user has sent at least one message
+    let isGeneratingEntry: Bool  // True while AI is generating an entry
+    
+    // Sheet presentation bindings
+    @Binding var showingDailyChat: Bool  // Shows full Daily Chat view
+    @Binding var showingEntry: Bool  // Shows Entry view for viewing/editing
+    @Binding var showingPreviewEntry: Bool  // Shows Chat Entry Preview (summary)
+    @Binding var openDailyChatInLogMode: Bool  // Whether to open chat in log mode
+    
+    // UI configuration
     let showLogVoiceModeButtons: Bool
     
+    // MARK: - Computed Properties
+    
+    /// Check if an entry exists for the selected date
     private var hasEntry: Bool {
         DailyContentManager.shared.hasEntry(for: selectedDate)
     }
     
+    /// Check if there are new chat messages since the entry was created
     private var hasNewMessages: Bool {
         DailyContentManager.shared.hasNewMessagesSinceEntry(for: selectedDate)
     }
     
+    /// Check if the selected date is today
     private var isToday: Bool {
         Calendar.current.isDateInToday(selectedDate)
     }
     
+    /// Determines if Update Entry button should be shown
+    /// Only visible when: entry exists AND new messages added AND not currently generating
     private var shouldShowEntryButton: Bool {
         // Only show Update Entry button when entry exists and there are new messages
         // Generate Entry is now shown as a full-width cell above
         return hasEntry && hasNewMessages && !isGeneratingEntry
     }
     
+    /// Dynamic button text based on current state
     private var entryButtonText: String {
         if hasEntry && hasNewMessages {
             return "Update Entry"
@@ -37,14 +56,21 @@ struct DailyEntryChatView: View {
         }
     }
     
+    // MARK: - Body
+    
     var body: some View {
-        // Wrap in gray rounded rectangle when chat has taken place
+        // Main conditional: Show different UI based on chat/entry state
+        // State 1 & 2: Chat exists OR entry exists - show gray rounded container
         if chatCompleted || hasEntry {
             VStack(spacing: 12) {
                 
-                // Last chat message preview (only show when chat exists)
+                // SECTION 1: Last AI Message Preview
+                // Shows the most recent AI response from the chat
+                // Only visible when chat has messages but helps user remember context
                 if chatCompleted {
+                    // Fetch all messages for the current date
                     let messages = ChatSessionManager.shared.getMessages(for: selectedDate)
+                    // Find the last message from AI (not user)
                     let lastAIMessage = messages.last(where: { !$0.isUser })
                     
                     if let lastMessage = lastAIMessage {
@@ -52,15 +78,18 @@ struct DailyEntryChatView: View {
                             Text(lastMessage.content)
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
-                                .lineLimit(3)
+                                .lineLimit(3)  // Truncate to 3 lines for preview
                                 .multilineTextAlignment(.leading)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
-                        .id("\(selectedDate)-\(messages.count)") // Force refresh when message count changes
+                        // Unique ID forces SwiftUI to refresh when message count changes
+                        // This ensures the preview updates after dismissing chat
+                        .id("\(selectedDate)-\(messages.count)")
                     }
                 }
                 
-                // Resume Chat button
+                // SECTION 2: Resume Chat Button
+                // Always visible when chat/entry exists - primary action to continue conversation
                 Button(action: {
                     showingDailyChat = true
                 }) {
@@ -75,14 +104,15 @@ struct DailyEntryChatView: View {
                     }
                     .frame(height: 48)
                     .frame(maxWidth: .infinity)
-                    .background(Color(hex: "E0DEE5"))
+                    .background(Color(hex: "E0DEE5"))  // Light gray background
                     .clipShape(RoundedRectangle(cornerRadius: 24))
                 }
                 .buttonStyle(PlainButtonStyle())
                 
-                // Entry Row (full width, shown when entry exists OR when chat has happened but no entry)
+                // SECTION 3: Entry Display/Generation
+                // Shows different content based on whether entry exists
                 if hasEntry {
-                    // Show actual entry when it exists
+                    // Sub-case A: Entry exists - show preview with metadata
                     VStack(spacing: 0) {
                         // Divider line
                         Divider()
@@ -141,10 +171,11 @@ struct DailyEntryChatView: View {
                         .buttonStyle(PlainButtonStyle())
                     }
                 } else if chatCompleted {
-                    // Show Generate Entry link when chat exists but no entry
+                    // Sub-case B: Chat exists but no entry yet - show Generate Entry button
                     Button(action: {
                         if !isGeneratingEntry {
-                            // Trigger entry generation with additional info to identify source
+                            // Post notification to TodayView to handle entry generation
+                            // This allows for centralized journal selection logic
                             NotificationCenter.default.post(
                                 name: NSNotification.Name("TriggerEntryGeneration"),
                                 object: selectedDate,
@@ -153,7 +184,7 @@ struct DailyEntryChatView: View {
                         }
                     }) {
                         if isGeneratingEntry {
-                            // Show loading state within the cell
+                            // Loading state: Show progress indicator while generating
                             HStack(spacing: 8) {
                                 ProgressView()
                                     .progressViewStyle(CircularProgressViewStyle())
@@ -188,16 +219,18 @@ struct DailyEntryChatView: View {
                     .disabled(isGeneratingEntry)
                 }
                 
-                // Update Entry button (only shown when entry exists and there are new messages)
+                // SECTION 4: Update Entry Button
+                // Conditionally shown when user has added new messages after creating an entry
+                // This allows updating the entry with new chat content
                 if shouldShowEntryButton {
                     VStack(spacing: 0) {
-                        // Divider line above Update Entry button
+                        // Visual separator between entry and update button
                         Divider()
                             .padding(.top, 2)
                             .padding(.bottom, 14)
                         
                         Button(action: {
-                            // Show preview for update
+                            // Opens the entry preview/summary view for updating
                             showingPreviewEntry = true
                         }) {
                             HStack(spacing: 8) {
@@ -219,12 +252,14 @@ struct DailyEntryChatView: View {
                 }
             }
             .padding(16)
-            .background(Color(.systemGray6))
+            .background(Color(.systemGray6))  // Gray container background
             .clipShape(RoundedRectangle(cornerRadius: 24))
+            
         } else {
-            // No chat yet - show Start Chat button only
+            // State 3: No chat and no entry - show initial "Start Chat" button
+            // This is the entry point for users to begin their daily reflection
             Button(action: {
-                showingDailyChat = true
+                showingDailyChat = true  // Opens full Daily Chat view
             }) {
                 HStack(spacing: 8) {
                     Image(systemName: "bubble.left")

@@ -366,6 +366,10 @@ struct TodayView: View {
     @State private var isGeneratingEntry = false
     @State private var chatUpdateTrigger = false
     @State private var momentsInitialSection: String? = nil
+    @State private var showingJournalSelectionAlert = false
+    @State private var showingJournalPicker = false
+    @AppStorage("hasShownFirstTimeJournalAlert") private var hasShownFirstTimeJournalAlert = false
+    @AppStorage("selectedJournalForEntries") private var selectedJournalForEntries = "Daily"
     @State private var showingVisitsSheet = false
     @State private var showingEventsSheet = false
     @State private var showingMediaSheet = false
@@ -607,6 +611,26 @@ struct TodayView: View {
             withAnimation(.easeInOut(duration: 0.2)) {
                 selectedDate = newDate
             }
+        }
+    }
+    
+    private func generateEntry() {
+        // Start generating entry
+        isGeneratingEntry = true
+        
+        // After 1 second, mark entry as created and open it
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            isGeneratingEntry = false
+            // Mark entry as created
+            DailyContentManager.shared.setHasEntry(true, for: selectedDate)
+            // Track current message count when entry is created
+            let messages = ChatSessionManager.shared.getMessages(for: selectedDate)
+            let userMessageCount = messages.filter { $0.isUser }.count
+            DailyContentManager.shared.setEntryMessageCount(userMessageCount, for: selectedDate)
+            // Update local state
+            entryCreated = true
+            // Post notification to update FAB
+            NotificationCenter.default.post(name: NSNotification.Name("DailyEntryCreatedStatusChanged"), object: selectedDate)
         }
     }
     
@@ -1443,6 +1467,38 @@ struct TodayView: View {
                     selectedPrompt = nil
                 }
         }
+        .confirmationDialog(
+            "Choose Journal for Entries", 
+            isPresented: $showingJournalSelectionAlert,
+            titleVisibility: .visible
+        ) {
+            Button("Create \"Daily\" Journal") {
+                selectedJournalForEntries = "Daily"
+                hasShownFirstTimeJournalAlert = true
+                generateEntry()
+            }
+            
+            Button("Select Existing Journal") {
+                hasShownFirstTimeJournalAlert = true
+                showingJournalPicker = true
+            }
+            
+            Button("Cancel", role: .cancel) {
+                // Reset generating state if cancelled
+                isGeneratingEntry = false
+            }
+        } message: {
+            Text("A new \"Daily\" journal will be created for your entries. You can also choose to use one of your existing journals.")
+        }
+        .sheet(isPresented: $showingJournalPicker) {
+            JournalSelectionView(
+                selectedJournal: $selectedJournalForEntries,
+                onSelection: {
+                    showingJournalPicker = false
+                    generateEntry()
+                }
+            )
+        }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("TriggerDailyChat"))) { _ in
             // Only respond to Daily Chat trigger if this variant supports it
             showingDailyChat = true
@@ -1469,22 +1525,13 @@ struct TodayView: View {
             // Handle entry generation trigger
             if let date = notification.object as? Date,
                Calendar.current.isDate(date, inSameDayAs: selectedDate) {
-                // Start generating entry
-                isGeneratingEntry = true
-                
-                // After 1 second, mark entry as created and open it
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                    isGeneratingEntry = false
-                    // Mark entry as created
-                    DailyContentManager.shared.setHasEntry(true, for: selectedDate)
-                    // Track current message count when entry is created
-                    let messages = ChatSessionManager.shared.getMessages(for: selectedDate)
-                    let userMessageCount = messages.filter { $0.isUser }.count
-                    DailyContentManager.shared.setEntryMessageCount(userMessageCount, for: selectedDate)
-                    // Update local state
-                    entryCreated = true
-                    // Post notification to update FAB
-                    NotificationCenter.default.post(name: NSNotification.Name("DailyEntryCreatedStatusChanged"), object: selectedDate)
+                // Check if this is the first time
+                if !hasShownFirstTimeJournalAlert {
+                    // Show the journal selection alert
+                    showingJournalSelectionAlert = true
+                } else {
+                    // Proceed with entry generation
+                    generateEntry()
                 }
             }
         }
@@ -2915,6 +2962,63 @@ struct KeyboardHandler: UIViewRepresentable {
                     action: #selector(rightArrowPressed)
                 )
             ]
+        }
+    }
+}
+
+// MARK: - Journal Selection View
+struct JournalSelectionView: View {
+    @Binding var selectedJournal: String
+    let onSelection: () -> Void
+    @Environment(\.dismiss) private var dismiss
+    
+    // Sample journals
+    private let journals = [
+        "Daily",
+        "Personal",
+        "Work",
+        "Travel",
+        "Gratitude",
+        "Dreams",
+        "Fitness"
+    ]
+    
+    var body: some View {
+        NavigationStack {
+            List {
+                ForEach(journals, id: \.self) { journal in
+                    Button(action: {
+                        selectedJournal = journal
+                        onSelection()
+                    }) {
+                        HStack {
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(Color.green)
+                                .frame(width: 28, height: 28)
+                            
+                            Text(journal)
+                                .foregroundStyle(.primary)
+                            
+                            Spacer()
+                            
+                            if selectedJournal == journal {
+                                Image(systemName: "checkmark")
+                                    .foregroundStyle(Color(hex: "44C0FF"))
+                            }
+                        }
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+            }
+            .navigationTitle("Select Journal")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+            }
         }
     }
 }

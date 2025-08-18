@@ -641,10 +641,18 @@ struct TodayView: View {
             VStack(alignment: .leading, spacing: 12) {
                 // Header content (now part of the section body so it scrolls)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Daily Entry Chat")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundStyle(Color(hex: "292F33"))
+                    HStack(spacing: 12) {
+                        Text("Daily Entry Chat")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundStyle(Color(hex: "292F33"))
+                        
+                        // NEW badge
+                        Image("daily-chat-new")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 49, height: 17)
+                    }
                     // Only show welcome prompt when no chat has taken place
                     if !chatCompleted && !DailyContentManager.shared.hasEntry(for: selectedDate) {
                         Text("How is your \(selectedDate.formatted(.dateTime.weekday(.wide)))?")

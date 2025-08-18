@@ -814,7 +814,13 @@ struct TodayView: View {
                 HStack(spacing: 12) {
                     // Entries button
                     Button(action: {
-                        showingEntries = true
+                        if entryCount == 0 {
+                            // Open Entry view to create new entry
+                            showingEntry = true
+                        } else {
+                            // Open Entries list
+                            showingEntries = true
+                        }
                     }) {
                         HStack {
                             Text("\(entryCount) \(entryCount == 1 ? "Entry" : "Entries")")
@@ -861,7 +867,13 @@ struct TodayView: View {
             } else {
                 // Show full-width Entries button when no On This Day entries
                 Button(action: {
-                    showingEntries = true
+                    if entryCount == 0 {
+                        // Open Entry view to create new entry
+                        showingEntry = true
+                    } else {
+                        // Open Entries list
+                        showingEntries = true
+                    }
                 }) {
                     HStack {
                         Text("\(entryCount) \(entryCount == 1 ? "Entry" : "Entries")")

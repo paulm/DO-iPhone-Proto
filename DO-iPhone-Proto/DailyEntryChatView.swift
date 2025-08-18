@@ -44,12 +44,11 @@ struct DailyEntryChatView: View {
                 
                 // Last chat message preview (only show when chat exists)
                 if chatCompleted {
-                    VStack(alignment: .leading, spacing: 12) {
-                        // Get last AI message
-                        let messages = ChatSessionManager.shared.getMessages(for: selectedDate)
-                        let lastAIMessage = messages.last(where: { !$0.isUser })
-                        
-                        if let lastMessage = lastAIMessage {
+                    let messages = ChatSessionManager.shared.getMessages(for: selectedDate)
+                    let lastAIMessage = messages.last(where: { !$0.isUser })
+                    
+                    if let lastMessage = lastAIMessage {
+                        VStack(alignment: .leading, spacing: 12) {
                             Text(lastMessage.content)
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
@@ -57,6 +56,7 @@ struct DailyEntryChatView: View {
                                 .multilineTextAlignment(.leading)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
+                        .id("\(selectedDate)-\(messages.count)") // Force refresh when message count changes
                     }
                 }
                 
@@ -144,10 +144,11 @@ struct DailyEntryChatView: View {
                     // Show Generate Entry link when chat exists but no entry
                     Button(action: {
                         if !isGeneratingEntry {
-                            // Trigger entry generation
+                            // Trigger entry generation with additional info to identify source
                             NotificationCenter.default.post(
                                 name: NSNotification.Name("TriggerEntryGeneration"),
-                                object: selectedDate
+                                object: selectedDate,
+                                userInfo: ["source": "DailyEntryChatView"]
                             )
                         }
                     }) {

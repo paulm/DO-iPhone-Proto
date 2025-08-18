@@ -4,7 +4,7 @@ import SwiftUI
 struct MainTabView: View {
     @State private var selectedTab = 0
     @State private var tabSelectionCount: [Int: Int] = [0: 0, 1: 0, 2: 0, 3: 0]
-    @AppStorage("showChatFAB") private var showChatFAB = true
+    @AppStorage("showChatFAB") private var showChatFAB = false
     @AppStorage("showEntryFAB") private var showEntryFAB = false
     @State private var selectedDate = Date()
     @State private var chatCompleted = false

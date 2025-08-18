@@ -672,6 +672,7 @@ struct TodayView: View {
                     openDailyChatInLogMode: $openDailyChatInLogMode,
                     showLogVoiceModeButtons: showLogVoiceModeButtons
                 )
+                .id(chatUpdateTrigger) // Force refresh when chat updates
             }
         }
         .animation(nil, value: selectedDate)
@@ -1069,6 +1070,11 @@ struct TodayView: View {
                 Menu {
                     Button("Settings") {
                         showingSettings = true
+                    }
+                    
+                    // DEBUG: Reset first-time journal alert
+                    Button("Reset Journal Selection (Debug)") {
+                        hasShownFirstTimeJournalAlert = false
                     }
                     
                     Section("Show in Today") {

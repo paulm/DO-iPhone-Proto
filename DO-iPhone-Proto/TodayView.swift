@@ -396,6 +396,9 @@ struct TodayView: View {
     @State private var includePreviousChats = true
     @State private var includeJournal = true
     
+    // TipKit
+    private let journalingTip = JournalingMadeEasyTip()
+    
     @AppStorage("showChatFAB") private var showChatFAB = false
     @AppStorage("showEntryFAB") private var showEntryFAB = false
     @AppStorage("showChatInputBox") private var showChatInputBox = false
@@ -639,20 +642,17 @@ struct TodayView: View {
     private var dailyEntryChatSection: some View {
         Section {
             VStack(alignment: .leading, spacing: 12) {
+                // TipKit tip
+                TipView(journalingTip)
+                    .tipViewStyle(CustomJournalingTipViewStyle())
+                    .padding(.bottom, 8)
+                
                 // Header content (now part of the section body so it scrolls)
                 VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 12) {
-                        Text("Daily Entry Chat")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundStyle(Color(hex: "292F33"))
-                        
-                        // NEW badge
-                        Image("daily-chat-new")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 49, height: 17)
-                    }
+                    Text("Daily Entry Chat")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundStyle(Color(hex: "292F33"))
                     // Only show welcome prompt when no chat has taken place
                     if !chatCompleted && !DailyContentManager.shared.hasEntry(for: selectedDate) {
                         Text("How is your \(selectedDate.formatted(.dateTime.weekday(.wide)))?")

@@ -781,9 +781,10 @@ I think I'm going to sit here for a while longer before heading back down. This 
                     } label: {
                         Image(systemName: "ellipsis")
                     }
+                    .tint(journalColor)
                 }
                 
-                // Date/time button in the center with proper button styling
+                // Date/time button in the center - fills available space
                 ToolbarItem(placement: .principal) {
                     Button(action: {
                         showingEditDate = true
@@ -795,21 +796,19 @@ I think I'm going to sit here for a while longer before heading back down. This 
                             Text(entryDate, format: .dateTime.hour().minute())
                         }
                         .font(.subheadline)
-                        .foregroundStyle(.primary)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Color(UIColor.secondarySystemFill))
-                        .clipShape(Capsule())
+                        .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.plain)
+                    .tint(journalColor)
                 }
                 
-                // Done button on the right
+                // Done button on the right with checkmark icon
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") {
+                    Button {
                         dismiss()
+                    } label: {
+                        Image(systemName: "checkmark")
                     }
-                    .fontWeight(.semibold)
+                    .tint(journalColor)
                 }
             }
             .toolbarBackground(.automatic, for: .navigationBar)

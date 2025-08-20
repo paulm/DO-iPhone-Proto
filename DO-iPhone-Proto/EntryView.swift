@@ -685,146 +685,134 @@ I think I'm going to sit here for a while longer before heading back down. This 
                 return .ignored
             }
             .toolbar {
-                ToolbarItem(placement: .principal) {
-                    HStack(spacing: 12) {
-                        // Left: Ellipsis menu button
-                        Menu {
+                // Ellipsis menu button on the left
+                ToolbarItem(placement: .topBarLeading) {
+                    Menu {
+                        Button(action: {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                if isEditMode {
+                                    isEditMode = false
+                                    isTextFieldFocused = false
+                                } else {
+                                    isEditMode = true
+                                }
+                            }
+                        }) {
+                            Label(isEditMode ? "Done Editing" : "Edit", systemImage: isEditMode ? "checkmark.circle" : "pencil")
+                        }
+                        
+                        Divider()
+                        
+                        Button(action: {}) {
+                            Label("Tag", systemImage: "tag")
+                        }
+                        
+                        Button(action: {}) {
+                            Label("Move to...", systemImage: "folder")
+                        }
+                        
+                        Button(action: {}) {
+                            Label("Copy to...", systemImage: "doc.on.doc")
+                        }
+                        
+                        Button(role: .destructive, action: {}) {
+                            Label("Move to Trash", systemImage: "trash")
+                        }
+                        
+                        Divider()
+                        
+                        Button(action: {}) {
+                            Label("Entry Info", systemImage: "info.circle")
+                        }
+                        
+                        Divider()
+                        
+                        Button(action: {}) {
+                            Label("Export", systemImage: "square.and.arrow.up")
+                        }
+                        
+                        Button(action: {}) {
+                            Label("View PDF", systemImage: "doc.text")
+                        }
+                        
+                        Button(action: {}) {
+                            Label("View \(entryDate, format: .dateTime.month(.abbreviated).day())", systemImage: "calendar")
+                        }
+                        
+                        Divider()
+                        
+                        Section("Show") {
                             Button(action: {
-                                withAnimation(.easeInOut(duration: 0.3)) {
-                                    if isEditMode {
-                                        isEditMode = false
-                                        isTextFieldFocused = false
-                                    } else {
-                                        isEditMode = true
-                                    }
-                                }
+                                showEntryChatEmbed.toggle()
                             }) {
-                                Label(isEditMode ? "Done Editing" : "Edit", systemImage: isEditMode ? "checkmark.circle" : "pencil")
+                                Label("Entry Chat Embed", systemImage: showEntryChatEmbed ? "checkmark" : "")
                             }
                             
-                            Divider()
-                            
-                            Button(action: {}) {
-                                Label("Tag", systemImage: "tag")
+                            Button(action: {
+                                showGeneratedFromDailyChat.toggle()
+                            }) {
+                                Label("Generated from Daily Chat", systemImage: showGeneratedFromDailyChat ? "checkmark" : "")
                             }
                             
-                            Button(action: {}) {
-                                Label("Move to...", systemImage: "folder")
+                            Button(action: {
+                                showAudioEmbed.toggle()
+                            }) {
+                                Label("Audio Embed", systemImage: showAudioEmbed ? "checkmark" : "")
                             }
                             
-                            Button(action: {}) {
-                                Label("Copy to...", systemImage: "doc.on.doc")
+                            Button(action: {
+                                showAudioEmbedWithTranscription.toggle()
+                            }) {
+                                Label("Audio Embed with Transcription", systemImage: showAudioEmbedWithTranscription ? "checkmark" : "")
                             }
                             
-                            Button(role: .destructive, action: {}) {
-                                Label("Move to Trash", systemImage: "trash")
+                            Button(action: {
+                                showImageEmbed.toggle()
+                            }) {
+                                Label("Image", systemImage: showImageEmbed ? "checkmark" : "")
                             }
                             
-                            Divider()
-                            
-                            Button(action: {}) {
-                                Label("Entry Info", systemImage: "info.circle")
+                            Button(action: {
+                                showImageCaption.toggle()
+                            }) {
+                                Label("Image Caption", systemImage: showImageCaption ? "checkmark" : "")
                             }
-                            
-                            Divider()
-                            
-                            Button(action: {}) {
-                                Label("Export", systemImage: "square.and.arrow.up")
-                            }
-                            
-                            Button(action: {}) {
-                                Label("View PDF", systemImage: "doc.text")
-                            }
-                            
-                            Button(action: {}) {
-                                Label("View \(entryDate, format: .dateTime.month(.abbreviated).day())", systemImage: "calendar")
-                            }
-                            
-                            Divider()
-                            
-                            Section("Show") {
-                                Button(action: {
-                                    showEntryChatEmbed.toggle()
-                                }) {
-                                    Label("Entry Chat Embed", systemImage: showEntryChatEmbed ? "checkmark" : "")
-                                }
-                                
-                                Button(action: {
-                                    showGeneratedFromDailyChat.toggle()
-                                }) {
-                                    Label("Generated from Daily Chat", systemImage: showGeneratedFromDailyChat ? "checkmark" : "")
-                                }
-                                
-                                Button(action: {
-                                    showAudioEmbed.toggle()
-                                }) {
-                                    Label("Audio Embed", systemImage: showAudioEmbed ? "checkmark" : "")
-                                }
-                                
-                                Button(action: {
-                                    showAudioEmbedWithTranscription.toggle()
-                                }) {
-                                    Label("Audio Embed with Transcription", systemImage: showAudioEmbedWithTranscription ? "checkmark" : "")
-                                }
-                                
-                                Button(action: {
-                                    showImageEmbed.toggle()
-                                }) {
-                                    Label("Image", systemImage: showImageEmbed ? "checkmark" : "")
-                                }
-                                
-                                Button(action: {
-                                    showImageCaption.toggle()
-                                }) {
-                                    Label("Image Caption", systemImage: showImageCaption ? "checkmark" : "")
-                                }
-                            }
-                        } label: {
-                            Image(systemName: "ellipsis")
-                                .font(.system(size: 18, weight: .medium))
-                                .foregroundStyle(.white)
-                                .frame(width: 40, height: 40)
-                                .background(journalColor)
-                                .clipShape(Circle())
                         }
-                        .buttonStyle(.plain)
-                        
-                        // Center: Date and time button
-                        Button(action: {
-                            showingEditDate = true
-                        }) {
-                            HStack(spacing: 4) {
-                                Text(entryDate, format: .dateTime.weekday(.abbreviated).month(.abbreviated).day().year())
-                                    .font(.system(size: 16, weight: .medium))
-                                Text(entryDate, format: .dateTime.hour().minute())
-                                    .font(.system(size: 16, weight: .regular))
-                            }
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 10)
-                            .frame(minWidth: 200)
-                            .background(journalColor)
-                            .clipShape(Capsule())
-                        }
-                        .buttonStyle(.plain)
-                        
-                        // Right: Done button
-                        Button(action: {
-                            dismiss()
-                        }) {
-                            Image(systemName: "checkmark")
-                                .font(.system(size: 18, weight: .medium))
-                                .foregroundStyle(.white)
-                                .frame(width: 40, height: 40)
-                                .background(journalColor)
-                                .clipShape(Circle())
-                        }
-                        .buttonStyle(.plain)
+                    } label: {
+                        Image(systemName: "ellipsis")
                     }
                 }
+                
+                // Date/time button in the center with proper button styling
+                ToolbarItem(placement: .principal) {
+                    Button(action: {
+                        showingEditDate = true
+                    }) {
+                        HStack(spacing: 4) {
+                            Text(entryDate, format: .dateTime.weekday(.abbreviated).month(.abbreviated).day())
+                            Text("·")
+                                .foregroundStyle(.secondary)
+                            Text(entryDate, format: .dateTime.hour().minute())
+                        }
+                        .font(.subheadline)
+                        .foregroundStyle(.primary)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color(UIColor.secondarySystemFill))
+                        .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                }
+                
+                // Done button on the right
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                    .fontWeight(.semibold)
+                }
             }
-            .toolbarBackground(.white, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarBackground(.automatic, for: .navigationBar)
             .navigationBarTitleDisplayMode(.inline)
             .animation(.easeInOut(duration: 0.3), value: isEditMode)
             .onAppear {

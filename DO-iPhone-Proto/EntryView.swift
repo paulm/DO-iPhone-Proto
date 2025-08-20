@@ -685,28 +685,9 @@ I think I'm going to sit here for a while longer before heading back down. This 
                 return .ignored
             }
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button(action: {
-                        showingEditDate = true
-                    }) {
-                        HStack(spacing: 4) {
-                            Text(entryDate, format: .dateTime.weekday(.abbreviated).month(.abbreviated).day().year())
-                                .font(.body)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(.white)
-                            Text("·")
-                                .font(.body)
-                                .foregroundStyle(.white)
-                            Text(entryDate, format: .dateTime.hour().minute())
-                                .font(.body)
-                                .fontWeight(.regular)
-                                .foregroundStyle(.white)
-                        }
-                    }
-                }
-                
-                ToolbarItem(placement: .topBarTrailing) {
-                    HStack(spacing: 16) {
+                ToolbarItem(placement: .principal) {
+                    HStack(spacing: 12) {
+                        // Left: Ellipsis menu button
                         Menu {
                             Button(action: {
                                 withAnimation(.easeInOut(duration: 0.3)) {
@@ -800,23 +781,50 @@ I think I'm going to sit here for a while longer before heading back down. This 
                             }
                         } label: {
                             Image(systemName: "ellipsis")
+                                .font(.system(size: 18, weight: .medium))
                                 .foregroundStyle(.white)
-                                .frame(width: 44, height: 44)
-                                .contentShape(Rectangle())
+                                .frame(width: 40, height: 40)
+                                .background(journalColor)
+                                .clipShape(Circle())
                         }
+                        .buttonStyle(.plain)
                         
-                        Button("Done") {
-                            dismiss()
+                        // Center: Date and time button
+                        Button(action: {
+                            showingEditDate = true
+                        }) {
+                            HStack(spacing: 4) {
+                                Text(entryDate, format: .dateTime.weekday(.abbreviated).month(.abbreviated).day().year())
+                                    .font(.system(size: 16, weight: .medium))
+                                Text(entryDate, format: .dateTime.hour().minute())
+                                    .font(.system(size: 16, weight: .regular))
+                            }
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 10)
+                            .frame(minWidth: 200)
+                            .background(journalColor)
+                            .clipShape(Capsule())
                         }
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.white)
-                        .accessibilityLabel("Save journal entry")
+                        .buttonStyle(.plain)
+                        
+                        // Right: Done button
+                        Button(action: {
+                            dismiss()
+                        }) {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 18, weight: .medium))
+                                .foregroundStyle(.white)
+                                .frame(width: 40, height: 40)
+                                .background(journalColor)
+                                .clipShape(Circle())
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
             }
-            .toolbarBackground(journalColor, for: .navigationBar)
+            .toolbarBackground(.white, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
             .navigationBarTitleDisplayMode(.inline)
             .animation(.easeInOut(duration: 0.3), value: isEditMode)
             .onAppear {

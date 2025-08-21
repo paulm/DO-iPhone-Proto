@@ -699,20 +699,13 @@ I think I'm going to sit here for a while longer before heading back down. This 
                         .foregroundColor(.primary)
                         .font(.subheadline)
                         .fontWeight(.medium)
+                        .tint(.black.opacity(0.9))
                     }
                 }
                 
                 // Ellipsis menu on the right
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     Menu {
-                        Button {
-                            // Duplicate action
-                        } label: {
-                            Label("Duplicate", systemImage: "doc.on.doc")
-                        }
-                        
-                        Divider()
-                        
                         Button(action: {
                             withAnimation(.easeInOut(duration: 0.3)) {
                                 if isEditMode {
@@ -755,7 +748,7 @@ I think I'm going to sit here for a while longer before heading back down. This 
                         Label("More", systemImage: "ellipsis")
                         
                     }
-                    .foregroundColor(.black.opacity(0.9))
+                    .tint(.black.opacity(0.9))
                 }
                 
                 // Done button
@@ -766,7 +759,7 @@ I think I'm going to sit here for a while longer before heading back down. This 
                         Label("Done", systemImage: "checkmark")
                             .labelStyle(.titleAndIcon)
                     }
-                    .tint(Color(hex: "44C0FF"))
+                    .tint(journalColor)
                 }
             }
             .toolbarBackground(.automatic, for: .navigationBar)

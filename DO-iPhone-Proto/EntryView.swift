@@ -129,6 +129,19 @@ I think I'm going to sit here for a while longer before heading back down. This 
         journal?.color ?? Color(hex: "4EC3FE")
     }
     
+    // Shared text style for entry content
+    private var entryTextStyle: some ViewModifier {
+        struct EntryTextModifier: ViewModifier {
+            func body(content: Content) -> some View {
+                content
+                    .font(.system(size: 17))
+                    .foregroundColor(.black.opacity(0.9))
+                    .lineSpacing(4)
+            }
+        }
+        return EntryTextModifier()
+    }
+    
     private func audioRecordingEmbed(hasTranscription: Bool, isPlaying: Binding<Bool>, duration: TimeInterval, title: String, transcriptionPreview: String? = nil, onTap: @escaping () -> Void) -> some View {
         VStack(spacing: 0) {
             HStack(spacing: 12) {
@@ -342,7 +355,7 @@ I think I'm going to sit here for a while longer before heading back down. This 
                             // Show TextEditor when in edit mode, Text otherwise
                             if isEditMode {
                                 TextEditor(text: $entryText)
-                                    .font(.body)
+                                    .modifier(entryTextStyle)
                                     .focused($isTextFieldFocused)
                                     .scrollContentBackground(.hidden)
                                     .background(Color.clear)
@@ -358,9 +371,22 @@ I think I'm going to sit here for a while longer before heading back down. This 
                                         }
                                     }
                             } else {
-                                // First two paragraphs
+                                // Title
+                                Text(getEntryTitle())
+                                    .font(.title2)
+                                    .fontWeight(.medium)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .contentShape(Rectangle())
+                                    .onTapGesture {
+                                        withAnimation(.easeInOut(duration: 0.3)) {
+                                            isEditMode = true
+                                        }
+                                    }
+                                    .padding(.bottom, 0)
+                                
+                                // First paragraph after title
                                 Text(getTextBeforeAudioEmbed())
-                                    .font(.body)
+                                    .modifier(entryTextStyle)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .contentShape(Rectangle())
                                     .onTapGesture {
@@ -417,7 +443,7 @@ I think I'm going to sit here for a while longer before heading back down. This 
                             if !isEditMode {
                                 // Text between image and second audio
                                 Text(getTextBetweenImageAndSecondAudio())
-                                    .font(.body)
+                                    .modifier(entryTextStyle)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .contentShape(Rectangle())
                                     .onTapGesture {
@@ -443,7 +469,7 @@ I think I'm going to sit here for a while longer before heading back down. This 
                                 
                                 // Remaining text
                                 Text(getTextAfterSecondAudioEmbed())
-                                    .font(.body)
+                                    .modifier(entryTextStyle)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .contentShape(Rectangle())
                                     .onTapGesture {
@@ -453,7 +479,7 @@ I think I'm going to sit here for a while longer before heading back down. This 
                                     }
                             }
                         }
-                        .padding(.horizontal, 14)
+                        .padding(.horizontal, 16)
                         .padding(.top, (hasChatActivity && showEntryChatEmbed) || showGeneratedFromDailyChat ? 28 : 12)
                         .padding(.bottom, 100)
                     }
@@ -868,12 +894,21 @@ I think I'm going to sit here for a while longer before heading back down. This 
         return String(format: "%d:%02d", minutes, seconds)
     }
     
+    private func getEntryTitle() -> String {
+        let paragraphs = entryText.components(separatedBy: "\n\n")
+        if paragraphs.count > 0 {
+            return paragraphs[0]
+        }
+        return ""
+    }
+    
     private func getTextBeforeAudioEmbed() -> String {
         let paragraphs = entryText.components(separatedBy: "\n\n")
         if paragraphs.count >= 2 {
-            return paragraphs[0...1].joined(separator: "\n\n")
+            // Return the second paragraph (skipping the title)
+            return paragraphs[1]
         }
-        return entryText
+        return ""
     }
     
     private func getTextAfterAudioEmbed() -> String {

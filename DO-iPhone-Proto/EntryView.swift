@@ -106,8 +106,8 @@ As the sun began to set, painting the sky in shades of orange and pink, I found 
             self._entryText = State(initialValue: prompt + "\n\n")
             self._entryDate = State(initialValue: Date())
         } else {
-            // New entry - use defaults
-            self._entryText = State(initialValue: "")
+            // New entry - use defaults with sample content
+            self._entryText = State(initialValue: defaultEntryContent)
             self._entryDate = State(initialValue: Date())
         }
     }
@@ -685,9 +685,34 @@ I think I'm going to sit here for a while longer before heading back down. This 
                 return .ignored
             }
             .toolbar {
-                // Ellipsis menu button on the left
+                // Date button on the left
                 ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        showingEditDate = true
+                    } label: {
+                        Label {
+                            Text(formatFullDate(entryDate))
+                        } icon: {
+                            Image(systemName: "calendar")
+                        }
+                        .labelStyle(.titleOnly)
+                        .foregroundColor(.primary)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    }
+                }
+                
+                // Ellipsis menu on the right
+                ToolbarItemGroup(placement: .navigationBarTrailing) {
                     Menu {
+                        Button {
+                            // Duplicate action
+                        } label: {
+                            Label("Duplicate", systemImage: "doc.on.doc")
+                        }
+                        
+                        Divider()
+                        
                         Button(action: {
                             withAnimation(.easeInOut(duration: 0.3)) {
                                 if isEditMode {
@@ -700,8 +725,6 @@ I think I'm going to sit here for a while longer before heading back down. This 
                         }) {
                             Label(isEditMode ? "Done Editing" : "Edit", systemImage: isEditMode ? "checkmark.circle" : "pencil")
                         }
-                        
-                        Divider()
                         
                         Button(action: {}) {
                             Label("Tag", systemImage: "tag")
@@ -722,93 +745,28 @@ I think I'm going to sit here for a while longer before heading back down. This 
                         Divider()
                         
                         Button(action: {}) {
-                            Label("Entry Info", systemImage: "info.circle")
-                        }
-                        
-                        Divider()
-                        
-                        Button(action: {}) {
                             Label("Export", systemImage: "square.and.arrow.up")
                         }
                         
                         Button(action: {}) {
                             Label("View PDF", systemImage: "doc.text")
                         }
-                        
-                        Button(action: {}) {
-                            Label("View \(entryDate, format: .dateTime.month(.abbreviated).day())", systemImage: "calendar")
-                        }
-                        
-                        Divider()
-                        
-                        Section("Show") {
-                            Button(action: {
-                                showEntryChatEmbed.toggle()
-                            }) {
-                                Label("Entry Chat Embed", systemImage: showEntryChatEmbed ? "checkmark" : "")
-                            }
-                            
-                            Button(action: {
-                                showGeneratedFromDailyChat.toggle()
-                            }) {
-                                Label("Generated from Daily Chat", systemImage: showGeneratedFromDailyChat ? "checkmark" : "")
-                            }
-                            
-                            Button(action: {
-                                showAudioEmbed.toggle()
-                            }) {
-                                Label("Audio Embed", systemImage: showAudioEmbed ? "checkmark" : "")
-                            }
-                            
-                            Button(action: {
-                                showAudioEmbedWithTranscription.toggle()
-                            }) {
-                                Label("Audio Embed with Transcription", systemImage: showAudioEmbedWithTranscription ? "checkmark" : "")
-                            }
-                            
-                            Button(action: {
-                                showImageEmbed.toggle()
-                            }) {
-                                Label("Image", systemImage: showImageEmbed ? "checkmark" : "")
-                            }
-                            
-                            Button(action: {
-                                showImageCaption.toggle()
-                            }) {
-                                Label("Image Caption", systemImage: showImageCaption ? "checkmark" : "")
-                            }
-                        }
                     } label: {
-                        Image(systemName: "ellipsis")
+                        Label("More", systemImage: "ellipsis")
+                        
                     }
-                    .tint(journalColor)
+                    .foregroundColor(.black.opacity(0.9))
                 }
                 
-                // Date/time button in the center - fills available space
-                ToolbarItem(placement: .principal) {
-                    Button(action: {
-                        showingEditDate = true
-                    }) {
-                        HStack(spacing: 4) {
-                            Text(entryDate, format: .dateTime.weekday(.abbreviated).month(.abbreviated).day())
-                            Text("·")
-                                .foregroundStyle(.secondary)
-                            Text(entryDate, format: .dateTime.hour().minute())
-                        }
-                        .font(.subheadline)
-                        .frame(maxWidth: .infinity)
-                    }
-                    .tint(journalColor)
-                }
-                
-                // Done button on the right with checkmark icon
+                // Done button
                 ToolbarItem(placement: .confirmationAction) {
                     Button {
                         dismiss()
                     } label: {
-                        Image(systemName: "checkmark")
+                        Label("Done", systemImage: "checkmark")
+                            .labelStyle(.titleAndIcon)
                     }
-                    .tint(journalColor)
+                    .tint(Color(hex: "44C0FF"))
                 }
             }
             .toolbarBackground(.automatic, for: .navigationBar)
@@ -952,6 +910,12 @@ I think I'm going to sit here for a while longer before heading back down. This 
             return paragraphs[3...].joined(separator: "\n\n")
         }
         return ""
+    }
+    
+    private func formatFullDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEE, MMM d, yyyy · h:mm a"
+        return formatter.string(from: date)
     }
 }
 

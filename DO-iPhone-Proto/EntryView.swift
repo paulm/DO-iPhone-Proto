@@ -52,15 +52,9 @@ struct EntryView: View {
     private let defaultEntryContent = """
 A Perfect Day at Sundance
 
-Today was one of those rare days where everything seemed to align perfectly. I woke up early, around 6:30 AM, to the sound of birds chirping outside my window at the resort. The morning light was just beginning to filter through the trees, casting long shadows across the mountain slopes. I decided to start the day with a hike on the Stewart Falls trail, something I've been meaning to do since arriving here three days ago.
+Today was one of those rare days where everything seemed to align perfectly. I woke up early, around 6:30 AM, to the sound of birds chirping outside my window at the resort. The morning light was just beginning to filter through the trees, casting long shadows across the mountain slopes. I decided to start the day with a hike on the Stewart Falls trail.
 
 The trail was quiet, with only a few other early risers making their way up the path. The air was crisp and cool, probably around 55 degrees, and I could see my breath forming small clouds as I walked. About halfway up, I stopped at a clearing that offered a stunning view of the valley below. The aspens were just beginning to turn golden, creating patches of warm color against the dark green of the pines. I sat on a large rock and just took it all in, feeling grateful for this moment of solitude in nature.
-
-After the hike, I returned to the resort for breakfast at the Foundry Grill. I ordered their famous blueberry pancakes and a strong cup of coffee. While eating, I struck up a conversation with an older couple from Colorado who were celebrating their 40th wedding anniversary. They shared stories about how they've been coming to Sundance every fall for the past fifteen years, and how this place has become a sacred tradition for them. Their love for each other and for this place was infectious.
-
-The afternoon was spent exploring the art studios scattered around the resort. I was particularly drawn to the pottery workshop, where a local artist was demonstrating wheel throwing techniques. She invited me to try my hand at it, and despite making quite a mess, I managed to create something that vaguely resembled a bowl. There's something meditative about working with clay, feeling it take shape beneath your hands, requiring both strength and gentleness.
-
-As the sun began to set, painting the sky in shades of orange and pink, I found myself back on the deck of my cabin, wrapped in a warm blanket with a cup of herbal tea. The day felt complete in a way that few days do. No urgent emails, no pressing deadlines, just the simple pleasure of being present in a beautiful place. Tomorrow I'm planning to try the zip line tour, but for now, I'm content to watch the stars emerge one by one in the darkening sky, feeling deeply connected to this moment and this place.
 """
     
     init(journal: Journal?, entryData: EntryData? = nil, prompt: String? = nil, shouldShowAudioOnAppear: Bool = false, startInEditMode: Bool = false) {
@@ -134,7 +128,7 @@ I think I'm going to sit here for a while longer before heading back down. This 
         struct EntryTextModifier: ViewModifier {
             func body(content: Content) -> some View {
                 content
-                    .font(.system(size: 17))
+                    .font(.system(size: 18))
                     .foregroundColor(.black.opacity(0.9))
                     .lineSpacing(4)
             }
@@ -478,10 +472,50 @@ I think I'm going to sit here for a while longer before heading back down. This 
                                         }
                                     }
                             }
+                            
+                            // Map footer section - only shown in read mode
+                            if !isEditMode {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    // Journal metadata with weather
+                                    HStack {
+                                        Text(journalName)
+                                            .foregroundStyle(journalColor)
+                                            .fontWeight(.medium)
+                                        Text("•")
+                                            .foregroundStyle(.secondary)
+                                        Text(locationName)
+                                            .foregroundStyle(.secondary)
+                                        Text("•")
+                                            .foregroundStyle(.secondary)
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "cloud.rain")
+                                                .font(.system(size: 14))
+                                            Text("17°C")
+                                        }
+                                        .foregroundStyle(.secondary)
+                                    }
+                                    .font(.caption)
+                                    
+                                    // Map with rounded corners and inset
+                                    Map(position: .constant(.region(MKCoordinateRegion(
+                                        center: entryLocation,
+                                        span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+                                    )))) {
+                                        Marker(locationName, coordinate: entryLocation)
+                                            .tint(journalColor)
+                                    }
+                                    .frame(height: 180)
+                                    .clipShape(RoundedRectangle(cornerRadius: 24))
+                                    .mapStyle(.standard)
+                                    .allowsHitTesting(false)
+                                }
+                                .padding(.top, 24)
+                            }
                         }
-                        .padding(.horizontal, 16)
+                        // left and right margins
+                        .padding(.horizontal, 18)
                         .padding(.top, (hasChatActivity && showEntryChatEmbed) || showGeneratedFromDailyChat ? 28 : 12)
-                        .padding(.bottom, 100)
+                        .padding(.bottom, 24)
                     }
                 }
                 .scrollDismissesKeyboard(.interactively)
@@ -657,50 +691,6 @@ I think I'm going to sit here for a while longer before heading back down. This 
                     }
                 }
             }
-                
-                // Bottom info block - only shown in Read mode
-                if !isTextFieldFocused {
-                    VStack {
-                        Spacer()
-                        
-                        VStack(spacing: 0) {
-                            // Row 1: Journal metadata
-                            VStack(alignment: .leading, spacing: 0) {
-                                HStack {
-                                    Text(journalName)
-                                        .foregroundStyle(journalColor)
-                                        .fontWeight(.medium)
-                                    Text(" · ")
-                                        .foregroundStyle(.secondary)
-                                    Text(locationName)
-                                        .foregroundStyle(.secondary)
-                                }
-                                .font(.caption)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 16)
-                            .background(.white)
-                            
-                            Divider()
-                            
-                            // Row 2: Map view
-                            Map(position: .constant(.region(MKCoordinateRegion(
-                                center: entryLocation,
-                                span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
-                            )))) {
-                                Marker(locationName, coordinate: entryLocation)
-                                    .tint(journalColor)
-                            }
-                            .frame(height: 100)
-                            .mapStyle(.standard)
-                            .allowsHitTesting(false) // Make map non-interactive
-                        }
-                        .background(.white)
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                    }
-                    .ignoresSafeArea(.all, edges: .bottom)
-                }
             }
             .animation(.spring(response: 0.4, dampingFraction: 0.8), value: isTextFieldFocused)
             .onKeyPress(.return, phases: .down) { keyPress in

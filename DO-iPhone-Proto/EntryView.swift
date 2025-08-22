@@ -38,7 +38,6 @@ struct EntryView: View {
     @State private var showImageEmbed = false
     @State private var showImageCaption = false
     @State private var showingMediaPage = false
-    @FocusState private var isTextFieldFocused: Bool
     @State private var isEditMode = false
     @State private var shouldShowAudioOnAppear: Bool
     @State private var showingCompactAudioRecord = false
@@ -258,31 +257,6 @@ I think I'm going to sit here for a while longer before heading back down. This 
     var body: some View {
         NavigationStack {
             ZStack {
-                VStack(spacing: 0) {
-                    // Journal info header - only shown in Edit mode
-                    if isEditMode {
-                        VStack(alignment: .leading, spacing: 0) {
-                            HStack {
-                                Text(journalName)
-                                    .foregroundStyle(journalColor)
-                                    .fontWeight(.medium)
-                                Text(" · ")
-                                    .foregroundStyle(.secondary)
-                                Text(locationName)
-                                    .foregroundStyle(.secondary)
-                            }
-                            .font(.caption)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 10)
-                        .background(.white)
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .top).combined(with: .opacity),
-                            removal: .move(edge: .top).combined(with: .opacity)
-                        ))
-                    }
-                
                 // Content area with scrollable embeds and text
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
@@ -346,52 +320,42 @@ I think I'm going to sit here for a while longer before heading back down. This 
                         
                         // Text content with inline audio embeds
                         VStack(alignment: .leading, spacing: 16) {
-                            // Show TextEditor when in edit mode, Text otherwise
-                            if isEditMode {
-                                TextEditor(text: $entryText)
-                                    .modifier(entryTextStyle)
-                                    .focused($isTextFieldFocused)
-                                    .scrollContentBackground(.hidden)
-                                    .background(Color.clear)
-                                    .frame(maxWidth: .infinity, minHeight: 500)
-                                    .transition(.asymmetric(
-                                        insertion: .move(edge: .top).combined(with: .opacity),
-                                        removal: .opacity
-                                    ))
-                                    .onAppear {
-                                        // Force keyboard to appear after a brief delay
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                            isTextFieldFocused = true
-                                        }
-                                    }
-                            } else {
-                                // Title
-                                Text(getEntryTitle())
-                                    .font(.title2)
+                            // Journal metadata row - always visible at top
+                            HStack {
+                                Text(journalName)
+                                    .foregroundStyle(journalColor)
                                     .fontWeight(.medium)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .contentShape(Rectangle())
-                                    .onTapGesture {
-                                        withAnimation(.easeInOut(duration: 0.3)) {
-                                            isEditMode = true
-                                        }
-                                    }
-                                    .padding(.bottom, 0)
-                                
-                                // First paragraph after title
-                                Text(getTextBeforeAudioEmbed())
-                                    .modifier(entryTextStyle)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .contentShape(Rectangle())
-                                    .onTapGesture {
-                                        withAnimation(.easeInOut(duration: 0.3)) {
-                                            isEditMode = true
-                                        }
-                                    }
+                                Text("•")
+                                    .foregroundStyle(.secondary)
+                                Text(locationName)
+                                    .foregroundStyle(.secondary)
+                                Text("•")
+                                    .foregroundStyle(.secondary)
+                                HStack(spacing: 4) {
+                                    Image(systemName: "cloud.rain")
+                                        .font(.system(size: 14))
+                                    Text("17°C")
+                                }
+                                .foregroundStyle(.secondary)
                             }
+                            .font(.caption)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.bottom, 8)
+                            
+                            // Title - always visible
+                            Text(getEntryTitle())
+                                .font(.title2)
+                                .fontWeight(.medium)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.bottom, 0)
+                            
+                            // Entry content paragraphs
+                            Text(getTextBeforeAudioEmbed())
+                                .modifier(entryTextStyle)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                             
                             // First audio recording embed (with transcription)
-                            if showAudioEmbedWithTranscription && !isEditMode {
+                            if showAudioEmbedWithTranscription {
                                 if let audioData = insertedAudioData {
                                     // Use inserted audio data
                                     audioRecordingEmbed(
@@ -422,7 +386,7 @@ I think I'm going to sit here for a while longer before heading back down. This 
                             }
                             
                             // Image embed
-                            if showImageEmbed && !isEditMode {
+                            if showImageEmbed {
                                 imageEmbed(
                                     imageName: "bike-wide",
                                     caption: "Timeless style on two wheels—vintage charm meets modern café culture",
@@ -433,47 +397,32 @@ I think I'm going to sit here for a while longer before heading back down. This 
                                 )
                             }
                             
-                            // Hide embeds and complex layout when editing
-                            if !isEditMode {
-                                // Text between image and second audio
-                                Text(getTextBetweenImageAndSecondAudio())
-                                    .modifier(entryTextStyle)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .contentShape(Rectangle())
-                                    .onTapGesture {
-                                        withAnimation(.easeInOut(duration: 0.3)) {
-                                            isEditMode = true
-                                        }
+                            // Text between image and second audio
+                            Text(getTextBetweenImageAndSecondAudio())
+                                .modifier(entryTextStyle)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            // Second audio recording embed (without transcription)
+                            if showAudioEmbed {
+                                audioRecordingEmbed(
+                                    hasTranscription: false,
+                                    isPlaying: $isPlayingAudio2,
+                                    duration: audioDuration2,
+                                    title: "Sounds of the Mountain Stream",
+                                    transcriptionPreview: nil,
+                                    onTap: {
+                                        selectedAudioHasTranscription = false
+                                        showingAudioPage2 = true
                                     }
-                                
-                                // Second audio recording embed (without transcription)
-                                if showAudioEmbed {
-                                    audioRecordingEmbed(
-                                        hasTranscription: false,
-                                        isPlaying: $isPlayingAudio2,
-                                        duration: audioDuration2,
-                                        title: "Sounds of the Mountain Stream",
-                                        transcriptionPreview: nil,
-                                        onTap: {
-                                            selectedAudioHasTranscription = false
-                                            showingAudioPage2 = true
-                                        }
-                                    )
-                                }
-                                
-                                // Remaining text
-                                Text(getTextAfterSecondAudioEmbed())
-                                    .modifier(entryTextStyle)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .contentShape(Rectangle())
-                                    .onTapGesture {
-                                        withAnimation(.easeInOut(duration: 0.3)) {
-                                            isEditMode = true
-                                        }
-                                    }
+                                )
                             }
                             
-                            // Map footer section - only shown in read mode
+                            // Remaining text
+                            Text(getTextAfterSecondAudioEmbed())
+                                .modifier(entryTextStyle)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            // Map footer section
                             if !isEditMode {
                                 VStack(alignment: .leading, spacing: 6) {
                                     // Journal metadata with weather
@@ -518,205 +467,22 @@ I think I'm going to sit here for a while longer before heading back down. This 
                         .padding(.bottom, 24)
                     }
                 }
-                .scrollDismissesKeyboard(.interactively)
-                .onChange(of: isEditMode) { _, newValue in
-                    if !newValue {
-                        // Ensure keyboard is dismissed when exiting edit mode
-                        isTextFieldFocused = false
-                    }
-                }
-                .onChange(of: isTextFieldFocused) { _, newValue in
-                    if !newValue && isEditMode {
-                        // Exit edit mode when keyboard is dismissed
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            isEditMode = false
-                        }
-                    }
-                }
-                .toolbar {
-                    ToolbarItemGroup(placement: .keyboard) {
-                        HStack(spacing: 24) {
-                            // Dismiss keyboard
-                            Button {
-                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                            } label: {
-                                Image(systemName: "chevron.down")
-                                    .font(.system(size: 16))
-                            }
-                            
-                            Spacer()
-                            
-                            // Entry Tools (Journaling Tools)
-                            Button {
-                                showingJournalingTools = true
-                            } label: {
-                                Image(systemName: "sparkles")
-                                    .font(.system(size: 16))
-                            }
-                            
-                            // Photo Library
-                            Button {
-                                // TODO: Open photo picker
-                            } label: {
-                                Image(systemName: "photo")
-                                    .font(.system(size: 16))
-                            }
-                            
-                            // Attachments Menu
-                            Menu {
-                                Button {
-                                    // Tag action
-                                } label: {
-                                    Label("Tag", systemImage: "tag")
-                                }
-                                
-                                Button {
-                                    // Audio action
-                                } label: {
-                                    Label("Audio", systemImage: "mic")
-                                }
-                                
-                                Button {
-                                    // Camera action
-                                } label: {
-                                    Label("Camera", systemImage: "camera")
-                                }
-                                
-                                Button {
-                                    // Photo Library action
-                                } label: {
-                                    Label("Photo Library", systemImage: "photo")
-                                }
-                                
-                                Button {
-                                    // Draw action
-                                } label: {
-                                    Label("Draw", systemImage: "pencil.tip")
-                                }
-                                
-                                Button {
-                                    // Scan to PDF action
-                                } label: {
-                                    Label("Scan to PDF", systemImage: "doc.text.viewfinder")
-                                }
-                                
-                                Button {
-                                    // File action
-                                } label: {
-                                    Label("File", systemImage: "doc")
-                                }
-                                
-                                Button {
-                                    // Template action
-                                } label: {
-                                    Label("Template", systemImage: "doc.text")
-                                }
-                                
-                                Button {
-                                    // Scan Text action
-                                } label: {
-                                    Label("Scan Text", systemImage: "text.viewfinder")
-                                }
-                            } label: {
-                                Image(systemName: "paperclip")
-                                    .font(.system(size: 16))
-                            }
-                            
-                            // Editor Features Menu
-                            Menu {
-                                Button {
-                                    // Body text
-                                } label: {
-                                    Label("Body", systemImage: "text.alignleft")
-                                }
-                                
-                                Button {
-                                    // Title text
-                                } label: {
-                                    Label("Title", systemImage: "textformat")
-                                }
-                                
-                                Button {
-                                    // Subtitle text
-                                } label: {
-                                    Label("Subtitle", systemImage: "text.badge.minus")
-                                }
-                                
-                                Divider()
-                                
-                                Button {
-                                    // List
-                                } label: {
-                                    Label("List", systemImage: "list.bullet")
-                                }
-                                
-                                Button {
-                                    // Checklist
-                                } label: {
-                                    Label("Checklist", systemImage: "checklist")
-                                }
-                                
-                                Button {
-                                    // Indent
-                                } label: {
-                                    Label("Indent", systemImage: "increase.indent")
-                                }
-                                
-                                Divider()
-                                
-                                Button {
-                                    // Quote Block
-                                } label: {
-                                    Label("Quote Block", systemImage: "text.quote")
-                                }
-                                
-                                Button {
-                                    // Code Block
-                                } label: {
-                                    Label("Code Block", systemImage: "curlybraces")
-                                }
-                                
-                                Button {
-                                    // Line
-                                } label: {
-                                    Label("Line", systemImage: "minus")
-                                }
-                            } label: {
-                                Image(systemName: "textformat")
-                                    .font(.system(size: 16))
-                            }
-                        }
-                        .foregroundStyle(.primary)
-                        .padding(.horizontal, 16)
-                    }
-                }
-            }
-            }
-            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: isTextFieldFocused)
-            .onKeyPress(.return, phases: .down) { keyPress in
-                if keyPress.modifiers.contains(.command) {
-                    isTextFieldFocused.toggle()
-                    return .handled
-                }
-                return .ignored
-            }
+            } // End of ZStack
             .toolbar {
                 // Date button on the left
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
                         showingEditDate = true
                     } label: {
-                        Label {
-                            Text(formatFullDate(entryDate))
-                        } icon: {
-                            Image(systemName: "calendar")
-                        }
-                        .labelStyle(.titleOnly)
-                        .foregroundColor(.primary)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .tint(.black.opacity(0.9))
+                        Text(formatFullDate(entryDate))
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
                     }
+                    .buttonStyle(.borderedProminent)
+                    .buttonBorderShape(.capsule)
+                    .tint(journalColor)
+                    .controlSize(.regular)
                 }
                 
                 // Ellipsis menu on the right
@@ -724,47 +490,53 @@ I think I'm going to sit here for a while longer before heading back down. This 
                     Menu {
                         Button(action: {
                             withAnimation(.easeInOut(duration: 0.3)) {
-                                if isEditMode {
-                                    isEditMode = false
-                                    isTextFieldFocused = false
-                                } else {
-                                    isEditMode = true
-                                }
+                                isEditMode.toggle()
                             }
                         }) {
                             Label(isEditMode ? "Done Editing" : "Edit", systemImage: isEditMode ? "checkmark.circle" : "pencil")
                         }
                         
-                        Button(action: {}) {
+                        Button {
+                            // Tag action
+                        } label: {
                             Label("Tag", systemImage: "tag")
                         }
                         
-                        Button(action: {}) {
+                        Button {
+                            // Move to action
+                        } label: {
                             Label("Move to...", systemImage: "folder")
                         }
                         
-                        Button(action: {}) {
+                        Button {
+                            // Copy to action
+                        } label: {
                             Label("Copy to...", systemImage: "doc.on.doc")
                         }
                         
-                        Button(role: .destructive, action: {}) {
+                        Button(role: .destructive) {
+                            // Move to trash action
+                        } label: {
                             Label("Move to Trash", systemImage: "trash")
                         }
                         
                         Divider()
                         
-                        Button(action: {}) {
+                        Button {
+                            // Export action
+                        } label: {
                             Label("Export", systemImage: "square.and.arrow.up")
                         }
                         
-                        Button(action: {}) {
+                        Button {
+                            // View PDF action
+                        } label: {
                             Label("View PDF", systemImage: "doc.text")
                         }
                     } label: {
                         Label("More", systemImage: "ellipsis")
-                        
                     }
-                    .tint(.black.opacity(0.9))
+                    .tint(journalColor)
                 }
                 
                 // Done button
@@ -935,7 +707,7 @@ I think I'm going to sit here for a while longer before heading back down. This 
         formatter.dateFormat = "EEE, MMM d, yyyy · h:mm a"
         return formatter.string(from: date)
     }
-}
+} // End of EntryView
 
 #Preview("New Entry") {
     EntryView(journal: nil)

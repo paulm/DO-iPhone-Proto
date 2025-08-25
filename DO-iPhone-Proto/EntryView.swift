@@ -533,6 +533,79 @@ I think I'm going to sit here for a while longer before heading back down. This 
                         } label: {
                             Label("View PDF", systemImage: "doc.text")
                         }
+                        
+                        Divider()
+                        
+                        // View Options Section
+                        Button {
+                            showEntryChatEmbed.toggle()
+                        } label: {
+                            Label(showEntryChatEmbed ? "Hide Chat Embed" : "Show Chat Embed", 
+                                  systemImage: showEntryChatEmbed ? "eye.slash" : "eye")
+                        }
+                        
+                        Button {
+                            showGeneratedFromDailyChat.toggle()
+                        } label: {
+                            Label(showGeneratedFromDailyChat ? "Hide Daily Chat Link" : "Show Daily Chat Link", 
+                                  systemImage: showGeneratedFromDailyChat ? "message.badge.slash" : "message.badge")
+                        }
+                        
+                        Button {
+                            showAudioEmbedWithTranscription.toggle()
+                        } label: {
+                            Label(showAudioEmbedWithTranscription ? "Hide Audio with Transcription" : "Show Audio with Transcription", 
+                                  systemImage: showAudioEmbedWithTranscription ? "waveform.slash" : "waveform")
+                        }
+                        
+                        Button {
+                            showAudioEmbed.toggle()
+                        } label: {
+                            Label(showAudioEmbed ? "Hide Audio Embed" : "Show Audio Embed", 
+                                  systemImage: showAudioEmbed ? "speaker.slash" : "speaker.wave.2")
+                        }
+                        
+                        Button {
+                            showImageEmbed.toggle()
+                        } label: {
+                            Label(showImageEmbed ? "Hide Image Embed" : "Show Image Embed", 
+                                  systemImage: showImageEmbed ? "photo.slash" : "photo")
+                        }
+                        
+                        if showImageEmbed {
+                            Button {
+                                showImageCaption.toggle()
+                            } label: {
+                                Label(showImageCaption ? "Hide Image Caption" : "Show Image Caption", 
+                                      systemImage: showImageCaption ? "text.bubble.slash" : "text.bubble")
+                            }
+                        }
+                        
+                        Divider()
+                        
+                        Button {
+                            // Share action
+                        } label: {
+                            Label("Share Entry", systemImage: "square.and.arrow.up")
+                        }
+                        
+                        Button {
+                            // Pin action
+                        } label: {
+                            Label("Pin Entry", systemImage: "pin")
+                        }
+                        
+                        Button {
+                            // Bookmark action
+                        } label: {
+                            Label("Bookmark", systemImage: "bookmark")
+                        }
+                        
+                        Button {
+                            // Activity action
+                        } label: {
+                            Label("View Activity", systemImage: "clock.arrow.circlepath")
+                        }
                     } label: {
                         Label("More", systemImage: "ellipsis")
                     }

@@ -260,58 +260,31 @@ I think I'm going to sit here for a while longer before heading back down. This 
                 // Content area with scrollable embeds and text
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
-                        // Embeds section with gray background
-                        if (hasChatActivity && showEntryChatEmbed) || showGeneratedFromDailyChat {
+                        // Embeds section with gray background - only Entry Chat Session now
+                        if hasChatActivity && showEntryChatEmbed {
                             VStack(spacing: 10) {
                                 // Chat activity indicator
-                                if hasChatActivity && showEntryChatEmbed {
-                                    Button {
-                                        // Entry chat removed - do nothing
-                                    } label: {
-                                        HStack(spacing: 10) {
-                                            Text("Entry Chat Session")
-                                                .font(.caption)
-                                                .foregroundStyle(.primary.opacity(0.7))
-                                            
-                                            Spacer()
-                                            
-                                            Text("3")
-                                                .font(.caption2)
-                                                .foregroundStyle(.secondary)
-                                        }
-                                        .padding(.horizontal, 12)
-                                        .padding(.vertical, 12)
-                                        .frame(maxWidth: .infinity)
-                                        .background(Color(hex: "F8F8F8"))
-                                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                                Button {
+                                    // Entry chat removed - do nothing
+                                } label: {
+                                    HStack(spacing: 10) {
+                                        Text("Entry Chat Session")
+                                            .font(.caption)
+                                            .foregroundStyle(.primary.opacity(0.7))
+                                        
+                                        Spacer()
+                                        
+                                        Text("3")
+                                            .font(.caption2)
+                                            .foregroundStyle(.secondary)
                                     }
-                                    .buttonStyle(.plain)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 12)
+                                    .frame(maxWidth: .infinity)
+                                    .background(Color(hex: "F8F8F8"))
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
                                 }
-                                
-                                // Generated from Daily Chat indicator
-                                if showGeneratedFromDailyChat {
-                                    Button {
-                                        showingDailyChat = true
-                                    } label: {
-                                        HStack(spacing: 10) {
-                                            Text("Generated from Daily Chat")
-                                                .font(.caption)
-                                                .foregroundStyle(.primary.opacity(0.7))
-                                            
-                                            Spacer()
-                                            
-                                            Text("3")
-                                                .font(.caption2)
-                                                .foregroundStyle(.secondary)
-                                        }
-                                        .padding(.horizontal, 12)
-                                        .padding(.vertical, 12)
-                                        .frame(maxWidth: .infinity)
-                                        .background(Color(hex: "F8F8F8"))
-                                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                                    }
-                                    .buttonStyle(.plain)
-                                }
+                                .buttonStyle(.plain)
                             }
                             .padding(.horizontal, 12)
                             .padding(.vertical, 14)
@@ -341,6 +314,29 @@ I think I'm going to sit here for a while longer before heading back down. This 
                             .font(.caption)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.bottom, 8)
+                            
+                            // Generated from Daily Chat indicator - moved here below metadata
+                            if showGeneratedFromDailyChat {
+                                Button {
+                                    showingDailyChat = true
+                                } label: {
+                                    HStack(spacing: 10) {
+                                        Text("Generated from Daily Chat")
+                                            .font(.caption)
+                                            .fontWeight(Font.Weight.medium)
+                                            .foregroundStyle(.primary.opacity(0.7))
+                                        
+                                        Spacer()
+                                    }
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 12)
+                                    .frame(maxWidth: .infinity)
+                                    .background(Color(hex: "F3F1F8"))
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                }
+                                .buttonStyle(.plain)
+                                .padding(.bottom, 8)
+                            }
                             
                             // Title - always visible
                             Text(getEntryTitle())
@@ -462,8 +458,8 @@ I think I'm going to sit here for a while longer before heading back down. This 
                             }
                         }
                         // left and right margins
-                        .padding(.horizontal, 18)
-                        .padding(.top, (hasChatActivity && showEntryChatEmbed) || showGeneratedFromDailyChat ? 28 : 12)
+                        .padding(.horizontal, 16)
+                        .padding(.top, hasChatActivity && showEntryChatEmbed ? 28 : 12)
                         .padding(.bottom, 24)
                     }
                 }

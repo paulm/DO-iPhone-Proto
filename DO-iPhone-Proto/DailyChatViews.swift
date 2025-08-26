@@ -139,7 +139,6 @@ struct DailyChatView: View {
     @State private var isThinking = false
     @FocusState private var isTextFieldFocused: Bool
     @State private var showingPreviewEntry = false
-    @State private var showingBioView = false
     @State private var isGeneratingEntry = false
     @State private var showingEntry = false
     @State private var showingChatSettings = false
@@ -565,15 +564,11 @@ struct DailyChatView: View {
                         }
                         
                         Button(action: {
+                            // Dismiss keyboard before showing settings
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                             showingChatSettings = true
                         }) {
                             Label("Chat Settings", systemImage: "gearshape")
-                        }
-                        
-                        Button(action: {
-                            showingBioView = true
-                        }) {
-                            Label("Edit Bio", systemImage: "person.circle")
                         }
                         
                         Divider()
@@ -611,13 +606,11 @@ struct DailyChatView: View {
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button {
+                    Button("Done", systemImage: "checkmark") {
                         dismiss()
-                    } label: {
-                        Label("Done", systemImage: "checkmark")
-                            .labelStyle(.titleAndIcon)
                     }
-                    .tint(.blue)
+                    .labelStyle(.titleAndIcon)
+                    .tint(Color(hex: "333B40"))
                 }
             }
             .onAppear {
@@ -677,15 +670,12 @@ struct DailyChatView: View {
                 entryCreated: $entryCreated
             )
         }
-        .sheet(isPresented: $showingBioView) {
-            BioEditView()
-        }
         .sheet(isPresented: $showingEntry) {
             EntryView(journal: nil)
         }
         .sheet(isPresented: $showingChatSettings) {
-            ChatSettingsView()
-                .presentationDetents([.medium])
+            DailyChatSettingsView()
+                .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
                 .presentationBackgroundInteraction(.enabled(upThrough: .medium))
         }
@@ -969,60 +959,64 @@ struct BioEditView: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage("userBioName") private var userName = ""
     @AppStorage("userBioBio") private var userBio = ""
-    @AppStorage("includeInDailyChat") private var includeInDailyChat = true
     
     @State private var editingName = ""
     @State private var editingBio = ""
-    @State private var editingInclude = true
+    @FocusState private var focusedField: Field?
+    
+    enum Field: Hashable {
+        case name
+        case bio
+    }
     
     var body: some View {
         NavigationStack {
-            Form {
+            List {
+                // Name Section
                 Section {
-                    TextField("Name", text: $editingName)
-                        .textFieldStyle(.automatic)
-                    
-                    VStack(alignment: .leading) {
-                        Text("Bio")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        
-                        TextEditor(text: $editingBio)
-                            .frame(minHeight: 120)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color(.systemGray5), lineWidth: 1)
-                            )
-                    }
+                    TextField("Scotty Simpson", text: $editingName)
+                        .focused($focusedField, equals: .name)
+                } header: {
+                    Text("Name")
                 }
                 
+                // About You Section
                 Section {
-                    Toggle("Include in Daily Chat", isOn: $editingInclude)
+                    TextEditor(text: $editingBio)
+                        .frame(minHeight: 100)
+                        .focused($focusedField, equals: .bio)
+                        .overlay(alignment: .topLeading) {
+                            if editingBio.isEmpty {
+                                Text("Tell us about yourself")
+                                    .foregroundStyle(.tertiary)
+                                    .padding(.top, 8)
+                                    .padding(.leading, 4)
+                                    .allowsHitTesting(false)
+                            }
+                        }
+                } header: {
+                    Text("About you")
+                } footer: {
+                    Text("Your Bio is used for context in Daily Chat and other AI features.")
                 }
             }
+            .listStyle(.insetGrouped)
             .navigationTitle("Bio")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save") {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done", systemImage: "checkmark") {
                         userName = editingName
                         userBio = editingBio
-                        includeInDailyChat = editingInclude
                         dismiss()
                     }
-                    .fontWeight(.semibold)
+                    .labelStyle(.titleAndIcon)
+                    .tint(Color(hex: "333B40"))
                 }
             }
             .onAppear {
                 editingName = userName
                 editingBio = userBio
-                editingInclude = includeInDailyChat
             }
         }
     }
@@ -1296,99 +1290,4 @@ struct ChatEntryPreviewView: View {
     }
 }
 
-// MARK: - Chat Settings View
-struct ChatSettingsView: View {
-    @Environment(\.dismiss) private var dismiss
-    @AppStorage("selectedJournalForChat") private var selectedJournalName = "Daily"
-    @AppStorage("userBioName") private var userName = ""
-    @AppStorage("userBioBio") private var userBio = ""
-    @State private var showingJournalPicker = false
-    @State private var showingBioEdit = false
-    
-    var body: some View {
-        NavigationStack {
-            List {
-                // Journal Section
-                Section {
-                    Button(action: {
-                        showingJournalPicker = true
-                    }) {
-                        HStack(spacing: 12) {
-                            // Journal icon/color - smaller for standard row
-                            RoundedRectangle(cornerRadius: 6)
-                                .fill(Color.green)
-                                .frame(width: 28, height: 28)
-                            
-                            Text(selectedJournalName)
-                                .font(.body)
-                                .foregroundStyle(.primary)
-                            
-                            Spacer()
-                        }
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                } header: {
-                    Text("Journal")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.secondary)
-                        .textCase(.uppercase)
-                } footer: {
-                    Text("The assigned journal is where your Daily Chat entries will be saved.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                
-                // Contexts Section
-                Section {
-                    HStack {
-                        Text("Bio")
-                            .font(.body)
-                            .foregroundStyle(.primary)
-                        
-                        Spacer()
-                        
-                        Button(action: {
-                            showingBioEdit = true
-                        }) {
-                            Text(userBio.isEmpty ? "Add Bio" : "Edit Bio")
-                                .font(.body)
-                                .foregroundStyle(Color(hex: "44C0FF"))
-                        }
-                    }
-                } header: {
-                    Text("Contexts")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.secondary)
-                        .textCase(.uppercase)
-                } footer: {
-                    Text("Contexts are used by Day One AI to improve its responses across all Daily Chat sessions.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .listStyle(.insetGrouped)
-            .navigationTitle("Chat Settings")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Label("Done", systemImage: "checkmark")
-                            .labelStyle(.titleAndIcon)
-                    }
-                    .tint(.blue)
-                }
-            }
-        }
-        .sheet(isPresented: $showingJournalPicker) {
-            // TODO: Journal picker view
-            Text("Journal Picker")
-        }
-        .sheet(isPresented: $showingBioEdit) {
-            BioEditView()
-        }
-    }
-}
+// ChatSettingsView has been replaced with DailyChatSettingsView

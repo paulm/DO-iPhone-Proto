@@ -2,49 +2,55 @@ import SwiftUI
 
 struct DailyChatSettingsView: View {
     @AppStorage("dailyChatJournal") private var selectedJournal = "Daily"
+    @AppStorage("includeBioInChatContext") private var includeBioInChatContext = false
     @State private var showingJournalPicker = false
     @State private var showingBioView = false
+    @Environment(\.dismiss) private var dismiss
     
     // Sample journals for selection
     private let availableJournals = ["Daily", "Personal", "Work", "Travel", "Fitness", "Gratitude"]
     
     var body: some View {
-        List {
-            Section {
-                HStack {
+        NavigationStack {
+            List {
+                // Journal Section
+                Section {
+                    NavigationLink(destination: JournalPickerView(selectedJournal: $selectedJournal)) {
+                        Text("Journal")
+                    }
+                } header: {
                     Text("Journal")
-                    Spacer()
-                    Text(selectedJournal)
-                        .foregroundStyle(.secondary)
-                    Image(systemName: "chevron.right")
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
-                }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    showingJournalPicker = true
+                } footer: {
+                    Text("The assigned journal is where your Daily Chat entries will be saved.")
                 }
                 
-                HStack {
+                // Bio Section
+                Section {
+                    NavigationLink(destination: BioEditView()) {
+                        Text("Edit Bio")
+                    }
+                    
+                    Toggle(isOn: $includeBioInChatContext) {
+                        Text("Include Bio in Chat Context")
+                    }
+                } header: {
                     Text("Bio")
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
-                }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    showingBioView = true
+                } footer: {
+                    Text("Contexts are used by Day One AI to improve its responses across all Daily Chat sessions.")
                 }
             }
-        }
-        .navigationTitle("Daily Chat")
-        .navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: $showingJournalPicker) {
-            JournalPickerView(selectedJournal: $selectedJournal)
-        }
-        .sheet(isPresented: $showingBioView) {
-            BioEditView()
+            .listStyle(.insetGrouped)
+            .navigationTitle("Chat Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done", systemImage: "checkmark") {
+                        dismiss()
+                    }
+                    .labelStyle(.titleAndIcon)
+                    .tint(Color(hex: "333B40"))
+                }
+            }
         }
     }
 }

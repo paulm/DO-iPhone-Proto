@@ -3,6 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showingIntegrations = false
+    @State private var showingChatSettings = false
     
     var body: some View {
         NavigationStack {
@@ -14,8 +15,19 @@ struct SettingsView: View {
                 }
                 
                 Section {
-                    NavigationLink("Daily Chat") {
-                        DailyChatSettingsView()
+                    Button(action: {
+                        // Dismiss keyboard before showing settings
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        showingChatSettings = true
+                    }) {
+                        HStack {
+                            Text("Daily Chat")
+                                .foregroundStyle(.primary)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                        }
                     }
                 }
                 
@@ -45,6 +57,12 @@ struct SettingsView: View {
                         dismiss()
                     }
                 }
+            }
+            .sheet(isPresented: $showingChatSettings) {
+                DailyChatSettingsView()
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
+                    .presentationBackgroundInteraction(.enabled(upThrough: .medium))
             }
         }
     }

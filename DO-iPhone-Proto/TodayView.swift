@@ -407,6 +407,10 @@ struct TodayView: View {
     @AppStorage("showDailyEntryChat") private var showDailyEntryChat = true
     @AppStorage("showLogVoiceModeButtons") private var showLogVoiceModeButtons = false
     @AppStorage("todayViewStyle") private var selectedStyle = TodayViewStyle.standard
+    @AppStorage("showWelcomeToTodaySheet") private var showWelcomeToTodaySheet = false
+    
+    // Sheet presentation state
+    @State private var shouldPresentWelcomeSheet = false
     
     // Options toggles
     @State private var showGridDates = false
@@ -1092,6 +1096,17 @@ struct TodayView: View {
                     Section("Show in Today") {
                         
                         Button {
+                            showWelcomeToTodaySheet.toggle()
+                        } label: {
+                            HStack {
+                                Text("Welcome to Today Sheet")
+                                if showWelcomeToTodaySheet {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                        
+                        Button {
                             showDatePickerGrid.toggle()
                         } label: {
                             HStack {
@@ -1565,6 +1580,14 @@ struct TodayView: View {
             // Check if summary and entry exist for current date on appear
             summaryGenerated = DailyContentManager.shared.hasSummary(for: selectedDate)
             entryCreated = DailyContentManager.shared.hasEntry(for: selectedDate)
+            
+            // Show Welcome to Today sheet if enabled
+            if showWelcomeToTodaySheet {
+                shouldPresentWelcomeSheet = true
+            }
+        }
+        .sheet(isPresented: $shouldPresentWelcomeSheet) {
+            WelcomeToTodaySheet()
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ChatMessagesUpdated"))) { _ in
             // Force view update when chat messages change

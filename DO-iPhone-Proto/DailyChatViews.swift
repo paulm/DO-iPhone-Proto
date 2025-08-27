@@ -143,6 +143,8 @@ struct DailyChatView: View {
     @State private var showingEntry = false
     @State private var showingChatSettings = false
     @State private var showingClearChatAlert = false
+    @State private var showingUpdateConfirmation = false
+    @State private var isUpdatingEntry = false
     
     private let chatSessionManager = ChatSessionManager.shared
     
@@ -523,7 +525,7 @@ struct DailyChatView: View {
                                     .font(.caption2)
                                     .foregroundStyle(.secondary)
                                 
-                                if isGeneratingEntry {
+                                if isGeneratingEntry || isUpdatingEntry {
                                     ProgressView()
                                         .scaleEffect(0.5)
                                         .frame(width: 14, height: 14)
@@ -532,8 +534,8 @@ struct DailyChatView: View {
                                         if DailyContentManager.shared.hasEntry(for: selectedDate) {
                                             // Entry exists
                                             if DailyContentManager.shared.hasNewMessagesSinceEntry(for: selectedDate) {
-                                                // New messages - show preview
-                                                showingPreviewEntry = true
+                                                // New messages - show update confirmation alert
+                                                showingUpdateConfirmation = true
                                             } else {
                                                 // No new messages - just view entry
                                                 showingEntry = true
@@ -548,7 +550,7 @@ struct DailyChatView: View {
                                             .foregroundStyle(Color(hex: "44C0FF"))
                                     }
                                     .buttonStyle(PlainButtonStyle())
-                                    .disabled(isGeneratingEntry)
+                                    .disabled(isGeneratingEntry || isUpdatingEntry)
                                 }
                             }
                         }
@@ -664,12 +666,6 @@ struct DailyChatView: View {
                 NotificationCenter.default.post(name: NSNotification.Name("ChatMessagesUpdated"), object: nil)
             }
         }
-        .sheet(isPresented: $showingPreviewEntry) {
-            ChatEntryPreviewView(
-                selectedDate: selectedDate,
-                entryCreated: $entryCreated
-            )
-        }
         .sheet(isPresented: $showingEntry) {
             EntryView(journal: nil)
         }
@@ -686,6 +682,36 @@ struct DailyChatView: View {
             }
         } message: {
             Text("This will remove all messages from the current chat. This action can't be undone.")
+        }
+        .alert("Update Journal Entry", isPresented: $showingUpdateConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Update", role: .none) {
+                // Start the update process
+                isUpdatingEntry = true
+                
+                // Simulate update process
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                    // Mark entry as updated
+                    DailyContentManager.shared.setHasEntry(true, for: selectedDate)
+                    
+                    // Update the message count to current count
+                    let messages = chatSessionManager.getMessages(for: selectedDate)
+                    let userMessageCount = messages.filter { $0.isUser }.count
+                    DailyContentManager.shared.setEntryMessageCount(userMessageCount, for: selectedDate)
+                    
+                    // Reset the updating state
+                    isUpdatingEntry = false
+                    
+                    // Update local state
+                    entryCreated = true
+                    
+                    // Post notification to refresh the UI
+                    NotificationCenter.default.post(name: NSNotification.Name("DailyEntryUpdatedStatusChanged"), object: selectedDate)
+                }
+            }
+            .tint(Color(hex: "44C0FF"))
+        } message: {
+            Text("Your update will resummarize parts of the current entry. Do you wish to continue?")
         }
     }
     
@@ -1019,274 +1045,6 @@ struct BioEditView: View {
                 editingBio = userBio
             }
         }
-    }
-}
-
-// MARK: - Chat Entry Preview View (Chat Summary)
-struct ChatEntryPreviewView: View {
-    let selectedDate: Date
-    @Binding var entryCreated: Bool
-    @Environment(\.dismiss) private var dismiss
-    @State private var entryContent: String = ""
-    @State private var isCreatingEntry = false
-    @State private var showingEntry = false
-    @State private var hasNewInteractions = false
-    @State private var isLoadingSummary = true
-    
-    private var dateFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .full
-        return formatter
-    }
-    
-    var body: some View {
-        NavigationStack {
-            Group {
-                if isLoadingSummary {
-                    // Loading state
-                    VStack(spacing: 20) {
-                        ProgressView()
-                            .scaleEffect(1.2)
-                            .tint(Color(hex: "44C0FF"))
-                        
-                        Text("Generating summary...")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color(UIColor.systemGroupedBackground))
-                } else {
-                    VStack(spacing: 0) {
-                        // List with sections
-                        List {
-                        // Current Daily Entry Section
-                        Section("CURRENT DAILY ENTRY") {
-                            Button(action: {
-                                showingEntry = true
-                            }) {
-                                HStack {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text("Morning Reflections and Evening Plans")
-                                            .font(.subheadline)
-                                            .fontWeight(.bold)
-                                            .foregroundStyle(.primary)
-                                            .multilineTextAlignment(.leading)
-                                        
-                                        Text("Today I started with my usual morning routine, feeling energized and ready to tackle the day ahead. I spent some time thinking about my work goals and how I want to approach the various projects I have on my plate. The conversation helped me organize my thoughts around what's most important right now.")
-                                            .font(.subheadline)
-                                            .foregroundStyle(.secondary)
-                                            .lineLimit(3)
-                                            .multilineTextAlignment(.leading)
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    Image(systemName: "chevron.right")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                            .padding(.vertical, 8)
-                        }
-                        
-                        // Preview Daily Entry Update Section
-                        Section("PREVIEW DAILY ENTRY UPDATE") {
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text("Morning Reflections and Evening Plans")
-                                    .font(.headline)
-                                    .fontWeight(.bold)
-                                
-                                Text("Today I started with my usual morning routine, feeling energized and ready to tackle the day ahead. I spent some time thinking about my work goals and how I want to approach the various projects I have on my plate.")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.primary)
-                                
-                                Text("The conversation helped me organize my thoughts around what's most important right now. We discussed my priorities for the week and how to balance work with personal time.")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.primary)
-                                
-                                Text("As I look toward the evening, I'm planning to wind down with some reading and prepare for tomorrow's meetings. It's been a productive day overall, and I'm grateful for the clarity that comes from taking time to reflect.")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.primary)
-                            }
-                            .padding(.vertical, 8)
-                        }
-                    }
-                    .listStyle(.insetGrouped)
-                    
-                    // Action button
-                    VStack {
-                        // Update Entry button
-                        Button(action: {
-                            if entryCreated {
-                                // Update existing entry
-                                updateEntry()
-                            } else {
-                                // Create new entry
-                                createEntry()
-                            }
-                        }) {
-                            HStack {
-                                if isCreatingEntry {
-                                    ProgressView()
-                                        .scaleEffect(0.8)
-                                        .tint(.white)
-                                } else {
-                                    Text("Update Entry")
-                                        .font(.subheadline)
-                                        .fontWeight(.semibold)
-                                }
-                            }
-                            .foregroundStyle(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(Color(hex: "44C0FF"))
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                        }
-                        .disabled(isCreatingEntry || (entryCreated && !hasNewInteractions))
-                        .opacity((entryCreated && !hasNewInteractions) ? 0.6 : 1.0)
-                    }
-                    .padding(.horizontal)
-                    .padding(.bottom, 20)
-                    .background(Color(UIColor.systemGroupedBackground))
-                }
-            }
-            }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Menu {
-                        Button(action: {
-                            copyEntryText()
-                        }) {
-                            Label("Copy Text", systemImage: "doc.on.doc")
-                        }
-                        
-                        Button(action: {
-                            // TODO: Edit entry
-                        }) {
-                            Label("Edit", systemImage: "pencil")
-                        }
-                        
-                        Divider()
-                        
-                        Button(role: .destructive, action: {
-                            deleteEntry()
-                        }) {
-                            Label("Delete", systemImage: "trash")
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
-                            .font(.body)
-                    }
-                }
-                
-                ToolbarItem(placement: .principal) {
-                    VStack(spacing: 2) {
-                        Text(dateFormatter.string(from: selectedDate))
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                        
-                        Text("Entry generated from chat")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                }
-            }
-            .sheet(isPresented: $showingEntry) {
-                EntryView(journal: nil)
-            }
-            .onAppear {
-            // Show loading state for 0.5 seconds
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                isLoadingSummary = false
-            }
-            
-            // Mark summary as generated immediately
-            DailyContentManager.shared.setHasSummary(true, for: selectedDate)
-            
-            // Check if there are new chat interactions since entry was created
-            // This would normally check actual chat data
-            if entryCreated {
-                // Simulate checking for new interactions
-                hasNewInteractions = true
-            }
-        }
-        .onDisappear {
-            // Post notification when view is dismissed to ensure UI updates
-            NotificationCenter.default.post(name: NSNotification.Name("SummaryGeneratedStatusChanged"), object: selectedDate)
-        }
-        }
-    }
-    
-    private func createEntry() {
-        isCreatingEntry = true
-        
-        // Simulate entry creation
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            isCreatingEntry = false
-            entryCreated = true
-            hasNewInteractions = false
-            // Mark entry as created (independent from chat)
-            DailyContentManager.shared.setHasEntry(true, for: selectedDate)
-            // Track current message count when entry is created
-            let messages = ChatSessionManager.shared.getMessages(for: selectedDate)
-            let userMessageCount = messages.filter { $0.isUser }.count
-            DailyContentManager.shared.setEntryMessageCount(userMessageCount, for: selectedDate)
-            // Post notification to update UI
-            NotificationCenter.default.post(name: NSNotification.Name("DailyEntryCreatedStatusChanged"), object: selectedDate)
-            // Auto-open the entry after creation
-            showingEntry = true
-        }
-    }
-    
-    private func updateEntry() {
-        isCreatingEntry = true
-        
-        // Simulate entry update
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            isCreatingEntry = false
-            hasNewInteractions = false
-            
-            // Update the entry message count to current count
-            let messages = ChatSessionManager.shared.getMessages(for: selectedDate)
-            let userMessageCount = messages.filter { $0.isUser }.count
-            DailyContentManager.shared.setEntryMessageCount(userMessageCount, for: selectedDate)
-            
-            // Set the update date
-            DailyContentManager.shared.setEntryUpdateDate(Date(), for: selectedDate)
-            
-            // Post notification to update UI
-            NotificationCenter.default.post(name: NSNotification.Name("DailyEntryUpdatedStatusChanged"), object: selectedDate)
-            
-            // Auto-dismiss the preview after update completes
-            dismiss()
-        }
-    }
-    
-    private func copyEntryText() {
-        let entryText = """
-        Morning Reflections and Evening Plans
-        
-        Today I started with my usual morning routine, feeling energized and ready to tackle the day ahead. I spent some time thinking about my work goals and how I want to approach the various projects I have on my plate.
-        
-        The conversation helped me organize my thoughts around what's most important right now. We discussed my priorities for the week and how to balance work with personal time.
-        
-        As I look toward the evening, I'm planning to wind down with some reading and prepare for tomorrow's meetings. It's been a productive day overall, and I'm grateful for the clarity that comes from taking time to reflect.
-        """
-        
-        UIPasteboard.general.string = entryText
-    }
-    
-    private func deleteEntry() {
-        entryCreated = false
-        dismiss()
     }
 }
 

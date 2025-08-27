@@ -22,6 +22,10 @@ struct DailyEntryChatView: View {
     // UI configuration
     let showLogVoiceModeButtons: Bool
     
+    // State for confirmation alert and update process
+    @State private var showingUpdateConfirmation = false
+    @State private var isUpdatingEntry = false
+    
     // MARK: - Computed Properties
     
     /// Check if an entry exists for the selected date
@@ -59,9 +63,10 @@ struct DailyEntryChatView: View {
     // MARK: - Body
     
     var body: some View {
-        // Main conditional: Show different UI based on chat/entry state
-        // State 1 & 2: Chat exists OR entry exists - show gray rounded container
-        if chatCompleted || hasEntry {
+        Group {
+            // Main conditional: Show different UI based on chat/entry state
+            // State 1 & 2: Chat exists OR entry exists - show gray rounded container
+            if chatCompleted || hasEntry {
             VStack(spacing: 12) {
                 
                 // SECTION 1: Last AI Message Preview
@@ -230,24 +235,36 @@ struct DailyEntryChatView: View {
                             .padding(.bottom, 14)
                         
                         Button(action: {
-                            // Opens the entry preview/summary view for updating
-                            showingPreviewEntry = true
+                            // Show confirmation alert for updating entry
+                            showingUpdateConfirmation = true
                         }) {
-                            HStack(spacing: 8) {
-                                Image(systemName: "arrow.triangle.2.circlepath")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundStyle(.white)
-                                
-                                Text(entryButtonText)
-                                    .font(.system(size: 17, weight: .semibold))
-                                    .foregroundStyle(.white)
+                            if isUpdatingEntry {
+                                // Show loading spinner while updating
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                    .scaleEffect(0.9)
+                                    .frame(height: 48)
+                                    .frame(maxWidth: .infinity)
+                                    .background(Color(hex: "44C0FF"))
+                                    .clipShape(RoundedRectangle(cornerRadius: 24))
+                            } else {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "arrow.triangle.2.circlepath")
+                                        .font(.system(size: 16, weight: .semibold))
+                                        .foregroundStyle(.white)
+                                    
+                                    Text(entryButtonText)
+                                        .font(.system(size: 17, weight: .semibold))
+                                        .foregroundStyle(.white)
+                                }
+                                .frame(height: 48)
+                                .frame(maxWidth: .infinity)
+                                .background(Color(hex: "44C0FF"))
+                                .clipShape(RoundedRectangle(cornerRadius: 24))
                             }
-                            .frame(height: 48)
-                            .frame(maxWidth: .infinity)
-                            .background(Color(hex: "44C0FF"))
-                            .clipShape(RoundedRectangle(cornerRadius: 24))
                         }
                         .buttonStyle(PlainButtonStyle())
+                        .disabled(isUpdatingEntry)
                     }
                 }
             }
@@ -276,6 +293,34 @@ struct DailyEntryChatView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 24))
             }
             .buttonStyle(PlainButtonStyle())
+        }
+        }
+        .alert("Update Journal Entry", isPresented: $showingUpdateConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Update", role: .none) {
+                // Start the update process
+                isUpdatingEntry = true
+                
+                // Simulate update process (replace with actual update logic)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                    // Mark entry as updated
+                    DailyContentManager.shared.setHasEntry(true, for: selectedDate)
+                    
+                    // Update the message count to current count
+                    let messages = ChatSessionManager.shared.getMessages(for: selectedDate)
+                    let userMessageCount = messages.filter { $0.isUser }.count
+                    DailyContentManager.shared.setEntryMessageCount(userMessageCount, for: selectedDate)
+                    
+                    // Reset the updating state
+                    isUpdatingEntry = false
+                    
+                    // Post notification to refresh the UI
+                    NotificationCenter.default.post(name: NSNotification.Name("DailyEntryUpdatedStatusChanged"), object: selectedDate)
+                }
+            }
+            .tint(Color(hex: "44C0FF"))
+        } message: {
+            Text("Your update will resummarize parts of the current entry. Do you wish to continue?")
         }
     }
 }

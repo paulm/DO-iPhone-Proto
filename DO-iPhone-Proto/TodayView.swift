@@ -1488,12 +1488,6 @@ struct TodayView: View {
                 OnThisDayView()
             }
         }
-        .sheet(isPresented: $showingPreviewEntry) {
-            ChatEntryPreviewView(
-                selectedDate: selectedDate,
-                entryCreated: $entryCreated
-            )
-        }
         .onChange(of: showingPreviewEntry) { oldValue, newValue in
             // When sheet is dismissed, check if summary was generated
             if oldValue == true && newValue == false {

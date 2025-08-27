@@ -610,7 +610,7 @@ struct DailyChatView: View {
                         dismiss()
                     }
                     .labelStyle(.titleAndIcon)
-                    .tint(Color(hex: "44C0FF"))
+                    .tint(Color(hex: "333B40"))
                 }
             }
             .onAppear {

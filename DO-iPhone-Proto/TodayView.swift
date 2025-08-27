@@ -2608,7 +2608,7 @@ struct EntryLinksCarouselView: View {
     }
 }
 
-// MARK: - Visits Sheet View
+// MARK: - Places Sheet View
 struct VisitsSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showingEntryView = false
@@ -2635,80 +2635,92 @@ struct VisitsSheetView: View {
                     .padding(.bottom, 16)
                 
                 // Visits list
-                ScrollView {
-                    VStack(spacing: 0) {
-                        ForEach(visits, id: \.name) { visit in
-                            Button(action: {
-                                selectedVisitName = visit.name
-                                showingEntryView = true
-                            }) {
-                                HStack(spacing: 12) {
-                                    // Icon
-                                    Image(systemName: visit.icon)
-                                        .font(.system(size: 20))
-                                        .foregroundStyle(Color(hex: "44C0FF"))
-                                        .frame(width: 32, height: 32)
+                List {
+                    ForEach(visits, id: \.name) { visit in
+                        Button(action: {
+                            selectedVisitName = visit.name
+                            showingEntryView = true
+                        }) {
+                            HStack(spacing: 12) {
+                                // Icon
+                                Image(systemName: visit.icon)
+                                    .font(.system(size: 20))
+                                    .foregroundStyle(Color(hex: "44C0FF"))
+                                    .frame(width: 32, height: 32)
+                                
+                                // Visit details
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(visit.name)
+                                        .font(.body)
+                                        .foregroundStyle(.primary)
                                     
-                                    // Visit details
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text(visit.name)
-                                            .font(.body)
-                                            .foregroundStyle(.primary)
-                                        
-                                        Text(visit.time)
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    // Ellipsis menu
-                                    Menu {
-                                        Button(action: {
-                                            selectedVisitName = visit.name
-                                            showingEntryView = true
-                                        }) {
-                                            Label("Create Entry", systemImage: "square.and.pencil")
-                                        }
-                                        
-                                        Button(action: {
-                                            // Handle select nearby place
-                                        }) {
-                                            Label("Select Nearby Place", systemImage: "location.circle")
-                                        }
-                                        
-                                        Button(action: {
-                                            // Handle hide
-                                        }) {
-                                            Label("Hide", systemImage: "eye.slash")
-                                        }
-                                    } label: {
-                                        Image(systemName: "ellipsis")
-                                            .font(.system(size: 16))
-                                            .foregroundStyle(.secondary)
-                                            .frame(width: 44, height: 44)
-                                            .contentShape(Rectangle())
-                                    }
-                                    .menuStyle(.borderlessButton)
+                                    Text(visit.time)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
                                 }
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 8)
+                                
+                                Spacer()
+                                
+                                // Ellipsis menu
+                                Menu {
+                                    Button(action: {
+                                        selectedVisitName = visit.name
+                                        showingEntryView = true
+                                    }) {
+                                        Label("Create Entry", systemImage: "square.and.pencil")
+                                    }
+                                    
+                                    Button(action: {
+                                        // Handle select nearby place
+                                    }) {
+                                        Label("Select Nearby Place", systemImage: "location.circle")
+                                    }
+                                    
+                                    Button(action: {
+                                        // Handle hide
+                                    }) {
+                                        Label("Hide", systemImage: "eye.slash")
+                                    }
+                                } label: {
+                                    Image(systemName: "ellipsis")
+                                        .font(.system(size: 16))
+                                        .foregroundStyle(.secondary)
+                                        .frame(width: 44, height: 44)
+                                        .contentShape(Rectangle())
+                                }
+                                .menuStyle(.borderlessButton)
                             }
-                            .buttonStyle(PlainButtonStyle())
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            Button(action: {
+                                // Handle hide action
+                            }) {
+                                Label("Hide", systemImage: "eye.slash")
+                            }
+                            .tint(.gray)
                             
-                            // Divider
-                            if visit.name != visits.last?.name {
-                                Divider()
-                                    .padding(.leading, 64)
+                            Button(action: {
+                                // Handle edit action
+                            }) {
+                                Label("Edit", systemImage: "pencil")
                             }
+                            .tint(.blue)
                         }
                     }
                 }
+                .listStyle(.plain)
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("View All") {
+                        // TODO: Handle View All action
+                    }
+                }
+                
                 ToolbarItem(placement: .principal) {
-                    Text("Visits")
+                    Text("Places")
                         .font(.headline)
                 }
                 
@@ -2758,88 +2770,100 @@ struct EventsSheetView: View {
                     .padding(.bottom, 16)
                 
                 // Events list
-                ScrollView {
-                    VStack(spacing: 0) {
-                        ForEach(events, id: \.name) { event in
-                            Button(action: {
-                                selectedEventName = event.name
-                                showingEntryView = true
-                            }) {
-                                HStack(spacing: 12) {
-                                    // Icon
-                                    Image(systemName: event.icon)
-                                        .font(.system(size: 20))
-                                        .foregroundStyle(Color(hex: "44C0FF"))
-                                        .frame(width: 32, height: 32)
+                List {
+                    ForEach(events, id: \.name) { event in
+                        Button(action: {
+                            selectedEventName = event.name
+                            showingEntryView = true
+                        }) {
+                            HStack(spacing: 12) {
+                                // Icon
+                                Image(systemName: event.icon)
+                                    .font(.system(size: 20))
+                                    .foregroundStyle(Color(hex: "44C0FF"))
+                                    .frame(width: 32, height: 32)
+                                
+                                // Event details
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(event.name)
+                                        .font(.body)
+                                        .foregroundStyle(.primary)
                                     
-                                    // Event details
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text(event.name)
-                                            .font(.body)
-                                            .foregroundStyle(.primary)
-                                        
-                                        HStack(spacing: 4) {
-                                            Text(event.time)
-                                                .font(.caption)
-                                                .foregroundStyle(.secondary)
-                                            
-                                            Text("·")
-                                                .font(.caption)
-                                                .foregroundStyle(.secondary)
-                                            
-                                            Text(event.type)
-                                                .font(.caption)
-                                                .foregroundStyle(.secondary)
-                                        }
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    // Ellipsis menu
-                                    Menu {
-                                        Button(action: {
-                                            selectedEventName = event.name
-                                            showingEntryView = true
-                                        }) {
-                                            Label("Create Entry", systemImage: "square.and.pencil")
-                                        }
-                                        
-                                        Button(action: {
-                                            // Handle edit event
-                                        }) {
-                                            Label("Edit Event", systemImage: "pencil")
-                                        }
-                                        
-                                        Button(action: {
-                                            // Handle hide
-                                        }) {
-                                            Label("Hide", systemImage: "eye.slash")
-                                        }
-                                    } label: {
-                                        Image(systemName: "ellipsis")
-                                            .font(.system(size: 16))
+                                    HStack(spacing: 4) {
+                                        Text(event.time)
+                                            .font(.caption)
                                             .foregroundStyle(.secondary)
-                                            .frame(width: 44, height: 44)
-                                            .contentShape(Rectangle())
+                                        
+                                        Text("·")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                        
+                                        Text(event.type)
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
                                     }
-                                    .menuStyle(.borderlessButton)
                                 }
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 8)
+                                
+                                Spacer()
+                                
+                                // Ellipsis menu
+                                Menu {
+                                    Button(action: {
+                                        selectedEventName = event.name
+                                        showingEntryView = true
+                                    }) {
+                                        Label("Create Entry", systemImage: "square.and.pencil")
+                                    }
+                                    
+                                    Button(action: {
+                                        // Handle edit event
+                                    }) {
+                                        Label("Edit Event", systemImage: "pencil")
+                                    }
+                                    
+                                    Button(action: {
+                                        // Handle hide
+                                    }) {
+                                        Label("Hide", systemImage: "eye.slash")
+                                    }
+                                } label: {
+                                    Image(systemName: "ellipsis")
+                                        .font(.system(size: 16))
+                                        .foregroundStyle(.secondary)
+                                        .frame(width: 44, height: 44)
+                                        .contentShape(Rectangle())
+                                }
+                                .menuStyle(.borderlessButton)
                             }
-                            .buttonStyle(PlainButtonStyle())
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            Button(action: {
+                                // Handle hide action
+                            }) {
+                                Label("Hide", systemImage: "eye.slash")
+                            }
+                            .tint(.gray)
                             
-                            // Divider
-                            if event.name != events.last?.name {
-                                Divider()
-                                    .padding(.leading, 64)
+                            Button(action: {
+                                // Handle edit action
+                            }) {
+                                Label("Edit", systemImage: "pencil")
                             }
+                            .tint(.blue)
                         }
                     }
                 }
+                .listStyle(.plain)
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Calendars") {
+                        // TODO: Handle Calendars action
+                    }
+                }
+                
                 ToolbarItem(placement: .principal) {
                     Text("Events")
                         .font(.headline)

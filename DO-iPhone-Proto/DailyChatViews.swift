@@ -610,7 +610,7 @@ struct DailyChatView: View {
                         dismiss()
                     }
                     .labelStyle(.titleAndIcon)
-                    .tint(Color(hex: "333B40"))
+                    .tint(Color(hex: "44C0FF"))
                 }
             }
             .onAppear {
@@ -1011,7 +1011,7 @@ struct BioEditView: View {
                         dismiss()
                     }
                     .labelStyle(.titleAndIcon)
-                    .tint(Color(hex: "333B40"))
+                    .tint(Color(hex: "44C0FF"))
                 }
             }
             .onAppear {

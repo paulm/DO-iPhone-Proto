@@ -2731,7 +2731,7 @@ struct VisitsSheetView: View {
                 }
             }
         }
-        .presentationDetents([.medium])
+        .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
         .sheet(isPresented: $showingEntryView) {
             EntryView(
@@ -2876,7 +2876,7 @@ struct EventsSheetView: View {
                 }
             }
         }
-        .presentationDetents([.medium])
+        .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
         .sheet(isPresented: $showingEntryView) {
             EntryView(
@@ -2957,7 +2957,7 @@ struct MediaSheetView: View {
                 }
             }
         }
-        .presentationDetents([.medium])
+        .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
         .sheet(isPresented: $showingEntryView) {
             EntryView(

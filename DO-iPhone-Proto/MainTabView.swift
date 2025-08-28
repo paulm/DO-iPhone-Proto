@@ -1,9 +1,7 @@
 import SwiftUI
 
-/// Main tab view containing all app tabs
+/// Main tab view containing all app tabs with iOS 26 separated Search tab
 struct MainTabView: View {
-    @State private var selectedTab = 0
-    @State private var tabSelectionCount: [Int: Int] = [0: 0, 1: 0, 2: 0, 3: 0, 4: 0]
     @State private var searchQuery = ""
     @AppStorage("showChatFAB") private var showChatFAB = false
     @AppStorage("showEntryFAB") private var showEntryFAB = false
@@ -14,7 +12,6 @@ struct MainTabView: View {
     @State private var messageCountAtResume = 0
     @State private var updateTrigger = false
     @State private var showUpdateEntry = false
-    private var experimentsManager = ExperimentsManager.shared
     
     private var dayOfWeek: String {
         let formatter = DateFormatter()
@@ -45,58 +42,45 @@ struct MainTabView: View {
     
     var body: some View {
         ZStack {
-            TabView(selection: $selectedTab) {
-                TimelineView()
-                    .tabItem {
-                        Image(systemName: "calendar")
-                        Text("Today")
-                    }
-                    .tag(0)
+            TabView {
+                // Regular tabs using iOS 26 Tab API
+                Tab("Today", systemImage: "calendar") {
+                    TimelineView()
+                }
                 
-                JournalsView()
-                    .tabItem {
-                        Image(systemName: "book")
-                        Text("Journals")
-                    }
-                    .tag(1)
+                Tab("Journals", systemImage: "book") {
+                    JournalsView()
+                }
                 
-                PromptsView()
-                    .tabItem {
-                        Image(systemName: "bubble.left.and.bubble.right")
-                        Text("Prompts")
-                    }
-                    .tag(2)
+                Tab("Prompts", systemImage: "bubble.left.and.bubble.right") {
+                    PromptsView()
+                }
                 
-                MoreView()
-                    .tabItem {
-                        Image(systemName: "ellipsis")
-                        Text("More")
-                    }
-                    .tag(3)
+                Tab("More", systemImage: "ellipsis") {
+                    MoreView()
+                }
                 
-                SearchResultsView(searchText: $searchQuery)
-                    .tabItem {
-                        Image(systemName: "magnifyingglass")
-                        Text("Search")
+                // iOS 26 system-provided Search tab (separated pill in tab bar)
+                Tab(role: .search) {
+                    NavigationStack {
+                        SearchResultsView(searchText: $searchQuery)
+                            .navigationTitle("Search")
                     }
-                    .tag(4)
-            }
-            .tint(.black)
-            .onChange(of: selectedTab) { oldValue, newValue in
-                if oldValue == newValue {
-                    // Same tab selected again - cycle experiment
-                    handleTabReselection(for: newValue)
                 }
             }
+            .tint(.black)
+            // Attach the search field to the container so the Search tab can expand it
+            .searchable(text: $searchQuery, prompt: "Search everything")
             
-            // Floating Action Button - only show on Today tab
-            if selectedTab == 0 {
+            // Floating Action Button - simplified for iOS 26
+            // Note: FABs should ideally be within individual tab views for proper state management
+            if showChatFAB || showEntryFAB {
                 VStack {
                     Spacer()
                     VStack(alignment: .leading, spacing: 8) {
                         HStack(spacing: 12) {
                             Spacer()
-                            if selectedTab == 0 && showChatFAB {
+                            if showChatFAB {
                                 DailyChatFAB(
                                     text: chatCompleted ? "Resume Chat" : "Start Daily Chat",
                                     backgroundColor: chatCompleted ? .white : Color(hex: "44C0FF")
@@ -155,20 +139,18 @@ struct MainTabView: View {
             }
         }
         .onReceive(Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()) { _ in
-            // Check every half second while on Today tab
-            if selectedTab == 0 {
-                let hasMessages = hasChatMessages
-                if chatCompleted != hasMessages {
-                    chatCompleted = hasMessages
-                }
-                // Also trigger update for message count changes
-                if hasResumedChat && hasEntry {
-                    let messages = ChatSessionManager.shared.getMessages(for: selectedDate)
-                    let currentUserMessageCount = messages.filter { $0.isUser }.count
-                    let shouldShowUpdate = currentUserMessageCount > messageCountAtResume
-                    if shouldShowUpdate != showUpdateEntry {
-                        showUpdateEntry = shouldShowUpdate
-                    }
+            // Check every half second for chat updates
+            let hasMessages = hasChatMessages
+            if chatCompleted != hasMessages {
+                chatCompleted = hasMessages
+            }
+            // Also trigger update for message count changes
+            if hasResumedChat && hasEntry {
+                let messages = ChatSessionManager.shared.getMessages(for: selectedDate)
+                let currentUserMessageCount = messages.filter { $0.isUser }.count
+                let shouldShowUpdate = currentUserMessageCount > messageCountAtResume
+                if shouldShowUpdate != showUpdateEntry {
+                    showUpdateEntry = shouldShowUpdate
                 }
             }
         }
@@ -197,44 +179,6 @@ struct MainTabView: View {
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("OpenEntryView"))) { _ in
             // Open Entry view when notification is received
             showingEntry = true
-        }
-    }
-    
-    private func handleTabReselection(for tabIndex: Int) {
-        let section: AppSection
-        
-        switch tabIndex {
-        case 0:
-            section = .todayTab
-        case 1:
-            section = .journalsTab
-        case 2:
-            section = .promptsTab
-        case 3:
-            section = .moreTab
-        case 4:
-            section = .searchTab
-        default:
-            return
-        }
-        
-        print("🔄 Cycling experiment for \(section.rawValue)")
-        cycleExperiment(for: section)
-    }
-    
-    private func cycleExperiment(for section: AppSection) {
-        let availableVariants = experimentsManager.availableVariants(for: section)
-        let currentVariant = experimentsManager.variant(for: section)
-        
-        print("📊 Available variants: \(availableVariants.map { $0.rawValue })")
-        print("📍 Current variant: \(currentVariant.rawValue)")
-        
-        // Find current index and move to next (or wrap to first)
-        if let currentIndex = availableVariants.firstIndex(of: currentVariant) {
-            let nextIndex = (currentIndex + 1) % availableVariants.count
-            let nextVariant = availableVariants[nextIndex]
-            print("➡️ Switching to: \(nextVariant.rawValue)")
-            experimentsManager.setVariant(nextVariant, for: section)
         }
     }
 }

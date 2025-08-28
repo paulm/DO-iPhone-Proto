@@ -110,22 +110,6 @@ struct JournalsTabPagedView: View {
             .navigationBarTitleDisplayMode(.large)
             .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button(action: {
-                        showingSettings = true
-                    }) {
-                        Circle()
-                            .fill(.gray.opacity(0.2))
-                            .frame(width: 32, height: 32)
-                            .overlay(
-                                Image(systemName: "person.fill")
-                                    .font(.caption)
-                                    .foregroundStyle(.gray)
-                            )
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                }
-                
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     Menu {
                         Button(action: {
@@ -157,20 +141,27 @@ struct JournalsTabPagedView: View {
                                 .tag(ViewMode.grid)
                         }
                     } label: {
-                        Image(systemName: "ellipsis.circle")
-                            .font(.body)
-                            .fontWeight(.medium)
+                        Image(systemName: "ellipsis")
                     }
-                    .foregroundStyle(.primary)
                     
-                    Button(action: {
-                        // TODO: Add new journal action
-                    }) {
-                        Image(systemName: "plus")
-                            .font(.body)
-                            .fontWeight(.medium)
+                    Button {
+                        showingSettings = true
+                    } label: {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.purple, Color.pink],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 32, height: 32)
+                            .overlay(
+                                Text("PM")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundColor(.white)
+                            )
                     }
-                    .foregroundStyle(.primary)
                 }
             }
             .navigationDestination(item: $selectedJournal) { journal in

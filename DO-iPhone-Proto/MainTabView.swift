@@ -3,7 +3,8 @@ import SwiftUI
 /// Main tab view containing all app tabs
 struct MainTabView: View {
     @State private var selectedTab = 0
-    @State private var tabSelectionCount: [Int: Int] = [0: 0, 1: 0, 2: 0, 3: 0]
+    @State private var tabSelectionCount: [Int: Int] = [0: 0, 1: 0, 2: 0, 3: 0, 4: 0]
+    @State private var searchQuery = ""
     @AppStorage("showChatFAB") private var showChatFAB = false
     @AppStorage("showEntryFAB") private var showEntryFAB = false
     @State private var selectedDate = Date()
@@ -44,17 +45,7 @@ struct MainTabView: View {
     
     var body: some View {
         ZStack {
-            TabView(selection: Binding(
-                get: { selectedTab },
-                set: { newValue in
-                    if selectedTab == newValue {
-                        // Same tab selected again - cycle experiment
-                        handleTabReselection(for: newValue)
-                    } else {
-                        selectedTab = newValue
-                    }
-                }
-            )) {
+            TabView(selection: $selectedTab) {
                 TimelineView()
                     .tabItem {
                         Image(systemName: "calendar")
@@ -82,8 +73,21 @@ struct MainTabView: View {
                         Text("More")
                     }
                     .tag(3)
+                
+                SearchResultsView(searchText: $searchQuery)
+                    .tabItem {
+                        Image(systemName: "magnifyingglass")
+                        Text("Search")
+                    }
+                    .tag(4)
             }
             .tint(.black)
+            .onChange(of: selectedTab) { oldValue, newValue in
+                if oldValue == newValue {
+                    // Same tab selected again - cycle experiment
+                    handleTabReselection(for: newValue)
+                }
+            }
             
             // Floating Action Button - only show on Today tab
             if selectedTab == 0 {
@@ -208,6 +212,8 @@ struct MainTabView: View {
             section = .promptsTab
         case 3:
             section = .moreTab
+        case 4:
+            section = .searchTab
         default:
             return
         }

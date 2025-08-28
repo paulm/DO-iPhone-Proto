@@ -7,6 +7,7 @@ enum AppSection: String, CaseIterable, Identifiable {
     case journalsTab = "Journals Tab"
     case promptsTab = "Prompts Tab"
     case moreTab = "More Tab"
+    case searchTab = "Search Tab"
     case journalPicker = "Journal Picker"
     case entryView = "Entry View"
     case momentsModal = "Moments Modal"
@@ -85,6 +86,8 @@ class ExperimentsManager {
             return [.v1i2] // Only v1i2 variant
         case .journalsTab:
             return [.paged] // Only paged variant
+        case .searchTab:
+            return [.original] // Only original variant for now
         case .journalPicker:
             return [.original] // All use compact layout now
         case .entryView:

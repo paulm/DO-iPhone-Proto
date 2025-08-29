@@ -12,6 +12,9 @@ import TipKit
 @main
 struct DayOnePrototypeApp: App {
     init() {
+        // Register Day One Icons font (now using local implementation)
+        DayOneIconFont.register()
+        
         // Configure TipKit
         try? Tips.configure([
             .displayFrequency(.immediate),

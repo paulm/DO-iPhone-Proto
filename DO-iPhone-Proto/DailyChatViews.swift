@@ -374,7 +374,7 @@ struct DailyChatView: View {
             VStack {
                 Spacer()
                 
-                Image(systemName: "bubble.left.and.bubble.right.fill")
+                Image(dayOneIcon: .message)
                     .font(.system(size: 60))
                     .foregroundStyle(Color(hex: "44C0FF"))
                 
@@ -453,7 +453,7 @@ struct DailyChatView: View {
                     Button(action: {
                         // TODO: Audio recording functionality
                     }) {
-                        Image(systemName: "mic.fill")
+                        Image(dayOneIcon: .microphone)
                             .font(.system(size: 20))
                             .foregroundStyle(.secondary)
                     }
@@ -465,7 +465,7 @@ struct DailyChatView: View {
                             sendMessage()
                         }
                     }) {
-                        Image(systemName: "arrow.up")
+                        Image(dayOneIcon: .arrow_up)
                             .font(.system(size: 18, weight: .semibold))
                             .foregroundStyle(chatText.isEmpty ? Color.secondary : Color.white)
                             .frame(width: 32, height: 32)
@@ -562,7 +562,7 @@ struct DailyChatView: View {
                         Button(action: {
                             regenerateResponse()
                         }) {
-                            Label("Regenerate Response", systemImage: "arrow.clockwise")
+                            Label("Regenerate Response", dayOneIcon: .sync)
                         }
                         
                         Button(action: {
@@ -570,7 +570,7 @@ struct DailyChatView: View {
                             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                             showingChatSettings = true
                         }) {
-                            Label("Chat Settings", systemImage: "gearshape")
+                            Label("Chat Settings", dayOneIcon: .settings)
                         }
                         
                         Divider()
@@ -581,7 +581,13 @@ struct DailyChatView: View {
                                 currentMode = .chat
                                 handleModeChange(from: previousMode, to: .chat)
                             }) {
-                                Label("Chat", systemImage: currentMode == .chat ? "checkmark" : "")
+                                Label {
+                                    Text("Chat")
+                                } icon: {
+                                    if currentMode == .chat {
+                                        Image(dayOneIcon: .checkmark)
+                                    }
+                                }
                             }
                             
                             Button(action: {
@@ -589,7 +595,13 @@ struct DailyChatView: View {
                                 currentMode = .log
                                 handleModeChange(from: previousMode, to: .log)
                             }) {
-                                Label("Log (no response)", systemImage: currentMode == .log ? "checkmark" : "")
+                                Label {
+                                    Text("Log (no response)")
+                                } icon: {
+                                    if currentMode == .log {
+                                        Image(dayOneIcon: .checkmark)
+                                    }
+                                }
                             }
                         }
                         
@@ -598,18 +610,20 @@ struct DailyChatView: View {
                         Button(role: .destructive, action: {
                             showingClearChatAlert = true
                         }) {
-                            Label("Clear Chat", systemImage: "trash")
+                            Label("Clear Chat", dayOneIcon: .trash)
                                 .foregroundStyle(.red)
                         }
                     } label: {
-                        Image(systemName: "ellipsis")
+                        Image(dayOneIcon: .dots_horizontal)
                             .font(.body)
                     }
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done", systemImage: "checkmark") {
+                    Button {
                         dismiss()
+                    } label: {
+                        Label("Done", dayOneIcon: .checkmark)
                     }
                     .labelStyle(.titleAndIcon)
                     .tint(Color(hex: "333B40"))
@@ -1031,10 +1045,12 @@ struct BioEditView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done", systemImage: "checkmark") {
+                    Button {
                         userName = editingName
                         userBio = editingBio
                         dismiss()
+                    } label: {
+                        Label("Done", dayOneIcon: .checkmark)
                     }
                     .labelStyle(.titleAndIcon)
                     .tint(Color(hex: "44C0FF"))

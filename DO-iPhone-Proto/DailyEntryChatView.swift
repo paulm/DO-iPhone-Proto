@@ -99,7 +99,7 @@ struct DailyEntryChatView: View {
                     showingDailyChat = true
                 }) {
                     HStack(spacing: 8) {
-                        Image(systemName: "bubble.left.and.bubble.right")
+                        Image(dayOneIcon: .message)
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundStyle(.primary)
                         
@@ -206,7 +206,7 @@ struct DailyEntryChatView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                         } else {
                             HStack(spacing: 8) {
-                                Image(systemName: "doc.text")
+                                Image(dayOneIcon: .document)
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundStyle(.white)
                                 
@@ -249,7 +249,7 @@ struct DailyEntryChatView: View {
                                     .clipShape(RoundedRectangle(cornerRadius: 24))
                             } else {
                                 HStack(spacing: 8) {
-                                    Image(systemName: "arrow.triangle.2.circlepath")
+                                    Image(dayOneIcon: .loop)
                                         .font(.system(size: 16, weight: .semibold))
                                         .foregroundStyle(.white)
                                     
@@ -279,7 +279,7 @@ struct DailyEntryChatView: View {
                 showingDailyChat = true  // Opens full Daily Chat view
             }) {
                 HStack(spacing: 8) {
-                    Image(systemName: "bubble.left")
+                    Image(dayOneIcon: .comment)
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(.white)
                     

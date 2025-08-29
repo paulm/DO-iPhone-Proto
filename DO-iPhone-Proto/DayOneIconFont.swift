@@ -80,17 +80,7 @@ extension View {
     }
 }
 
-// MARK: - Image Extension for Icons
-
-extension Image {
-    /// Create an Image view from a Day One icon
-    init(dayOneIcon: DayOneIcon) {
-        // Create a Text view with the icon and convert to Image
-        // Note: This is a simplified approach - in production you might want
-        // to use a different method or create actual image assets
-        self.init(systemName: "questionmark.circle") // Fallback
-    }
-}
+// Image extension moved to DayOneIconExtensions.swift
 
 // MARK: - Text Helper
 

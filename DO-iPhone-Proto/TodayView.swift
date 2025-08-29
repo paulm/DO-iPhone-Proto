@@ -707,7 +707,7 @@ struct TodayView: View {
                         showingMediaSheet = true
                     }) {
                         HStack {
-                            Image(systemName: "photo")
+                            Image(dayOneIcon: .photo)
                                 .font(.system(size: 16))
                                 .foregroundStyle(.primary)
                                 .frame(width: 28)
@@ -722,7 +722,7 @@ struct TodayView: View {
                                 .font(.system(size: 15))
                                 .foregroundStyle(.secondary)
                             
-                            Image(systemName: "chevron.right")
+                            Image(dayOneIcon: .chevron_right)
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundStyle(Color(.systemGray3))
                         }
@@ -740,7 +740,7 @@ struct TodayView: View {
                         showingVisitsSheet = true
                     }) {
                         HStack {
-                            Image(systemName: "location")
+                            Image(dayOneIcon: .map_pin)
                                 .font(.system(size: 16))
                                 .foregroundStyle(.primary)
                                 .frame(width: 28)
@@ -755,7 +755,7 @@ struct TodayView: View {
                                 .font(.system(size: 15))
                                 .foregroundStyle(.secondary)
                             
-                            Image(systemName: "chevron.right")
+                            Image(dayOneIcon: .chevron_right)
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundStyle(Color(.systemGray3))
                         }
@@ -773,7 +773,7 @@ struct TodayView: View {
                         showingEventsSheet = true
                     }) {
                         HStack {
-                            Image(systemName: "calendar")
+                            Image(dayOneIcon: .calendar)
                                 .font(.system(size: 16))
                                 .foregroundStyle(.primary)
                                 .frame(width: 28)
@@ -788,7 +788,7 @@ struct TodayView: View {
                                 .font(.system(size: 15))
                                 .foregroundStyle(.secondary)
                             
-                            Image(systemName: "chevron.right")
+                            Image(dayOneIcon: .chevron_right)
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundStyle(Color(.systemGray3))
                         }
@@ -833,7 +833,7 @@ struct TodayView: View {
                             
                             Spacer()
                             
-                            Image(systemName: entryCount > 0 ? "chevron.right" : "plus")
+                            Image(dayOneIcon: entryCount > 0 ? .chevron_right : .plus)
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundStyle(entryCount > 0 ? Color.secondary : Color(hex: "44C0FF"))
                         }
@@ -856,7 +856,7 @@ struct TodayView: View {
                             
                             Spacer()
                             
-                            Image(systemName: "chevron.right")
+                            Image(dayOneIcon: .chevron_right)
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundStyle(.secondary)
                         }
@@ -886,7 +886,7 @@ struct TodayView: View {
                         
                         Spacer()
                         
-                        Image(systemName: entryCount > 0 ? "chevron.right" : "plus")
+                        Image(dayOneIcon: entryCount > 0 ? .chevron_right : .plus)
                             .font(.system(size: 14, weight: .medium))
                             .foregroundStyle(entryCount > 0 ? Color.secondary : Color(hex: "44C0FF"))
                     }
@@ -938,7 +938,7 @@ struct TodayView: View {
                                 }
                             }
                         }) {
-                            Image(systemName: "chevron.left")
+                            Image(dayOneIcon: .chevron_left)
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundStyle(Color(.systemGray2))
                                 .frame(width: 48, height: 48)
@@ -955,7 +955,7 @@ struct TodayView: View {
                                 }
                             }
                         }) {
-                            Image(systemName: "chevron.right")
+                            Image(dayOneIcon: .chevron_right)
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundStyle(Color(.systemGray2))
                                 .frame(width: 48, height: 48)
@@ -1080,7 +1080,7 @@ struct TodayView: View {
                 Button {
                     showingDatePicker = true
                 } label: {
-                    Image(systemName: "calendar")
+                    Image(dayOneIcon: .calendar)
                 }
 
                 Menu {
@@ -1101,7 +1101,7 @@ struct TodayView: View {
                             HStack {
                                 Text("Welcome to Today Sheet")
                                 if showWelcomeToTodaySheet {
-                                    Image(systemName: "checkmark")
+                                    Image(dayOneIcon: .checkmark)
                                 }
                             }
                         }
@@ -1112,7 +1112,7 @@ struct TodayView: View {
                             HStack {
                                 Text("Date Picker Grid")
                                 if showDatePickerGrid {
-                                    Image(systemName: "checkmark")
+                                    Image(dayOneIcon: .checkmark)
                                 }
                             }
                         }
@@ -1123,7 +1123,7 @@ struct TodayView: View {
                             HStack {
                                 Text("Date Navigation")
                                 if showDateNavigation {
-                                    Image(systemName: "checkmark")
+                                    Image(dayOneIcon: .checkmark)
                                 }
                             }
                         }
@@ -1134,7 +1134,7 @@ struct TodayView: View {
                             HStack {
                                 Text("Moments Carousel")
                                 if showMomentsCarousel {
-                                    Image(systemName: "checkmark")
+                                    Image(dayOneIcon: .checkmark)
                                 }
                             }
                         }
@@ -1145,7 +1145,7 @@ struct TodayView: View {
                             HStack {
                                 Text("Moments List")
                                 if showMomentsList {
-                                    Image(systemName: "checkmark")
+                                    Image(dayOneIcon: .checkmark)
                                 }
                             }
                         }
@@ -1156,7 +1156,7 @@ struct TodayView: View {
                             HStack {
                                 Text("Trackers")
                                 if showTrackers {
-                                    Image(systemName: "checkmark")
+                                    Image(dayOneIcon: .checkmark)
                                 }
                             }
                         }
@@ -1167,7 +1167,7 @@ struct TodayView: View {
                             HStack {
                                 Text("Guides")
                                 if showGuides {
-                                    Image(systemName: "checkmark")
+                                    Image(dayOneIcon: .checkmark)
                                 }
                             }
                         }
@@ -1178,7 +1178,7 @@ struct TodayView: View {
                             HStack {
                                 Text("Entry Links")
                                 if showInsights {
-                                    Image(systemName: "checkmark")
+                                    Image(dayOneIcon: .checkmark)
                                 }
                             }
                         }
@@ -1190,7 +1190,7 @@ struct TodayView: View {
                             HStack {
                                 Text("Daily Entry Chat")
                                 if showDailyEntryChat {
-                                    Image(systemName: "checkmark")
+                                    Image(dayOneIcon: .checkmark)
                                 }
                             }
                         }
@@ -1202,7 +1202,7 @@ struct TodayView: View {
                             HStack {
                                 Text("Log and Voice Mode Buttons")
                                 if showLogVoiceModeButtons {
-                                    Image(systemName: "checkmark")
+                                    Image(dayOneIcon: .checkmark)
                                 }
                             }
                         }
@@ -1216,7 +1216,7 @@ struct TodayView: View {
                             HStack {
                                 Text("Chat FAB")
                                 if showChatFAB {
-                                    Image(systemName: "checkmark")
+                                    Image(dayOneIcon: .checkmark)
                                 }
                             }
                         }
@@ -1227,7 +1227,7 @@ struct TodayView: View {
                             HStack {
                                 Text("Entry FAB")
                                 if showEntryFAB {
-                                    Image(systemName: "checkmark")
+                                    Image(dayOneIcon: .checkmark)
                                 }
                             }
                         }
@@ -1238,7 +1238,7 @@ struct TodayView: View {
                             HStack {
                                 Text("Chat Input Box")
                                 if showChatInputBox {
-                                    Image(systemName: "checkmark")
+                                    Image(dayOneIcon: .checkmark)
                                 }
                             }
                         }
@@ -1249,7 +1249,7 @@ struct TodayView: View {
                             HStack {
                                 Text("Chat Message")
                                 if showChatMessage {
-                                    Image(systemName: "checkmark")
+                                    Image(dayOneIcon: .checkmark)
                                 }
                             }
                         }
@@ -1262,7 +1262,7 @@ struct TodayView: View {
                             HStack {
                                 Text("Grid Dates")
                                 if showGridDates {
-                                    Image(systemName: "checkmark")
+                                    Image(dayOneIcon: .checkmark)
                                 }
                             }
                         }
@@ -1277,7 +1277,7 @@ struct TodayView: View {
                                 HStack {
                                     Text(style.rawValue)
                                     if selectedStyle == style {
-                                        Image(systemName: "checkmark")
+                                        Image(dayOneIcon: .checkmark)
                                     }
                                 }
                             }
@@ -1899,11 +1899,11 @@ struct TodayActivityRowWithCheckbox: View {
                 Spacer()
                 
                 if isCompleted {
-                    Image(systemName: "checkmark.circle.fill")
+                    Image(dayOneIcon: .checkmark_circle_filled)
                         .foregroundStyle(.green)
                         .font(.title3)
                 } else {
-                    Image(systemName: "circle")
+                    Image(dayOneIcon: .checkbox_empty)
                         .foregroundStyle(.secondary.opacity(0.5))
                         .font(.title3)
                 }
@@ -1975,12 +1975,12 @@ struct TodayActivityRowWithChatResumeV2: View {
                             .font(.subheadline)
                             .foregroundStyle(Color(hex: "44C0FF"))
                         
-                        Image(systemName: "chevron.right")
+                        Image(dayOneIcon: .chevron_right)
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
                 } else if isCompleted {
-                    Image(systemName: "checkmark.circle.fill")
+                    Image(dayOneIcon: .checkmark_circle_filled)
                         .foregroundStyle(.green)
                         .font(.title3)
                 } else {
@@ -1989,7 +1989,7 @@ struct TodayActivityRowWithChatResumeV2: View {
                             .font(.subheadline)
                             .foregroundStyle(Color(hex: "44C0FF"))
                         
-                        Image(systemName: "chevron.right")
+                        Image(dayOneIcon: .chevron_right)
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
@@ -2059,11 +2059,11 @@ struct TodayActivityRowWithChatResume: View {
                 Spacer()
                 
                 if isCompleted {
-                    Image(systemName: "checkmark.circle.fill")
+                    Image(dayOneIcon: .checkmark_circle_filled)
                         .foregroundStyle(.green)
                         .font(.title3)
                 } else {
-                    Image(systemName: "circle")
+                    Image(dayOneIcon: .checkbox_empty)
                         .foregroundStyle(.secondary.opacity(0.5))
                         .font(.title3)
                 }
@@ -2169,7 +2169,7 @@ struct TodayActivityRowWithMomentsSubtitle: View {
                 
                 Spacer()
                 
-                Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
+                Image(dayOneIcon: isCompleted ? .checkmark_circle_filled : .checkbox_empty)
                     .foregroundStyle(isCompleted ? .green : .secondary)
                     .font(.title3)
             }
@@ -2185,7 +2185,7 @@ struct WeatherView: View {
     
     var body: some View {
         VStack {
-            Image(systemName: "cloud.sun")
+            Image(dayOneIcon: .weather_partly_cloudy)
                 .font(.system(size: 80))
                 .foregroundStyle(Color(hex: "44C0FF"))
                 .padding()
@@ -2219,7 +2219,7 @@ struct EntriesView: View {
     
     var body: some View {
         VStack {
-            Image(systemName: "square.and.pencil")
+            Image(dayOneIcon: .pen_edit)
                 .font(.system(size: 80))
                 .foregroundStyle(Color(hex: "44C0FF"))
                 .padding()
@@ -2253,7 +2253,7 @@ struct OnThisDayView: View {
     
     var body: some View {
         VStack {
-            Image(systemName: "calendar.badge.clock")
+            Image(dayOneIcon: .calendar_clock)
                 .font(.system(size: 80))
                 .foregroundStyle(Color(hex: "44C0FF"))
                 .padding()
@@ -2368,11 +2368,11 @@ struct ChatInputBoxView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 
-                Image(systemName: "mic")
+                Image(dayOneIcon: .microphone)
                     .font(.system(size: 20))
                     .foregroundStyle(.secondary)
                 
-                Image(systemName: "arrow.up.circle.fill")
+                Image(dayOneIcon: .arrow_up_circle_filled)
                     .font(.system(size: 28))
                     .foregroundStyle(Color(hex: "44C0FF"))
             }
@@ -2504,7 +2504,7 @@ struct MomentsCarouselView: View {
                                             // TODO: Open new entry for Park visit
                                         }
                                     } label: {
-                                        Image(systemName: "ellipsis")
+                                        Image(dayOneIcon: .dots_horizontal)
                                             .font(.system(size: 11))
                                             .foregroundStyle(.secondary)
                                     }
@@ -2533,7 +2533,7 @@ struct MomentsCarouselView: View {
                 Button(action: {
                     // TODO: Open moments settings
                 }) {
-                    Image(systemName: "gearshape.fill")
+                    Image(dayOneIcon: .settings)
                         .font(.system(size: 24))
                         .foregroundStyle(Color.gray.opacity(0.5))
                         .frame(width: 60, height: 84)
@@ -2610,11 +2610,11 @@ struct VisitsSheetView: View {
     
     // Sample visits data matching MomentsView
     private let visits = [
-        (name: "Sundance Mountain Resort", icon: "figure.skiing.downhill", time: "3 hours"),
-        (name: "Whole Foods Market", icon: "cart.fill", time: "45 min"),
-        (name: "Park City Library", icon: "books.vertical.fill", time: "1 hour"),
-        (name: "Starbucks Coffee", icon: "cup.and.saucer.fill", time: "30 min"),
-        (name: "Silver Lake Trail", icon: "figure.hiking", time: "2 hours")
+        (name: "Sundance Mountain Resort", icon: DayOneIcon.skiing, time: "3 hours"),
+        (name: "Whole Foods Market", icon: DayOneIcon.cart, time: "45 min"),
+        (name: "Park City Library", icon: DayOneIcon.books_filled, time: "1 hour"),
+        (name: "Starbucks Coffee", icon: DayOneIcon.food, time: "30 min"),
+        (name: "Silver Lake Trail", icon: DayOneIcon.hiking, time: "2 hours")
     ]
     
     var body: some View {
@@ -2637,7 +2637,7 @@ struct VisitsSheetView: View {
                         }) {
                             HStack(spacing: 12) {
                                 // Icon
-                                Image(systemName: visit.icon)
+                                Image(dayOneIcon: visit.icon)
                                     .font(.system(size: 20))
                                     .foregroundStyle(Color(hex: "44C0FF"))
                                     .frame(width: 32, height: 32)
@@ -2661,22 +2661,22 @@ struct VisitsSheetView: View {
                                         selectedVisitName = visit.name
                                         showingEntryView = true
                                     }) {
-                                        Label("Create Entry", systemImage: "square.and.pencil")
+                                        Label("Create Entry", dayOneIcon: .pen_edit)
                                     }
                                     
                                     Button(action: {
                                         // Handle select nearby place
                                     }) {
-                                        Label("Select Nearby Place", systemImage: "location.circle")
+                                        Label("Select Nearby Place", dayOneIcon: .map_pin)
                                     }
                                     
                                     Button(action: {
                                         // Handle hide
                                     }) {
-                                        Label("Hide", systemImage: "eye.slash")
+                                        Label("Hide", dayOneIcon: .eye_cross)
                                     }
                                 } label: {
-                                    Image(systemName: "ellipsis")
+                                    Image(dayOneIcon: .dots_horizontal)
                                         .font(.system(size: 16))
                                         .foregroundStyle(.secondary)
                                         .frame(width: 44, height: 44)
@@ -2690,14 +2690,14 @@ struct VisitsSheetView: View {
                             Button(action: {
                                 // Handle hide action
                             }) {
-                                Label("Hide", systemImage: "eye.slash")
+                                Label("Hide", dayOneIcon: .eye_cross)
                             }
                             .tint(.gray)
                             
                             Button(action: {
                                 // Handle edit action
                             }) {
-                                Label("Edit", systemImage: "pencil")
+                                Label("Edit", dayOneIcon: .pen)
                             }
                             .tint(.blue)
                         }
@@ -2745,11 +2745,11 @@ struct EventsSheetView: View {
     
     // Sample events data
     private let events = [
-        (name: "Morning Team Standup", icon: "person.3.fill", time: "9:00 AM - 9:30 AM", type: "Work"),
-        (name: "Dentist Appointment", icon: "cross.case.fill", time: "11:00 AM - 12:00 PM", type: "Health"),
-        (name: "Lunch with Sarah", icon: "fork.knife", time: "12:30 PM - 1:30 PM", type: "Personal"),
-        (name: "Project Review Meeting", icon: "chart.bar.doc.horizontal.fill", time: "2:00 PM - 3:00 PM", type: "Work"),
-        (name: "Yoga Class", icon: "figure.yoga", time: "5:30 PM - 6:30 PM", type: "Wellness")
+        (name: "Morning Team Standup", icon: DayOneIcon.users_group, time: "9:00 AM - 9:30 AM", type: "Work"),
+        (name: "Dentist Appointment", icon: DayOneIcon.health, time: "11:00 AM - 12:00 PM", type: "Health"),
+        (name: "Lunch with Sarah", icon: DayOneIcon.fork_knife, time: "12:30 PM - 1:30 PM", type: "Personal"),
+        (name: "Project Review Meeting", icon: DayOneIcon.stats, time: "2:00 PM - 3:00 PM", type: "Work"),
+        (name: "Yoga Class", icon: DayOneIcon.yoga, time: "5:30 PM - 6:30 PM", type: "Wellness")
     ]
     
     var body: some View {
@@ -2772,7 +2772,7 @@ struct EventsSheetView: View {
                         }) {
                             HStack(spacing: 12) {
                                 // Icon
-                                Image(systemName: event.icon)
+                                Image(dayOneIcon: event.icon)
                                     .font(.system(size: 20))
                                     .foregroundStyle(Color(hex: "44C0FF"))
                                     .frame(width: 32, height: 32)
@@ -2806,22 +2806,22 @@ struct EventsSheetView: View {
                                         selectedEventName = event.name
                                         showingEntryView = true
                                     }) {
-                                        Label("Create Entry", systemImage: "square.and.pencil")
+                                        Label("Create Entry", dayOneIcon: .pen_edit)
                                     }
                                     
                                     Button(action: {
                                         // Handle edit event
                                     }) {
-                                        Label("Edit Event", systemImage: "pencil")
+                                        Label("Edit Event", dayOneIcon: .pen)
                                     }
                                     
                                     Button(action: {
                                         // Handle hide
                                     }) {
-                                        Label("Hide", systemImage: "eye.slash")
+                                        Label("Hide", dayOneIcon: .eye_cross)
                                     }
                                 } label: {
-                                    Image(systemName: "ellipsis")
+                                    Image(dayOneIcon: .dots_horizontal)
                                         .font(.system(size: 16))
                                         .foregroundStyle(.secondary)
                                         .frame(width: 44, height: 44)
@@ -2835,14 +2835,14 @@ struct EventsSheetView: View {
                             Button(action: {
                                 // Handle hide action
                             }) {
-                                Label("Hide", systemImage: "eye.slash")
+                                Label("Hide", dayOneIcon: .eye_cross)
                             }
                             .tint(.gray)
                             
                             Button(action: {
                                 // Handle edit action
                             }) {
-                                Label("Edit", systemImage: "pencil")
+                                Label("Edit", dayOneIcon: .pen)
                             }
                             .tint(.blue)
                         }
@@ -2925,7 +2925,7 @@ struct MediaSheetView: View {
                                 .fill(mediaColors[index])
                                 .aspectRatio(1, contentMode: .fit)
                                 .overlay(
-                                    Image(systemName: "photo")
+                                    Image(dayOneIcon: .photo)
                                         .font(.system(size: 24))
                                         .foregroundStyle(.white.opacity(0.5))
                                 )
@@ -3068,7 +3068,7 @@ struct JournalSelectionView: View {
                             Spacer()
                             
                             if selectedJournal == journal {
-                                Image(systemName: "checkmark")
+                                Image(dayOneIcon: .checkmark)
                                     .foregroundStyle(Color(hex: "44C0FF"))
                             }
                         }

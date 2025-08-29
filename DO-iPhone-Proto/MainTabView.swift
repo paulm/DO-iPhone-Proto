@@ -43,21 +43,29 @@ struct MainTabView: View {
     var body: some View {
         ZStack {
             TabView {
-                // Regular tabs using iOS 26 Tab API
-                Tab("Today", systemImage: "calendar") {
+                // Regular tabs using Day One Icons converted to images
+                Tab {
                     TimelineView()
+                } label: {
+                    Label("Today", dayOneIcon: .calendar)
                 }
                 
-                Tab("Journals", systemImage: "book") {
+                Tab {
                     JournalsView()
+                } label: {
+                    Label("Journals", dayOneIcon: .book)
                 }
                 
-                Tab("Prompts", systemImage: "bubble.left.and.bubble.right") {
+                Tab {
                     PromptsView()
+                } label: {
+                    Label("Prompts", dayOneIcon: .prompt)
                 }
                 
-                Tab("More", systemImage: "ellipsis") {
+                Tab {
                     MoreView()
+                } label: {
+                    Label("More", dayOneIcon: .dots_horizontal)
                 }
                 
                 // iOS 26 system-provided Search tab (separated pill in tab bar)
@@ -188,8 +196,8 @@ struct FloatingActionButton: View {
     
     var body: some View {
         Button(action: action) {
-            Image(systemName: "plus")
-                .font(.system(size: 24, weight: .medium))
+            Text(DayOneIcon.plus.rawValue)
+                .dayOneIconFont(size: 24)
                 .foregroundColor(.white)
                 .frame(width: 56, height: 56)
         }

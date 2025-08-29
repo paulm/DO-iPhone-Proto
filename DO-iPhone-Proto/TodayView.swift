@@ -722,7 +722,7 @@ struct TodayView: View {
                                 .font(.system(size: 15))
                                 .foregroundStyle(.secondary)
                             
-                            Image(dayOneIcon: .chevron_right)
+                            Image(systemName: "chevron.right")
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundStyle(Color(.systemGray3))
                         }
@@ -755,7 +755,7 @@ struct TodayView: View {
                                 .font(.system(size: 15))
                                 .foregroundStyle(.secondary)
                             
-                            Image(dayOneIcon: .chevron_right)
+                            Image(systemName: "chevron.right")
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundStyle(Color(.systemGray3))
                         }
@@ -788,7 +788,7 @@ struct TodayView: View {
                                 .font(.system(size: 15))
                                 .foregroundStyle(.secondary)
                             
-                            Image(dayOneIcon: .chevron_right)
+                            Image(systemName: "chevron.right")
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundStyle(Color(.systemGray3))
                         }
@@ -833,7 +833,7 @@ struct TodayView: View {
                             
                             Spacer()
                             
-                            Image(dayOneIcon: entryCount > 0 ? .chevron_right : .plus)
+                            Image(systemName: entryCount > 0 ? "chevron.right" : "plus")
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundStyle(entryCount > 0 ? Color.secondary : Color(hex: "44C0FF"))
                         }
@@ -856,7 +856,7 @@ struct TodayView: View {
                             
                             Spacer()
                             
-                            Image(dayOneIcon: .chevron_right)
+                            Image(systemName: "chevron.right")
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundStyle(.secondary)
                         }
@@ -886,7 +886,7 @@ struct TodayView: View {
                         
                         Spacer()
                         
-                        Image(dayOneIcon: entryCount > 0 ? .chevron_right : .plus)
+                        Image(systemName: entryCount > 0 ? "chevron.right" : "plus")
                             .font(.system(size: 14, weight: .medium))
                             .foregroundStyle(entryCount > 0 ? Color.secondary : Color(hex: "44C0FF"))
                     }
@@ -938,7 +938,7 @@ struct TodayView: View {
                                 }
                             }
                         }) {
-                            Image(dayOneIcon: .chevron_left)
+                            Image(systemName: "chevron.left")
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundStyle(Color(.systemGray2))
                                 .frame(width: 48, height: 48)
@@ -955,7 +955,7 @@ struct TodayView: View {
                                 }
                             }
                         }) {
-                            Image(dayOneIcon: .chevron_right)
+                            Image(systemName: "chevron.right")
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundStyle(Color(.systemGray2))
                                 .frame(width: 48, height: 48)
@@ -1975,7 +1975,7 @@ struct TodayActivityRowWithChatResumeV2: View {
                             .font(.subheadline)
                             .foregroundStyle(Color(hex: "44C0FF"))
                         
-                        Image(dayOneIcon: .chevron_right)
+                        Image(systemName: "chevron.right")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
@@ -1989,7 +1989,7 @@ struct TodayActivityRowWithChatResumeV2: View {
                             .font(.subheadline)
                             .foregroundStyle(Color(hex: "44C0FF"))
                         
-                        Image(dayOneIcon: .chevron_right)
+                        Image(systemName: "chevron.right")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }

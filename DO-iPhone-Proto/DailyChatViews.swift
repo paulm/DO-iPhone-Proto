@@ -614,16 +614,14 @@ struct DailyChatView: View {
                                 .foregroundStyle(.red)
                         }
                     } label: {
-                        Image(dayOneIcon: .dots_horizontal)
+                        Image(systemName: "ellipsis")
                             .font(.body)
                     }
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button {
+                    Button("Done", systemImage: "checkmark") {
                         dismiss()
-                    } label: {
-                        Label("Done", dayOneIcon: .checkmark)
                     }
                     .labelStyle(.titleAndIcon)
                     .tint(Color(hex: "333B40"))
@@ -1045,12 +1043,10 @@ struct BioEditView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button {
+                    Button("Done", systemImage: "checkmark") {
                         userName = editingName
                         userBio = editingBio
                         dismiss()
-                    } label: {
-                        Label("Done", dayOneIcon: .checkmark)
                     }
                     .labelStyle(.titleAndIcon)
                     .tint(Color(hex: "44C0FF"))

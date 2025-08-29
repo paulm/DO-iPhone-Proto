@@ -196,14 +196,13 @@ struct DailyEntryChatView: View {
                                     .scaleEffect(0.8)
                                 
                                 Text("Generating...")
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
+                                    .font(.system(size: 17, weight: .semibold))
                                     .foregroundStyle(.secondary)
                             }
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .padding(16)
+                            .frame(height: 48)
+                            .frame(maxWidth: .infinity)
                             .background(Color.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .clipShape(RoundedRectangle(cornerRadius: 24))
                         } else {
                             HStack(spacing: 8) {
                                 Image(dayOneIcon: .document)

@@ -2704,7 +2704,10 @@ struct VisitsSheetView: View {
                     }
                 }
                 .listStyle(.plain)
+                .scrollContentBackground(.hidden)
+                .background(Color(.systemBackground))
             }
+            .background(Color(.systemBackground))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -2727,6 +2730,7 @@ struct VisitsSheetView: View {
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+        .presentationBackground(Color(.systemBackground))
         .sheet(isPresented: $showingEntryView) {
             EntryView(
                 journal: nil,
@@ -2849,7 +2853,10 @@ struct EventsSheetView: View {
                     }
                 }
                 .listStyle(.plain)
+                .scrollContentBackground(.hidden)
+                .background(Color(.systemBackground))
             }
+            .background(Color(.systemBackground))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -2872,6 +2879,7 @@ struct EventsSheetView: View {
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+        .presentationBackground(Color(.systemBackground))
         .sheet(isPresented: $showingEntryView) {
             EntryView(
                 journal: nil,
@@ -2953,6 +2961,7 @@ struct MediaSheetView: View {
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+        .presentationBackground(Color(.systemBackground))
         .sheet(isPresented: $showingEntryView) {
             EntryView(
                 journal: nil,

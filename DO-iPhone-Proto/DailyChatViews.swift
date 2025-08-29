@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 // This file contains all Daily Chat related views and components
 // Extracted from TodayView.swift for better organization
@@ -100,6 +101,14 @@ class ChatSessionManager {
         let key = dateKey(for: date)
         sessions.removeValue(forKey: key)
         summariesGenerated.removeValue(forKey: key)
+    }
+    
+    func removeMessage(withId messageId: UUID, for date: Date = Date()) {
+        let key = dateKey(for: date)
+        if var messages = sessions[key] {
+            messages.removeAll { $0.id == messageId }
+            sessions[key] = messages
+        }
     }
     
     func isSummaryGenerated(for date: Date = Date()) -> Bool {
@@ -391,8 +400,16 @@ struct DailyChatView: View {
                 ScrollView {
                     LazyVStack(spacing: 12) {
                         ForEach(messages) { message in
-                            DailyChatBubbleView(message: message)
-                                .id(message.id)
+                            DailyChatBubbleView(
+                                message: message,
+                                selectedDate: selectedDate,
+                                onRemove: {
+                                    ChatSessionManager.shared.removeMessage(withId: message.id, for: selectedDate)
+                                    messages = ChatSessionManager.shared.getMessages(for: selectedDate)
+                                    NotificationCenter.default.post(name: NSNotification.Name("ChatMessagesUpdated"), object: nil)
+                                }
+                            )
+                            .id(message.id)
                         }
                         
                         // Thinking indicator
@@ -919,10 +936,16 @@ struct SystemNotificationView: View {
 // MARK: - Daily Chat Bubble View
 struct DailyChatBubbleView: View {
     let message: DailyChatMessage
+    let selectedDate: Date
+    let onRemove: () -> Void
     
     private func getBubbleColor(for message: DailyChatMessage) -> Color {
         // Use the same blue color for both chat and log modes
         return Color(hex: "44C0FF")
+    }
+    
+    private func copyToClipboard() {
+        UIPasteboard.general.string = message.content
     }
     
     var body: some View {
@@ -945,6 +968,15 @@ struct DailyChatBubbleView: View {
                             getBubbleColor(for: message),
                             in: RoundedRectangle(cornerRadius: 18)
                         )
+                        .contextMenu {
+                            Button(action: copyToClipboard) {
+                                Label("Copy", systemImage: "doc.on.doc")
+                            }
+                            
+                            Button(role: .destructive, action: onRemove) {
+                                Label("Remove", systemImage: "trash")
+                            }
+                        }
                 } else {
                     Text(message.content)
                         .font(.body)
@@ -952,6 +984,15 @@ struct DailyChatBubbleView: View {
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
                         .background(Color(.systemGray5), in: RoundedRectangle(cornerRadius: 18))
+                        .contextMenu {
+                            Button(action: copyToClipboard) {
+                                Label("Copy", systemImage: "doc.on.doc")
+                            }
+                            
+                            Button(role: .destructive, action: onRemove) {
+                                Label("Remove", systemImage: "trash")
+                            }
+                        }
                     
                     Spacer(minLength: 50)
                 }

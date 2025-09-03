@@ -111,6 +111,16 @@ class ChatSessionManager {
         }
     }
     
+    func toggleIgnoreStatus(withId messageId: UUID, for date: Date = Date()) {
+        let key = dateKey(for: date)
+        if var messages = sessions[key] {
+            if let index = messages.firstIndex(where: { $0.id == messageId }) {
+                messages[index].isIgnoredInEntry.toggle()
+                sessions[key] = messages
+            }
+        }
+    }
+    
     func isSummaryGenerated(for date: Date = Date()) -> Bool {
         let key = dateKey(for: date)
         return summariesGenerated[key] ?? false
@@ -407,6 +417,10 @@ struct DailyChatView: View {
                                     ChatSessionManager.shared.removeMessage(withId: message.id, for: selectedDate)
                                     messages = ChatSessionManager.shared.getMessages(for: selectedDate)
                                     NotificationCenter.default.post(name: NSNotification.Name("ChatMessagesUpdated"), object: nil)
+                                },
+                                onToggleIgnore: {
+                                    ChatSessionManager.shared.toggleIgnoreStatus(withId: message.id, for: selectedDate)
+                                    messages = ChatSessionManager.shared.getMessages(for: selectedDate)
                                 }
                             )
                             .id(message.id)
@@ -898,6 +912,7 @@ struct DailyChatMessage: Identifiable, Equatable, Codable {
     let isUser: Bool
     let isLogMode: Bool
     var timestamp = Date()
+    var isIgnoredInEntry: Bool = false
     let mode: ChatMode?
     let isSystemNotification: Bool
     let notificationTitle: String?
@@ -938,6 +953,7 @@ struct DailyChatBubbleView: View {
     let message: DailyChatMessage
     let selectedDate: Date
     let onRemove: () -> Void
+    let onToggleIgnore: () -> Void
     
     private func getBubbleColor(for message: DailyChatMessage) -> Color {
         // Use the same blue color for both chat and log modes
@@ -965,12 +981,17 @@ struct DailyChatBubbleView: View {
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
                         .background(
-                            getBubbleColor(for: message),
+                            getBubbleColor(for: message).opacity(message.isIgnoredInEntry ? 0.5 : 1.0),
                             in: RoundedRectangle(cornerRadius: 18)
                         )
                         .contextMenu {
                             Button(action: copyToClipboard) {
                                 Label("Copy", systemImage: "doc.on.doc")
+                            }
+                            
+                            Button(action: onToggleIgnore) {
+                                Label(message.isIgnoredInEntry ? "Include in Entry" : "Ignore in Entry", 
+                                      systemImage: message.isIgnoredInEntry ? "checkmark.circle" : "xmark.circle")
                             }
                             
                             Button(role: .destructive, action: onRemove) {
@@ -983,10 +1004,15 @@ struct DailyChatBubbleView: View {
                         .foregroundStyle(.primary)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
-                        .background(Color(.systemGray5), in: RoundedRectangle(cornerRadius: 18))
+                        .background(Color(.systemGray5).opacity(message.isIgnoredInEntry ? 0.5 : 1.0), in: RoundedRectangle(cornerRadius: 18))
                         .contextMenu {
                             Button(action: copyToClipboard) {
                                 Label("Copy", systemImage: "doc.on.doc")
+                            }
+                            
+                            Button(action: onToggleIgnore) {
+                                Label(message.isIgnoredInEntry ? "Include in Entry" : "Ignore in Entry", 
+                                      systemImage: message.isIgnoredInEntry ? "checkmark.circle" : "xmark.circle")
                             }
                             
                             Button(role: .destructive, action: onRemove) {

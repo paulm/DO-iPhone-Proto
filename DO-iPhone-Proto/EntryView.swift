@@ -497,6 +497,21 @@ I think I'm going to sit here for a while longer before heading back down. This 
                     } // End of ZStack
                 }
             } // End of Group
+            .background(
+                // Hidden button to handle CMD+Enter keyboard shortcut
+                Button("Toggle Edit Mode") {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        isEditMode.toggle()
+                        if isEditMode {
+                            textEditorFocused = true
+                        } else {
+                            textEditorFocused = false
+                        }
+                    }
+                }
+                .keyboardShortcut(.return, modifiers: .command)
+                .hidden()
+            )
             .toolbar {
                 // Date button on the left
                 ToolbarItem(placement: .topBarLeading) {

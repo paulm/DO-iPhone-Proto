@@ -331,7 +331,7 @@ I think I'm going to sit here for a while longer before heading back down. This 
                         }
                         
                         // Text content with inline audio embeds
-                        VStack(alignment: .leading, spacing: 16) {
+                        VStack(alignment: .leading, spacing: 8) {
                             // Journal metadata row - always visible at top
                             HStack {
                                 Text(journalName)
@@ -389,8 +389,9 @@ I think I'm going to sit here for a while longer before heading back down. This 
                                         textEditorFocused = true
                                     }
                                 }
+                                .padding(.bottom, 8)
                             
-                            // Show embeds after text
+                            // Show embeds after text with proper spacing
                                 // First audio recording embed (with transcription)
                                 if showAudioEmbedWithTranscription {
                                 if let audioData = insertedAudioData {

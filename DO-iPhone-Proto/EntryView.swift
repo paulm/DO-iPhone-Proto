@@ -42,6 +42,7 @@ struct EntryView: View {
     @State private var shouldShowAudioOnAppear: Bool
     @State private var showingCompactAudioRecord = false
     @State private var insertedAudioData: AudioRecordView.AudioData?
+    @FocusState private var textEditorFocused: Bool
     
     // Location for the map - Sundance Resort coordinates
     private let entryLocation = CLLocationCoordinate2D(latitude: 40.6006, longitude: -111.5878)
@@ -256,10 +257,48 @@ I think I'm going to sit here for a while longer before heading back down. This 
     
     var body: some View {
         NavigationStack {
-            ZStack {
-                // Content area with scrollable embeds and text
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 0) {
+            Group {
+                if isEditMode {
+                    // Edit mode - TextEditor fills entire available space
+                    VStack(spacing: 0) {
+                        // Journal metadata row
+                        HStack {
+                            Text(journalName)
+                                .foregroundStyle(journalColor)
+                                .fontWeight(.medium)
+                            Text("•")
+                                .foregroundStyle(.secondary)
+                            Text(locationName)
+                                .foregroundStyle(.secondary)
+                            Text("•")
+                                .foregroundStyle(.secondary)
+                            HStack(spacing: 4) {
+                                Image(systemName: "cloud.rain")
+                                    .font(.system(size: 14))
+                                Text("17°C")
+                            }
+                            .foregroundStyle(.secondary)
+                        }
+                        .font(.caption)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 12)
+                        .padding(.bottom, 8)
+                        
+                        // TextEditor fills remaining space
+                        TextEditor(text: $entryText)
+                            .font(.system(size: 17))
+                            .foregroundColor(.primary)
+                            .scrollContentBackground(.hidden)
+                            .focused($textEditorFocused)
+                            .padding(.horizontal, 11) // 16 - 5 to compensate for TextEditor padding
+                            .padding(.bottom, 24)
+                    }
+                } else {
+                    // Read mode - scrollable content with embeds
+                    ZStack {
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: 0) {
                         // Embeds section with gray background - only Entry Chat Session now
                         if hasChatActivity && showEntryChatEmbed {
                             VStack(spacing: 10) {
@@ -338,20 +377,22 @@ I think I'm going to sit here for a while longer before heading back down. This 
                                 .padding(.bottom, 8)
                             }
                             
-                            // Title - always visible
-                            Text(getEntryTitle())
-                                .font(.title2)
-                                .fontWeight(.medium)
+                            // Display full text without any formatting
+                            Text(entryText)
+                                .font(.system(size: 17))
+                                .foregroundColor(.primary)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.bottom, 0)
+                                .textSelection(.enabled)
+                                .onTapGesture {
+                                    withAnimation(.easeInOut(duration: 0.3)) {
+                                        isEditMode = true
+                                        textEditorFocused = true
+                                    }
+                                }
                             
-                            // Entry content paragraphs
-                            Text(getTextBeforeAudioEmbed())
-                                .modifier(entryTextStyle)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            
-                            // First audio recording embed (with transcription)
-                            if showAudioEmbedWithTranscription {
+                            // Show embeds after text
+                                // First audio recording embed (with transcription)
+                                if showAudioEmbedWithTranscription {
                                 if let audioData = insertedAudioData {
                                     // Use inserted audio data
                                     audioRecordingEmbed(
@@ -393,10 +434,6 @@ I think I'm going to sit here for a while longer before heading back down. This 
                                 )
                             }
                             
-                            // Text between image and second audio
-                            Text(getTextBetweenImageAndSecondAudio())
-                                .modifier(entryTextStyle)
-                                .frame(maxWidth: .infinity, alignment: .leading)
                             
                             // Second audio recording embed (without transcription)
                             if showAudioEmbed {
@@ -413,57 +450,52 @@ I think I'm going to sit here for a while longer before heading back down. This 
                                 )
                             }
                             
-                            // Remaining text
-                            Text(getTextAfterSecondAudioEmbed())
-                                .modifier(entryTextStyle)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            
                             // Map footer section
-                            if !isEditMode {
-                                VStack(alignment: .leading, spacing: 6) {
-                                    // Journal metadata with weather
-                                    HStack {
-                                        Text(journalName)
-                                            .foregroundStyle(journalColor)
-                                            .fontWeight(.medium)
-                                        Text("•")
-                                            .foregroundStyle(.secondary)
-                                        Text(locationName)
-                                            .foregroundStyle(.secondary)
-                                        Text("•")
-                                            .foregroundStyle(.secondary)
-                                        HStack(spacing: 4) {
-                                            Image(systemName: "cloud.rain")
-                                                .font(.system(size: 14))
-                                            Text("17°C")
-                                        }
+                            VStack(alignment: .leading, spacing: 6) {
+                                // Journal metadata with weather
+                                HStack {
+                                    Text(journalName)
+                                        .foregroundStyle(journalColor)
+                                        .fontWeight(.medium)
+                                    Text("•")
                                         .foregroundStyle(.secondary)
+                                    Text(locationName)
+                                        .foregroundStyle(.secondary)
+                                    Text("•")
+                                        .foregroundStyle(.secondary)
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "cloud.rain")
+                                            .font(.system(size: 14))
+                                        Text("17°C")
                                     }
-                                    .font(.caption)
-                                    
-                                    // Map with rounded corners and inset
-                                    Map(position: .constant(.region(MKCoordinateRegion(
-                                        center: entryLocation,
-                                        span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
-                                    )))) {
-                                        Marker(locationName, coordinate: entryLocation)
-                                            .tint(journalColor)
-                                    }
-                                    .frame(height: 180)
-                                    .clipShape(RoundedRectangle(cornerRadius: 24))
-                                    .mapStyle(.standard)
-                                    .allowsHitTesting(false)
+                                    .foregroundStyle(.secondary)
                                 }
-                                .padding(.top, 24)
+                                .font(.caption)
+                                
+                                // Map with rounded corners and inset
+                                Map(position: .constant(.region(MKCoordinateRegion(
+                                    center: entryLocation,
+                                    span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+                                )))) {
+                                    Marker(locationName, coordinate: entryLocation)
+                                        .tint(journalColor)
+                                }
+                                .frame(height: 180)
+                                .clipShape(RoundedRectangle(cornerRadius: 24))
+                                .mapStyle(.standard)
+                                .allowsHitTesting(false)
                             }
+                            .padding(.top, 24)
                         }
                         // left and right margins
                         .padding(.horizontal, 16)
                         .padding(.top, hasChatActivity && showEntryChatEmbed ? 28 : 12)
                         .padding(.bottom, 24)
-                    }
+                            }
+                        }
+                    } // End of ZStack
                 }
-            } // End of ZStack
+            } // End of Group
             .toolbar {
                 // Date button on the left
                 ToolbarItem(placement: .topBarLeading) {
@@ -487,6 +519,11 @@ I think I'm going to sit here for a while longer before heading back down. This 
                         Button(action: {
                             withAnimation(.easeInOut(duration: 0.3)) {
                                 isEditMode.toggle()
+                                if isEditMode {
+                                    textEditorFocused = true
+                                } else {
+                                    textEditorFocused = false
+                                }
                             }
                         }) {
                             Label(isEditMode ? "Done Editing" : "Edit", systemImage: isEditMode ? "checkmark.circle" : "pencil")
@@ -629,6 +666,10 @@ I think I'm going to sit here for a while longer before heading back down. This 
                         showingCompactAudioRecord = true
                         shouldShowAudioOnAppear = false
                     }
+                }
+                // Focus text editor if starting in edit mode
+                if isEditMode {
+                    textEditorFocused = true
                 }
             }
             .sheet(isPresented: $showingJournalingTools) {

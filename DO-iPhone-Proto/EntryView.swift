@@ -295,11 +295,9 @@ I think I'm going to sit here for a while longer before heading back down. This 
                                 .lineSpacing(4)
                                 .foregroundColor(Color(hex: "292F33"))
                                 .scrollContentBackground(.hidden)
-                                .scrollDisabled(true)  // Disable TextEditor's internal scrolling
                                 .focused($textEditorFocused)
                                 .padding(.horizontal, 11) // Reduced from 16 to 11 (5pt less)
-                                .padding(.bottom, 100) // Space for keyboard
-                                .frame(minHeight: UIScreen.main.bounds.height - 200)
+                                .frame(minHeight: UIScreen.main.bounds.height) // Ensure minimum height for scrolling
                                 .toolbar {
                                     ToolbarItemGroup(placement: .keyboard) {
                                         VStack(spacing: 0) {

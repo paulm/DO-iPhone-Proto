@@ -259,41 +259,100 @@ I think I'm going to sit here for a while longer before heading back down. This 
         NavigationStack {
             Group {
                 if isEditMode {
-                    // Edit mode - TextEditor fills entire available space
-                    VStack(spacing: 0) {
-                        // Journal metadata row
-                        HStack {
-                            Text(journalName)
-                                .foregroundStyle(journalColor)
-                                .fontWeight(.medium)
-                            Text("•")
+                    // Edit mode - Full screen scrollable content
+                    ScrollView {
+                        VStack(spacing: 0) {
+                            // Add top padding for navigation bar (reduced by 16pt for alignment)
+                            Color.clear.frame(height: 82)
+                            
+                            // Metadata row as a separate styled view
+                            HStack {
+                                Text(journalName)
+                                    .foregroundStyle(journalColor)
+                                    .fontWeight(.medium)
+                                Text("•")
+                                    .foregroundStyle(.secondary)
+                                Text(locationName)
+                                    .foregroundStyle(.secondary)
+                                Text("•")
+                                    .foregroundStyle(.secondary)
+                                HStack(spacing: 4) {
+                                    Image(systemName: "cloud.rain")
+                                        .font(.system(size: 14))
+                                    Text("17°C")
+                                }
                                 .foregroundStyle(.secondary)
-                            Text(locationName)
-                                .foregroundStyle(.secondary)
-                            Text("•")
-                                .foregroundStyle(.secondary)
-                            HStack(spacing: 4) {
-                                Image(systemName: "cloud.rain")
-                                    .font(.system(size: 14))
-                                Text("17°C")
                             }
-                            .foregroundStyle(.secondary)
+                            .font(.caption)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 16)
+                            .padding(.bottom, 8) // Reduced from 12 to 8 (4pt closer)
+                            
+                            // Text editor for entry content
+                            TextEditor(text: $entryText)
+                                .font(.system(size: 17))
+                                .foregroundColor(.primary)
+                                .scrollContentBackground(.hidden)
+                                .focused($textEditorFocused)
+                                .padding(.horizontal, 11) // Reduced from 16 to 11 (5pt less)
+                                .padding(.bottom, 100) // Space for keyboard
+                                .frame(minHeight: UIScreen.main.bounds.height - 200)
+                                .toolbar {
+                                    ToolbarItemGroup(placement: .keyboard) {
+                                        HStack {
+                                            // Date/Time button
+                                            Button {
+                                                let formatter = DateFormatter()
+                                                formatter.dateFormat = "MMM d, yyyy 'at' h:mm a"
+                                                let dateString = formatter.string(from: Date())
+                                                entryText += dateString
+                                            } label: {
+                                                Image(systemName: "calendar")
+                                            }
+                                            
+                                            // Location button
+                                            Button {
+                                                entryText += " \(locationName)"
+                                            } label: {
+                                                Image(systemName: "location")
+                                            }
+                                            
+                                            // Photo button
+                                            Button {
+                                                // Photo action
+                                            } label: {
+                                                Image(systemName: "photo")
+                                            }
+                                            
+                                            // Audio button
+                                            Button {
+                                                showingCompactAudioRecord = true
+                                            } label: {
+                                                Image(systemName: "mic")
+                                            }
+                                            
+                                            // Tag button
+                                            Button {
+                                                // Tag action
+                                            } label: {
+                                                Image(systemName: "tag")
+                                            }
+                                            
+                                            Spacer()
+                                            
+                                            // Done button
+                                            Button("Done") {
+                                                withAnimation(.easeInOut(duration: 0.3)) {
+                                                    textEditorFocused = false
+                                                }
+                                            }
+                                            .fontWeight(.medium)
+                                        }
+                                    }
+                                }
                         }
-                        .font(.caption)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 16)
-                        .padding(.top, 12)
-                        .padding(.bottom, 8)
-                        
-                        // TextEditor fills remaining space
-                        TextEditor(text: $entryText)
-                            .font(.system(size: 17))
-                            .foregroundColor(.primary)
-                            .scrollContentBackground(.hidden)
-                            .focused($textEditorFocused)
-                            .padding(.horizontal, 11) // 16 - 5 to compensate for TextEditor padding
-                            .padding(.bottom, 24)
                     }
+                    .ignoresSafeArea(.container, edges: [.top, .bottom])
                 } else {
                     // Read mode - scrollable content with embeds
                     ZStack {
@@ -672,7 +731,7 @@ I think I'm going to sit here for a while longer before heading back down. This 
                     .tint(journalColor)
                 }
             }
-            .toolbarBackground(.automatic, for: .navigationBar)
+            .toolbarBackground(isEditMode ? .hidden : .automatic, for: .navigationBar)
             .navigationBarTitleDisplayMode(.inline)
             .animation(.easeInOut(duration: 0.3), value: isEditMode)
             .onAppear {
@@ -683,9 +742,11 @@ I think I'm going to sit here for a while longer before heading back down. This 
                         shouldShowAudioOnAppear = false
                     }
                 }
-                // Focus text editor if starting in edit mode
+                // Focus text editor if starting in edit mode with slight delay for animation
                 if isEditMode {
-                    textEditorFocused = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        textEditorFocused = true
+                    }
                 }
             }
             .sheet(isPresented: $showingJournalingTools) {

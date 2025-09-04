@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Main tab view containing all app tabs with iOS 26 separated Search tab
 struct MainTabView: View {
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @State private var searchQuery = ""
     @AppStorage("showChatFAB") private var showChatFAB = false
     @AppStorage("showEntryFAB") private var showEntryFAB = false
@@ -41,6 +42,19 @@ struct MainTabView: View {
     }
     
     var body: some View {
+        // Use split view for iPad, tab view for iPhone
+        if horizontalSizeClass == .regular {
+            // iPad layout with split view
+            MainSplitView()
+        } else {
+            // iPhone layout with tabs
+            iPhoneTabView
+        }
+    }
+    
+    // MARK: - iPhone Tab View
+    @ViewBuilder
+    private var iPhoneTabView: some View {
         ZStack {
             TabView {
                 // Regular tabs using Day One Icons converted to images

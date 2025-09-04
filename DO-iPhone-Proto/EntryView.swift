@@ -43,6 +43,8 @@ struct EntryView: View {
     @State private var showingCompactAudioRecord = false
     @State private var insertedAudioData: AudioRecordView.AudioData?
     @State private var useLatoFont = false
+    @State private var showingGoDeeperPrompts = false
+    @State private var scrollProxy: ScrollViewProxy?
     @FocusState private var textEditorFocused: Bool
     
     // Location for the map - Sundance Resort coordinates
@@ -261,47 +263,63 @@ I think I'm going to sit here for a while longer before heading back down. This 
             Group {
                 if isEditMode {
                     // Edit mode - Full screen scrollable content
-                    ScrollView {
-                        VStack(spacing: 0) {
-                            // Add top padding for navigation bar (reduced by 16pt for alignment)
-                            Color.clear.frame(height: 82)
-                            
-                            // Metadata row as a separate styled view
-                            HStack {
-                                Text(journalName)
-                                    .foregroundStyle(journalColor)
-                                    .fontWeight(.medium)
-                                Text("•")
+                    ScrollViewReader { proxy in
+                        ScrollView {
+                            VStack(spacing: 0) {
+                                // Add top padding for navigation bar (reduced by 16pt for alignment)
+                                Color.clear.frame(height: 82)
+                                    .id("top")
+                                
+                                // Metadata row as a separate styled view
+                                HStack {
+                                    Text(journalName)
+                                        .foregroundStyle(journalColor)
+                                        .fontWeight(.medium)
+                                    Text("•")
+                                        .foregroundStyle(.secondary)
+                                    Text(locationName)
+                                        .foregroundStyle(.secondary)
+                                    Text("•")
+                                        .foregroundStyle(.secondary)
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "cloud.rain")
+                                            .font(.system(size: 14))
+                                        Text("17°C")
+                                    }
                                     .foregroundStyle(.secondary)
-                                Text(locationName)
-                                    .foregroundStyle(.secondary)
-                                Text("•")
-                                    .foregroundStyle(.secondary)
-                                HStack(spacing: 4) {
-                                    Image(systemName: "cloud.rain")
-                                        .font(.system(size: 14))
-                                    Text("17°C")
                                 }
-                                .foregroundStyle(.secondary)
-                            }
-                            .font(.caption)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 16)
-                            .padding(.bottom, 8) // Reduced from 12 to 8 (4pt closer)
-                            
-                            // Text editor for entry content
-                            TextEditor(text: $entryText)
-                                .font(useLatoFont ? Font.custom("Lato-Regular", size: 18) : .system(size: 18))
-                                .lineSpacing(4)
-                                .foregroundColor(Color(hex: "292F33"))
-                                .scrollContentBackground(.hidden)
-                                .focused($textEditorFocused)
-                                .padding(.horizontal, 11) // Reduced from 16 to 11 (5pt less)
-                                .frame(minHeight: UIScreen.main.bounds.height) // Ensure minimum height for scrolling
+                                .font(.caption)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 16)
+                                .padding(.bottom, 8) // Reduced from 12 to 8 (4pt closer)
+                                
+                                // Text editor for entry content
+                                TextEditor(text: $entryText)
+                                    .font(useLatoFont ? Font.custom("Lato-Regular", size: 18) : .system(size: 18))
+                                    .lineSpacing(4)
+                                    .foregroundColor(Color(hex: "292F33"))
+                                    .scrollContentBackground(.hidden)
+                                    .focused($textEditorFocused)
+                                    .padding(.horizontal, 11) // Reduced from 16 to 11 (5pt less)
+                                    .frame(minHeight: UIScreen.main.bounds.height) // Ensure minimum height for scrolling
+                                    .id("textEditor")
+                                    .onChange(of: entryText) { _ in
+                                        // Auto-scroll to keep cursor visible when text changes
+                                        if textEditorFocused {
+                                            // Small delay to allow the text to render
+                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                                withAnimation(.easeInOut(duration: 0.3)) {
+                                                    // Scroll to position the cursor just above the keyboard
+                                                    proxy.scrollTo("textEditor", anchor: UnitPoint(x: 0.5, y: 0.85))
+                                                }
+                                            }
+                                        }
+                                    }
                                 .toolbar {
                                     ToolbarItemGroup(placement: .keyboard) {
                                         VStack(spacing: 0) {
-                                            HStack(spacing: 18) {
+                                            if !showingGoDeeperPrompts {
+                                                HStack(spacing: 18) {
                                                 // Dismiss keyboard and toggle to Read Mode (left-aligned)
                                                 Button {
                                                     withAnimation(.easeInOut(duration: 0.3)) {
@@ -328,7 +346,9 @@ I think I'm going to sit here for a while longer before heading back down. This 
                                                         }
                                                         
                                                         Button {
-                                                            // Go Deeper Prompts action
+                                                            withAnimation(.easeInOut(duration: 0.2)) {
+                                                                showingGoDeeperPrompts = true
+                                                            }
                                                         } label: {
                                                             Label("Go Deeper Prompts", systemImage: "bubble.left.and.bubble.right")
                                                         }
@@ -348,7 +368,7 @@ I think I'm going to sit here for a while longer before heading back down. This 
                                                         
                                                     } label: {
                                                         Text(DayOneIcon.sparkles.rawValue)
-                                                            .font(Font.custom("DayOneIcons", size: 18))
+                                                            .font(Font.custom("DayOneIcons", size: 20))
                                                             .foregroundColor(.primary)
                                                     }
                                                     
@@ -357,7 +377,7 @@ I think I'm going to sit here for a while longer before heading back down. This 
                                                         // Open system photo picker
                                                     } label: {
                                                         Text(DayOneIcon.photo.rawValue)
-                                                            .font(Font.custom("DayOneIcons", size: 18))
+                                                            .font(Font.custom("DayOneIcons", size: 20))
                                                             .foregroundColor(.primary)
                                                     }
                                                     
@@ -394,7 +414,7 @@ I think I'm going to sit here for a while longer before heading back down. This 
                                                         }
                                                     } label: {
                                                         Text(DayOneIcon.attachment.rawValue)
-                                                            .font(Font.custom("DayOneIcons", size: 18))
+                                                            .font(Font.custom("DayOneIcons", size: 20))
                                                             .foregroundColor(.primary)
                                                     }
                                                     
@@ -441,18 +461,43 @@ I think I'm going to sit here for a while longer before heading back down. This 
                                                         }
                                                     } label: {
                                                         Text(DayOneIcon.text_format.rawValue)
-                                                            .font(Font.custom("DayOneIcons", size: 18))
+                                                            .font(Font.custom("DayOneIcons", size: 20))
                                                             .foregroundColor(.primary)
                                                     }
                                                 }
-                                                .padding(.trailing, 16) // Move right icons in by 10pt
+                                                .padding(.trailing, 12) // Move right icons in by 10pt
+                                            }
+                                            }
+                                            
+                                            // Go Deeper Prompts carousel overlay
+                                            if showingGoDeeperPrompts {
+                                                GoDeeperPromptsView(
+                                                    isShowing: $showingGoDeeperPrompts,
+                                                    prompts: [
+                                                        "What emotions did I experience during my hike today?",
+                                                        "How did the scenery impact my mood on this perfect day?",
+                                                        "In what other moments did I feel gratitude today?"
+                                                    ],
+                                                    onSelectPrompt: { prompt in
+                                                        // Insert prompt at the end of the text
+                                                        if !entryText.isEmpty && !entryText.hasSuffix("\n") {
+                                                            entryText += "\n\n"
+                                                        }
+                                                        entryText += prompt
+                                                    }
+                                                )
+                                                .transition(.move(edge: .bottom).combined(with: .opacity))
                                             }
                                         }
                                     }
                                 }
+                            }
+                        }
+                        .ignoresSafeArea(.container, edges: [.top, .bottom])
+                        .onAppear {
+                            scrollProxy = proxy
                         }
                     }
-                    .ignoresSafeArea(.container, edges: [.top, .bottom])
                 } else {
                     // Read mode - scrollable content with embeds
                     ZStack {
@@ -1025,6 +1070,66 @@ I think I'm going to sit here for a while longer before heading back down. This 
         return formatter.string(from: date)
     }
 } // End of EntryView
+
+struct GoDeeperPromptsView: View {
+    @Binding var isShowing: Bool
+    let prompts: [String]
+    let onSelectPrompt: (String) -> Void
+    
+    var body: some View {
+        HStack(spacing: 0) {
+            // Close button - always visible
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isShowing = false
+                }
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(Color(hex: "8E8E93"))
+                    .frame(width: 32, height: 32)
+                    .background(Color(hex: "F2F2F7"))
+                    .clipShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .padding(.leading, 12)
+            .padding(.trailing, 8)
+            
+            // Scrollable prompts
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    // Prompt buttons
+                    ForEach(prompts, id: \.self) { prompt in
+                        Button {
+                            onSelectPrompt(prompt)
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                isShowing = false
+                            }
+                        } label: {
+                            Text(prompt)
+                                .font(.system(size: 14))
+                                .fontWeight(.regular)
+                                .foregroundColor(Color(hex: "8E8E93"))
+                                .lineLimit(2)
+                                .multilineTextAlignment(.leading)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 10)
+                                .frame(minHeight: 44)
+                                .frame(maxWidth: 280)
+                                .background(Color(hex: "F2F2F7"))
+                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.trailing, 12)
+                .padding(.vertical, 8)
+            }
+        }
+        .frame(height: 80)
+    }
+}
 
 #Preview("New Entry") {
     EntryView(journal: nil)

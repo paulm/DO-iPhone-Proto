@@ -315,6 +315,7 @@ I think I'm going to sit here for a while longer before heading back down. This 
                                                         .font(Font.custom("DayOneIcons", size: 18))
                                                         .foregroundColor(.primary)
                                                 }
+                                                .padding(.leading, 6) // Move left icon in by 10pt
                                                 
                                                 Spacer()
                                                 
@@ -446,6 +447,7 @@ I think I'm going to sit here for a while longer before heading back down. This 
                                                             .foregroundColor(.primary)
                                                     }
                                                 }
+                                                .padding(.trailing, 16) // Move right icons in by 10pt
                                             }
                                             .padding(.vertical, 0)
                                             

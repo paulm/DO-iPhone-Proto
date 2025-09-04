@@ -42,7 +42,6 @@ struct JournalsTabPagedView: View {
     @State private var showingSettings = false
     @State private var viewMode: ViewMode = .list // Default to Icons view
     @State private var selectedJournal: Journal?
-    @State private var searchText = ""
     @State private var showingNewEntry = false
     @State private var shouldShowAudioAfterEntry = false
     
@@ -56,15 +55,9 @@ struct JournalsTabPagedView: View {
     // Sheet regular position from top (in points)
     let sheetRegularPosition: CGFloat = 250
     
-    // Filtered journals based on search text
+    // Get visible journals
     private var filteredJournals: [Journal] {
-        if searchText.isEmpty {
-            return Journal.visibleJournals
-        } else {
-            return Journal.visibleJournals.filter { journal in
-                journal.name.localizedCaseInsensitiveContains(searchText)
-            }
-        }
+        return Journal.visibleJournals
     }
     
     var body: some View {
@@ -108,7 +101,6 @@ struct JournalsTabPagedView: View {
             }
             .navigationTitle("Journals")
             .navigationBarTitleDisplayMode(.large)
-            .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
             .toolbar {
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     Menu {
@@ -188,8 +180,8 @@ struct JournalsTabPagedView: View {
     
     private var compactJournalList: some View {
         LazyVStack(spacing: 4) {
-            // Show "All Entries" only if there are multiple journals and it matches search
-            if filteredJournals.count > 1 && (searchText.isEmpty || "All Entries".localizedCaseInsensitiveContains(searchText)) {
+            // Show "All Entries" only if there are multiple journals
+            if filteredJournals.count > 1 {
                 let allEntriesJournal = Journal(
                     name: "All Entries",
                     color: Color(hex: "333B40"),
@@ -223,8 +215,8 @@ struct JournalsTabPagedView: View {
     
     private var listJournalList: some View {
         LazyVStack(spacing: 8) {
-            // Show "All Entries" only if there are multiple journals and it matches search
-            if filteredJournals.count > 1 && (searchText.isEmpty || "All Entries".localizedCaseInsensitiveContains(searchText)) {
+            // Show "All Entries" only if there are multiple journals
+            if filteredJournals.count > 1 {
                 let allEntriesJournal = Journal(
                     name: "All Entries",
                     color: Color(hex: "333B40"),
@@ -258,8 +250,8 @@ struct JournalsTabPagedView: View {
     
     private var gridJournalList: some View {
         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 3), spacing: 20) {
-            // Show "All Entries" only if there are multiple journals and it matches search
-            if filteredJournals.count > 1 && (searchText.isEmpty || "All Entries".localizedCaseInsensitiveContains(searchText)) {
+            // Show "All Entries" only if there are multiple journals
+            if filteredJournals.count > 1 {
                 let allEntriesJournal = Journal(
                     name: "All Entries",
                     color: Color(hex: "333B40"),

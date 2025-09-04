@@ -12,12 +12,18 @@ struct MoreTabSettingsStyleView: View {
                 Section {
                     HStack(spacing: 16) {
                         Circle()
-                            .fill(.gray.opacity(0.3))
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.purple, Color.pink],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
                             .frame(width: 60, height: 60)
                             .overlay(
-                                Image(systemName: "person.fill")
-                                    .font(.title2)
-                                    .foregroundStyle(.gray)
+                                Text("PM")
+                                    .font(.system(size: 22, weight: .semibold))
+                                    .foregroundColor(.white)
                             )
                         
                         VStack(alignment: .leading, spacing: 4) {

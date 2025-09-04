@@ -27,25 +27,6 @@ struct MoreTabOriginalView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 32) {
-                    // Profile section
-                    HStack {
-                        Spacer()
-                        Button(action: {
-                            showingSettings = true
-                        }) {
-                            Circle()
-                                .fill(.gray.opacity(0.3))
-                                .frame(width: 40, height: 40)
-                                .overlay(
-                                    Image(systemName: "person.fill")
-                                        .foregroundStyle(.gray)
-                                )
-                        }
-                        .accessibilityLabel("Settings")
-                    }
-                    .padding(.horizontal)
-                    .padding(.top, 20)
-                    
                     // Quick Start Section
                     VStack(alignment: .leading, spacing: 16) {
                         HStack {
@@ -165,12 +146,36 @@ struct MoreTabOriginalView: View {
                     
                     Spacer(minLength: 40)
                 }
+                .padding(.top, 20) // Add top padding for spacing
             }
-            .navigationBarHidden(true)
+            .navigationTitle("More")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showingSettings = true
+                    } label: {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.purple, Color.pink],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 32, height: 32)
+                            .overlay(
+                                Text("PM")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundColor(.white)
+                            )
+                    }
+                }
+            }
         }
-            .sheet(isPresented: $showingSettings) {
-                SettingsView()
-            }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
+        }
     }
 }
 

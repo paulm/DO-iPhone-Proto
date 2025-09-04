@@ -290,7 +290,7 @@ I think I'm going to sit here for a while longer before heading back down. This 
                             
                             // Text editor for entry content
                             TextEditor(text: $entryText)
-                                .font(.system(size: 17))
+                                .font(.system(size: 18))
                                 .foregroundColor(.primary)
                                 .scrollContentBackground(.hidden)
                                 .focused($textEditorFocused)
@@ -438,7 +438,7 @@ I think I'm going to sit here for a while longer before heading back down. This 
                             
                             // Display full text without any formatting
                             Text(entryText)
-                                .font(.system(size: 17))
+                                .font(.system(size: 18))
                                 .foregroundColor(.primary)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .textSelection(.enabled)

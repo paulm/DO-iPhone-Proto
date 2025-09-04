@@ -42,6 +42,7 @@ struct EntryView: View {
     @State private var shouldShowAudioOnAppear: Bool
     @State private var showingCompactAudioRecord = false
     @State private var insertedAudioData: AudioRecordView.AudioData?
+    @State private var useLatoFont = false
     @FocusState private var textEditorFocused: Bool
     
     // Location for the map - Sundance Resort coordinates
@@ -290,8 +291,9 @@ I think I'm going to sit here for a while longer before heading back down. This 
                             
                             // Text editor for entry content
                             TextEditor(text: $entryText)
-                                .font(.system(size: 18))
-                                .foregroundColor(.primary)
+                                .font(useLatoFont ? Font.custom("Lato-Regular", size: 18) : .system(size: 18))
+                                .lineSpacing(4)
+                                .foregroundColor(Color(hex: "292F33"))
                                 .scrollContentBackground(.hidden)
                                 .focused($textEditorFocused)
                                 .padding(.horizontal, 11) // Reduced from 16 to 11 (5pt less)
@@ -438,8 +440,9 @@ I think I'm going to sit here for a while longer before heading back down. This 
                             
                             // Display full text without any formatting
                             Text(entryText)
-                                .font(.system(size: 18))
-                                .foregroundColor(.primary)
+                                .font(useLatoFont ? Font.custom("Lato-Regular", size: 18) : .system(size: 18))
+                                .lineSpacing(4)
+                                .foregroundColor(Color(hex: "292F33"))
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .textSelection(.enabled)
                                 .onTapGesture {
@@ -640,6 +643,35 @@ I think I'm going to sit here for a while longer before heading back down. This 
                             // View PDF action
                         } label: {
                             Label("View PDF", systemImage: "doc.text")
+                        }
+                        
+                        Divider()
+                        
+                        // Font Selection Section
+                        Menu {
+                            Button {
+                                useLatoFont = false
+                            } label: {
+                                HStack {
+                                    Text("System")
+                                    if !useLatoFont {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            
+                            Button {
+                                useLatoFont = true
+                            } label: {
+                                HStack {
+                                    Text("Lato")
+                                    if useLatoFont {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        } label: {
+                            Label("Font", systemImage: "textformat")
                         }
                         
                         Divider()

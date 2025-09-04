@@ -862,7 +862,7 @@ struct MomentRowView: View {
                         Text(moment.time)
                             .font(.caption)
                             .foregroundStyle(isSelected ? Color(hex: "44C0FF") : .secondary)
-                            .fixedSize()
+                            .fixedSize(horizontal: true, vertical: false)
                     }
                     
                     Spacer()

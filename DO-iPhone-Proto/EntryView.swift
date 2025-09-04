@@ -302,54 +302,155 @@ I think I'm going to sit here for a while longer before heading back down. This 
                                 .frame(minHeight: UIScreen.main.bounds.height - 200)
                                 .toolbar {
                                     ToolbarItemGroup(placement: .keyboard) {
-                                        HStack {
-                                            // Date/Time button
-                                            Button {
-                                                let formatter = DateFormatter()
-                                                formatter.dateFormat = "MMM d, yyyy 'at' h:mm a"
-                                                let dateString = formatter.string(from: Date())
-                                                entryText += dateString
-                                            } label: {
-                                                Image(systemName: "calendar")
-                                            }
-                                            
-                                            // Location button
-                                            Button {
-                                                entryText += " \(locationName)"
-                                            } label: {
-                                                Image(systemName: "location")
-                                            }
-                                            
-                                            // Photo button
-                                            Button {
-                                                // Photo action
-                                            } label: {
-                                                Image(systemName: "photo")
-                                            }
-                                            
-                                            // Audio button
-                                            Button {
-                                                showingCompactAudioRecord = true
-                                            } label: {
-                                                Image(systemName: "mic")
-                                            }
-                                            
-                                            // Tag button
-                                            Button {
-                                                // Tag action
-                                            } label: {
-                                                Image(systemName: "tag")
-                                            }
-                                            
-                                            Spacer()
-                                            
-                                            // Done button
-                                            Button("Done") {
-                                                withAnimation(.easeInOut(duration: 0.3)) {
-                                                    textEditorFocused = false
+                                        VStack(spacing: 0) {
+                                            HStack(spacing: 18) {
+                                                // Dismiss keyboard and toggle to Read Mode (left-aligned)
+                                                Button {
+                                                    withAnimation(.easeInOut(duration: 0.3)) {
+                                                        textEditorFocused = false
+                                                        isEditMode = false
+                                                    }
+                                                } label: {
+                                                    Text(DayOneIcon.chevron_down.rawValue)
+                                                        .font(Font.custom("DayOneIcons", size: 18))
+                                                        .foregroundColor(.primary)
+                                                }
+                                                
+                                                Spacer()
+                                                
+                                                // Right-aligned buttons
+                                                HStack(spacing: 18) {
+                                                    // AI Sparkle menu
+                                                    Menu {
+                                                        Button {
+                                                            // AI Title Suggestions action
+                                                        } label: {
+                                                            Label("AI Title Suggestions", systemImage: "textformat.abc")
+                                                        }
+                                                        
+                                                        Button {
+                                                            // Go Deeper Prompts action
+                                                        } label: {
+                                                            Label("Go Deeper Prompts", systemImage: "bubble.left.and.bubble.right")
+                                                        }
+                                                        
+                                                        Button {
+                                                            // Entry Highlights action
+                                                        } label: {
+                                                            Label("Entry Highlights", systemImage: "doc.text")
+                                                        }
+                                                        
+                                                        Button {
+                                                            // Generate Image action
+                                                        } label: {
+                                                            Label("Generate Image", systemImage: "photo.badge.plus")
+                                                        }
+                                                        
+                                                        
+                                                    } label: {
+                                                        Text(DayOneIcon.sparkles.rawValue)
+                                                            .font(Font.custom("DayOneIcons", size: 18))
+                                                            .foregroundColor(.primary)
+                                                    }
+                                                    
+                                                    // Photo picker button
+                                                    Button {
+                                                        // Open system photo picker
+                                                    } label: {
+                                                        Text(DayOneIcon.photo.rawValue)
+                                                            .font(Font.custom("DayOneIcons", size: 18))
+                                                            .foregroundColor(.primary)
+                                                    }
+                                                    
+                                                    // Paperclip attachment menu
+                                                    Menu {
+                                                        Button {
+                                                            // Audio action
+                                                        } label: {
+                                                            Label("Audio", systemImage: "waveform")
+                                                        }
+                                                        
+                                                        Button {
+                                                            showingCompactAudioRecord = true
+                                                        } label: {
+                                                            Label("Record", systemImage: "mic")
+                                                        }
+                                                        
+                                                        Button {
+                                                            // Record Video action
+                                                        } label: {
+                                                            Label("Record Video", systemImage: "video")
+                                                        }
+                                                        
+                                                        Button {
+                                                            // Draw action
+                                                        } label: {
+                                                            Label("Draw", systemImage: "pencil.tip")
+                                                        }
+                                                        
+                                                        Button {
+                                                            // Chat action
+                                                        } label: {
+                                                            Label("Chat", systemImage: "bubble.left")
+                                                        }
+                                                    } label: {
+                                                        Text(DayOneIcon.attachment.rawValue)
+                                                            .font(Font.custom("DayOneIcons", size: 18))
+                                                            .foregroundColor(.primary)
+                                                    }
+                                                    
+                                                    // Text formatting menu
+                                                    Menu {
+                                                        Button {
+                                                            // Bold action
+                                                        } label: {
+                                                            Label("Bold", systemImage: "bold")
+                                                        }
+                                                        
+                                                        Button {
+                                                            // Italic action
+                                                        } label: {
+                                                            Label("Italic", systemImage: "italic")
+                                                        }
+                                                        
+                                                        Divider()
+                                                        
+                                                        Button {
+                                                            // Header action
+                                                        } label: {
+                                                            Label("Header", systemImage: "textformat.size.larger")
+                                                        }
+                                                        
+                                                        Button {
+                                                            // Subhead action
+                                                        } label: {
+                                                            Label("Subhead", systemImage: "textformat.size")
+                                                        }
+                                                        
+                                                        Divider()
+                                                        
+                                                        Button {
+                                                            // Quote Block action
+                                                        } label: {
+                                                            Label("Quote Block", systemImage: "quote.opening")
+                                                        }
+                                                        
+                                                        Button {
+                                                            // Code Block action
+                                                        } label: {
+                                                            Label("Code Block", systemImage: "curlybraces")
+                                                        }
+                                                    } label: {
+                                                        Text(DayOneIcon.text_format.rawValue)
+                                                            .font(Font.custom("DayOneIcons", size: 18))
+                                                            .foregroundColor(.primary)
+                                                    }
                                                 }
                                             }
-                                            .fontWeight(.medium)
+                                            .padding(.vertical, 0)
+                                            
+                                            // Add margin below the bar
+                                            Color.clear.frame(height: 0)
                                         }
                                     }
                                 }

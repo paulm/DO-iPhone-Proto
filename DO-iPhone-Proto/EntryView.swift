@@ -447,10 +447,6 @@ I think I'm going to sit here for a while longer before heading back down. This 
                                                 }
                                                 .padding(.trailing, 16) // Move right icons in by 10pt
                                             }
-                                            .padding(.vertical, 0)
-                                            
-                                            // Add margin below the bar
-                                            Color.clear.frame(height: 0)
                                         }
                                     }
                                 }

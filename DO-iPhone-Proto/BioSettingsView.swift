@@ -151,98 +151,92 @@ struct BioSettingsView: View {
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 20) {
-                // Profile header with photo
-                VStack(spacing: 16) {
-                    Button(action: {
-                        showingImagePicker = true
-                    }) {
-                        Circle()
-                            .fill(.gray.opacity(0.2))
-                            .frame(width: 100, height: 100)
-                            .overlay(
-                                VStack(spacing: 4) {
+            List {
+                // Profile header section
+                Section {
+                    HStack(spacing: 16) {
+                        Button(action: {
+                            showingImagePicker = true
+                        }) {
+                            Circle()
+                                .fill(.gray.opacity(0.2))
+                                .frame(width: 60, height: 60)
+                                .overlay(
                                     Image(systemName: "camera.fill")
-                                        .font(.title2)
+                                        .font(.title3)
                                         .foregroundStyle(.gray)
-                                    Text("Add Photo")
-                                        .font(.caption)
-                                        .foregroundStyle(.gray)
-                                }
-                            )
+                                )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Personal Information")
+                                .font(.headline)
+                            Text("Complete your profile")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        Spacer()
                     }
-                    .buttonStyle(PlainButtonStyle())
-                    
-                    Text("Personal Information")
-                        .font(.title2)
-                        .fontWeight(.medium)
-                    
-                    Text("Tell us about yourself to personalize your journaling experience")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal)
+                    .padding(.vertical, 8)
                 }
-                .padding(.top, 20)
+                .listRowBackground(Color.clear)
                 
-                // Bio sections list
-                List {
-                    Section {
-                        NavigationLink("Basics") {
-                            BioBasicsView()
-                        }
-                        
-                        NavigationLink("Work Experience") {
-                            WorkExperienceView()
-                        }
-                        
-                        NavigationLink("Education") {
-                            EducationView()
-                        }
-                        
-                        NavigationLink("Places Lived") {
-                            PlacesLivedView()
-                        }
-                        
-                        NavigationLink("Physical Attributes") {
-                            BioPhysicalAttributesView()
-                        }
-                        
-                        NavigationLink("Health Data") {
-                            BioHealthDataView()
-                        }
-                        
-                        NavigationLink("Enhanced Health Data") {
-                            BioEnhancedHealthDataView()
-                        }
-                        
-                        NavigationLink("People") {
-                            PeopleView()
-                        }
+                // Bio sections
+                Section {
+                    NavigationLink("Basics") {
+                        BioBasicsView()
                     }
                     
-                    Section {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Include in Daily Surveys")
-                                    .font(.body)
-                                
-                                Text("Add your bio context to survey questions")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            
-                            Spacer()
-                            
-                            Toggle("", isOn: $bioData.includeInDailySurveys)
-                                .labelsHidden()
-                        }
+                    NavigationLink("Work Experience") {
+                        WorkExperienceView()
+                    }
+                    
+                    NavigationLink("Education") {
+                        EducationView()
+                    }
+                    
+                    NavigationLink("Places Lived") {
+                        PlacesLivedView()
+                    }
+                    
+                    NavigationLink("Physical Attributes") {
+                        BioPhysicalAttributesView()
+                    }
+                    
+                    NavigationLink("Health Data") {
+                        BioHealthDataView()
+                    }
+                    
+                    NavigationLink("Enhanced Health Data") {
+                        BioEnhancedHealthDataView()
+                    }
+                    
+                    NavigationLink("People") {
+                        PeopleView()
                     }
                 }
-                .listStyle(.insetGrouped)
                 
-                Spacer()
+                Section {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Include in Daily Surveys")
+                                .font(.body)
+                            
+                            Text("Add your bio context to survey questions")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        Spacer()
+                        
+                        Toggle("", isOn: $bioData.includeInDailySurveys)
+                            .labelsHidden()
+                    }
+                }
             }
+            .listStyle(.insetGrouped)
             .navigationTitle("Bio")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

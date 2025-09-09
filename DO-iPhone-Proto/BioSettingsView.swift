@@ -40,6 +40,49 @@ struct PlaceLived: Identifiable {
     var stillLivingThere = false
 }
 
+// MARK: - Pet Model
+struct Pet: Identifiable {
+    let id = UUID()
+    var name = ""
+    var type = ""
+    var color = ""
+    var weight = ""
+    var birthday = Date()
+    var hasBirthday = false
+    var deathDate = Date()
+    var hasDeathDate = false
+    var photoData: Data?
+    var notes = ""
+    
+    var age: String {
+        guard hasBirthday else { return "Unknown age" }
+        
+        let endDate = hasDeathDate ? deathDate : Date()
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.year, .month], from: birthday, to: endDate)
+        
+        if let years = components.year, years > 0 {
+            if years == 1 {
+                return "1 year old"
+            } else {
+                return "\(years) years old"
+            }
+        } else if let months = components.month, months > 0 {
+            if months == 1 {
+                return "1 month old"
+            } else {
+                return "\(months) months old"
+            }
+        } else {
+            return "< 1 month old"
+        }
+    }
+    
+    var isAlive: Bool {
+        return !hasDeathDate
+    }
+}
+
 // MARK: - Shared Bio Data Model
 @Observable
 class BioData {
@@ -139,6 +182,9 @@ class BioData {
     // Places Lived
     var placesLived: [PlaceLived] = []
     
+    // Pets
+    var pets: [Pet] = []
+    
     static let shared = BioData()
     
     private init() {}
@@ -199,6 +245,10 @@ struct BioSettingsView: View {
                     
                     NavigationLink("Places Lived") {
                         PlacesLivedView()
+                    }
+                    
+                    NavigationLink("Pets") {
+                        PetsView()
                     }
                     
                     NavigationLink("Physical Attributes") {
@@ -1149,6 +1199,324 @@ struct AddPlaceLivedView: View {
                     dismiss()
                 }
                 .disabled(place.city.isEmpty)
+            }
+        }
+    }
+}
+
+// MARK: - Pets View
+struct PetsView: View {
+    @State private var bioData = BioData.shared
+    @State private var showingAddPet = false
+    @State private var editingPet: Pet?
+    
+    var sortedPets: [Pet] {
+        bioData.pets.sorted { pet1, pet2 in
+            if pet1.hasBirthday && pet2.hasBirthday {
+                return pet1.birthday < pet2.birthday
+            } else if pet1.hasBirthday {
+                return true
+            } else {
+                return false
+            }
+        }
+    }
+    
+    var body: some View {
+        List {
+            if bioData.pets.isEmpty {
+                Section {
+                    VStack(spacing: 16) {
+                        Image(systemName: "pawprint.fill")
+                            .font(.system(size: 50))
+                            .foregroundStyle(.secondary)
+                        
+                        Text("No pets added")
+                            .font(.headline)
+                            .foregroundStyle(.secondary)
+                        
+                        Text("Add your furry, feathered, or scaly friends")
+                            .font(.subheadline)
+                            .foregroundStyle(.tertiary)
+                            .multilineTextAlignment(.center)
+                        
+                        Button("Add Pet") {
+                            showingAddPet = true
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 40)
+                }
+                .listRowBackground(Color.clear)
+            } else {
+                ForEach(sortedPets) { pet in
+                    HStack(spacing: 12) {
+                        // Pet photo or placeholder
+                        if let photoData = pet.photoData, 
+                           let uiImage = UIImage(data: photoData) {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 60, height: 60)
+                                .clipShape(Circle())
+                        } else {
+                            Circle()
+                                .fill(Color.gray.opacity(0.2))
+                                .frame(width: 60, height: 60)
+                                .overlay(
+                                    Image(systemName: "pawprint.fill")
+                                        .font(.title2)
+                                        .foregroundStyle(.gray)
+                                )
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(pet.name)
+                                .font(.headline)
+                            
+                            HStack {
+                                Text(pet.type)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                
+                                if !pet.isAlive {
+                                    Image(systemName: "heart")
+                                        .font(.caption)
+                                        .foregroundStyle(.red)
+                                }
+                            }
+                            
+                            Text(pet.age)
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                        }
+                        
+                        Spacer()
+                        
+                        Menu {
+                            Button(action: {
+                                editingPet = pet
+                            }) {
+                                Label("Edit", systemImage: "pencil")
+                            }
+                            
+                            Button(role: .destructive, action: {
+                                if let index = bioData.pets.firstIndex(where: { $0.id == pet.id }) {
+                                    bioData.pets.remove(at: index)
+                                }
+                            }) {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+        }
+        .navigationTitle("Pets")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: {
+                    showingAddPet = true
+                }) {
+                    Image(systemName: "plus")
+                }
+            }
+        }
+        .sheet(isPresented: $showingAddPet) {
+            NavigationStack {
+                AddPetView()
+            }
+        }
+        .sheet(item: $editingPet) { pet in
+            NavigationStack {
+                AddPetView(editingPet: pet)
+            }
+        }
+    }
+}
+
+// MARK: - Add Pet View
+struct AddPetView: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var pet: Pet
+    @State private var bioData = BioData.shared
+    @State private var showingImagePicker = false
+    
+    var isEditing: Bool
+    
+    init(editingPet: Pet? = nil) {
+        if let editingPet = editingPet {
+            _pet = State(initialValue: editingPet)
+            isEditing = true
+        } else {
+            _pet = State(initialValue: Pet())
+            isEditing = false
+        }
+    }
+    
+    var body: some View {
+        Form {
+            Section {
+                // Photo picker
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        showingImagePicker = true
+                    }) {
+                        if let photoData = pet.photoData,
+                           let uiImage = UIImage(data: photoData) {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 100, height: 100)
+                                .clipShape(Circle())
+                        } else {
+                            Circle()
+                                .fill(Color.gray.opacity(0.2))
+                                .frame(width: 100, height: 100)
+                                .overlay(
+                                    VStack(spacing: 4) {
+                                        Image(systemName: "camera.fill")
+                                            .font(.title2)
+                                            .foregroundStyle(.gray)
+                                        Text("Add Photo")
+                                            .font(.caption)
+                                            .foregroundStyle(.gray)
+                                    }
+                                )
+                        }
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    Spacer()
+                }
+            }
+            .listRowBackground(Color.clear)
+            
+            Section {
+                TextField("Name", text: $pet.name)
+                TextField("Type (e.g., Dog, Cat, Bird)", text: $pet.type)
+                TextField("Color", text: $pet.color)
+                TextField("Weight", text: $pet.weight)
+                    .keyboardType(.decimalPad)
+            } header: {
+                Text("Basic Information")
+            }
+            
+            Section {
+                Toggle("Has Birthday", isOn: $pet.hasBirthday)
+                
+                if pet.hasBirthday {
+                    DatePicker("Birthday", selection: $pet.birthday, displayedComponents: .date)
+                }
+                
+                Toggle("Has Passed Away", isOn: $pet.hasDeathDate)
+                
+                if pet.hasDeathDate {
+                    DatePicker("Death Date", selection: $pet.deathDate, displayedComponents: .date)
+                }
+            } header: {
+                Text("Important Dates")
+            }
+            
+            Section {
+                TextField("Notes about your pet", text: $pet.notes, axis: .vertical)
+                    .lineLimit(5, reservesSpace: true)
+            } header: {
+                Text("Notes")
+            }
+        }
+        .navigationTitle(isEditing ? "Edit Pet" : "Add Pet")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button("Cancel") {
+                    dismiss()
+                }
+            }
+            
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Save") {
+                    if isEditing {
+                        // Update existing pet
+                        if let index = bioData.pets.firstIndex(where: { $0.id == pet.id }) {
+                            bioData.pets[index] = pet
+                        }
+                    } else {
+                        // Add new pet
+                        bioData.pets.append(pet)
+                    }
+                    dismiss()
+                }
+                .disabled(pet.name.isEmpty || pet.type.isEmpty)
+            }
+        }
+        .sheet(isPresented: $showingImagePicker) {
+            PetImagePickerPlaceholder(petImage: $pet.photoData)
+        }
+    }
+}
+
+// MARK: - Pet Image Picker Placeholder
+struct PetImagePickerPlaceholder: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var petImage: Data?
+    
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 20) {
+                Image(systemName: "camera.fill")
+                    .font(.system(size: 60))
+                    .foregroundStyle(.gray)
+                
+                Text("Pet Photo")
+                    .font(.title2)
+                    .fontWeight(.medium)
+                
+                Text("Image picker functionality would be implemented here")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+                
+                VStack(spacing: 12) {
+                    Button("Take Photo") {
+                        // Camera functionality would go here
+                        // For now, just set a placeholder
+                        dismiss()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    
+                    Button("Choose from Library") {
+                        // Photo library functionality would go here
+                        dismiss()
+                    }
+                    .buttonStyle(.bordered)
+                    
+                    if petImage != nil {
+                        Button("Remove Photo") {
+                            petImage = nil
+                            dismiss()
+                        }
+                        .foregroundStyle(.red)
+                    }
+                }
+                .padding(.top, 20)
+            }
+            .padding()
+            .navigationTitle("Add Photo")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
             }
         }
     }

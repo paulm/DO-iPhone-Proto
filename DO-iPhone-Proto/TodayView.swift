@@ -373,6 +373,7 @@ struct TodayView: View {
     @State private var showingVisitsSheet = false
     @State private var showingEventsSheet = false
     @State private var showingMediaSheet = false
+    @State private var showingBio = false
     
     // Show/hide toggles for Daily Activities
     @State private var showWeather = false
@@ -406,6 +407,7 @@ struct TodayView: View {
     @AppStorage("showMomentsCarousel") private var showMomentsCarousel = false
     @AppStorage("showDailyEntryChat") private var showDailyEntryChat = true
     @AppStorage("showLogVoiceModeButtons") private var showLogVoiceModeButtons = false
+    @AppStorage("showBioSection") private var showBioSection = false
     @AppStorage("todayViewStyle") private var selectedStyle = TodayViewStyle.standard
     @AppStorage("showWelcomeToTodaySheet") private var showWelcomeToTodaySheet = false
     
@@ -1040,6 +1042,64 @@ struct TodayView: View {
                     .listRowBackground(cellBackgroundColor)
                 }
                 
+                // Bio Section
+                if showBioSection {
+                    Section {
+                        VStack(alignment: .leading, spacing: 12) {
+                            // Header content (title and subtitle outside the rounded rect)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Bio")
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(Color(hex: "292F33"))
+                                Text("Personal information and health data")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+                            
+                            // Bio button in rounded rectangle
+                            VStack(alignment: .leading, spacing: 0) {
+                                Button(action: {
+                                    showingBio = true
+                                }) {
+                                    HStack {
+                                        Image(systemName: "person.text.rectangle")
+                                            .font(.system(size: 16))
+                                            .foregroundStyle(.primary)
+                                            .frame(width: 28)
+                                        
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text("View & Edit Bio")
+                                                .font(.system(size: 16))
+                                                .foregroundStyle(.primary)
+                                            
+                                            Text("Manage your personal profile")
+                                                .font(.system(size: 13))
+                                                .foregroundStyle(.secondary)
+                                                .lineLimit(1)
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 13, weight: .medium))
+                                            .foregroundStyle(Color(.systemGray3))
+                                    }
+                                    .padding(.vertical, 16)
+                                    .padding(.horizontal, 16)
+                                    .contentShape(Rectangle())
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                            }
+                            .background(Color(.systemGray6))
+                            .clipShape(RoundedRectangle(cornerRadius: 24))
+                        }
+                    }
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                }
+                
                 // Extra space at bottom to allow scrolling content above bottom elements
                 Color.clear
                     .frame(height: 200)
@@ -1202,6 +1262,17 @@ struct TodayView: View {
                             HStack {
                                 Text("Log and Voice Mode Buttons")
                                 if showLogVoiceModeButtons {
+                                    Image(dayOneIcon: .checkmark)
+                                }
+                            }
+                        }
+                        
+                        Button {
+                            showBioSection.toggle()
+                        } label: {
+                            HStack {
+                                Text("Bio")
+                                if showBioSection {
                                     Image(dayOneIcon: .checkmark)
                                 }
                             }
@@ -1486,6 +1557,11 @@ struct TodayView: View {
         .sheet(isPresented: $showingOnThisDay) {
             NavigationStack {
                 OnThisDayView()
+            }
+        }
+        .sheet(isPresented: $showingBio) {
+            NavigationStack {
+                BioSettingsView()
             }
         }
         .onChange(of: showingPreviewEntry) { oldValue, newValue in

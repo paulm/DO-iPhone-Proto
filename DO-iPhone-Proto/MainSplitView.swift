@@ -37,6 +37,8 @@ enum NavigationItem: String, CaseIterable {
 // MARK: - Main Split View for iPad
 struct MainSplitView: View {
     @State private var selectedItem: NavigationItem? = .today
+    @State private var selectedJournal: Journal?
+    @State private var selectedEntry: EntryView.EntryData?
     @State private var columnVisibility = NavigationSplitViewVisibility.all
     @State private var showingSettings = false
     @State private var searchQuery = ""
@@ -108,6 +110,85 @@ struct MainSplitView: View {
                 }
             }
             
+            // Always show journals list on iPad
+            Section("My Journals") {
+                // All Entries option
+                if Journal.visibleJournals.count > 1 {
+                    let allEntriesJournal = Journal(
+                        name: "All Entries",
+                        color: Color(hex: "333B40"),
+                        entryCount: Journal.visibleJournals.reduce(0) { $0 + ($1.entryCount ?? 0) }
+                    )
+                    
+                    Button {
+                        selectedJournal = allEntriesJournal
+                        // Automatically switch to Journals tab when a journal is selected
+                        if selectedItem != .journals {
+                            selectedItem = .journals
+                        }
+                    } label: {
+                        HStack {
+                            Circle()
+                                .fill(allEntriesJournal.color)
+                                .frame(width: 12, height: 12)
+                            
+                            VStack(alignment: .leading) {
+                                Text(allEntriesJournal.name)
+                                    .font(.body)
+                                    .foregroundColor(.primary)
+                                if let count = allEntriesJournal.entryCount {
+                                    Text("\(count) entries")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            
+                            Spacer()
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .listRowBackground(
+                        selectedJournal?.name == allEntriesJournal.name && selectedItem == .journals ?
+                        Color.accentColor.opacity(0.1) : Color.clear
+                    )
+                }
+                
+                // Individual journals
+                ForEach(Journal.visibleJournals) { journal in
+                    Button {
+                        selectedJournal = journal
+                        // Automatically switch to Journals tab when a journal is selected
+                        if selectedItem != .journals {
+                            selectedItem = .journals
+                        }
+                    } label: {
+                        HStack {
+                            Circle()
+                                .fill(journal.color)
+                                .frame(width: 12, height: 12)
+                            
+                            VStack(alignment: .leading) {
+                                Text(journal.name)
+                                    .font(.body)
+                                    .foregroundColor(.primary)
+                                if let count = journal.entryCount {
+                                    Text("\(count) entries")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            
+                            Spacer()
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .listRowBackground(
+                        selectedJournal?.id == journal.id && selectedItem == .journals ?
+                        Color.accentColor.opacity(0.1) : Color.clear
+                    )
+                }
+            }
+            
             // Search section
             Section {
                 HStack {
@@ -136,8 +217,21 @@ struct MainSplitView: View {
                     TodayView()
                 }
             case .journals:
-                NavigationStack {
-                    JournalsView()
+                // Show journal detail split view when a journal is selected
+                if selectedJournal != nil {
+                    JournalDetailSplitView(
+                        selectedJournal: $selectedJournal,
+                        selectedEntry: $selectedEntry
+                    )
+                } else {
+                    // Show empty state if no journal is selected yet
+                    NavigationStack {
+                        ContentUnavailableView(
+                            "Select a Journal",
+                            systemImage: "book.closed",
+                            description: Text("Choose a journal from the sidebar to view entries")
+                        )
+                    }
                 }
             case .prompts:
                 NavigationStack {

@@ -164,6 +164,7 @@ struct DailyChatView: View {
     @State private var showingClearChatAlert = false
     @State private var showingUpdateConfirmation = false
     @State private var isUpdatingEntry = false
+    @State private var showingVoiceMode = false
     
     private let chatSessionManager = ChatSessionManager.shared
     
@@ -480,11 +481,11 @@ struct DailyChatView: View {
                             }
                         }
                     
-                    // Microphone button (always visible)
+                    // Voice Mode button (always visible)
                     Button(action: {
-                        // TODO: Audio recording functionality
+                        showingVoiceMode = true
                     }) {
-                        Image(dayOneIcon: .microphone)
+                        Image(dayOneIcon: .audio_wave)
                             .font(.system(size: 20))
                             .foregroundStyle(.secondary)
                     }
@@ -717,6 +718,9 @@ struct DailyChatView: View {
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
                 .presentationBackgroundInteraction(.enabled(upThrough: .medium))
+        }
+        .fullScreenCover(isPresented: $showingVoiceMode) {
+            VoiceModeView()
         }
         .alert("Clear Chat?", isPresented: $showingClearChatAlert) {
             Button("Cancel", role: .cancel) { }

@@ -30,6 +30,7 @@ struct EntryChatView: View {
     @State private var selectedChatMode: EntryChatMode = .conversation
     @State private var showingSummary = false
     @State private var showingIdeas = false
+    @State private var showingVoiceMode = false
     
     private var journalColor: Color {
         journal?.color ?? Color(hex: "44C0FF")
@@ -169,9 +170,9 @@ struct EntryChatView: View {
                         // Audio and submit buttons
                         HStack(spacing: 12) {
                             Button(action: {
-                                // TODO: Audio chat functionality
+                                showingVoiceMode = true
                             }) {
-                                Image(systemName: "mic.fill")
+                                Image(dayOneIcon: .audio_wave)
                                     .font(.system(size: 16))
                                     .foregroundStyle(.secondary)
                                     .frame(width: 32, height: 32)
@@ -299,6 +300,9 @@ struct EntryChatView: View {
         .sheet(isPresented: $showingIdeas) {
             // TODO: Implement ideas view
             Text("Ideas View")
+        }
+        .fullScreenCover(isPresented: $showingVoiceMode) {
+            VoiceModeView()
         }
     }
     

@@ -153,6 +153,10 @@ struct BioSettingsView: View {
                         NavigationLink("Enhanced Health Data") {
                             BioEnhancedHealthDataView()
                         }
+                        
+                        NavigationLink("People") {
+                            PeopleView()
+                        }
                     }
                     
                     Section {

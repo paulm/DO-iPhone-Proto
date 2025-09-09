@@ -197,17 +197,6 @@ struct EntryTimelineView: View {
                 }
             }
         }
-        .navigationTitle(journal?.name ?? "Entries")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    showingNewEntry = true
-                } label: {
-                    Image(systemName: "square.and.pencil")
-                }
-            }
-        }
         .sheet(isPresented: $showingNewEntry) {
             EntryView(journal: journal)
         }

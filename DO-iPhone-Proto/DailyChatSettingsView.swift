@@ -1,10 +1,18 @@
 import SwiftUI
 
+// MARK: - Memory Model
+struct Memory: Identifiable {
+    let id = UUID()
+    let content: String
+}
+
 struct DailyChatSettingsView: View {
     @AppStorage("dailyChatJournal") private var selectedJournal = "Daily"
     @AppStorage("includeBioInChatContext") private var includeBioInChatContext = false
+    @AppStorage("referenceSavedMemories") private var referenceSavedMemories = true
     @State private var showingJournalPicker = false
     @State private var showingBioView = false
+    @State private var showingMemoriesList = false
     @Environment(\.dismiss) private var dismiss
     
     // Sample journals for selection
@@ -26,17 +34,38 @@ struct DailyChatSettingsView: View {
                 
                 // Bio Section
                 Section {
+                    Toggle(isOn: $includeBioInChatContext) {
+                        Text("Reference Bio")
+                    }
+                    
                     NavigationLink(destination: BioEditView()) {
                         Text("Edit Bio")
                     }
                     
-                    Toggle(isOn: $includeBioInChatContext) {
-                        Text("Include Bio in Chat Context")
-                    }
                 } header: {
                     Text("Bio")
                 } footer: {
                     Text("Contexts are used by Day One AI to improve its responses across all Daily Chat sessions.")
+                }
+                
+                // Memories Section
+                Section {
+                    Toggle(isOn: $referenceSavedMemories) {
+                        Text("Reference Saved Memories")
+                    }
+                    
+                    NavigationLink(destination: MemoriesListView()) {
+                        HStack {
+                            Text("Manage Memories")
+                            Spacer()
+                            Text("3")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                } header: {
+                    Text("Memories")
+                } footer: {
+                    Text("Allow AI to reference your saved memories for more personalized and context-aware responses.")
                 }
             }
             .listStyle(.insetGrouped)
@@ -94,6 +123,93 @@ struct JournalPickerView: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - Memories List View
+struct MemoriesListView: View {
+    @State private var searchText = ""
+    @State private var memories: [Memory] = [
+        Memory(
+            content: "I love hiking in the mountains on weekends.",
+        ),
+        Memory(
+            content: "I have a daughter named Sarah.",
+        ),
+        Memory(
+            content: "I'm working on improving my health by walking 3 miles every morning.",
+        )
+    ]
+    
+    var filteredMemories: [Memory] {
+        if searchText.isEmpty {
+            return memories
+        } else {
+            return memories.filter { $0.content.localizedCaseInsensitiveContains(searchText) }
+        }
+    }
+    
+    var body: some View {
+        List {
+            if filteredMemories.isEmpty && !searchText.isEmpty {
+                ContentUnavailableView {
+                    Label("No Memories Found", systemImage: "magnifyingglass")
+                } description: {
+                    Text("No memories match '\(searchText)'")
+                }
+                .listRowBackground(Color.clear)
+            } else if memories.isEmpty {
+                ContentUnavailableView {
+                    Label("No Memories Yet", systemImage: "brain")
+                } description: {
+                    Text("Memories from your chats and journals will appear here")
+                }
+                .listRowBackground(Color.clear)
+            } else {
+                ForEach(filteredMemories) { memory in
+                    MemoryRowView(memory: memory)
+                }
+                .onDelete { indexSet in
+                    // Find the actual indices in the original memories array
+                    for index in indexSet {
+                        if let memoryToDelete = filteredMemories[safe: index],
+                           let originalIndex = memories.firstIndex(where: { $0.id == memoryToDelete.id }) {
+                            memories.remove(at: originalIndex)
+                        }
+                    }
+                }
+            }
+        }
+        .searchable(text: $searchText, prompt: "Search memories")
+        .navigationTitle("Memories")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if !memories.isEmpty {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    EditButton()
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Memory Row View
+struct MemoryRowView: View {
+    let memory: Memory
+    
+    var body: some View {
+        Text(memory.content)
+            .font(.body)
+            .lineLimit(3)
+            .foregroundStyle(.primary)
+            .padding(.vertical, 4)
+    }
+}
+
+// Helper extension for safe array access
+extension Collection {
+    subscript(safe index: Index) -> Element? {
+        return indices.contains(index) ? self[index] : nil
     }
 }
 

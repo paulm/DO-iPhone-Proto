@@ -178,6 +178,22 @@ struct DailyChatView: View {
         messages.filter { $0.isUser }.count
     }
     
+    private var relativeDateString: String {
+        let calendar = Calendar.current
+        let today = Date()
+        
+        if calendar.isDateInToday(selectedDate) {
+            return "Today"
+        } else if calendar.isDateInTomorrow(selectedDate) {
+            return "Tomorrow"
+        } else if calendar.isDateInYesterday(selectedDate) {
+            return "Yesterday"
+        } else {
+            // Return empty string to use the default date formatting
+            return ""
+        }
+    }
+    
     init(selectedDate: Date, initialLogMode: Bool, entryCreated: Binding<Bool>, onChatStarted: @escaping () -> Void, onMessageCountChanged: @escaping (Int) -> Void) {
         self.selectedDate = selectedDate
         self.initialLogMode = initialLogMode
@@ -548,9 +564,15 @@ struct DailyChatView: View {
                             .fontWeight(.semibold)
                         
                         HStack(spacing: 4) {
-                            Text(selectedDate, style: .date)
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
+                            if !relativeDateString.isEmpty {
+                                Text(relativeDateString)
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            } else {
+                                Text(selectedDate, style: .date)
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
                             
                             if userMessageCount > 0 {
                                 Text("•")

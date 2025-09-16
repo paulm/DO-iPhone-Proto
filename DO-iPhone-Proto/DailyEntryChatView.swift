@@ -43,6 +43,72 @@ struct DailyEntryChatView: View {
         Calendar.current.isDateInToday(selectedDate)
     }
     
+    /// Get contextual date string for the button label
+    private var chatButtonDateText: String {
+        let calendar = Calendar.current
+        
+        if calendar.isDateInToday(selectedDate) {
+            return "Chat About Today"
+        } else if calendar.isDateInTomorrow(selectedDate) {
+            return "Chat About Tomorrow"
+        } else if calendar.isDateInYesterday(selectedDate) {
+            return "Chat About Yesterday"
+        } else {
+            // Calculate days difference for other dates
+            let components = calendar.dateComponents([.day], from: Date(), to: selectedDate)
+            let days = components.day ?? 0
+            
+            if days > 0 {
+                // Future dates
+                if days == 1 {
+                    return "Chat About 1 Day From Now"
+                } else if days < 7 {
+                    return "Chat About \(days) Days From Now"
+                } else if days == 7 {
+                    return "Chat About 1 Week From Now"
+                } else if days < 14 {
+                    return "Chat About \(days) Days From Now"
+                } else if days < 30 {
+                    let weeks = days / 7
+                    return weeks == 1 ? "Chat About 1 Week From Now" : "Chat About \(weeks) Weeks From Now"
+                } else if days < 60 {
+                    return "Chat About 1 Month From Now"
+                } else if days < 365 {
+                    let months = days / 30
+                    return months == 1 ? "Chat About 1 Month From Now" : "Chat About \(months) Months From Now"
+                } else {
+                    let years = days / 365
+                    return years == 1 ? "Chat About 1 Year From Now" : "Chat About \(years) Years From Now"
+                }
+            } else {
+                // Past dates
+                let absDays = abs(days)
+                if absDays == 0 {
+                    return "Chat About Today"
+                } else if absDays == 1 {
+                    return "Chat About 1 Day Ago"
+                } else if absDays < 7 {
+                    return "Chat About \(absDays) Days Ago"
+                } else if absDays == 7 {
+                    return "Chat About 1 Week Ago"
+                } else if absDays < 14 {
+                    return "Chat About \(absDays) Days Ago"
+                } else if absDays < 30 {
+                    let weeks = absDays / 7
+                    return weeks == 1 ? "Chat About 1 Week Ago" : "Chat About \(weeks) Weeks Ago"
+                } else if absDays < 60 {
+                    return "Chat About 1 Month Ago"
+                } else if absDays < 365 {
+                    let months = absDays / 30
+                    return months == 1 ? "Chat About 1 Month Ago" : "Chat About \(months) Months Ago"
+                } else {
+                    let years = absDays / 365
+                    return years == 1 ? "Chat About 1 Year Ago" : "Chat About \(years) Years Ago"
+                }
+            }
+        }
+    }
+    
     /// Determines if Update Entry button should be shown
     /// Only visible when: entry exists AND new messages added AND not currently generating
     private var shouldShowEntryButton: Bool {
@@ -282,7 +348,7 @@ struct DailyEntryChatView: View {
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(.white)
                     
-                    Text("Chat About Today")
+                    Text(chatButtonDateText)
                         .font(.system(size: 17, weight: .semibold))
                         .foregroundStyle(.white)
                 }

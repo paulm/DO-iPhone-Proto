@@ -265,18 +265,22 @@ struct DateCircle: View {
     private var circleColor: Color {
         if isSelected {
             return Color(hex: "44C0FF") // Day One Blue for selected
+        } else if hasEntry {
+            return Color(hex: "333B40") // Dark gray for filled entry days
+        } else if isCompleted {
+            return Color(hex: "333B40") // Dark gray for outline chat days
         } else if isToday {
             return .gray.opacity(0.3) // Light gray for today
-        } else if isCompleted {
-            return Color(hex: "333B40") // Dark gray for completed chat days
         } else {
             return .gray.opacity(0.1)
         }
     }
     
     private var textColor: Color {
-        if isSelected || isCompleted {
+        if isSelected || hasEntry {
             return .white
+        } else if isCompleted {
+            return Color(hex: "333B40") // Dark text for outline circles
         } else if isToday {
             return .primary // Dark text for light gray background
         } else if isFuture {
@@ -286,38 +290,40 @@ struct DateCircle: View {
         }
     }
     
-    private var circleOpacity: Double {
-        if isFuture && !isSelected {
-            return 0.4
-        } else if isCompleted && !hasEntry && !isSelected {
-            // Days with interactions but no entry get 60% opacity
-            return 0.4
-        } else {
-            return 1.0
-        }
-    }
-    
     var body: some View {
-        Circle()
-            .fill(circleColor)
-            .frame(width: DatePickerConstants.circleSize, height: DatePickerConstants.circleSize)
-            .overlay(
-                Group {
-                    if showDate || isToday {
-                        Text(dayNumber)
-                            .font(.system(size: 8))
-                            .fontWeight(.medium)
-                            .foregroundStyle(textColor)
-                    }
-                }
-            )
-            .opacity(circleOpacity)
-            .onTapGesture {
-                // Haptic feedback on tap
-                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                impactFeedback.impactOccurred()
-                onTap()
+        ZStack {
+            // Base circle for all states
+            Circle()
+                .fill(circleColor)
+                .frame(width: DatePickerConstants.circleSize, height: DatePickerConstants.circleSize)
+            
+            // Overlay circles for interaction states
+            if hasEntry {
+                // Bigger circle (14pt) for days with entries
+                Circle()
+                    .fill(Color.black.opacity(0.8))
+                    .frame(width: 14, height: 14)
+            } else if isCompleted && !hasEntry {
+                // Small circle (8pt) for days with chat interaction but no entry
+                Circle()
+                    .fill(Color.black.opacity(0.8))
+                    .frame(width: 8, height: 8)
             }
+            
+            if showDate || isToday {
+                Text(dayNumber)
+                    .font(.system(size: 8))
+                    .fontWeight(.medium)
+                    .foregroundStyle(textColor)
+            }
+        }
+        .opacity(isFuture && !isSelected ? 0.4 : 1.0)
+        .onTapGesture {
+            // Haptic feedback on tap
+            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+            impactFeedback.impactOccurred()
+            onTap()
+        }
     }
 }
 

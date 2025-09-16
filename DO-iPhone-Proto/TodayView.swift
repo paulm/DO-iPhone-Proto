@@ -448,6 +448,63 @@ struct TodayView: View {
         return dates
     }
     
+    private var dailyEntryChatPromptText: String {
+        let calendar = Calendar.current
+        
+        // Get day of week for the selected date
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE" // Full day name (e.g., "Monday")
+        let dayOfWeek = formatter.string(from: selectedDate)
+        
+        // Check special cases first
+        if calendar.isDateInToday(selectedDate) {
+            // For today, we could use time-based but keeping it simple
+            return "How is your \(dayOfWeek)?"
+        }
+        
+        if calendar.isDateInYesterday(selectedDate) {
+            return "How was your \(dayOfWeek)?"
+        }
+        
+        if calendar.isDateInTomorrow(selectedDate) {
+            return "What's happening on \(dayOfWeek)?"
+        }
+        
+        // For other dates, calculate the difference
+        let now = Date()
+        let startOfToday = calendar.startOfDay(for: now)
+        let startOfSelectedDate = calendar.startOfDay(for: selectedDate)
+        
+        // This gives us the number of days between dates
+        // Positive = future, Negative = past
+        let daysDifference = calendar.dateComponents([.day], from: startOfToday, to: startOfSelectedDate).day ?? 0
+        
+        if daysDifference < 0 {
+            // Past dates
+            let daysAgo = abs(daysDifference)
+            
+            if daysAgo <= 7 {
+                // Within past week
+                return "How was your \(dayOfWeek)?"
+            } else {
+                // Older than a week
+                return "How was this day?"
+            }
+        } else if daysDifference > 0 {
+            // Future dates
+            if daysDifference <= 7 {
+                // Within next week
+                return "What's happening on \(dayOfWeek)?"
+            } else {
+                // More than a week away
+                return "What's happening on this \(dayOfWeek)?"
+            }
+        } else {
+            // Fallback (shouldn't get here)
+            return "Tell me about this day."
+        }
+    }
+    
     private var momentsSummaryText: String {
         let totalMoments = momentsSelection.selectedLocations.count + momentsSelection.selectedEvents.count + momentsSelection.selectedPhotos.count
         if totalMoments == 0 {
@@ -667,7 +724,7 @@ struct TodayView: View {
                         .foregroundStyle(Color(hex: "292F33"))
                     // Only show welcome prompt when no chat has taken place
                     if !chatCompleted && !DailyContentManager.shared.hasEntry(for: selectedDate) {
-                        Text("How is your \(selectedDate.formatted(.dateTime.weekday(.wide)))?")
+                        Text(dailyEntryChatPromptText)
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }

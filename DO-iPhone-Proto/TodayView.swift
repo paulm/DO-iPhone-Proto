@@ -283,6 +283,13 @@ struct DateCircle: View {
                 .fill(.white.opacity(0.01)) // Nearly invisible, just for spacing
                 .frame(width: DatePickerConstants.circleSize, height: DatePickerConstants.circleSize)
 
+            // Yellow ring for today's date
+            if isToday {
+                Circle()
+                    .stroke(.yellow, lineWidth: 2)
+                    .frame(width: 22, height: 22)
+            }
+
             // Base visible circle - 8pt for future dates, 18pt for past/today
             if isFuture {
                 Circle()

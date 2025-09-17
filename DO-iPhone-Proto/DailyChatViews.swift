@@ -1099,9 +1099,6 @@ struct BioEditView: View {
     enum Field: Hashable {
         case name
         case bio
-        case job
-        case hobbies
-        case familyFriends
     }
 
     var body: some View {
@@ -1174,23 +1171,6 @@ struct BioEditView: View {
                     Text("Personal Information")
                 }
 
-                // Additional Details Section
-                Section {
-                    TextField("Job", text: $bioData.job, axis: .vertical)
-                        .lineLimit(3, reservesSpace: false)
-                        .focused($focusedField, equals: .job)
-
-                    TextField("Hobbies", text: $bioData.hobbies, axis: .vertical)
-                        .lineLimit(3, reservesSpace: false)
-                        .focused($focusedField, equals: .hobbies)
-
-                    TextField("Family & Friends", text: $bioData.familyFriends, axis: .vertical)
-                        .lineLimit(3, reservesSpace: false)
-                        .focused($focusedField, equals: .familyFriends)
-                } header: {
-                    Text("Additional Details")
-                }
-
                 // Extended Bio Sections
                 Section {
                     NavigationLink("People") {
@@ -1219,6 +1199,10 @@ struct BioEditView: View {
 
                     NavigationLink("Physical Attributes") {
                         BioPhysicalAttributesView()
+                    }
+
+                    NavigationLink("Preferences & Tastes") {
+                        PreferencesAndTastesView()
                     }
                 } header: {
                     Text("Extended Information")

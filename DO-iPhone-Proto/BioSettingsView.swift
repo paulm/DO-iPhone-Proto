@@ -45,6 +45,7 @@ struct Pet: Identifiable {
     let id = UUID()
     var name = ""
     var type = ""
+    var gender = "Male" // "Male" or "Female"
     var color = ""
     var weight = ""
     var birthday = Date()
@@ -247,9 +248,28 @@ class BioData {
     
     // Travel
     var travels: [Travel] = []
-    
+
+    // Preferences & Tastes
+    var favoriteBooks = ""
+    var favoriteFilms = ""
+    var favoriteTVShows = ""
+    var favoriteMusic = ""
+    var dietType = "" // Empty string for unselected state
+    var foodDislikes = ""
+    var foodAllergens = ""
+    var favoriteFoods = ""
+    var sportsTeams = ""
+    var hobbiesInterests = ""
+    var gear = ""
+
+    // Hobbies
+    var creativeHobbies = ""
+    var outdoorActivities = ""
+    var collections = ""
+    var skillsLearning = ""
+
     static let shared = BioData()
-    
+
     private init() {}
 }
 
@@ -1288,19 +1308,19 @@ struct PetsView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(pet.name)
                                 .font(.headline)
-                            
+
                             HStack {
-                                Text(pet.type)
+                                Text("\(pet.gender) \(pet.type)")
                                     .font(.subheadline)
                                     .foregroundStyle(.secondary)
-                                
+
                                 if !pet.isAlive {
                                     Image(systemName: "heart")
                                         .font(.caption)
                                         .foregroundStyle(.red)
                                 }
                             }
-                            
+
                             Text(pet.age)
                                 .font(.caption)
                                 .foregroundStyle(.tertiary)
@@ -1415,6 +1435,12 @@ struct AddPetView: View {
             Section {
                 TextField("Name", text: $pet.name)
                 TextField("Type (e.g., Dog, Cat, Bird)", text: $pet.type)
+
+                Picker("Gender", selection: $pet.gender) {
+                    Text("Male").tag("Male")
+                    Text("Female").tag("Female")
+                }
+
                 TextField("Color", text: $pet.color)
                 TextField("Weight", text: $pet.weight)
                     .keyboardType(.decimalPad)
@@ -1910,6 +1936,96 @@ struct AddTravelView: View {
         .sheet(isPresented: $showingImagePicker) {
             TravelImagePickerPlaceholder(travelImage: $travel.photoData)
         }
+    }
+}
+
+// MARK: - Preferences And Tastes View
+struct PreferencesAndTastesView: View {
+    @State private var bioData = BioData.shared
+
+    let dietTypes = ["Omnivore", "Vegetarian", "Vegan", "Pescatarian", "Keto", "Paleo", "Gluten-Free", "Other"]
+
+    var body: some View {
+        Form {
+            // Media Favorites Section
+            Section {
+                TextField("Favorite Books", text: $bioData.favoriteBooks, axis: .vertical)
+                    .lineLimit(2, reservesSpace: false)
+
+                TextField("Favorite Films", text: $bioData.favoriteFilms, axis: .vertical)
+                    .lineLimit(2, reservesSpace: false)
+
+                TextField("Favorite TV Shows", text: $bioData.favoriteTVShows, axis: .vertical)
+                    .lineLimit(2, reservesSpace: false)
+
+                TextField("Favorite Music", text: $bioData.favoriteMusic, axis: .vertical)
+                    .lineLimit(2, reservesSpace: false)
+            } header: {
+                Text("Media Favorites")
+            } footer: {
+                Text("Enter your favorites separated by commas")
+            }
+
+            // Food & Diet Section
+            Section {
+                Picker("Diet Type", selection: $bioData.dietType) {
+                    Text("Select diet type").tag("")
+                    ForEach(dietTypes, id: \.self) { diet in
+                        Text(diet).tag(diet)
+                    }
+                }
+
+                TextField("Food Dislikes", text: $bioData.foodDislikes, axis: .vertical)
+                    .lineLimit(2, reservesSpace: false)
+
+                TextField("Allergens", text: $bioData.foodAllergens, axis: .vertical)
+                    .lineLimit(2, reservesSpace: false)
+
+                TextField("Favorite Foods", text: $bioData.favoriteFoods, axis: .vertical)
+                    .lineLimit(2, reservesSpace: false)
+            } header: {
+                Text("Food & Diet")
+            } footer: {
+                Text("Include any dietary restrictions, preferences, or favorite cuisines, separated by commas")
+            }
+
+            // Hobbies Section
+            Section {
+                TextField("Creative Hobbies", text: $bioData.creativeHobbies, axis: .vertical)
+                    .lineLimit(2, reservesSpace: false)
+
+                TextField("Outdoor Activities", text: $bioData.outdoorActivities, axis: .vertical)
+                    .lineLimit(2, reservesSpace: false)
+
+                TextField("Collections", text: $bioData.collections, axis: .vertical)
+                    .lineLimit(2, reservesSpace: false)
+
+                TextField("Skills You're Learning", text: $bioData.skillsLearning, axis: .vertical)
+                    .lineLimit(2, reservesSpace: false)
+            } header: {
+                Text("Hobbies")
+            } footer: {
+                Text("Include creative pursuits, outdoor activities, collections, and skills you're developing")
+            }
+
+            // Interests & Activities Section
+            Section {
+                TextField("Sports Teams", text: $bioData.sportsTeams, axis: .vertical)
+                    .lineLimit(2, reservesSpace: false)
+
+                TextField("General Interests", text: $bioData.hobbiesInterests, axis: .vertical)
+                    .lineLimit(3, reservesSpace: false)
+
+                TextField("Gear & Equipment", text: $bioData.gear, axis: .vertical)
+                    .lineLimit(2, reservesSpace: false)
+            } header: {
+                Text("Sports & Gear")
+            } footer: {
+                Text("Include sports you follow and any special gear you own (bikes, cameras, instruments, etc.), comma separated")
+            }
+        }
+        .navigationTitle("Preferences & Tastes")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

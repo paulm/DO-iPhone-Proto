@@ -737,9 +737,8 @@ struct DailyChatView: View {
         }
         .sheet(isPresented: $showingChatSettings) {
             DailyChatSettingsView()
-                .presentationDetents([.medium, .large])
+                .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
-                .presentationBackgroundInteraction(.enabled(upThrough: .medium))
         }
         .fullScreenCover(isPresented: $showingVoiceMode) {
             VoiceModeView()
@@ -1094,6 +1093,7 @@ struct BioEditView: View {
     @State private var editingName = ""
     @State private var editingBio = ""
     @State private var bioData = BioData.shared
+    @State private var showingImagePicker = false
     @FocusState private var focusedField: Field?
 
     enum Field: Hashable {
@@ -1107,6 +1107,37 @@ struct BioEditView: View {
     var body: some View {
         NavigationStack {
             List {
+                // Profile Photo Section
+                Section {
+                    HStack(spacing: 16) {
+                        Button(action: {
+                            showingImagePicker = true
+                        }) {
+                            Circle()
+                                .fill(.gray.opacity(0.2))
+                                .frame(width: 60, height: 60)
+                                .overlay(
+                                    Image(systemName: "camera.fill")
+                                        .font(.title3)
+                                        .foregroundStyle(.gray)
+                                )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Add Photo")
+                                .font(.headline)
+                            Text("Add a profile photo")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                }
+                .listRowBackground(Color.clear)
+
                 // Name Section
                 Section {
                     TextField("Scotty Simpson", text: $editingName)
@@ -1160,17 +1191,50 @@ struct BioEditView: View {
                     Text("Additional Details")
                 }
 
-                // Extensive Bio Link Section
+                // Extended Bio Sections
                 Section {
-                    NavigationLink(destination: BioSettingsView()) {
-                        HStack {
-                            Text("Extensive Bio")
-                            Spacer()
-                            Image(systemName: "arrow.up.forward")
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                        }
+                    NavigationLink("People") {
+                        PeopleView()
                     }
+
+                    NavigationLink("Pets") {
+                        PetsView()
+                    }
+
+                    NavigationLink("Places Lived") {
+                        PlacesLivedView()
+                    }
+
+                    NavigationLink("Work Experience") {
+                        WorkExperienceView()
+                    }
+
+                    NavigationLink("Education") {
+                        EducationView()
+                    }
+
+                    NavigationLink("Travel") {
+                        TravelView()
+                    }
+
+                    NavigationLink("Physical Attributes") {
+                        BioPhysicalAttributesView()
+                    }
+                } header: {
+                    Text("Extended Information")
+                }
+
+                // Health Sections
+                Section {
+                    NavigationLink("Health Data") {
+                        BioHealthDataView()
+                    }
+
+                    NavigationLink("Enhanced Health Data") {
+                        BioEnhancedHealthDataView()
+                    }
+                } header: {
+                    Text("Health")
                 }
             }
             .listStyle(.insetGrouped)
@@ -1191,6 +1255,9 @@ struct BioEditView: View {
             .onAppear {
                 editingName = userName.isEmpty ? bioData.name : userName
                 editingBio = userBio
+            }
+            .sheet(isPresented: $showingImagePicker) {
+                ImagePickerPlaceholder()
             }
         }
     }

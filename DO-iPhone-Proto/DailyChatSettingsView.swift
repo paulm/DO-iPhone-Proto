@@ -34,25 +34,22 @@ struct DailyChatSettingsView: View {
                 
                 // Bio Section
                 Section {
-                    Toggle(isOn: $includeBioInChatContext) {
-                        Text("Reference Bio")
-                    }
 
                     NavigationLink(destination: BioEditView()) {
                         Text("Edit Bio")
+                    }
+                    Toggle(isOn: $includeBioInChatContext) {
+                        Text("Reference Bio")
                     }
 
                 } header: {
                     Text("Bio")
                 } footer: {
-                    Text("Contexts are used by Day One AI to improve its responses across all Daily Chat sessions.")
+                    Text("Referencing bio can be used to improve Daily Chat sessions and responses.")
                 }
                 
                 // Memories Section
                 Section {
-                    Toggle(isOn: $referenceSavedMemories) {
-                        Text("Reference Saved Memories")
-                    }
                     
                     NavigationLink(destination: MemoriesListView()) {
                         HStack {
@@ -62,10 +59,15 @@ struct DailyChatSettingsView: View {
                                 .foregroundStyle(.secondary)
                         }
                     }
+                    
+                    Toggle(isOn: $referenceSavedMemories) {
+                        Text("Reference Memories")
+                    }
+                    
                 } header: {
                     Text("Memories")
                 } footer: {
-                    Text("Allow AI to reference your saved memories for more personalized and context-aware responses.")
+                    Text("Memories can be used to improve Daily Chat sessions for more personalized and context-aware responses.")
                 }
             }
             .listStyle(.insetGrouped)

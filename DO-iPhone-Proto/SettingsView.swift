@@ -60,9 +60,8 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $showingChatSettings) {
                 DailyChatSettingsView()
-                    .presentationDetents([.medium, .large])
+                    .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
-                    .presentationBackgroundInteraction(.enabled(upThrough: .medium))
             }
         }
     }

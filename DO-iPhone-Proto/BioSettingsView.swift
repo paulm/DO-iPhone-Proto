@@ -261,96 +261,47 @@ struct BioSettingsView: View {
     var body: some View {
         NavigationStack {
             List {
-                // Profile header section
-                Section {
-                    HStack(spacing: 16) {
-                        Button(action: {
-                            showingImagePicker = true
-                        }) {
-                            Circle()
-                                .fill(.gray.opacity(0.2))
-                                .frame(width: 60, height: 60)
-                                .overlay(
-                                    Image(systemName: "camera.fill")
-                                        .font(.title3)
-                                        .foregroundStyle(.gray)
-                                )
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Personal Information")
-                                .font(.headline)
-                            Text("Complete your profile")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                        }
-                        
-                        Spacer()
-                    }
-                    .padding(.vertical, 8)
-                }
-                .listRowBackground(Color.clear)
-                
                 // Bio sections
                 Section {
-                    NavigationLink("Work Experience") {
-                        WorkExperienceView()
-                    }
-                    
-                    NavigationLink("Education") {
-                        EducationView()
-                    }
-                    
-                    NavigationLink("Places Lived") {
-                        PlacesLivedView()
-                    }
-                    
-                    NavigationLink("Pets") {
-                        PetsView()
-                    }
-                    
-                    NavigationLink("Travel") {
-                        TravelView()
-                    }
-                    
-                    NavigationLink("Physical Attributes") {
-                        BioPhysicalAttributesView()
-                    }
-                    
-                    NavigationLink("Health Data") {
-                        BioHealthDataView()
-                    }
-                    
-                    NavigationLink("Enhanced Health Data") {
-                        BioEnhancedHealthDataView()
-                    }
-                    
                     NavigationLink("People") {
                         PeopleView()
                     }
-                }
-                
-                Section {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Include in Daily Surveys")
-                                .font(.body)
-                            
-                            Text("Add your bio context to survey questions")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        
-                        Spacer()
-                        
-                        Toggle("", isOn: $bioData.includeInDailySurveys)
-                            .labelsHidden()
+
+                    NavigationLink("Pets") {
+                        PetsView()
+                    }
+
+                    NavigationLink("Places Lived") {
+                        PlacesLivedView()
+                    }
+
+                    NavigationLink("Work Experience") {
+                        WorkExperienceView()
+                    }
+
+                    NavigationLink("Education") {
+                        EducationView()
+                    }
+
+                    NavigationLink("Travel") {
+                        TravelView()
+                    }
+
+                    NavigationLink("Physical Attributes") {
+                        BioPhysicalAttributesView()
+                    }
+
+                    NavigationLink("Health Data") {
+                        BioHealthDataView()
+                    }
+
+                    NavigationLink("Enhanced Health Data") {
+                        BioEnhancedHealthDataView()
                     }
                 }
             }
             .listStyle(.insetGrouped)
-            .navigationTitle("Bio")
+            .navigationTitle("Extensive Bio")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {

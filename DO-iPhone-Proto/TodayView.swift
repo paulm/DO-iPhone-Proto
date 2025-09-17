@@ -1773,7 +1773,7 @@ struct TodayView: View {
         }
         .sheet(isPresented: $showingBio) {
             NavigationStack {
-                BioSettingsView()
+                BioEditView()
             }
         }
         .onChange(of: showingPreviewEntry) { oldValue, newValue in

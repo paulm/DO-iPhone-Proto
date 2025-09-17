@@ -262,27 +262,13 @@ struct DateCircle: View {
         return formatter.string(from: date)
     }
     
-    private var circleColor: Color {
-        if isSelected {
-            return Color(hex: "44C0FF") // Day One Blue for selected
-        } else if hasEntry {
-            return Color(hex: "333B40") // Dark gray for filled entry days
-        } else if isCompleted {
-            return Color(hex: "333B40") // Dark gray for outline chat days
-        } else if isToday {
-            return .gray.opacity(0.3) // Light gray for today
-        } else {
-            return .gray.opacity(0.1)
-        }
-    }
-    
     private var textColor: Color {
         if isSelected || hasEntry {
             return .white
         } else if isCompleted {
-            return Color(hex: "333B40") // Dark text for outline circles
+            return Color(hex: "333B40") // Dark text for circles with chat
         } else if isToday {
-            return .primary // Dark text for light gray background
+            return .primary // Dark text for today
         } else if isFuture {
             return .secondary
         } else {
@@ -292,24 +278,44 @@ struct DateCircle: View {
     
     var body: some View {
         ZStack {
-            // Base circle for all states
+            // White spacer circle for consistent layout (always 18pt)
             Circle()
-                .fill(circleColor)
+                .fill(.white.opacity(0.01)) // Nearly invisible, just for spacing
                 .frame(width: DatePickerConstants.circleSize, height: DatePickerConstants.circleSize)
-            
-            // Overlay circles for interaction states
-            if hasEntry {
-                // Bigger circle (14pt) for days with entries
+
+            // Base visible circle - 8pt for future dates, 18pt for past/today
+            if isFuture {
                 Circle()
-                    .fill(Color.black.opacity(0.8))
-                    .frame(width: 14, height: 14)
-            } else if isCompleted && !hasEntry {
-                // Small circle (8pt) for days with chat interaction but no entry
-                Circle()
-                    .fill(Color.black.opacity(0.8))
+                    .fill(.gray.opacity(0.15))
                     .frame(width: 8, height: 8)
+            } else {
+                Circle()
+                    .fill(.gray.opacity(0.15))
+                    .frame(width: DatePickerConstants.circleSize, height: DatePickerConstants.circleSize)
             }
-            
+
+            // Layered interaction indicators
+            if hasEntry {
+                // Full size dark gray circle (18pt) for days with entries
+                Circle()
+                    .fill(isSelected ? Color(hex: "44C0FF") : Color(hex: "333B40"))
+                    .frame(width: DatePickerConstants.circleSize, height: DatePickerConstants.circleSize)
+            } else {
+                // Selected state - blue circle (only if no entry)
+                if isSelected {
+                    Circle()
+                        .fill(Color(hex: "44C0FF"))
+                        .frame(width: DatePickerConstants.circleSize, height: DatePickerConstants.circleSize)
+                }
+
+                // Small circle for chat interaction (always on top, even when selected)
+                if isCompleted {
+                    Circle()
+                        .fill(isSelected ? .white : Color(hex: "333B40"))
+                        .frame(width: 8, height: 8)
+                }
+            }
+
             if showDate || isToday {
                 Text(dayNumber)
                     .font(.system(size: 8))
@@ -317,7 +323,6 @@ struct DateCircle: View {
                     .foregroundStyle(textColor)
             }
         }
-        .opacity(isFuture && !isSelected ? 0.4 : 1.0)
         .onTapGesture {
             // Haptic feedback on tap
             let impactFeedback = UIImpactFeedbackGenerator(style: .light)
@@ -383,7 +388,7 @@ struct TodayView: View {
     
     // Show/hide toggles for Daily Activities
     @State private var showWeather = false
-    @State private var showDatePickerGrid = false
+    @State private var showDatePickerGrid = true
     @State private var showDateNavigation = true
     @State private var showChat = false
     @State private var showMomentsList = true

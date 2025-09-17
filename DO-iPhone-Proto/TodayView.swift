@@ -1322,8 +1322,8 @@ struct TodayView: View {
             .scrollContentBackground(.hidden)
             .background(backgroundColor)
             .ignoresSafeArea(edges: .bottom)
-            .offset(y: showDatePickerGrid ? -150 : 0)
-            .padding(.bottom, showDatePickerGrid ? -150 : 0)
+            .offset(y: showDatePickerGrid ? -175 : 0)
+            .padding(.bottom, showDatePickerGrid ? -175 : 0)
             
                 // Chat elements at bottom
                 VStack {

@@ -54,9 +54,10 @@ class MomentsSelectionManager: ObservableObject {
 
 // MARK: - Date Picker Components
 private struct DatePickerConstants {
-    static let circleSize: CGFloat = 18
+    static let circleSize: CGFloat = 22
     static let spacing: CGFloat = 12
-    static let numberOfRows: Int = 9  // Control the number of date grid rows
+    static let numberOfRows: Int = 6  // Control the number of date grid rows
+    static let horizontalPadding: CGFloat = 16  // Margin on left/right
 }
 
 private struct SizePreferenceKey: PreferenceKey {
@@ -71,11 +72,12 @@ struct DatePickerGrid: View {
     @Binding var selectedDate: Date
     let showDates: Bool
     let showStreak: Bool
-    
-    @State private var availableWidth: CGFloat = UIScreen.main.bounds.width - 40 // Approximate initial width
+
+    @State private var availableWidth: CGFloat = 0
     @State private var dragLocation: CGPoint = .zero
     @State private var isDragging = false
     @State private var lastSelectedDate: Date?
+    @State private var dynamicSpacing: CGFloat = DatePickerConstants.spacing
     
     // Check if a date has chat messages (completed)
     private func hasMessagesForDate(_ date: Date) -> Bool {
@@ -116,9 +118,29 @@ struct DatePickerGrid: View {
     
     private var columns: Int {
         guard availableWidth > 0 else { return 10 } // Default to 10 columns if width not yet calculated
-        let totalCircleWidth = DatePickerConstants.circleSize + DatePickerConstants.spacing
-        let possibleColumns = Int((availableWidth + DatePickerConstants.spacing) / totalCircleWidth)
-        return max(1, possibleColumns)
+
+        // Calculate optimal number of columns and spacing
+        let minColumns = 7  // Minimum columns we want
+        let maxColumns = 14 // Maximum columns for readability
+
+        // Try different column counts to find the best fit
+        for cols in (minColumns...maxColumns).reversed() {
+            let totalCircleWidth = CGFloat(cols) * DatePickerConstants.circleSize
+            let totalSpacingWidth = availableWidth - totalCircleWidth
+            let spacingBetween = totalSpacingWidth / CGFloat(cols - 1)
+
+            // If spacing is reasonable (between 8 and 20 points), use this column count
+            if spacingBetween >= 8 && spacingBetween <= 20 {
+                // Update dynamic spacing for this configuration
+                DispatchQueue.main.async {
+                    self.dynamicSpacing = spacingBetween
+                }
+                return cols
+            }
+        }
+
+        // Fallback: use minimum columns with calculated spacing
+        return minColumns
     }
     
     private var rows: [[Date]] {
@@ -140,7 +162,7 @@ struct DatePickerGrid: View {
     }
     
     var body: some View {
-        VStack(spacing: DatePickerConstants.spacing) {
+        VStack(spacing: dynamicSpacing) {
             // Streak and Today button
             HStack {
                 if showStreak && currentStreak > 0 {
@@ -175,7 +197,7 @@ struct DatePickerGrid: View {
             .padding(.bottom, 8)
             
             ForEach(Array(rows.enumerated()), id: \.offset) { rowIndex, row in
-                HStack(spacing: DatePickerConstants.spacing) {
+                HStack(spacing: dynamicSpacing) {
                     ForEach(Array(row.enumerated()), id: \.offset) { index, date in
                         DateCircle(
                             date: date,
@@ -209,7 +231,7 @@ struct DatePickerGrid: View {
             }
         )
         .onPreferenceChange(SizePreferenceKey.self) { width in
-            if width > 0 {
+            if width > 0 && abs(availableWidth - width) > 1 { // Only update if there's a significant change
                 availableWidth = width
             }
         }
@@ -220,8 +242,8 @@ struct DatePickerGrid: View {
                     dragLocation = value.location
                     
                     // Find which date circle contains the drag location
-                    let row = Int(value.location.y / (DatePickerConstants.circleSize + DatePickerConstants.spacing))
-                    let col = Int(value.location.x / (DatePickerConstants.circleSize + DatePickerConstants.spacing))
+                    let row = Int(value.location.y / (DatePickerConstants.circleSize + dynamicSpacing))
+                    let col = Int(value.location.x / (DatePickerConstants.circleSize + dynamicSpacing))
                     
                     if row >= 0 && row < rows.count && col >= 0 && col < rows[row].count {
                         let date = rows[row][col]
@@ -246,92 +268,225 @@ struct DatePickerGrid: View {
     }
 }
 
+// MARK: - Date Circle Style Configuration
+struct DateCircleStyle {
+    // Base circle properties
+    let baseSize: CGFloat
+    let baseColor: Color
+
+    // Selection/highlight circle
+    let highlightSize: CGFloat
+    let highlightColor: Color?
+
+    // Ring indicator (for today)
+    let ringColor: Color?
+    let ringSize: CGFloat
+    let ringWidth: CGFloat
+
+    // Chat indicator
+    let chatIndicatorSize: CGFloat
+    let chatIndicatorColor: Color
+
+    // Text properties
+    let textColor: Color
+    let showText: Bool
+
+    // Entry override (when has entry, override most other styles)
+    let entryColor: Color?
+}
+
+extension DateCircleStyle {
+    // MARK: - Base Styles
+    static let past = DateCircleStyle(
+        baseSize: 18,
+        baseColor: .gray.opacity(0.15),
+        highlightSize: 18,
+        highlightColor: nil,
+        ringColor: nil,
+        ringSize: 0,
+        ringWidth: 0,
+        chatIndicatorSize: 8,
+        chatIndicatorColor: Color(hex: "333B40"),
+        textColor: .primary,
+        showText: false,
+        entryColor: nil
+    )
+
+    static let today = DateCircleStyle(
+        baseSize: 18,
+        baseColor: .gray.opacity(0.15),
+        highlightSize: 18,
+        highlightColor: nil,
+        ringColor: .yellow,
+        ringSize: 22,
+        ringWidth: 2,
+        chatIndicatorSize: 8,
+        chatIndicatorColor: Color(hex: "333B40"),
+        textColor: .primary,
+        showText: true,
+        entryColor: nil
+    )
+
+    static let future = DateCircleStyle(
+        baseSize: 8,
+        baseColor: .gray.opacity(0.15),
+        highlightSize: 18,
+        highlightColor: nil,
+        ringColor: nil,
+        ringSize: 0,
+        ringWidth: 0,
+        chatIndicatorSize: 8,
+        chatIndicatorColor: Color(hex: "333B40"),
+        textColor: .secondary,
+        showText: false,
+        entryColor: nil
+    )
+
+    // MARK: - Selected State (modifies base styles)
+    func selected() -> DateCircleStyle {
+        DateCircleStyle(
+            baseSize: baseSize,
+            baseColor: baseColor,
+            highlightSize: 18,
+            highlightColor: nil, // No filled blue circle anymore
+            ringColor: Color(hex: "44C0FF"), // Blue ring instead
+            ringSize: 22,
+            ringWidth: 2,
+            chatIndicatorSize: chatIndicatorSize,
+            chatIndicatorColor: Color(hex: "333B40"), // Keep original chat color
+            textColor: textColor, // Keep original text color
+            showText: showText,
+            entryColor: entryColor // Keep original entry color
+        )
+    }
+
+    // MARK: - Entry State (overrides most styling)
+    func withEntry() -> DateCircleStyle {
+        DateCircleStyle(
+            baseSize: baseSize,
+            baseColor: baseColor,
+            highlightSize: 18,
+            highlightColor: Color(hex: "333B40"), // Dark gray for entries
+            ringColor: ringColor,
+            ringSize: ringSize,
+            ringWidth: ringWidth,
+            chatIndicatorSize: 0, // No chat indicator when has entry
+            chatIndicatorColor: chatIndicatorColor,
+            textColor: .white,
+            showText: showText,
+            entryColor: Color(hex: "333B40")
+        )
+    }
+}
+
 struct DateCircle: View {
     let date: Date
     let isSelected: Bool
     let isToday: Bool
     let isFuture: Bool
-    let isCompleted: Bool
+    let isCompleted: Bool // Has chat
     let hasEntry: Bool
     let showDate: Bool
     let onTap: () -> Void
-    
+
     private var dayNumber: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "d"
         return formatter.string(from: date)
     }
-    
-    private var textColor: Color {
-        if isSelected || hasEntry {
-            return .white
-        } else if isCompleted {
-            return Color(hex: "333B40") // Dark text for circles with chat
+
+    // Compute the appropriate style based on state
+    private var style: DateCircleStyle {
+        // Start with base style
+        var baseStyle: DateCircleStyle
+        if isFuture {
+            baseStyle = .future
         } else if isToday {
-            return .primary // Dark text for today
-        } else if isFuture {
-            return .secondary
+            baseStyle = .today
         } else {
-            return .primary
+            baseStyle = .past
         }
+
+        // Apply modifiers
+        if isSelected {
+            // For selected dates, preserve today's yellow ring if it's today
+            if isToday {
+                // Special case: both today AND selected - keep yellow ring, not blue
+                baseStyle = baseStyle.selected()
+                // Override to keep yellow ring instead of blue
+                baseStyle = DateCircleStyle(
+                    baseSize: baseStyle.baseSize,
+                    baseColor: baseStyle.baseColor,
+                    highlightSize: baseStyle.highlightSize,
+                    highlightColor: baseStyle.highlightColor,
+                    ringColor: .yellow, // Keep yellow for today even when selected
+                    ringSize: baseStyle.ringSize,
+                    ringWidth: baseStyle.ringWidth,
+                    chatIndicatorSize: baseStyle.chatIndicatorSize,
+                    chatIndicatorColor: baseStyle.chatIndicatorColor,
+                    textColor: baseStyle.textColor,
+                    showText: baseStyle.showText,
+                    entryColor: baseStyle.entryColor
+                )
+            } else {
+                baseStyle = baseStyle.selected()
+            }
+        }
+
+        if hasEntry {
+            baseStyle = baseStyle.withEntry()
+        }
+
+        return baseStyle
     }
     
     var body: some View {
         ZStack {
-            // White spacer circle for consistent layout (always 18pt)
+            // Layer 1: Spacer for consistent layout (18pt)
             Circle()
-                .fill(.white.opacity(0.01)) // Nearly invisible, just for spacing
+                .fill(.white.opacity(0.01))
                 .frame(width: DatePickerConstants.circleSize, height: DatePickerConstants.circleSize)
 
-            // Yellow ring for today's date
-            if isToday {
+            // Layer 2: Ring indicator (e.g., yellow ring for today)
+            if let ringColor = style.ringColor, style.ringSize > 0 {
                 Circle()
-                    .stroke(.yellow, lineWidth: 2)
-                    .frame(width: 20, height: 20)
+                    .stroke(ringColor, lineWidth: style.ringWidth)
+                    .frame(width: style.ringSize, height: style.ringSize)
             }
 
-            // Base visible circle - 8pt for future dates, 18pt for past/today
-            if isFuture {
+            // Layer 3: Base circle
+            Circle()
+                .fill(style.baseColor)
+                .frame(width: style.baseSize, height: style.baseSize)
+
+            // Layer 4: Highlight/Selection circle (blue for selected, dark for entry)
+            if let highlightColor = style.highlightColor {
                 Circle()
-                    .fill(.gray.opacity(0.15))
-                    .frame(width: 8, height: 8)
-            } else {
+                    .fill(highlightColor)
+                    .frame(width: style.highlightSize, height: style.highlightSize)
+            } else if hasEntry, let entryColor = style.entryColor {
+                // Entry state when not selected
                 Circle()
-                    .fill(.gray.opacity(0.15))
-                    .frame(width: DatePickerConstants.circleSize, height: DatePickerConstants.circleSize)
+                    .fill(entryColor)
+                    .frame(width: style.highlightSize, height: style.highlightSize)
             }
 
-            // Layered interaction indicators
-            if hasEntry {
-                // Full size dark gray circle (18pt) for days with entries
+            // Layer 5: Chat indicator (small dot)
+            if isCompleted && !hasEntry && style.chatIndicatorSize > 0 {
                 Circle()
-                    .fill(isSelected ? Color(hex: "44C0FF") : Color(hex: "333B40"))
-                    .frame(width: DatePickerConstants.circleSize, height: DatePickerConstants.circleSize)
-            } else {
-                // Selected state - blue circle (only if no entry)
-                if isSelected {
-                    Circle()
-                        .fill(Color(hex: "44C0FF"))
-                        .frame(width: DatePickerConstants.circleSize, height: DatePickerConstants.circleSize)
-                }
-
-                // Small circle for chat interaction (always on top, even when selected)
-                if isCompleted {
-                    Circle()
-                        .fill(isSelected ? .white : Color(hex: "333B40"))
-                        .frame(width: 8, height: 8)
-                }
+                    .fill(style.chatIndicatorColor)
+                    .frame(width: style.chatIndicatorSize, height: style.chatIndicatorSize)
             }
 
-            if showDate || isToday {
+            // Layer 6: Date text
+            if style.showText || showDate {
                 Text(dayNumber)
                     .font(.system(size: 8))
                     .fontWeight(.medium)
-                    .foregroundStyle(textColor)
+                    .foregroundStyle(style.textColor)
             }
         }
         .onTapGesture {
-            // Haptic feedback on tap
             let impactFeedback = UIImpactFeedbackGenerator(style: .light)
             impactFeedback.impactOccurred()
             onTap()
@@ -439,10 +594,10 @@ struct TodayView: View {
         let calendar = Calendar.current
         var dates: [Date] = []
         let today = Date()
-        
+
         // Calculate how many dates we need based on screen width
-        // Assuming we want to fit as many as possible in the configured number of rows
-        let approximateWidth = UIScreen.main.bounds.width - 40
+        // Account for horizontal padding (16pt on each side)
+        let approximateWidth = UIScreen.main.bounds.width - (DatePickerConstants.horizontalPadding * 2)
         let columnsPerRow = Int((approximateWidth + DatePickerConstants.spacing) / (DatePickerConstants.circleSize + DatePickerConstants.spacing))
         let totalDates = columnsPerRow * DatePickerConstants.numberOfRows
         
@@ -1064,10 +1219,12 @@ struct TodayView: View {
                         showDates: showGridDates,
                         showStreak: false
                     )
+                    .padding(.horizontal, DatePickerConstants.horizontalPadding)
                     .id(chatUpdateTrigger) // Force refresh when data changes
                     .background(Color.clear)
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
+                    .listRowInsets(EdgeInsets()) // Remove default list insets
                     .padding(.bottom, 20)
                 }
                 
@@ -1185,8 +1342,8 @@ struct TodayView: View {
             .scrollContentBackground(.hidden)
             .background(backgroundColor)
             .ignoresSafeArea(edges: .bottom)
-            .offset(y: showDatePickerGrid ? -230 : 0)
-            .padding(.bottom, showDatePickerGrid ? -230 : 0)
+            .offset(y: showDatePickerGrid ? -150 : 0)
+            .padding(.bottom, showDatePickerGrid ? -150 : 0)
             
                 // Chat elements at bottom
                 VStack {

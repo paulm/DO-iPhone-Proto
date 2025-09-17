@@ -409,28 +409,8 @@ struct DateCircle: View {
 
         // Apply modifiers
         if isSelected {
-            // For selected dates, preserve today's yellow ring if it's today
-            if isToday {
-                // Special case: both today AND selected - keep yellow ring, not blue
-                baseStyle = baseStyle.selected()
-                // Override to keep yellow ring instead of blue
-                baseStyle = DateCircleStyle(
-                    baseSize: baseStyle.baseSize,
-                    baseColor: baseStyle.baseColor,
-                    highlightSize: baseStyle.highlightSize,
-                    highlightColor: baseStyle.highlightColor,
-                    ringColor: .yellow, // Keep yellow for today even when selected
-                    ringSize: baseStyle.ringSize,
-                    ringWidth: baseStyle.ringWidth,
-                    chatIndicatorSize: baseStyle.chatIndicatorSize,
-                    chatIndicatorColor: baseStyle.chatIndicatorColor,
-                    textColor: baseStyle.textColor,
-                    showText: baseStyle.showText,
-                    entryColor: baseStyle.entryColor
-                )
-            } else {
-                baseStyle = baseStyle.selected()
-            }
+            // When selected, always use blue ring (even for today)
+            baseStyle = baseStyle.selected()
         }
 
         if hasEntry {

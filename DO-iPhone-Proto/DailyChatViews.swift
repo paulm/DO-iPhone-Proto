@@ -1204,6 +1204,18 @@ struct BioEditView: View {
                     NavigationLink("Preferences & Tastes") {
                         PreferencesAndTastesView()
                     }
+
+                    NavigationLink("Digital Life") {
+                        DigitalLifeView()
+                    }
+
+                    NavigationLink("Financial & Assets") {
+                        FinancialAssetsView()
+                    }
+
+                    NavigationLink("Beliefs & Values") {
+                        BeliefsValuesView()
+                    }
                 } header: {
                     Text("Extended Information")
                 }

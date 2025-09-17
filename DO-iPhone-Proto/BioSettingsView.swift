@@ -268,6 +268,33 @@ class BioData {
     var collections = ""
     var skillsLearning = ""
 
+    // Digital Life & Online Presence
+    var personalWebsite = ""
+    var blog = ""
+    var twitter = ""
+    var instagram = ""
+    var facebook = ""
+    var linkedin = ""
+    var github = ""
+    var youtube = ""
+    var tiktok = ""
+    var mastodon = ""
+    var threads = ""
+    var otherSocialMedia = ""
+
+    // Financial & Assets
+    var investmentInterests = ""
+    var majorPossessions = ""
+    var financialGoals = ""
+    var retirementPlanning = ""
+
+    // Beliefs & Values
+    var religiousSpiritualBeliefs = ""
+    var politicalViews = ""
+    var coreValues = ""
+    var charitableCauses = ""
+    var lifePhilosophy = ""
+
     static let shared = BioData()
 
     private init() {}
@@ -1936,6 +1963,317 @@ struct AddTravelView: View {
         .sheet(isPresented: $showingImagePicker) {
             TravelImagePickerPlaceholder(travelImage: $travel.photoData)
         }
+    }
+}
+
+// MARK: - Beliefs Values View
+struct BeliefsValuesView: View {
+    @State private var bioData = BioData.shared
+
+    var body: some View {
+        Form {
+            // Religious/Spiritual Section
+            Section {
+                TextField("Religious/Spiritual Beliefs", text: $bioData.religiousSpiritualBeliefs, axis: .vertical)
+                    .lineLimit(3, reservesSpace: false)
+            } header: {
+                Text("Religious & Spiritual")
+            } footer: {
+                Text("Your religious affiliation or spiritual practices")
+            }
+
+            // Political Views Section
+            Section {
+                TextField("Political Views (Optional)", text: $bioData.politicalViews, axis: .vertical)
+                    .lineLimit(3, reservesSpace: false)
+            } header: {
+                Text("Political Views")
+            } footer: {
+                Text("This field is optional and private - share only what you're comfortable with")
+            }
+
+            // Core Values Section
+            Section {
+                TextField("Core Values and Principles", text: $bioData.coreValues, axis: .vertical)
+                    .lineLimit(4, reservesSpace: false)
+            } header: {
+                Text("Core Values")
+            } footer: {
+                Text("The principles and values that guide your life")
+            }
+
+            // Charitable Causes Section
+            Section {
+                TextField("Charitable Causes Supported", text: $bioData.charitableCauses, axis: .vertical)
+                    .lineLimit(3, reservesSpace: false)
+            } header: {
+                Text("Charitable Causes")
+            } footer: {
+                Text("Organizations, causes, or volunteer work you support")
+            }
+
+            // Life Philosophy Section
+            Section {
+                TextField("Life Philosophy", text: $bioData.lifePhilosophy, axis: .vertical)
+                    .lineLimit(5, reservesSpace: false)
+            } header: {
+                Text("Life Philosophy")
+            } footer: {
+                Text("Your personal philosophy, mantras, or guiding beliefs")
+            }
+        }
+        .navigationTitle("Beliefs & Values")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// MARK: - Financial Assets View
+struct FinancialAssetsView: View {
+    @State private var bioData = BioData.shared
+
+    var body: some View {
+        Form {
+            // Investment Interests Section
+            Section {
+                TextField("Investment Interests", text: $bioData.investmentInterests, axis: .vertical)
+                    .lineLimit(3, reservesSpace: false)
+            } header: {
+                Text("Investments")
+            } footer: {
+                Text("Include stocks, crypto, real estate, or other investment interests")
+            }
+
+            // Major Possessions Section
+            Section {
+                TextField("Major Possessions", text: $bioData.majorPossessions, axis: .vertical)
+                    .lineLimit(3, reservesSpace: false)
+            } header: {
+                Text("Assets")
+            } footer: {
+                Text("List vehicles, property, or other significant possessions")
+            }
+
+            // Financial Goals Section
+            Section {
+                TextField("Financial Goals", text: $bioData.financialGoals, axis: .vertical)
+                    .lineLimit(4, reservesSpace: false)
+            } header: {
+                Text("Goals")
+            } footer: {
+                Text("Short-term and long-term financial objectives")
+            }
+
+            // Retirement Planning Section
+            Section {
+                TextField("Retirement Planning Notes", text: $bioData.retirementPlanning, axis: .vertical)
+                    .lineLimit(4, reservesSpace: false)
+            } header: {
+                Text("Retirement")
+            } footer: {
+                Text("Your retirement plans, timeline, and considerations")
+            }
+        }
+        .navigationTitle("Financial & Assets")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// MARK: - Digital Life View
+struct DigitalLifeView: View {
+    @State private var bioData = BioData.shared
+
+    private func openURL(_ urlString: String) {
+        guard !urlString.isEmpty else { return }
+
+        // Add https:// if no protocol is specified
+        var fullURL = urlString
+        if !urlString.lowercased().hasPrefix("http://") && !urlString.lowercased().hasPrefix("https://") {
+            fullURL = "https://\(urlString)"
+        }
+
+        if let url = URL(string: fullURL) {
+            UIApplication.shared.open(url)
+        }
+    }
+
+    var body: some View {
+        Form {
+            // Personal Websites Section
+            Section {
+                HStack {
+                    TextField("Personal Website URL", text: $bioData.personalWebsite)
+                        .keyboardType(.URL)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled(true)
+
+                    if !bioData.personalWebsite.isEmpty {
+                        Button(action: { openURL(bioData.personalWebsite) }) {
+                            Image(systemName: "arrow.up.forward.app")
+                                .foregroundStyle(Color(hex: "44C0FF"))
+                        }
+                    }
+                }
+
+                HStack {
+                    TextField("Blog URL", text: $bioData.blog)
+                        .keyboardType(.URL)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled(true)
+
+                    if !bioData.blog.isEmpty {
+                        Button(action: { openURL(bioData.blog) }) {
+                            Image(systemName: "arrow.up.forward.app")
+                                .foregroundStyle(Color(hex: "44C0FF"))
+                        }
+                    }
+                }
+            } header: {
+                Text("Websites")
+            } footer: {
+                Text("Enter complete URLs (e.g., https://example.com)")
+            }
+
+            // Social Media Section
+            Section {
+                HStack {
+                    TextField("twitter.com/username", text: $bioData.twitter)
+                        .keyboardType(.URL)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled(true)
+
+                    if !bioData.twitter.isEmpty {
+                        Button(action: { openURL(bioData.twitter) }) {
+                            Image(systemName: "arrow.up.forward.app")
+                                .foregroundStyle(Color(hex: "44C0FF"))
+                        }
+                    }
+                }
+
+                HStack {
+                    TextField("instagram.com/username", text: $bioData.instagram)
+                        .keyboardType(.URL)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled(true)
+
+                    if !bioData.instagram.isEmpty {
+                        Button(action: { openURL(bioData.instagram) }) {
+                            Image(systemName: "arrow.up.forward.app")
+                                .foregroundStyle(Color(hex: "44C0FF"))
+                        }
+                    }
+                }
+
+                HStack {
+                    TextField("facebook.com/username", text: $bioData.facebook)
+                        .keyboardType(.URL)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled(true)
+
+                    if !bioData.facebook.isEmpty {
+                        Button(action: { openURL(bioData.facebook) }) {
+                            Image(systemName: "arrow.up.forward.app")
+                                .foregroundStyle(Color(hex: "44C0FF"))
+                        }
+                    }
+                }
+
+                HStack {
+                    TextField("linkedin.com/in/username", text: $bioData.linkedin)
+                        .keyboardType(.URL)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled(true)
+
+                    if !bioData.linkedin.isEmpty {
+                        Button(action: { openURL(bioData.linkedin) }) {
+                            Image(systemName: "arrow.up.forward.app")
+                                .foregroundStyle(Color(hex: "44C0FF"))
+                        }
+                    }
+                }
+
+                HStack {
+                    TextField("github.com/username", text: $bioData.github)
+                        .keyboardType(.URL)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled(true)
+
+                    if !bioData.github.isEmpty {
+                        Button(action: { openURL(bioData.github) }) {
+                            Image(systemName: "arrow.up.forward.app")
+                                .foregroundStyle(Color(hex: "44C0FF"))
+                        }
+                    }
+                }
+
+                HStack {
+                    TextField("youtube.com/@username", text: $bioData.youtube)
+                        .keyboardType(.URL)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled(true)
+
+                    if !bioData.youtube.isEmpty {
+                        Button(action: { openURL(bioData.youtube) }) {
+                            Image(systemName: "arrow.up.forward.app")
+                                .foregroundStyle(Color(hex: "44C0FF"))
+                        }
+                    }
+                }
+
+                HStack {
+                    TextField("tiktok.com/@username", text: $bioData.tiktok)
+                        .keyboardType(.URL)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled(true)
+
+                    if !bioData.tiktok.isEmpty {
+                        Button(action: { openURL(bioData.tiktok) }) {
+                            Image(systemName: "arrow.up.forward.app")
+                                .foregroundStyle(Color(hex: "44C0FF"))
+                        }
+                    }
+                }
+
+                HStack {
+                    TextField("mastodon.social/@username", text: $bioData.mastodon)
+                        .keyboardType(.URL)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled(true)
+
+                    if !bioData.mastodon.isEmpty {
+                        Button(action: { openURL(bioData.mastodon) }) {
+                            Image(systemName: "arrow.up.forward.app")
+                                .foregroundStyle(Color(hex: "44C0FF"))
+                        }
+                    }
+                }
+
+                HStack {
+                    TextField("threads.net/@username", text: $bioData.threads)
+                        .keyboardType(.URL)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled(true)
+
+                    if !bioData.threads.isEmpty {
+                        Button(action: { openURL(bioData.threads) }) {
+                            Image(systemName: "arrow.up.forward.app")
+                                .foregroundStyle(Color(hex: "44C0FF"))
+                        }
+                    }
+                }
+
+                TextField("Other Social Media URLs", text: $bioData.otherSocialMedia, axis: .vertical)
+                    .keyboardType(.URL)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled(true)
+                    .lineLimit(2, reservesSpace: false)
+            } header: {
+                Text("Social Media")
+            } footer: {
+                Text("Enter profile URLs for each platform")
+            }
+        }
+        .navigationTitle("Digital Life")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

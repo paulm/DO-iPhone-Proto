@@ -1090,16 +1090,20 @@ struct BioEditView: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage("userBioName") private var userName = ""
     @AppStorage("userBioBio") private var userBio = ""
-    
+
     @State private var editingName = ""
     @State private var editingBio = ""
+    @State private var bioData = BioData.shared
     @FocusState private var focusedField: Field?
-    
+
     enum Field: Hashable {
         case name
         case bio
+        case job
+        case hobbies
+        case familyFriends
     }
-    
+
     var body: some View {
         NavigationStack {
             List {
@@ -1110,7 +1114,7 @@ struct BioEditView: View {
                 } header: {
                     Text("Name")
                 }
-                
+
                 // About You Section
                 Section {
                     TextEditor(text: $editingBio)
@@ -1127,8 +1131,46 @@ struct BioEditView: View {
                         }
                 } header: {
                     Text("About you")
-                } footer: {
-                    Text("Your Bio is used for context in Daily Chat and other AI features.")
+                }
+
+                // Personal Information Section
+                Section {
+                    DatePicker("Birthdate", selection: $bioData.birthdate, displayedComponents: .date)
+                    TextField("Gender", text: $bioData.gender)
+                    TextField("Home Location", text: $bioData.homeLocation)
+                    TextField("Marital Status", text: $bioData.maritalStatus)
+                } header: {
+                    Text("Personal Information")
+                }
+
+                // Additional Details Section
+                Section {
+                    TextField("Job", text: $bioData.job, axis: .vertical)
+                        .lineLimit(3, reservesSpace: false)
+                        .focused($focusedField, equals: .job)
+
+                    TextField("Hobbies", text: $bioData.hobbies, axis: .vertical)
+                        .lineLimit(3, reservesSpace: false)
+                        .focused($focusedField, equals: .hobbies)
+
+                    TextField("Family & Friends", text: $bioData.familyFriends, axis: .vertical)
+                        .lineLimit(3, reservesSpace: false)
+                        .focused($focusedField, equals: .familyFriends)
+                } header: {
+                    Text("Additional Details")
+                }
+
+                // Extensive Bio Link Section
+                Section {
+                    NavigationLink(destination: BioSettingsView()) {
+                        HStack {
+                            Text("Extensive Bio")
+                            Spacer()
+                            Image(systemName: "arrow.up.forward")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                 }
             }
             .listStyle(.insetGrouped)
@@ -1139,6 +1181,7 @@ struct BioEditView: View {
                     Button("Done", systemImage: "checkmark") {
                         userName = editingName
                         userBio = editingBio
+                        bioData.name = editingName
                         dismiss()
                     }
                     .labelStyle(.titleAndIcon)
@@ -1146,7 +1189,7 @@ struct BioEditView: View {
                 }
             }
             .onAppear {
-                editingName = userName
+                editingName = userName.isEmpty ? bioData.name : userName
                 editingBio = userBio
             }
         }

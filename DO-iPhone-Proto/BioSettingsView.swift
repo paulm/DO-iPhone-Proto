@@ -294,10 +294,6 @@ struct BioSettingsView: View {
                 
                 // Bio sections
                 Section {
-                    NavigationLink("Basics") {
-                        BioBasicsView()
-                    }
-                    
                     NavigationLink("Work Experience") {
                         WorkExperienceView()
                     }

@@ -37,11 +37,11 @@ struct DailyChatSettingsView: View {
                     Toggle(isOn: $includeBioInChatContext) {
                         Text("Reference Bio")
                     }
-                    
+
                     NavigationLink(destination: BioEditView()) {
                         Text("Edit Bio")
                     }
-                    
+
                 } header: {
                     Text("Bio")
                 } footer: {

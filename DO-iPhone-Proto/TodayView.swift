@@ -287,7 +287,7 @@ struct DateCircle: View {
             if isToday {
                 Circle()
                     .stroke(.yellow, lineWidth: 2)
-                    .frame(width: 22, height: 22)
+                    .frame(width: 20, height: 20)
             }
 
             // Base visible circle - 8pt for future dates, 18pt for past/today

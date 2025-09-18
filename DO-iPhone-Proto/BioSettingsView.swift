@@ -2135,129 +2135,221 @@ struct DigitalLifeView: View {
 
             // Social Media Section
             Section {
-                HStack {
-                    TextField("twitter.com/username", text: $bioData.twitter)
-                        .keyboardType(.URL)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled(true)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        TextField("@username", text: $bioData.twitter)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled(true)
 
+                        if !bioData.twitter.isEmpty {
+                            Button(action: {
+                                let handle = bioData.twitter.replacingOccurrences(of: "@", with: "")
+                                openURL("https://twitter.com/\(handle)")
+                            }) {
+                                Image(systemName: "arrow.up.forward.app")
+                                    .foregroundStyle(Color(hex: "44C0FF"))
+                            }
+                        }
+                    }
                     if !bioData.twitter.isEmpty {
-                        Button(action: { openURL(bioData.twitter) }) {
-                            Image(systemName: "arrow.up.forward.app")
-                                .foregroundStyle(Color(hex: "44C0FF"))
-                        }
+                        Text("twitter.com/\(bioData.twitter.replacingOccurrences(of: "@", with: ""))")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                 }
 
-                HStack {
-                    TextField("instagram.com/username", text: $bioData.instagram)
-                        .keyboardType(.URL)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled(true)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        TextField("Instagram handle", text: $bioData.instagram)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled(true)
 
+                        if !bioData.instagram.isEmpty {
+                            Button(action: {
+                                let handle = bioData.instagram.replacingOccurrences(of: "@", with: "")
+                                openURL("https://instagram.com/\(handle)")
+                            }) {
+                                Image(systemName: "arrow.up.forward.app")
+                                    .foregroundStyle(Color(hex: "44C0FF"))
+                            }
+                        }
+                    }
                     if !bioData.instagram.isEmpty {
-                        Button(action: { openURL(bioData.instagram) }) {
-                            Image(systemName: "arrow.up.forward.app")
-                                .foregroundStyle(Color(hex: "44C0FF"))
-                        }
+                        Text("instagram.com/\(bioData.instagram.replacingOccurrences(of: "@", with: ""))")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                 }
 
-                HStack {
-                    TextField("facebook.com/username", text: $bioData.facebook)
-                        .keyboardType(.URL)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled(true)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        TextField("Facebook username", text: $bioData.facebook)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled(true)
 
+                        if !bioData.facebook.isEmpty {
+                            Button(action: {
+                                openURL("https://facebook.com/\(bioData.facebook)")
+                            }) {
+                                Image(systemName: "arrow.up.forward.app")
+                                    .foregroundStyle(Color(hex: "44C0FF"))
+                            }
+                        }
+                    }
                     if !bioData.facebook.isEmpty {
-                        Button(action: { openURL(bioData.facebook) }) {
-                            Image(systemName: "arrow.up.forward.app")
-                                .foregroundStyle(Color(hex: "44C0FF"))
-                        }
+                        Text("facebook.com/\(bioData.facebook)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                 }
 
-                HStack {
-                    TextField("linkedin.com/in/username", text: $bioData.linkedin)
-                        .keyboardType(.URL)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled(true)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        TextField("LinkedIn username", text: $bioData.linkedin)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled(true)
 
+                        if !bioData.linkedin.isEmpty {
+                            Button(action: {
+                                openURL("https://linkedin.com/in/\(bioData.linkedin)")
+                            }) {
+                                Image(systemName: "arrow.up.forward.app")
+                                    .foregroundStyle(Color(hex: "44C0FF"))
+                            }
+                        }
+                    }
                     if !bioData.linkedin.isEmpty {
-                        Button(action: { openURL(bioData.linkedin) }) {
-                            Image(systemName: "arrow.up.forward.app")
-                                .foregroundStyle(Color(hex: "44C0FF"))
-                        }
+                        Text("linkedin.com/in/\(bioData.linkedin)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                 }
 
-                HStack {
-                    TextField("github.com/username", text: $bioData.github)
-                        .keyboardType(.URL)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled(true)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        TextField("GitHub username", text: $bioData.github)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled(true)
 
+                        if !bioData.github.isEmpty {
+                            Button(action: {
+                                openURL("https://github.com/\(bioData.github)")
+                            }) {
+                                Image(systemName: "arrow.up.forward.app")
+                                    .foregroundStyle(Color(hex: "44C0FF"))
+                            }
+                        }
+                    }
                     if !bioData.github.isEmpty {
-                        Button(action: { openURL(bioData.github) }) {
-                            Image(systemName: "arrow.up.forward.app")
-                                .foregroundStyle(Color(hex: "44C0FF"))
-                        }
+                        Text("github.com/\(bioData.github)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                 }
 
-                HStack {
-                    TextField("youtube.com/@username", text: $bioData.youtube)
-                        .keyboardType(.URL)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled(true)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        TextField("@channelname", text: $bioData.youtube)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled(true)
 
+                        if !bioData.youtube.isEmpty {
+                            Button(action: {
+                                let handle = bioData.youtube.replacingOccurrences(of: "@", with: "")
+                                openURL("https://youtube.com/@\(handle)")
+                            }) {
+                                Image(systemName: "arrow.up.forward.app")
+                                    .foregroundStyle(Color(hex: "44C0FF"))
+                            }
+                        }
+                    }
                     if !bioData.youtube.isEmpty {
-                        Button(action: { openURL(bioData.youtube) }) {
-                            Image(systemName: "arrow.up.forward.app")
-                                .foregroundStyle(Color(hex: "44C0FF"))
-                        }
+                        Text("youtube.com/\(bioData.youtube.hasPrefix("@") ? bioData.youtube : "@\(bioData.youtube)")")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                 }
 
-                HStack {
-                    TextField("tiktok.com/@username", text: $bioData.tiktok)
-                        .keyboardType(.URL)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled(true)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        TextField("@username", text: $bioData.tiktok)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled(true)
 
+                        if !bioData.tiktok.isEmpty {
+                            Button(action: {
+                                let handle = bioData.tiktok.replacingOccurrences(of: "@", with: "")
+                                openURL("https://tiktok.com/@\(handle)")
+                            }) {
+                                Image(systemName: "arrow.up.forward.app")
+                                    .foregroundStyle(Color(hex: "44C0FF"))
+                            }
+                        }
+                    }
                     if !bioData.tiktok.isEmpty {
-                        Button(action: { openURL(bioData.tiktok) }) {
-                            Image(systemName: "arrow.up.forward.app")
-                                .foregroundStyle(Color(hex: "44C0FF"))
-                        }
+                        Text("tiktok.com/@\(bioData.tiktok.replacingOccurrences(of: "@", with: ""))")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                 }
 
-                HStack {
-                    TextField("mastodon.social/@username", text: $bioData.mastodon)
-                        .keyboardType(.URL)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled(true)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        TextField("@user@instance.social", text: $bioData.mastodon)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled(true)
 
+                        if !bioData.mastodon.isEmpty {
+                            Button(action: {
+                                // Handle Mastodon's user@instance format
+                                if bioData.mastodon.contains("@") && bioData.mastodon.split(separator: "@").count >= 2 {
+                                    let parts = bioData.mastodon.split(separator: "@")
+                                    let user = parts[0]
+                                    let instance = parts[1]
+                                    openURL("https://\(instance)/@\(user)")
+                                } else {
+                                    openURL("https://mastodon.social/@\(bioData.mastodon)")
+                                }
+                            }) {
+                                Image(systemName: "arrow.up.forward.app")
+                                    .foregroundStyle(Color(hex: "44C0FF"))
+                            }
+                        }
+                    }
                     if !bioData.mastodon.isEmpty {
-                        Button(action: { openURL(bioData.mastodon) }) {
-                            Image(systemName: "arrow.up.forward.app")
-                                .foregroundStyle(Color(hex: "44C0FF"))
+                        if bioData.mastodon.contains("@") && bioData.mastodon.split(separator: "@").count >= 2 {
+                            let parts = bioData.mastodon.split(separator: "@")
+                            Text("\(parts[1])/@\(parts[0])")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        } else {
+                            Text("mastodon.social/@\(bioData.mastodon)")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
                     }
                 }
 
-                HStack {
-                    TextField("threads.net/@username", text: $bioData.threads)
-                        .keyboardType(.URL)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled(true)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        TextField("@username", text: $bioData.threads)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled(true)
 
-                    if !bioData.threads.isEmpty {
-                        Button(action: { openURL(bioData.threads) }) {
-                            Image(systemName: "arrow.up.forward.app")
-                                .foregroundStyle(Color(hex: "44C0FF"))
+                        if !bioData.threads.isEmpty {
+                            Button(action: {
+                                let handle = bioData.threads.replacingOccurrences(of: "@", with: "")
+                                openURL("https://threads.net/@\(handle)")
+                            }) {
+                                Image(systemName: "arrow.up.forward.app")
+                                    .foregroundStyle(Color(hex: "44C0FF"))
+                            }
                         }
+                    }
+                    if !bioData.threads.isEmpty {
+                        Text("threads.net/@\(bioData.threads.replacingOccurrences(of: "@", with: ""))")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                 }
 
@@ -2269,7 +2361,7 @@ struct DigitalLifeView: View {
             } header: {
                 Text("Social Media")
             } footer: {
-                Text("Enter profile URLs for each platform")
+                Text("Enter your username or handle for each platform")
             }
         }
         .navigationTitle("Digital Life")

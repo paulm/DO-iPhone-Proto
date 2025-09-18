@@ -527,6 +527,7 @@ struct TodayView: View {
     @State private var showingEventsSheet = false
     @State private var showingMediaSheet = false
     @State private var showingBio = false
+    @State private var showingChatSettings = false
     
     // Show/hide toggles for Daily Activities
     @State private var showWeather = false
@@ -1356,15 +1357,25 @@ struct TodayView: View {
                 }
 
                 Menu {
+                    Button("Edit Bio") {
+                        showingBio = true
+                    }
+
+                    Button("Daily Chat Settings") {
+                        showingChatSettings = true
+                    }
+
+                    Divider()
+
                     Button("Settings") {
                         showingSettings = true
                     }
-                    
+
                     // DEBUG: Reset first-time journal alert
                     Button("Reset Journal Selection (Debug)") {
                         hasShownFirstTimeJournalAlert = false
                     }
-                    
+
                     Section("Show in Today") {
                         
                         Button {
@@ -1775,6 +1786,11 @@ struct TodayView: View {
             NavigationStack {
                 BioEditView()
             }
+        }
+        .sheet(isPresented: $showingChatSettings) {
+            DailyChatSettingsView()
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
         }
         .onChange(of: showingPreviewEntry) { oldValue, newValue in
             // When sheet is dismissed, check if summary was generated

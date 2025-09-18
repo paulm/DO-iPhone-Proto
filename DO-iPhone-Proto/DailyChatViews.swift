@@ -1165,8 +1165,6 @@ struct BioEditView: View {
                 Section {
                     DatePicker("Birthdate", selection: $bioData.birthdate, displayedComponents: .date)
                     TextField("Gender", text: $bioData.gender)
-                    TextField("Home Location", text: $bioData.homeLocation)
-                    TextField("Marital Status", text: $bioData.maritalStatus)
                 } header: {
                     Text("Personal Information")
                 }

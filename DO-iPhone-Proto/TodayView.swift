@@ -317,7 +317,7 @@ extension DateCircleStyle {
         baseColor: .gray.opacity(0.15),
         highlightSize: 18,
         highlightColor: nil,
-        ringColor: .yellow,
+        ringColor: Color.gray.opacity(0.8),
         ringSize: 22,
         ringWidth: 2,
         chatIndicatorSize: 8,

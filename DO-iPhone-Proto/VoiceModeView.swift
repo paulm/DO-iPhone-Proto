@@ -31,11 +31,6 @@ struct VoiceModeView: View {
                         tintColor: UIColor(Color(hex: "44C0FF"))
                     )
                     .frame(width: 260, height: 260)
-
-                    // Center microphone icon - kept perfectly still
-//                    Image(systemName: "waveform")
-//                        .font(.system(size: 40, weight: .regular))
-//                        .foregroundStyle(.white)
                 }
                 .frame(height: 300)
                 

@@ -24,7 +24,6 @@ public final class ListeningHaloView: UIView {
         isUserInteractionEnabled = false
         backgroundColor = .clear
 
-
         // Simple ring stroke
         ringLayer.fillColor = UIColor.clear.cgColor
         ringLayer.strokeColor = tintColor.withAlphaComponent(0.3).cgColor
@@ -33,20 +32,15 @@ public final class ListeningHaloView: UIView {
         layer.addSublayer(ringLayer)
 
         // Pulses - reduced opacity by half
-        pulse.fillColor = tintColor.withAlphaComponent(0.025).cgColor
-        pulse.strokeColor = tintColor.withAlphaComponent(0.125).cgColor
-        pulse.lineWidth = 1.0
+        pulse.fillColor = tintColor.withAlphaComponent(0.05).cgColor
+        pulse.strokeColor = tintColor.withAlphaComponent(0.18).cgColor
+        pulse.lineWidth = 1.5
+        pulse.opacity = 0  // Start invisible to prevent stacking
         pulseReplicator.instanceCount = 5
-        pulseReplicator.instanceDelay = 1.2
+        pulseReplicator.instanceDelay = 2.0
         pulseReplicator.addSublayer(pulse)
         layer.addSublayer(pulseReplicator)
 
-        // Center dot/glow anchor - removed to avoid overlapping with icon
-        // centerDot.backgroundColor = UIColor.white.withAlphaComponent(0.95).cgColor
-        // centerDot.shadowColor = tintColor.cgColor
-        // centerDot.shadowOpacity = 0.8
-        // centerDot.shadowOffset = .zero
-        // layer.addSublayer(centerDot)
     }
 
     public required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
@@ -54,8 +48,8 @@ public final class ListeningHaloView: UIView {
     public override func tintColorDidChange() {
         super.tintColorDidChange()
         ringLayer.strokeColor = tintColor.withAlphaComponent(0.3).cgColor
-        pulse.fillColor = tintColor.withAlphaComponent(0.075).cgColor
-        pulse.strokeColor = tintColor.withAlphaComponent(0.125).cgColor
+        pulse.fillColor = tintColor.withAlphaComponent(0.175).cgColor
+        pulse.strokeColor = tintColor.withAlphaComponent(0.225).cgColor
         // centerDot.shadowColor = tintColor.cgColor  // Removed centerDot
     }
 
@@ -67,7 +61,7 @@ public final class ListeningHaloView: UIView {
 
         // Geometry
         let size = min(b.width, b.height)
-        let ringOuter = size * 0.70 // visual ring diameter
+        let ringOuter = size * 0.75 // visual ring diameter
 
         // Set the ring layer's bounds and position
         ringLayer.bounds = CGRect(x: 0, y: 0, width: ringOuter, height: ringOuter)
@@ -118,15 +112,15 @@ public final class ListeningHaloView: UIView {
         // Repeating ripples - reduced size by half, starting even smaller
         let scale = CABasicAnimation(keyPath: "transform.scale")
         scale.fromValue = 0.05
-        scale.toValue = 2.30
+        scale.toValue = 2.10
 
         let fade = CABasicAnimation(keyPath: "opacity")
-        fade.fromValue = 0.85
+        fade.fromValue = 0.65
         fade.toValue = 0.0
 
         let group = CAAnimationGroup()
         group.animations = [scale, fade]
-        group.duration = 9.8
+        group.duration = 15.0
         group.repeatCount = .infinity
         group.timingFunction = CAMediaTimingFunction(name: .easeOut)
 
@@ -139,7 +133,7 @@ public final class ListeningHaloView: UIView {
         // Level drives ring thickness and opacity; small but noticeable
         // centerDot.shadowRadius = 8 + 28 * x  // Removed centerDot
         ringLayer.lineWidth = 2 + 3 * x
-        ringLayer.opacity = Float(0.65 + 0.35 * x)
+        ringLayer.opacity = Float(0.35 + 0.25 * x)
     }
 
     private func clamp01(_ v: CGFloat) -> CGFloat { max(0, min(1, v)) }

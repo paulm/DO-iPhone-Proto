@@ -3,9 +3,9 @@ import SwiftUI
 struct CompactAudioRecordView: View {
     @Environment(\.dismiss) private var dismiss
     let journal: Journal?
-    let existingAudio: AudioRecordView.AudioData?
+    let existingAudio: AudioData?
     @Binding var currentDetent: PresentationDetent
-    let onInsertTranscription: ((String, AudioRecordView.AudioData) -> Void)?
+    let onInsertTranscription: ((String, AudioData) -> Void)?
     
     @State private var editableTitle: String = ""
     @State private var isRecording = false
@@ -18,6 +18,7 @@ struct CompactAudioRecordView: View {
     @State private var showingTranscription = false
     @State private var transcriptionMode: TranscriptionMode = .voice
     @State private var includeTitle = true
+    @State private var transcriptionCleared = false
     
     // Timer for recording duration
     @State private var recordingTimer: Timer?
@@ -70,7 +71,7 @@ struct CompactAudioRecordView: View {
         "Tuesday Reflections: Reconnections & Routines"
     }
     
-    init(journal: Journal? = nil, existingAudio: AudioRecordView.AudioData? = nil, currentDetent: Binding<PresentationDetent>, onInsertTranscription: ((String, AudioRecordView.AudioData) -> Void)? = nil) {
+    init(journal: Journal? = nil, existingAudio: AudioData? = nil, currentDetent: Binding<PresentationDetent>, onInsertTranscription: ((String, AudioData) -> Void)? = nil) {
         self.journal = journal
         self.existingAudio = existingAudio
         self._currentDetent = currentDetent
@@ -271,7 +272,7 @@ struct CompactAudioRecordView: View {
                         VStack(alignment: .leading, spacing: 16) {
                             Divider()
                                 .padding(.vertical, 8)
-                            
+
                             // Segmented Control for transcription mode
                             Picker("Transcription Mode", selection: $transcriptionMode) {
                                 ForEach(TranscriptionMode.allCases, id: \.self) { mode in
@@ -280,18 +281,19 @@ struct CompactAudioRecordView: View {
                             }
                             .pickerStyle(SegmentedPickerStyle())
                             .padding(.horizontal)
-                            
-                            // Controls section
-                            VStack(spacing: 12) {
-                                // Include Title toggle (only show for AI mode)
-                                if transcriptionMode == .ai {
-                                    Toggle("Include Title", isOn: $includeTitle)
-                                        .font(.system(size: 15))
-                                        .padding(.horizontal)
-                                }
-                                
-                                // Insert into Entry button
-                                Button(action: {
+
+                            // Controls section - show different content based on transcription state
+                            if !transcriptionCleared {
+                                VStack(spacing: 12) {
+                                    // Include Title toggle (only show for AI mode)
+                                    if transcriptionMode == .ai {
+                                        Toggle("Include Title", isOn: $includeTitle)
+                                            .font(.system(size: 15))
+                                            .padding(.horizontal)
+                                    }
+
+                                    // Insert into Entry button
+                                    Button(action: {
                                     // Prepare the text to insert
                                     let textToInsert: String
                                     if transcriptionMode == .voice {
@@ -305,7 +307,7 @@ struct CompactAudioRecordView: View {
                                     }
                                     
                                     // Create audio data for the embed
-                                    let audioData = AudioRecordView.AudioData(
+                                    let audioData = AudioData(
                                         title: editableTitle,
                                         duration: recordingTime,
                                         recordingDate: Date(),
@@ -329,31 +331,79 @@ struct CompactAudioRecordView: View {
                                 .padding(.horizontal)
                             }
                             .padding(.top, 4)
-                            
-                            // Transcription content
-                            ScrollView {
-                                VStack(alignment: .leading, spacing: 12) {
-                                    if transcriptionMode == .voice {
-                                        Text(voiceTranscription)
-                                            .font(.body)
-                                            .foregroundStyle(.primary)
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                            .padding(.horizontal)
-                                    } else {
-                                        // AI processed content with optional title
-                                        VStack(alignment: .leading, spacing: 8) {
-                                            if includeTitle {
-                                                Text(aiTitle)
-                                                    .font(.headline)
-                                                    .foregroundStyle(.primary)
-                                                    .padding(.horizontal)
-                                            }
-                                            
-                                            Text(aiProcessedContent)
+                            } else {
+                                // No transcription state - show Transcribe buttons
+                                VStack(spacing: 16) {
+                                    Spacer(minLength: 20)
+                                }
+                                .padding(.top, 4)
+                            }
+
+                            // Transcription content or empty state
+                            if !transcriptionCleared {
+                                ScrollView {
+                                    VStack(alignment: .leading, spacing: 12) {
+                                        if transcriptionMode == .voice {
+                                            Text(voiceTranscription)
                                                 .font(.body)
                                                 .foregroundStyle(.primary)
                                                 .frame(maxWidth: .infinity, alignment: .leading)
                                                 .padding(.horizontal)
+                                        } else {
+                                            // AI processed content with optional title
+                                            VStack(alignment: .leading, spacing: 8) {
+                                                if includeTitle {
+                                                    Text(aiTitle)
+                                                        .font(.headline)
+                                                        .foregroundStyle(.primary)
+                                                        .padding(.horizontal)
+                                                }
+
+                                                Text(aiProcessedContent)
+                                                    .font(.body)
+                                                    .foregroundStyle(.primary)
+                                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                                    .padding(.horizontal)
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                // Empty state when transcription is cleared
+                                VStack(spacing: 16) {
+                                    Text("No transcription available")
+                                        .font(.body)
+                                        .foregroundStyle(.secondary)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.top, 20)
+
+                                    Button(action: {
+                                        withAnimation {
+                                            transcriptionCleared = false
+                                            // Simulate transcription process
+                                            isProcessing = true
+                                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                                isProcessing = false
+                                            }
+                                        }
+                                    }) {
+                                        Text(transcriptionMode == .voice ? "Transcribe" : "Transcribe with AI")
+                                            .font(.system(size: 16, weight: .medium))
+                                            .foregroundStyle(.white)
+                                            .frame(maxWidth: .infinity)
+                                            .padding(.vertical, 12)
+                                            .background(Color(hex: "44C0FF"))
+                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                    }
+                                    .padding(.horizontal)
+
+                                    if isProcessing {
+                                        HStack(spacing: 8) {
+                                            ProgressView()
+                                                .scaleEffect(0.8)
+                                            Text("Processing audio...")
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
                                         }
                                     }
                                 }
@@ -376,13 +426,51 @@ struct CompactAudioRecordView: View {
                         }) {
                             Label("Edit", systemImage: "pencil")
                         }
-                        
+
+                        // Transcription-related items
+                        if showingTranscription && !transcriptionCleared {
+                            // Has transcription - show Clear option
+                            Button(role: .destructive, action: {
+                                withAnimation {
+                                    transcriptionCleared = true
+                                    transcriptionMode = .voice
+                                }
+                            }) {
+                                Label("Clear Transcription", systemImage: "xmark.circle")
+                            }
+                        } else if (hasRecorded || existingAudio != nil) && transcriptionCleared {
+                            // No transcription but has audio - show Transcribe options
+                            Button(action: {
+                                // Transcribe with voice
+                                withAnimation {
+                                    transcriptionCleared = false
+                                    transcriptionMode = .voice
+                                    showingTranscription = true
+                                }
+                            }) {
+                                Label("Transcribe", systemImage: "waveform")
+                            }
+
+                            Button(action: {
+                                // Transcribe with AI
+                                withAnimation {
+                                    transcriptionCleared = false
+                                    transcriptionMode = .ai
+                                    showingTranscription = true
+                                }
+                            }) {
+                                Label("Transcribe with AI", systemImage: "sparkles")
+                            }
+                        }
+
+                        Divider()
+
                         Button(action: {
                             // Share action
                         }) {
                             Label("Share", systemImage: "square.and.arrow.up")
                         }
-                        
+
                         Button(role: .destructive, action: {
                             recordingTimer?.invalidate()
                             dismiss()
@@ -458,11 +546,11 @@ struct CompactSheetModifier: ViewModifier {
     @Binding var isPresented: Bool
     let height: CGFloat
     let journal: Journal?
-    let existingAudio: AudioRecordView.AudioData?
-    let onInsertTranscription: ((String, AudioRecordView.AudioData) -> Void)?
+    let existingAudio: AudioData?
+    let onInsertTranscription: ((String, AudioData) -> Void)?
     @State private var currentDetent: PresentationDetent
     
-    init(isPresented: Binding<Bool>, height: CGFloat, journal: Journal?, existingAudio: AudioRecordView.AudioData?, onInsertTranscription: ((String, AudioRecordView.AudioData) -> Void)? = nil) {
+    init(isPresented: Binding<Bool>, height: CGFloat, journal: Journal?, existingAudio: AudioData?, onInsertTranscription: ((String, AudioData) -> Void)? = nil) {
         self._isPresented = isPresented
         self.height = height
         self.journal = journal
@@ -495,8 +583,8 @@ extension View {
         isPresented: Binding<Bool>,
         height: CGFloat = 300,
         journal: Journal? = nil,
-        existingAudio: AudioRecordView.AudioData? = nil,
-        onInsertTranscription: ((String, AudioRecordView.AudioData) -> Void)? = nil
+        existingAudio: AudioData? = nil,
+        onInsertTranscription: ((String, AudioData) -> Void)? = nil
     ) -> some View {
         modifier(CompactSheetModifier(
             isPresented: isPresented,
@@ -539,7 +627,7 @@ extension View {
                 .ignoresSafeArea()
                 .sheet(isPresented: .constant(true)) {
                     CompactAudioRecordView(
-                        existingAudio: AudioRecordView.AudioData(
+                        existingAudio: AudioData(
                             title: "Morning Thoughts",
                             duration: 125,
                             recordingDate: Date(),

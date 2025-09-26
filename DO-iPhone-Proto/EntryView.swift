@@ -41,7 +41,7 @@ struct EntryView: View {
     @State private var isEditMode = false
     @State private var shouldShowAudioOnAppear: Bool
     @State private var showingCompactAudioRecord = false
-    @State private var insertedAudioData: AudioRecordView.AudioData?
+    @State private var insertedAudioData: AudioData?
     @State private var useLatoFont = false
     @State private var showingGoDeeperPrompts = false
     @State private var scrollProxy: ScrollViewProxy?
@@ -941,7 +941,7 @@ I think I'm going to sit here for a while longer before heading back down. This 
             }
             .compactAudioSheet(
                 isPresented: $showingAudioPage,
-                existingAudio: insertedAudioData ?? AudioRecordView.AudioData(
+                existingAudio: insertedAudioData ?? AudioData(
                     title: "Morning Reflections at Stewart Falls",
                     duration: audioDuration,
                     recordingDate: entryDate,
@@ -951,7 +951,7 @@ I think I'm going to sit here for a while longer before heading back down. This 
             )
             .compactAudioSheet(
                 isPresented: $showingAudioPage2,
-                existingAudio: AudioRecordView.AudioData(
+                existingAudio: AudioData(
                     title: "Sounds of the Mountain Stream",
                     duration: audioDuration2,
                     recordingDate: entryDate,

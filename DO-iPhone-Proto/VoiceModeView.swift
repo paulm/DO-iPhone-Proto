@@ -4,13 +4,9 @@ import SwiftUI
 struct VoiceModeView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var isMuted = false
-    @State private var audioLevel: CGFloat = 0.3
+    @State private var audioLevel: CGFloat = 0.0
     @State private var isListening = true
-    
-    // Animation states for the audio visualizer
-    @State private var animationAmount1: CGFloat = 1.0
-    @State private var animationAmount2: CGFloat = 1.0
-    @State private var animationAmount3: CGFloat = 1.0
+    private let monitor = MicLevelMonitor()
     
     var body: some View {
         ZStack {
@@ -27,94 +23,19 @@ struct VoiceModeView: View {
             
             VStack {
                 Spacer()
-                
-                // Center animated graphic
+
+                // New listening animation
                 ZStack {
-                    // Outer ring - largest, slowest animation
-                    Circle()
-                        .stroke(
-                            LinearGradient(
-                                colors: [
-                                    Color(hex: "44C0FF").opacity(0.3),
-                                    Color(hex: "44C0FF").opacity(0.1)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 2
-                        )
-                        .frame(width: 250, height: 250)
-                        .scaleEffect(animationAmount3)
-                        .opacity(2 - animationAmount3)
-                    
-                    // Middle ring
-                    Circle()
-                        .stroke(
-                            LinearGradient(
-                                colors: [
-                                    Color(hex: "44C0FF").opacity(0.5),
-                                    Color(hex: "44C0FF").opacity(0.2)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 3
-                        )
-                        .frame(width: 180, height: 180)
-                        .scaleEffect(animationAmount2)
-                        .opacity(2 - animationAmount2)
-                    
-                    // Inner ring - fastest animation
-                    Circle()
-                        .stroke(
-                            LinearGradient(
-                                colors: [
-                                    Color(hex: "44C0FF").opacity(0.7),
-                                    Color(hex: "44C0FF").opacity(0.3)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 4
-                        )
-                        .frame(width: 120, height: 120)
-                        .scaleEffect(animationAmount1)
-                        .opacity(2 - animationAmount1)
-                    
-                    // Center icon/indicator
-                    ZStack {
-                        // Glowing background
-                        Circle()
-                            .fill(
-                                RadialGradient(
-                                    colors: [
-                                        Color(hex: "44C0FF").opacity(0.3),
-                                        Color(hex: "44C0FF").opacity(0.1)
-                                    ],
-                                    center: .center,
-                                    startRadius: 5,
-                                    endRadius: 40
-                                )
-                            )
-                            .frame(width: 80, height: 80)
-                            .blur(radius: 10)
-                        
-                        // Main icon
-                        Image(dayOneIcon: .audio_wave)
-                            .font(.system(size: 40))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [
-                                        Color(hex: "44C0FF"),
-                                        Color(hex: "66D4FF")
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .scaleEffect(isListening ? 1.1 : 1.0)
-                            .animation(.easeInOut(duration: 0.5).repeatForever(autoreverses: true), value: isListening)
-                    }
+                    ListeningAnimationView(
+                        level: $audioLevel,
+                        tintColor: UIColor(Color(hex: "44C0FF"))
+                    )
+                    .frame(width: 260, height: 260)
+
+                    // Center microphone icon - kept perfectly still
+//                    Image(systemName: "waveform")
+//                        .font(.system(size: 40, weight: .regular))
+//                        .foregroundStyle(.white)
                 }
                 .frame(height: 300)
                 
@@ -176,23 +97,21 @@ struct VoiceModeView: View {
             }
         }
         .onAppear {
-            startAnimations()
+            // Start mic monitoring
+            do {
+                try monitor.start()
+                monitor.onLevel = { level in
+                    audioLevel = level
+                }
+            } catch {
+                // Handle error if needed
+                print("Failed to start mic monitoring: \(error)")
+            }
         }
-    }
-    
-    private func startAnimations() {
-        // Start the ripple animations with different speeds
-        withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: false)) {
-            animationAmount1 = 1.5
+        .onDisappear {
+            monitor.stop()
         }
-        
-        withAnimation(.easeInOut(duration: 2.5).repeatForever(autoreverses: false)) {
-            animationAmount2 = 1.6
-        }
-        
-        withAnimation(.easeInOut(duration: 3.0).repeatForever(autoreverses: false)) {
-            animationAmount3 = 1.7
-        }
+        .preferredColorScheme(.dark)
     }
 }
 

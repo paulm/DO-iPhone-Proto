@@ -111,7 +111,6 @@ struct VoiceModeView: View {
         .onDisappear {
             monitor.stop()
         }
-        .preferredColorScheme(.dark)
     }
 }
 

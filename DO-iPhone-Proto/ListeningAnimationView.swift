@@ -25,6 +25,9 @@ public final class ListeningHaloView: UIView {
         isUserInteractionEnabled = false
         backgroundColor = .clear
 
+        // Start with everything invisible for smooth fade-in
+        layer.opacity = 0
+
         // Gradient used to tint the ring stroke
         gradient.colors = [
             tintColor.withAlphaComponent(0.90).cgColor,
@@ -41,12 +44,12 @@ public final class ListeningHaloView: UIView {
         ringLayer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         gradient.mask = ringLayer
 
-        // Pulses
-        pulse.fillColor = tintColor.withAlphaComponent(0.05).cgColor
-        pulse.strokeColor = tintColor.withAlphaComponent(0.25).cgColor
-        pulse.lineWidth = 2.0
+        // Pulses - reduced opacity by half
+        pulse.fillColor = tintColor.withAlphaComponent(0.025).cgColor
+        pulse.strokeColor = tintColor.withAlphaComponent(0.125).cgColor
+        pulse.lineWidth = 1.0
         pulseReplicator.instanceCount = 5
-        pulseReplicator.instanceDelay = 0.8
+        pulseReplicator.instanceDelay = 1.2
         pulseReplicator.addSublayer(pulse)
         layer.addSublayer(pulseReplicator)
 
@@ -66,8 +69,8 @@ public final class ListeningHaloView: UIView {
             tintColor.withAlphaComponent(0.90).cgColor,
             tintColor.withAlphaComponent(0.10).cgColor
         ]
-        pulse.fillColor = tintColor.withAlphaComponent(0.15).cgColor
-        pulse.strokeColor = tintColor.withAlphaComponent(0.25).cgColor
+        pulse.fillColor = tintColor.withAlphaComponent(0.075).cgColor
+        pulse.strokeColor = tintColor.withAlphaComponent(0.125).cgColor
         // centerDot.shadowColor = tintColor.cgColor  // Removed centerDot
     }
 
@@ -106,6 +109,17 @@ public final class ListeningHaloView: UIView {
         pulse.removeAllAnimations()
         ringLayer.removeAllAnimations()
 
+        // Fade in the entire view smoothly on initial load
+        let fadeIn = CABasicAnimation(keyPath: "opacity")
+        fadeIn.fromValue = 0
+        fadeIn.toValue = 1
+        fadeIn.duration = 1.5
+        fadeIn.timingFunction = CAMediaTimingFunction(name: .easeIn)
+        fadeIn.fillMode = .forwards
+        fadeIn.isRemovedOnCompletion = false
+        layer.add(fadeIn, forKey: "fadeIn")
+        layer.opacity = 1  // Set final state
+
         let reduceMotion = UIAccessibility.isReduceMotionEnabled || ProcessInfo.processInfo.isLowPowerModeEnabled
 
         // Breathing ring
@@ -114,6 +128,7 @@ public final class ListeningHaloView: UIView {
             breath.fromValue = 0.46
             breath.toValue = 1.04
             breath.duration = 3.2
+            breath.beginTime = CACurrentMediaTime() + 0.5  // Delay start slightly
             breath.autoreverses = true
             breath.repeatCount = .infinity
             breath.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
@@ -128,13 +143,13 @@ public final class ListeningHaloView: UIView {
             ringLayer.add(fade, forKey: "fade")
         }
 
-        // Repeating ripples
+        // Repeating ripples - reduced size by half, starting even smaller
         let scale = CABasicAnimation(keyPath: "transform.scale")
-        scale.fromValue = 0.1
-        scale.toValue = 2.60
+        scale.fromValue = 0.05
+        scale.toValue = 2.30
 
         let fade = CABasicAnimation(keyPath: "opacity")
-        fade.fromValue = 0.55
+        fade.fromValue = 0.85
         fade.toValue = 0.0
 
         let group = CAAnimationGroup()
@@ -142,6 +157,7 @@ public final class ListeningHaloView: UIView {
         group.duration = 9.8
         group.repeatCount = .infinity
         group.timingFunction = CAMediaTimingFunction(name: .easeOut)
+        group.beginTime = CACurrentMediaTime() + 0.8  // Delay pulse start
 
         if !reduceMotion {
             pulse.add(group, forKey: "pulse")

@@ -33,8 +33,8 @@ struct EntryView: View {
     @State private var showingAudioPage = false
     @State private var showingAudioPage2 = false
     @State private var selectedAudioHasTranscription = true
-    @State private var showAudioEmbed = false
     @State private var showAudioEmbedWithTranscription = false
+    @State private var showSecondAudioEmbed = false
     @State private var showImageEmbed = false
     @State private var showImageCaption = false
     @State private var showingMediaPage = false
@@ -111,13 +111,7 @@ The trail was quiet, with only a few other early risers making their way up the 
     
     // Audio transcription text
     private let audioTranscriptionText = """
-So, I'm sitting here at Stewart Falls, and I just... I can't even put into words how beautiful this is. The water is just cascading down, and there's this mist that's catching the morning light. It's creating these tiny rainbows everywhere I look.
-
-I'm about halfway up the trail now, and I had to stop and just take this in. You know, I was thinking on the way up here about how we get so caught up in our daily routines, checking emails, rushing from one thing to the next. But being out here, it's like... it's like time just slows down.
-
-The aspens are incredible right now. They're just starting to turn, and you can see these patches of gold mixed in with the evergreens. I wish I could capture this, but even photos don't do it justice. There's something about being here, feeling the cool air, hearing the water... it's just so peaceful.
-
-I think I'm going to sit here for a while longer before heading back down. This is exactly what I needed.
+So, I'm sitting here at Stewart Falls, and I just... I can't even put into words how beautiful this is. The water is just cascading down, and there's this mist that's catching the morning light. It's creating these tiny rainbows everywhere I look. I'm about halfway up the trail now, and I had to stop and just take this in. You know, I was thinking on the way up here about how we get so caught up in our daily routines, checking emails, rushing from one thing to the next. But being out here, it's like... it's like time just slows down. The aspens are incredible right now. They're just starting to turn, and you can see these patches of gold mixed in with the evergreens. I wish I could capture this, but even photos don't do it justice. There's something about being here, feeling the cool air, hearing the water... it's just so peaceful. I think I'm going to sit here for a while longer before heading back down. This is exactly what I needed.
 """
     private var journalName: String {
         journal?.name ?? "Sample Journal"
@@ -597,23 +591,23 @@ I think I'm going to sit here for a while longer before heading back down. This 
                                 .padding(.bottom, 8)
                             
                             // Show embeds after text with proper spacing
-                                // First audio recording embed (with transcription)
+                                // First audio recording embed (can have transcription or not)
                                 if showAudioEmbedWithTranscription {
                                 if let audioData = insertedAudioData {
                                     // Use inserted audio data
                                     audioRecordingEmbed(
-                                        hasTranscription: true,
+                                        hasTranscription: audioData.hasTranscription,
                                         isPlaying: $isPlayingAudio,
                                         duration: audioData.duration,
                                         title: audioData.title,
-                                        transcriptionPreview: String(audioData.transcriptionText.prefix(200)),
+                                        transcriptionPreview: audioData.hasTranscription ? String(audioData.transcriptionText.prefix(200)) : nil,
                                         onTap: {
-                                            selectedAudioHasTranscription = true
+                                            selectedAudioHasTranscription = audioData.hasTranscription
                                             showingAudioPage = true
                                         }
                                     )
                                 } else {
-                                    // Use default audio embed
+                                    // Use default audio embed with transcription
                                     audioRecordingEmbed(
                                         hasTranscription: true,
                                         isPlaying: $isPlayingAudio,
@@ -641,8 +635,8 @@ I think I'm going to sit here for a while longer before heading back down. This 
                             }
                             
                             
-                            // Second audio recording embed (without transcription)
-                            if showAudioEmbed {
+                            // Second audio recording embed (without transcription by default)
+                            if showSecondAudioEmbed {
                                 audioRecordingEmbed(
                                     hasTranscription: false,
                                     isPlaying: $isPlayingAudio2,
@@ -837,15 +831,15 @@ I think I'm going to sit here for a while longer before heading back down. This 
                         Button {
                             showAudioEmbedWithTranscription.toggle()
                         } label: {
-                            Label(showAudioEmbedWithTranscription ? "Hide Audio with Transcription" : "Show Audio with Transcription", 
+                            Label(showAudioEmbedWithTranscription ? "Hide Audio Embed" : "Show Audio Embed",
                                   systemImage: showAudioEmbedWithTranscription ? "waveform.slash" : "waveform")
                         }
-                        
+
                         Button {
-                            showAudioEmbed.toggle()
+                            showSecondAudioEmbed.toggle()
                         } label: {
-                            Label(showAudioEmbed ? "Hide Audio Embed" : "Show Audio Embed", 
-                                  systemImage: showAudioEmbed ? "speaker.slash" : "speaker.wave.2")
+                            Label(showSecondAudioEmbed ? "Hide Second Audio" : "Show Second Audio",
+                                  systemImage: showSecondAudioEmbed ? "speaker.slash" : "speaker.wave.2")
                         }
                         
                         Button {

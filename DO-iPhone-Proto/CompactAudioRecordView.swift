@@ -53,22 +53,18 @@ struct CompactAudioRecordView: View {
     
     private var aiProcessedContent: String {
         """
-        **Coffee Shop Encounter**
-        Met Sarah at coffee shop after months apart. She shared exciting news about her new position at a downtown tech startup developing an AI-powered fitness application.
-        
-        **Fitness Progress**
-        Completed leg workout at gym, successfully returning to regular exercise routine post-holidays. Already experiencing muscle engagement from the session.
-        
-        **Entertainment Plans**
-        Secured concert tickets for next month's show. Looking forward to first live music experience in extended period.
-        
-        **Weather & Travel Thoughts**
-        Perfect sunny conditions inspired considerations for upcoming weekend coastal trip.
+        I’m sitting here at Stewart Falls, and I can’t even put into words how beautiful this is. The water cascades down in sheets, and a fine mist catches the morning light, creating tiny rainbows everywhere I look.
+
+        I’m about halfway up the trail now, and I had to stop to take this in. On the way up, I was thinking about how we get so caught up in daily routines—checking emails, rushing from one thing to the next. Out here, though, time seems to slow down.
+
+        The aspens are incredible right now, just starting to turn. Patches of gold mix in with the evergreens, and it feels like the whole forest is shifting colors before my eyes. I wish I could capture this, but even photos don’t do it justice.
+
+        There’s something about being here—feeling the cool air, hearing the water—that can’t be replicated. It’s peaceful in a way that demands stillness. I think I’ll sit here a while longer before heading back down. This is exactly what I needed.
         """
     }
     
     private var aiTitle: String {
-        "Tuesday Reflections: Reconnections & Routines"
+        "Rainbows at Stewart Falls"
     }
     
     init(journal: Journal? = nil, existingAudio: AudioData? = nil, currentDetent: Binding<PresentationDetent>, onInsertTranscription: ((String, AudioData) -> Void)? = nil) {
@@ -332,9 +328,27 @@ struct CompactAudioRecordView: View {
                             }
                             .padding(.top, 4)
                             } else {
-                                // No transcription state - show Transcribe buttons
-                                VStack(spacing: 16) {
-                                    Spacer(minLength: 20)
+                                // No transcription state - show Transcribe buttons at top
+                                VStack(spacing: 12) {
+                                    Button(action: {
+                                        withAnimation {
+                                            transcriptionCleared = false
+                                            // Simulate transcription process
+                                            isProcessing = true
+                                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                                isProcessing = false
+                                            }
+                                        }
+                                    }) {
+                                        Text(transcriptionMode == .voice ? "Transcribe" : "Transcribe with AI")
+                                            .font(.system(size: 16, weight: .medium))
+                                            .foregroundStyle(.white)
+                                            .frame(maxWidth: .infinity)
+                                            .padding(.vertical, 12)
+                                            .background(Color(hex: "44C0FF"))
+                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                    }
+                                    .padding(.horizontal)
                                 }
                                 .padding(.top, 4)
                             }
@@ -370,44 +384,28 @@ struct CompactAudioRecordView: View {
                                 }
                             } else {
                                 // Empty state when transcription is cleared
-                                VStack(spacing: 16) {
-                                    Text("No transcription available")
-                                        .font(.body)
-                                        .foregroundStyle(.secondary)
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.top, 20)
+                                VStack {
+                                    Spacer()
 
-                                    Button(action: {
-                                        withAnimation {
-                                            transcriptionCleared = false
-                                            // Simulate transcription process
-                                            isProcessing = true
-                                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                                                isProcessing = false
+                                    VStack(spacing: 16) {
+                                        Text("No transcription available")
+                                            .font(.body)
+                                            .foregroundStyle(.secondary)
+                                            .frame(maxWidth: .infinity)
+
+                                        if isProcessing {
+                                            HStack(spacing: 8) {
+                                                ProgressView()
+                                                    .scaleEffect(0.8)
+                                                Text("Processing audio...")
+                                                    .font(.caption)
+                                                    .foregroundStyle(.secondary)
                                             }
                                         }
-                                    }) {
-                                        Text(transcriptionMode == .voice ? "Transcribe" : "Transcribe with AI")
-                                            .font(.system(size: 16, weight: .medium))
-                                            .foregroundStyle(.white)
-                                            .frame(maxWidth: .infinity)
-                                            .padding(.vertical, 12)
-                                            .background(Color(hex: "44C0FF"))
-                                            .clipShape(RoundedRectangle(cornerRadius: 10))
                                     }
-                                    .padding(.horizontal)
 
-                                    if isProcessing {
-                                        HStack(spacing: 8) {
-                                            ProgressView()
-                                                .scaleEffect(0.8)
-                                            Text("Processing audio...")
-                                                .font(.caption)
-                                                .foregroundStyle(.secondary)
-                                        }
-                                    }
+                                    Spacer()
                                 }
-                                .padding(.vertical)
                             }
                         }
                     }

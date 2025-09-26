@@ -12,7 +12,6 @@ public final class ListeningHaloView: UIView {
     func updateLevel(_ x: CGFloat) { level = ema(alpha: 0.05, x: clamp01(x), prev: level) }
 
     // Layers
-    private let gradient = CAGradientLayer()
     private let ringLayer = CAShapeLayer()
     private let pulseReplicator = CAReplicatorLayer()
     private let pulse = CAShapeLayer()
@@ -25,24 +24,13 @@ public final class ListeningHaloView: UIView {
         isUserInteractionEnabled = false
         backgroundColor = .clear
 
-        // Start with everything invisible for smooth fade-in
-        layer.opacity = 0
 
-        // Gradient used to tint the ring stroke
-        gradient.colors = [
-            tintColor.withAlphaComponent(0.90).cgColor,
-            tintColor.withAlphaComponent(0.10).cgColor
-        ]
-        gradient.startPoint = CGPoint(x: 0.5, y: 0.0)
-        gradient.endPoint = CGPoint(x: 0.5, y: 1.0)
-        layer.addSublayer(gradient)
-
-        // Ring stroke masked by gradient
+        // Simple ring stroke
         ringLayer.fillColor = UIColor.clear.cgColor
-        ringLayer.strokeColor = UIColor.white.withAlphaComponent(0.9).cgColor
+        ringLayer.strokeColor = tintColor.withAlphaComponent(0.3).cgColor
         ringLayer.lineCap = .round
         ringLayer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
-        gradient.mask = ringLayer
+        layer.addSublayer(ringLayer)
 
         // Pulses - reduced opacity by half
         pulse.fillColor = tintColor.withAlphaComponent(0.025).cgColor
@@ -65,10 +53,7 @@ public final class ListeningHaloView: UIView {
 
     public override func tintColorDidChange() {
         super.tintColorDidChange()
-        gradient.colors = [
-            tintColor.withAlphaComponent(0.90).cgColor,
-            tintColor.withAlphaComponent(0.10).cgColor
-        ]
+        ringLayer.strokeColor = tintColor.withAlphaComponent(0.3).cgColor
         pulse.fillColor = tintColor.withAlphaComponent(0.075).cgColor
         pulse.strokeColor = tintColor.withAlphaComponent(0.125).cgColor
         // centerDot.shadowColor = tintColor.cgColor  // Removed centerDot
@@ -78,7 +63,6 @@ public final class ListeningHaloView: UIView {
         super.layoutSubviews()
 
         let b = bounds
-        gradient.frame = b
         pulseReplicator.frame = b
 
         // Geometry
@@ -109,17 +93,6 @@ public final class ListeningHaloView: UIView {
         pulse.removeAllAnimations()
         ringLayer.removeAllAnimations()
 
-        // Fade in the entire view smoothly on initial load
-        let fadeIn = CABasicAnimation(keyPath: "opacity")
-        fadeIn.fromValue = 0
-        fadeIn.toValue = 1
-        fadeIn.duration = 1.5
-        fadeIn.timingFunction = CAMediaTimingFunction(name: .easeIn)
-        fadeIn.fillMode = .forwards
-        fadeIn.isRemovedOnCompletion = false
-        layer.add(fadeIn, forKey: "fadeIn")
-        layer.opacity = 1  // Set final state
-
         let reduceMotion = UIAccessibility.isReduceMotionEnabled || ProcessInfo.processInfo.isLowPowerModeEnabled
 
         // Breathing ring
@@ -128,7 +101,6 @@ public final class ListeningHaloView: UIView {
             breath.fromValue = 0.46
             breath.toValue = 1.04
             breath.duration = 3.2
-            breath.beginTime = CACurrentMediaTime() + 0.5  // Delay start slightly
             breath.autoreverses = true
             breath.repeatCount = .infinity
             breath.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
@@ -157,7 +129,6 @@ public final class ListeningHaloView: UIView {
         group.duration = 9.8
         group.repeatCount = .infinity
         group.timingFunction = CAMediaTimingFunction(name: .easeOut)
-        group.beginTime = CACurrentMediaTime() + 0.8  // Delay pulse start
 
         if !reduceMotion {
             pulse.add(group, forKey: "pulse")
@@ -168,7 +139,7 @@ public final class ListeningHaloView: UIView {
         // Level drives ring thickness and opacity; small but noticeable
         // centerDot.shadowRadius = 8 + 28 * x  // Removed centerDot
         ringLayer.lineWidth = 2 + 3 * x
-        gradient.opacity = Float(0.65 + 0.35 * x)
+        ringLayer.opacity = Float(0.65 + 0.35 * x)
     }
 
     private func clamp01(_ v: CGFloat) -> CGFloat { max(0, min(1, v)) }

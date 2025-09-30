@@ -301,11 +301,12 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                                     .scrollContentBackground(.hidden)
                                     .focused($textEditorFocused)
                                     .padding(.horizontal, 11) // Reduced from 16 to 11 (5pt less)
-                                    .frame(minHeight: UIScreen.main.bounds.height) // Ensure minimum height for scrolling
+                                    .frame(minHeight: 250) // Reasonable minimum height
                                     .id("textEditor")
                                     .onChange(of: entryText) { _ in
                                         // Auto-scroll to keep cursor visible when text changes
-                                        if textEditorFocused {
+                                        // Only scroll if there's substantial content (more than 500 characters)
+                                        if textEditorFocused && entryText.count > 500 {
                                             // Small delay to allow the text to render
                                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                                                 withAnimation(.easeInOut(duration: 0.3)) {
@@ -496,6 +497,14 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                         .ignoresSafeArea(.container, edges: [.top, .bottom])
                         .onAppear {
                             scrollProxy = proxy
+                            // For blank entries in edit mode, scroll to top
+                            if entryText.isEmpty || entryText.count < 100 {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                    withAnimation(.easeInOut(duration: 0.3)) {
+                                        proxy.scrollTo("top", anchor: .top)
+                                    }
+                                }
+                            }
                         }
                     }
                 } else {

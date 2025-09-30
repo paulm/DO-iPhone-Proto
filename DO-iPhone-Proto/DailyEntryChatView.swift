@@ -16,6 +16,7 @@ struct DailyEntryChatView: View {
     // Sheet presentation bindings
     @Binding var showingDailyChat: Bool  // Shows full Daily Chat view
     @Binding var showingEntry: Bool  // Shows Entry view for viewing/editing
+    @Binding var entryData: EntryView.EntryData?  // Entry data to pass to EntryView
     @Binding var showingPreviewEntry: Bool  // Shows Chat Entry Preview (summary)
     @Binding var openDailyChatInLogMode: Bool  // Whether to open chat in log mode
     
@@ -116,6 +117,13 @@ struct DailyEntryChatView: View {
         // Generate Entry is now shown as a full-width cell above
         return hasEntry && hasNewMessages && !isGeneratingEntry
     }
+
+    /// Format date to time string for entry data
+    private func formatTime(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm a"
+        return formatter.string(from: date)
+    }
     
     /// Dynamic button text based on current state
     private var entryButtonText: String {
@@ -191,6 +199,21 @@ struct DailyEntryChatView: View {
                             .padding(.bottom, 12)
                         
                         Button(action: {
+                            // Set entry data for existing entry
+                            entryData = EntryView.EntryData(
+                                title: "Morning Reflections",
+                                content: """
+Morning Reflections
+
+Today I started with my usual morning routine, feeling energized and ready for the day ahead. The weather was perfect, with clear blue skies and a gentle breeze. I took some extra time to enjoy my coffee on the balcony, watching the city slowly wake up around me.
+
+I've been thinking a lot about balance lately—how to find more moments of peace in the midst of busy days. This morning felt like a small step in the right direction. Sometimes the best days are the ones where we don't try to do too much, but instead focus on being fully present in each moment.
+
+Later, I went for a walk in the park and noticed how the leaves are just beginning to change colors. Fall has always been my favorite season, and I'm looking forward to the cooler weather ahead. There's something about this time of year that makes me feel reflective and grateful.
+""",
+                                date: selectedDate,
+                                time: formatTime(selectedDate)
+                            )
                             showingEntry = true
                         }) {
                             VStack(alignment: .leading, spacing: 8) {

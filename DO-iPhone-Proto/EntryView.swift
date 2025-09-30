@@ -66,45 +66,51 @@ The trail was quiet, with only a few other early risers making their way up the 
         self.prompt = prompt
         self._shouldShowAudioOnAppear = State(initialValue: shouldShowAudioOnAppear)
         self._isEditMode = State(initialValue: startInEditMode)
-        
+
         if let data = entryData {
             // Use provided entry data
             self._entryText = State(initialValue: data.content)
-            
+
             // Parse time string and apply to date
             var finalDate = data.date
             let timeComponents = data.time.components(separatedBy: " ")
             if timeComponents.count >= 2 {
                 let timePart = timeComponents[0] // e.g., "6:11"
                 let meridiem = timeComponents[1] // e.g., "PM"
-                
+
                 let timeSubComponents = timePart.components(separatedBy: ":")
                 if timeSubComponents.count == 2,
                    let hour = Int(timeSubComponents[0]),
                    let minute = Int(timeSubComponents[1]) {
-                    
+
                     var adjustedHour = hour
                     if meridiem.hasPrefix("PM") && hour != 12 {
                         adjustedHour += 12
                     } else if meridiem.hasPrefix("AM") && hour == 12 {
                         adjustedHour = 0
                     }
-                    
+
                     let calendar = Calendar.current
                     if let dateWithTime = calendar.date(bySettingHour: adjustedHour, minute: minute, second: 0, of: data.date) {
                         finalDate = dateWithTime
                     }
                 }
             }
-            
+
             self._entryDate = State(initialValue: finalDate)
         } else if let prompt = prompt {
             // New entry with prompt
             self._entryText = State(initialValue: prompt + "\n\n")
             self._entryDate = State(initialValue: Date())
         } else {
-            // New entry - use defaults with sample content
-            self._entryText = State(initialValue: defaultEntryContent)
+            // New entry - check if it should be blank (from FAB) or use sample content
+            if startInEditMode {
+                // New blank entry from FAB - start with empty content
+                self._entryText = State(initialValue: "")
+            } else {
+                // Viewing mode or preview - use sample content
+                self._entryText = State(initialValue: defaultEntryContent)
+            }
             self._entryDate = State(initialValue: Date())
         }
     }

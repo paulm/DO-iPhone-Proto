@@ -516,6 +516,7 @@ struct TodayView: View {
     @State private var showingPreviewEntry = false
     @State private var entryCreated = false
     @State private var showingEntry = false
+    @State private var entryData: EntryView.EntryData? = nil
     @State private var isGeneratingEntry = false
     @State private var chatUpdateTrigger = false
     @State private var momentsInitialSection: String? = nil
@@ -885,6 +886,7 @@ struct TodayView: View {
                     isGeneratingEntry: isGeneratingEntry,
                     showingDailyChat: $showingDailyChat,
                     showingEntry: $showingEntry,
+                    entryData: $entryData,
                     showingPreviewEntry: $showingPreviewEntry,
                     openDailyChatInLogMode: $openDailyChatInLogMode,
                     showLogVoiceModeButtons: showLogVoiceModeButtons
@@ -1800,11 +1802,19 @@ struct TodayView: View {
             }
         }
         .sheet(isPresented: $showingEntry) {
-            EntryView(journal: nil, prompt: selectedPrompt)
-                .onDisappear {
-                    // Clear the selected prompt after the sheet is dismissed
-                    selectedPrompt = nil
-                }
+            if let data = entryData {
+                // Opening existing entry - Read mode
+                EntryView(journal: nil, entryData: data, startInEditMode: false)
+                    .onDisappear {
+                        entryData = nil
+                    }
+            } else {
+                // New entry with prompt - Edit mode
+                EntryView(journal: nil, prompt: selectedPrompt, startInEditMode: true)
+                    .onDisappear {
+                        selectedPrompt = nil
+                    }
+            }
         }
         .confirmationDialog(
             "Choose Journal for Entries", 

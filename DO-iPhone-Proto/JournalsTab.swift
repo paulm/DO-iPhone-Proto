@@ -81,7 +81,8 @@ struct JournalsTabPagedView: View {
         .sheet(isPresented: $showingNewEntry) {
             EntryView(
                 journal: journalViewModel.selectedJournal,
-                shouldShowAudioOnAppear: shouldShowAudioAfterEntry
+                shouldShowAudioOnAppear: shouldShowAudioAfterEntry,
+                startInEditMode: true
             )
             .onDisappear {
                 shouldShowAudioAfterEntry = false

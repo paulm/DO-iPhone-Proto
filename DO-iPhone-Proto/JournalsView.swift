@@ -281,7 +281,7 @@ Finished with some stretching by the fountain. Feeling ready to tackle whatever 
         }
         .background(.white)
         .sheet(isPresented: $showingEntryView) {
-            EntryView(journal: journal, entryData: selectedEntryData)
+            EntryView(journal: journal, entryData: selectedEntryData, startInEditMode: false)
         }
     }
 }

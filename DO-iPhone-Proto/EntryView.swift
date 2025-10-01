@@ -321,9 +321,6 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                                         VStack(spacing: 0) {
                                             if !showingGoDeeperPrompts {
                                                 HStack(spacing: 18) {
-                                                    Spacer()
-
-                                                    // Right-aligned buttons
                                                 // AI Sparkle menu
                                                 Menu {
                                                         Button {
@@ -452,9 +449,9 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                                                         .foregroundColor(.primary)
                                                 }
                                             }
-                                            .padding(.trailing, 12)
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 2)
                                         }
-
                                         // Go Deeper Prompts carousel overlay
                                         if showingGoDeeperPrompts {
                                             GoDeeperPromptsView(

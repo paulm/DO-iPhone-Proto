@@ -321,25 +321,11 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                                         VStack(spacing: 0) {
                                             if !showingGoDeeperPrompts {
                                                 HStack(spacing: 18) {
-                                                // Dismiss keyboard and toggle to Read Mode (left-aligned)
-                                                Button {
-                                                    withAnimation(.easeInOut(duration: 0.3)) {
-                                                        textEditorFocused = false
-                                                        isEditMode = false
-                                                    }
-                                                } label: {
-                                                    Text(DayOneIcon.chevron_down.rawValue)
-                                                        .font(Font.custom("DayOneIcons", size: 18))
-                                                        .foregroundColor(.primary)
-                                                }
-                                                .padding(.leading, 6) // Move left icon in by 10pt
-                                                
-                                                Spacer()
-                                                
-                                                // Right-aligned buttons
-                                                HStack(spacing: 18) {
-                                                    // AI Sparkle menu
-                                                    Menu {
+                                                    Spacer()
+
+                                                    // Right-aligned buttons
+                                                // AI Sparkle menu
+                                                Menu {
                                                         Button {
                                                             // AI Title Suggestions action
                                                         } label: {
@@ -368,22 +354,22 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                                                         
                                                         
                                                     } label: {
-                                                        Text(DayOneIcon.sparkles.rawValue)
-                                                            .font(Font.custom("DayOneIcons", size: 20))
-                                                            .foregroundColor(.primary)
-                                                    }
-                                                    
-                                                    // Photo picker button
-                                                    Button {
-                                                        // Open system photo picker
-                                                    } label: {
-                                                        Text(DayOneIcon.photo.rawValue)
-                                                            .font(Font.custom("DayOneIcons", size: 20))
-                                                            .foregroundColor(.primary)
-                                                    }
-                                                    
-                                                    // Paperclip attachment menu
-                                                    Menu {
+                                                    Text(DayOneIcon.sparkles.rawValue)
+                                                        .font(Font.custom("DayOneIcons", size: 20))
+                                                        .foregroundColor(.primary)
+                                                }
+
+                                                // Photo picker button
+                                                Button {
+                                                    // Open system photo picker
+                                                } label: {
+                                                    Text(DayOneIcon.photo.rawValue)
+                                                        .font(Font.custom("DayOneIcons", size: 20))
+                                                        .foregroundColor(.primary)
+                                                }
+
+                                                // Paperclip attachment menu
+                                                Menu {
                                                         Button {
                                                             // Audio action
                                                         } label: {
@@ -414,13 +400,13 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                                                             Label("Chat", systemImage: "bubble.left")
                                                         }
                                                     } label: {
-                                                        Text(DayOneIcon.attachment.rawValue)
-                                                            .font(Font.custom("DayOneIcons", size: 20))
-                                                            .foregroundColor(.primary)
-                                                    }
-                                                    
-                                                    // Text formatting menu
-                                                    Menu {
+                                                    Text(DayOneIcon.attachment.rawValue)
+                                                        .font(Font.custom("DayOneIcons", size: 20))
+                                                        .foregroundColor(.primary)
+                                                }
+
+                                                // Text formatting menu
+                                                Menu {
                                                         Button {
                                                             // Bold action
                                                         } label: {
@@ -461,37 +447,36 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                                                             Label("Code Block", systemImage: "curlybraces")
                                                         }
                                                     } label: {
-                                                        Text(DayOneIcon.text_format.rawValue)
-                                                            .font(Font.custom("DayOneIcons", size: 20))
-                                                            .foregroundColor(.primary)
-                                                    }
+                                                    Text(DayOneIcon.text_format.rawValue)
+                                                        .font(Font.custom("DayOneIcons", size: 20))
+                                                        .foregroundColor(.primary)
                                                 }
-                                                .padding(.trailing, 12) // Move right icons in by 10pt
                                             }
-                                            }
-                                            
-                                            // Go Deeper Prompts carousel overlay
-                                            if showingGoDeeperPrompts {
-                                                GoDeeperPromptsView(
-                                                    isShowing: $showingGoDeeperPrompts,
-                                                    prompts: [
-                                                        "What emotions did I experience during my hike today?",
-                                                        "How did the scenery impact my mood on this perfect day?",
-                                                        "In what other moments did I feel gratitude today?"
-                                                    ],
-                                                    onSelectPrompt: { prompt in
-                                                        // Insert prompt at the end of the text
-                                                        if !entryText.isEmpty && !entryText.hasSuffix("\n") {
-                                                            entryText += "\n\n"
-                                                        }
-                                                        entryText += prompt
+                                            .padding(.trailing, 12)
+                                        }
+
+                                        // Go Deeper Prompts carousel overlay
+                                        if showingGoDeeperPrompts {
+                                            GoDeeperPromptsView(
+                                                isShowing: $showingGoDeeperPrompts,
+                                                prompts: [
+                                                    "What emotions did I experience during my hike today?",
+                                                    "How did the scenery impact my mood on this perfect day?",
+                                                    "In what other moments did I feel gratitude today?"
+                                                ],
+                                                onSelectPrompt: { prompt in
+                                                    // Insert prompt at the end of the text
+                                                    if !entryText.isEmpty && !entryText.hasSuffix("\n") {
+                                                        entryText += "\n\n"
                                                     }
-                                                )
-                                                .transition(.move(edge: .bottom).combined(with: .opacity))
-                                            }
+                                                    entryText += prompt
+                                                }
+                                            )
+                                            .transition(.move(edge: .bottom).combined(with: .opacity))
                                         }
                                     }
                                 }
+                            }
                             }
                         }
                         .ignoresSafeArea(.container, edges: [.top, .bottom])

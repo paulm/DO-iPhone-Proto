@@ -46,6 +46,7 @@ struct EntryView: View {
     @State private var showingGoDeeperPrompts = false
     @State private var scrollProxy: ScrollViewProxy?
     @FocusState private var textEditorFocused: Bool
+    @State private var showingTitleSuggestions = false
     
     // Location for the map - Sundance Resort coordinates
     private let entryLocation = CLLocationCoordinate2D(latitude: 40.6006, longitude: -111.5878)
@@ -324,11 +325,14 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                                                 // AI Sparkle menu
                                                 Menu {
                                                         Button {
-                                                            // AI Title Suggestions action
+                                                            textEditorFocused = false
+                                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                                                showingTitleSuggestions = true
+                                                            }
                                                         } label: {
                                                             Label("AI Title Suggestions", systemImage: "textformat.abc")
                                                         }
-                                                        
+
                                                         Button {
                                                             withAnimation(.easeInOut(duration: 0.2)) {
                                                                 showingGoDeeperPrompts = true
@@ -967,12 +971,31 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                         entryText += "\n\n"
                     }
                     entryText += transcriptionText
-                    
+
                     // Store the audio data and show the embed
                     insertedAudioData = audioData
                     showAudioEmbedWithTranscription = true
                 }
             )
+            .confirmationDialog("AI Title Suggestions", isPresented: $showingTitleSuggestions, titleVisibility: .visible) {
+                Button("A Perfect Day at Sundance") {
+                    // Insert title suggestion
+                }
+
+                Button("Moments of Mountain Solitude") {
+                    // Insert title suggestion
+                }
+
+                Button("Morning Light Through the Aspens") {
+                    // Insert title suggestion
+                }
+
+                Button("Finding Peace on the Trail") {
+                    // Insert title suggestion
+                }
+
+                Button("Cancel", role: .cancel) {}
+            }
         }
     }
     

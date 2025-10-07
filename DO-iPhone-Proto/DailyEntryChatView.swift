@@ -199,8 +199,8 @@ struct DailyEntryChatView: View {
                             .padding(.bottom, 12)
                         
                         Button(action: {
-                            // Set entry data for existing entry
-                            entryData = EntryView.EntryData(
+                            // Set entry data for existing entry first
+                            let data = EntryView.EntryData(
                                 title: "Morning Reflections",
                                 content: """
 Morning Reflections
@@ -214,7 +214,11 @@ Later, I went for a walk in the park and noticed how the leaves are just beginni
                                 date: selectedDate,
                                 time: formatTime(selectedDate)
                             )
-                            showingEntry = true
+                            entryData = data
+                            // Small delay to ensure state is propagated
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                                showingEntry = true
+                            }
                         }) {
                             VStack(alignment: .leading, spacing: 8) {
 

@@ -55,7 +55,7 @@ struct DailyChatSettingsView: View {
                         HStack {
                             Text("Manage Memories")
                             Spacer()
-                            Text("3")
+                            Text("7")
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -140,6 +140,18 @@ struct MemoriesListView: View {
         ),
         Memory(
             content: "I'm working on improving my health by walking 3 miles every morning.",
+        ),
+        Memory(
+            content: "My favorite coffee is a double espresso with oat milk.",
+        ),
+        Memory(
+            content: "I'm learning to play guitar and practicing 30 minutes each day.",
+        ),
+        Memory(
+            content: "I prefer reading physical books over ebooks, especially before bed.",
+        ),
+        Memory(
+            content: "I've been vegetarian for 5 years and love trying new plant-based recipes.",
         )
     ]
     

@@ -1,214 +1,240 @@
 import SwiftUI
 
 struct ZapierIntegrationView: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var isConnected = false
+
     var body: some View {
-        ScrollView {
-            VStack(spacing: 32) {
-                // Hero Section
-                VStack(spacing: 24) {
-                    // Zapier logo placeholder
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(.orange.gradient)
-                        .frame(width: 80, height: 80)
-                        .overlay(
-                            Text("Z")
-                                .font(.system(size: 40, weight: .bold))
-                                .foregroundStyle(.white)
-                        )
-                        .shadow(color: .orange.opacity(0.3), radius: 10, x: 0, y: 5)
-                    
-                    VStack(spacing: 16) {
-                        Text("Day One + Zapier")
-                            .font(.title)
-                            .fontWeight(.bold)
-                        
-                        Text("Connect Day One to 6,000+ apps and automate your journaling workflow like never before.")
-                            .font(.title3)
+        ZStack(alignment: .bottom) {
+            if !isConnected {
+                // Disconnected state with ScrollView
+                Color(.systemGroupedBackground)
+                    .ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // Zapier logo
+                        RoundedRectangle(cornerRadius: 22)
+                            .fill(Color(hex: "FF4A00"))
+                            .frame(width: 88, height: 88)
+                            .overlay(
+                                Text("Z")
+                                    .font(.system(size: 54, weight: .bold))
+                                    .foregroundStyle(.white)
+                            )
+                            .padding(.top, 20)
+
+                        // Description
+                        Text("Connect Zapier to automate your journaling with 6,000+ apps and never miss capturing important moments.")
+                            .font(.system(size: 13))
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
-                            .padding(.horizontal)
-                    }
-                }
-                .padding(.top, 20)
-                
-                // Benefits Section
-                VStack(spacing: 24) {
-                    Text("What You Can Do")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                    
-                    VStack(spacing: 20) {
-                        BenefitRow(
-                            icon: "clock.arrow.circlepath",
-                            title: "Automatic Triggers",
-                            description: "Create journal entries when you complete tasks, receive emails, or hit fitness goals."
-                        )
-                        
-                        BenefitRow(
-                            icon: "arrow.triangle.branch",
-                            title: "Multi-App Workflows",
-                            description: "Combine data from multiple sources like weather, calendar events, and social media into rich journal entries."
-                        )
-                        
-                        BenefitRow(
-                            icon: "chart.line.uptrend.xyaxis",
-                            title: "Data Enrichment",
-                            description: "Automatically add location, weather, mood tracking, and productivity metrics to your entries."
-                        )
-                        
-                        BenefitRow(
-                            icon: "bell.badge",
-                            title: "Smart Reminders",
-                            description: "Get prompted to journal based on your habits, schedules, or important life events."
-                        )
-                        
-                        BenefitRow(
-                            icon: "photo.on.rectangle.angled",
-                            title: "Content Aggregation",
-                            description: "Collect photos from Instagram, tweets, or Spotify listening history into themed journal entries."
-                        )
-                    }
-                }
-                .padding(.horizontal)
-                
-                // Popular Zaps Section
-                VStack(spacing: 20) {
-                    Text("Popular Automations")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                    
-                    VStack(spacing: 12) {
-                        PopularZapRow(
-                            apps: ["Gmail", "Day One"],
-                            description: "Create journal entries from important emails"
-                        )
-                        
-                        PopularZapRow(
-                            apps: ["Apple Health", "Day One"],
-                            description: "Log daily fitness achievements and health metrics"
-                        )
-                        
-                        PopularZapRow(
-                            apps: ["Todoist", "Day One"],
-                            description: "Journal about completed projects and milestones"
-                        )
-                        
-                        PopularZapRow(
-                            apps: ["Instagram", "Day One"],
-                            description: "Archive your photos with automatic journal entries"
-                        )
-                        
-                        PopularZapRow(
-                            apps: ["Weather", "Day One"],
-                            description: "Add weather context to your daily reflections"
-                        )
-                    }
-                }
-                .padding(.horizontal)
-                
-                // CTA Section
-                VStack(spacing: 16) {
-                    Text("Ready to Automate Your Journaling?")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .multilineTextAlignment(.center)
-                    
-                    Text("Connect Day One to Zapier and start building powerful automations that capture your life automatically.")
-                        .font(.body)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal)
-                    
-                    Button {
-                        // TODO: Implement Zapier OAuth flow
-                    } label: {
-                        HStack {
-                            Image(systemName: "link")
-                            Text("Connect to Zapier")
+                            .padding(.horizontal, 28)
+
+                        // Features list - white inset grouped card
+                        VStack(spacing: 0) {
+                            ZapierFeatureRow(
+                                icon: "bolt.fill",
+                                title: "Smart Automation",
+                                description: "Automatically create entries from emails, tasks, fitness goals, and more."
+                            )
+
+                            ZapierFeatureRow(
+                                icon: "arrow.triangle.branch",
+                                title: "Multi-App Workflows",
+                                description: "Connect multiple apps together to build powerful journaling automations."
+                            )
+
+                            ZapierFeatureRow(
+                                icon: "sparkles",
+                                title: "Trigger Options",
+                                description: "Create entries based on schedules, events, or custom conditions."
+                            )
+
+                            ZapierFeatureRow(
+                                icon: "paintbrush.fill",
+                                title: "Data Enrichment",
+                                description: "Automatically add weather, location, and metadata to your entries."
+                            )
+
+                            ZapierFeatureRow(
+                                icon: "app.connected.to.app.below.fill",
+                                title: "6,000+ Integrations",
+                                description: "Connect with Gmail, Slack, Todoist, Instagram, and thousands more.",
+                                isLast: true
+                            )
                         }
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(.orange, in: RoundedRectangle(cornerRadius: 12))
-                        .foregroundStyle(.white)
+                        .background(Color(.systemBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 28))
+                        .padding(.horizontal, 16)
+                        .padding(.top, 8)
+
+                        Spacer(minLength: 100)
                     }
-                    .padding(.horizontal, 40)
-                    .accessibilityLabel("Connect Day One to Zapier")
-                    
-                    Text("Free to start • Premium features available")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
                 }
-                .padding(.top, 8)
-                
-                Spacer(minLength: 40)
+
+                // Connect button at bottom
+                VStack(spacing: 0) {
+                    Button {
+                        withAnimation {
+                            isConnected = true
+                        }
+                    } label: {
+                        HStack(spacing: 8) {
+                            Text("CONNECT WITH")
+                                .font(.system(size: 17, weight: .bold))
+                            Text("ZAPIER")
+                                .font(.system(size: 17, weight: .heavy))
+                                .tracking(0.5)
+                        }
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 18)
+                        .background(Color(hex: "FF4A00"))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 16)
+                }
+                .background(Color(.systemGroupedBackground))
+            } else {
+                // Connected state with Form
+                Form {
+                    Section {
+                        VStack(spacing: 12) {
+                            // Zapier logo
+                            RoundedRectangle(cornerRadius: 22)
+                                .fill(Color(hex: "FF4A00"))
+                                .frame(width: 88, height: 88)
+                                .overlay(
+                                    Text("Z")
+                                        .font(.system(size: 54, weight: .bold))
+                                        .foregroundStyle(.white)
+                                )
+
+                            // Description
+                            Text("Automate your journaling with 6,000+ apps. Create entries from emails, tasks, fitness goals, and more.")
+                                .font(.system(size: 13))
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 12)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                    }
+                    .listRowBackground(Color.clear)
+
+                    Section {
+                        HStack(spacing: 16) {
+                            Circle()
+                                .fill(Color(.systemGray6))
+                                .frame(width: 60, height: 60)
+                                .overlay(
+                                    Image(systemName: "person.fill")
+                                        .font(.system(size: 28))
+                                        .foregroundStyle(.secondary)
+                                )
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Paul Mayne")
+                                    .font(.system(size: 17))
+
+                                Text("ID: 892341, connected 7/12/25")
+                                    .font(.system(size: 13))
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .padding(.vertical, 4)
+
+                        Button(role: .destructive) {
+                            withAnimation {
+                                isConnected = false
+                            }
+                        } label: {
+                            HStack {
+                                Spacer()
+                                Text("Disconnect Zapier")
+                                Spacer()
+                            }
+                        }
+                    } header: {
+                        Text("Account")
+                    }
+
+                    Section {
+                        VStack(spacing: 8) {
+                            Text("POWERED BY")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundStyle(.secondary)
+                                .tracking(1)
+
+                            Text("ZAPIER")
+                                .font(.system(size: 28, weight: .heavy))
+                                .foregroundStyle(.primary)
+                                .tracking(2)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 20)
+                    }
+                    .listRowBackground(Color.clear)
+                }
             }
         }
         .navigationTitle("Zapier")
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Done") {
+                    dismiss()
+                }
+                .fontWeight(.medium)
+            }
+        }
     }
 }
 
-// MARK: - Supporting Views
-struct BenefitRow: View {
+// MARK: - Zapier Feature Row
+struct ZapierFeatureRow: View {
     let icon: String
     let title: String
     let description: String
-    
-    var body: some View {
-        HStack(alignment: .top, spacing: 16) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundStyle(.orange)
-                .frame(width: 24)
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.headline)
-                    .fontWeight(.medium)
-                
-                Text(description)
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-            }
-            
-            Spacer()
-        }
-    }
-}
+    var isLast: Bool = false
 
-struct PopularZapRow: View {
-    let apps: [String]
-    let description: String
-    
     var body: some View {
-        HStack(spacing: 12) {
-            HStack(spacing: 4) {
-                ForEach(apps.indices, id: \.self) { index in
-                    Text(apps[index])
-                        .font(.caption)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(.gray.opacity(0.1), in: RoundedRectangle(cornerRadius: 6))
-                    
-                    if index < apps.count - 1 {
-                        Image(systemName: "arrow.right")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                    }
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .top, spacing: 16) {
+                // Icon
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(.systemGray6))
+                    .frame(width: 56, height: 56)
+                    .overlay(
+                        Image(systemName: icon)
+                            .font(.system(size: 24, weight: .medium))
+                            .foregroundStyle(.primary)
+                    )
+
+                // Text content
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(.primary)
+
+                    Text(description)
+                        .font(.system(size: 13))
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
+
+                Spacer()
             }
-            
-            Spacer()
-            
-            Text(description)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.trailing)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+
+            if !isLast {
+                Divider()
+                    .padding(.leading, 92)
+            }
         }
-        .padding(.vertical, 8)
-        .padding(.horizontal, 12)
-        .background(.gray.opacity(0.05), in: RoundedRectangle(cornerRadius: 8))
     }
 }
 

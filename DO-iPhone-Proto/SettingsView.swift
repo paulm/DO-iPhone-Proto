@@ -36,7 +36,13 @@ struct SettingsView: View {
                         IntegrationsView()
                     }
                 }
-                
+
+                Section {
+                    NavigationLink("Paywalls") {
+                        PaywallsView()
+                    }
+                }
+
                 Section {
                     NavigationLink("Labs") {
                         LabsSettingsView()

@@ -59,7 +59,6 @@ struct Pet: Identifiable {
     var basicInformation: [String] = []
     var healthInformation: [String] = []
     var behaviorTraits: [String] = []
-    var careDetails: [String] = []
     var memoriesAndMilestones: [String] = []
     var importantDates: [String] = []
     var additionalNotes: [String] = []
@@ -253,7 +252,103 @@ class BioData {
     var placesLived: [PlaceLived] = []
     
     // Pets
-    var pets: [Pet] = []
+    var pets: [Pet] = [
+        Pet(
+            name: "Max",
+            type: "Dog",
+            gender: "Male",
+            color: "Golden",
+            weight: "65 lbs",
+            birthday: Calendar.current.date(from: DateComponents(year: 2019, month: 3, day: 15)) ?? Date(),
+            hasBirthday: true,
+            deathDate: Date(),
+            hasDeathDate: false,
+            photoData: nil,
+            notes: "Rescue dog from Golden Retriever Rescue. Very gentle with kids.",
+            basicInformation: [
+                "Breed: Golden Retriever",
+                "Microchip: 985112007654321",
+                "Adoption date: March 15, 2019"
+            ],
+            healthInformation: [
+                "Last vet visit: Sep 15, 2025",
+                "Vaccinations: Up to date (Rabies, DHPP)",
+                "Allergies: None known",
+                "Medication: Joint supplement daily"
+            ],
+            behaviorTraits: [
+                "Loves swimming and playing fetch",
+                "Gets along great with other dogs",
+                "A bit afraid of thunderstorms"
+            ],
+            memoriesAndMilestones: [
+                "March 15, 2019: Adoption day",
+                "July 4, 2020: First camping trip",
+                "Dec 25, 2022: Learned to ring bell for potty"
+            ],
+            importantDates: [
+                "Annual checkup: Every March"
+            ],
+            additionalNotes: [
+                "Favorite toy: Blue squeaky ball",
+                "Grooming: Every 6 weeks at PetSmart"
+            ]
+        ),
+        Pet(
+            name: "Luna",
+            type: "Cat",
+            gender: "Female",
+            color: "Calico",
+            weight: "9 lbs",
+            birthday: Calendar.current.date(from: DateComponents(year: 2021, month: 6, day: 1)) ?? Date(),
+            hasBirthday: true,
+            deathDate: Date(),
+            hasDeathDate: false,
+            photoData: nil,
+            notes: "",
+            basicInformation: [
+                "Breed: Domestic Shorthair"
+            ],
+            healthInformation: [
+                "Spayed: Yes",
+                "Indoor cat only"
+            ],
+            behaviorTraits: [
+                "Very independent",
+                "Loves sitting in sunny spots",
+                "Not a fan of being held"
+            ],
+            memoriesAndMilestones: [],
+            importantDates: [
+                "Adopted: June 1, 2021"
+            ],
+            additionalNotes: []
+        ),
+        Pet(
+            name: "Charlie",
+            type: "Parakeet",
+            gender: "Male",
+            color: "Blue and white",
+            weight: "",
+            birthday: Date(),
+            hasBirthday: false,
+            deathDate: Date(),
+            hasDeathDate: false,
+            photoData: nil,
+            notes: "Loves to whistle and mimic sounds",
+            basicInformation: [],
+            healthInformation: [],
+            behaviorTraits: [
+                "Can whistle the first part of 'Happy Birthday'",
+                "Chatty in the mornings"
+            ],
+            memoriesAndMilestones: [],
+            importantDates: [],
+            additionalNotes: [
+                "Favorite treat: Millet spray"
+            ]
+        )
+    ]
     
     // Travel
     var travels: [Travel] = []
@@ -1321,69 +1416,70 @@ struct PetsView: View {
                 .listRowBackground(Color.clear)
             } else {
                 ForEach(sortedPets) { pet in
-                    HStack(spacing: 12) {
-                        // Pet photo or placeholder
-                        if let photoData = pet.photoData, 
-                           let uiImage = UIImage(data: photoData) {
-                            Image(uiImage: uiImage)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 60, height: 60)
-                                .clipShape(Circle())
-                        } else {
-                            Circle()
-                                .fill(Color.gray.opacity(0.2))
-                                .frame(width: 60, height: 60)
-                                .overlay(
-                                    Image(systemName: "pawprint.fill")
-                                        .font(.title2)
-                                        .foregroundStyle(.gray)
-                                )
-                        }
-                        
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(pet.name)
-                                .font(.headline)
-
-                            HStack {
-                                Text("\(pet.gender) \(pet.type)")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-
-                                if !pet.isAlive {
-                                    Image(systemName: "heart")
-                                        .font(.caption)
-                                        .foregroundStyle(.red)
-                                }
+                    Button(action: {
+                        editingPet = pet
+                    }) {
+                        HStack(spacing: 12) {
+                            // Pet photo or placeholder
+                            if let photoData = pet.photoData,
+                               let uiImage = UIImage(data: photoData) {
+                                Image(uiImage: uiImage)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 60, height: 60)
+                                    .clipShape(Circle())
+                            } else {
+                                Circle()
+                                    .fill(Color.gray.opacity(0.2))
+                                    .frame(width: 60, height: 60)
+                                    .overlay(
+                                        Image(systemName: "pawprint.fill")
+                                            .font(.title2)
+                                            .foregroundStyle(.gray)
+                                    )
                             }
 
-                            Text(pet.age)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(pet.name)
+                                    .font(.headline)
+                                    .foregroundStyle(.primary)
+
+                                HStack {
+                                    Text("\(pet.gender) \(pet.type)")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+
+                                    if !pet.isAlive {
+                                        Image(systemName: "heart")
+                                            .font(.caption)
+                                            .foregroundStyle(.red)
+                                    }
+                                }
+
+                                Text(pet.age)
+                                    .font(.caption)
+                                    .foregroundStyle(.tertiary)
+                            }
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
                                 .font(.caption)
                                 .foregroundStyle(.tertiary)
                         }
-                        
-                        Spacer()
-                        
-                        Menu {
-                            Button(action: {
-                                editingPet = pet
-                            }) {
-                                Label("Edit", systemImage: "pencil")
+                        .padding(.vertical, 4)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button(role: .destructive, action: {
+                            if let index = bioData.pets.firstIndex(where: { $0.id == pet.id }) {
+                                bioData.pets.remove(at: index)
                             }
-                            
-                            Button(role: .destructive, action: {
-                                if let index = bioData.pets.firstIndex(where: { $0.id == pet.id }) {
-                                    bioData.pets.remove(at: index)
-                                }
-                            }) {
-                                Label("Delete", systemImage: "trash")
-                            }
-                        } label: {
-                            Image(systemName: "ellipsis")
-                                .foregroundStyle(.secondary)
+                        }) {
+                            Label("Delete", systemImage: "trash")
                         }
                     }
-                    .padding(.vertical, 4)
                 }
             }
         }
@@ -1590,31 +1686,6 @@ struct AddPetView: View {
                 Text("Personality traits, favorite activities, quirks, etc.")
             }
 
-            // Care Details Section
-            Section {
-                ForEach(pet.careDetails.indices, id: \.self) { index in
-                    TextField("e.g., Food: Royal Canin 2 cups daily", text: $pet.careDetails[index])
-                        .foregroundStyle(.primary)
-                }
-                .onDelete { indexSet in
-                    pet.careDetails.remove(atOffsets: indexSet)
-                }
-
-                Button(action: {
-                    pet.careDetails.append("")
-                }) {
-                    HStack {
-                        Image(systemName: "plus.circle.fill")
-                        Text("Add Item")
-                    }
-                    .foregroundStyle(Color(hex: "44C0FF"))
-                }
-            } header: {
-                Text("Care Details")
-            } footer: {
-                Text("Feeding schedule, grooming needs, exercise routine, etc.")
-            }
-
             // Memories & Milestones Section
             Section {
                 ForEach(pet.memoriesAndMilestones.indices, id: \.self) { index in
@@ -1687,7 +1758,6 @@ struct AddPetView: View {
                     pet.basicInformation = pet.basicInformation.filter { !$0.isEmpty }
                     pet.healthInformation = pet.healthInformation.filter { !$0.isEmpty }
                     pet.behaviorTraits = pet.behaviorTraits.filter { !$0.isEmpty }
-                    pet.careDetails = pet.careDetails.filter { !$0.isEmpty }
                     pet.memoriesAndMilestones = pet.memoriesAndMilestones.filter { !$0.isEmpty }
                     pet.importantDates = pet.importantDates.filter { !$0.isEmpty }
                     pet.additionalNotes = pet.additionalNotes.filter { !$0.isEmpty }

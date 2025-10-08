@@ -54,14 +54,23 @@ struct Pet: Identifiable {
     var hasDeathDate = false
     var photoData: Data?
     var notes = ""
-    
+
+    // New structured sections
+    var basicInformation: [String] = []
+    var healthInformation: [String] = []
+    var behaviorTraits: [String] = []
+    var careDetails: [String] = []
+    var memoriesAndMilestones: [String] = []
+    var importantDates: [String] = []
+    var additionalNotes: [String] = []
+
     var age: String {
         guard hasBirthday else { return "Unknown age" }
-        
+
         let endDate = hasDeathDate ? deathDate : Date()
         let calendar = Calendar.current
         let components = calendar.dateComponents([.year, .month], from: birthday, to: endDate)
-        
+
         if let years = components.year, years > 0 {
             if years == 1 {
                 return "1 year old"
@@ -78,7 +87,7 @@ struct Pet: Identifiable {
             return "< 1 month old"
         }
     }
-    
+
     var isAlive: Bool {
         return !hasDeathDate
     }
@@ -1471,31 +1480,196 @@ struct AddPetView: View {
                 TextField("Color", text: $pet.color)
                 TextField("Weight", text: $pet.weight)
                     .keyboardType(.decimalPad)
+
+                ForEach(pet.basicInformation.indices, id: \.self) { index in
+                    TextField("e.g., Breed: Golden Retriever", text: $pet.basicInformation[index])
+                        .foregroundStyle(.primary)
+                }
+                .onDelete { indexSet in
+                    pet.basicInformation.remove(atOffsets: indexSet)
+                }
+
+                Button(action: {
+                    pet.basicInformation.append("")
+                }) {
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                        Text("Add Item")
+                    }
+                    .foregroundStyle(Color(hex: "44C0FF"))
+                }
             } header: {
                 Text("Basic Information")
+            } footer: {
+                Text("Add details like breed, age when adopted, microchip number, etc.")
             }
-            
+
             Section {
                 Toggle("Has Birthday", isOn: $pet.hasBirthday)
-                
+
                 if pet.hasBirthday {
                     DatePicker("Birthday", selection: $pet.birthday, displayedComponents: .date)
                 }
-                
+
                 Toggle("Has Passed Away", isOn: $pet.hasDeathDate)
-                
+
                 if pet.hasDeathDate {
                     DatePicker("Death Date", selection: $pet.deathDate, displayedComponents: .date)
                 }
+
+                ForEach(pet.importantDates.indices, id: \.self) { index in
+                    TextField("e.g., Adopted: Jan 15, 2020", text: $pet.importantDates[index])
+                        .foregroundStyle(.primary)
+                }
+                .onDelete { indexSet in
+                    pet.importantDates.remove(atOffsets: indexSet)
+                }
+
+                Button(action: {
+                    pet.importantDates.append("")
+                }) {
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                        Text("Add Item")
+                    }
+                    .foregroundStyle(Color(hex: "44C0FF"))
+                }
             } header: {
                 Text("Important Dates")
+            } footer: {
+                Text("Add other important dates like adoption day, vet visits, etc.")
             }
-            
+
+            // Health Information Section
             Section {
-                TextField("Notes about your pet", text: $pet.notes, axis: .vertical)
+                ForEach(pet.healthInformation.indices, id: \.self) { index in
+                    TextField("e.g., Vaccinated: Yes (2024)", text: $pet.healthInformation[index])
+                        .foregroundStyle(.primary)
+                }
+                .onDelete { indexSet in
+                    pet.healthInformation.remove(atOffsets: indexSet)
+                }
+
+                Button(action: {
+                    pet.healthInformation.append("")
+                }) {
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                        Text("Add Item")
+                    }
+                    .foregroundStyle(Color(hex: "44C0FF"))
+                }
+            } header: {
+                Text("Health Information")
+            } footer: {
+                Text("Track vaccinations, medications, vet visits, allergies, etc.")
+            }
+
+            // Behavior & Traits Section
+            Section {
+                ForEach(pet.behaviorTraits.indices, id: \.self) { index in
+                    TextField("e.g., Loves to play fetch", text: $pet.behaviorTraits[index])
+                        .foregroundStyle(.primary)
+                }
+                .onDelete { indexSet in
+                    pet.behaviorTraits.remove(atOffsets: indexSet)
+                }
+
+                Button(action: {
+                    pet.behaviorTraits.append("")
+                }) {
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                        Text("Add Item")
+                    }
+                    .foregroundStyle(Color(hex: "44C0FF"))
+                }
+            } header: {
+                Text("Behavior & Traits")
+            } footer: {
+                Text("Personality traits, favorite activities, quirks, etc.")
+            }
+
+            // Care Details Section
+            Section {
+                ForEach(pet.careDetails.indices, id: \.self) { index in
+                    TextField("e.g., Food: Royal Canin 2 cups daily", text: $pet.careDetails[index])
+                        .foregroundStyle(.primary)
+                }
+                .onDelete { indexSet in
+                    pet.careDetails.remove(atOffsets: indexSet)
+                }
+
+                Button(action: {
+                    pet.careDetails.append("")
+                }) {
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                        Text("Add Item")
+                    }
+                    .foregroundStyle(Color(hex: "44C0FF"))
+                }
+            } header: {
+                Text("Care Details")
+            } footer: {
+                Text("Feeding schedule, grooming needs, exercise routine, etc.")
+            }
+
+            // Memories & Milestones Section
+            Section {
+                ForEach(pet.memoriesAndMilestones.indices, id: \.self) { index in
+                    TextField("e.g., First day home: Jan 15, 2020", text: $pet.memoriesAndMilestones[index])
+                        .foregroundStyle(.primary)
+                }
+                .onDelete { indexSet in
+                    pet.memoriesAndMilestones.remove(atOffsets: indexSet)
+                }
+
+                Button(action: {
+                    pet.memoriesAndMilestones.append("")
+                }) {
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                        Text("Add Item")
+                    }
+                    .foregroundStyle(Color(hex: "44C0FF"))
+                }
+            } header: {
+                Text("Memories & Milestones")
+            } footer: {
+                Text("Special moments, achievements, funny stories, etc.")
+            }
+
+            Section {
+                TextField("General notes about your pet", text: $pet.notes, axis: .vertical)
                     .lineLimit(5, reservesSpace: true)
             } header: {
                 Text("Notes")
+            }
+
+            // Additional Notes Section
+            Section {
+                ForEach(pet.additionalNotes.indices, id: \.self) { index in
+                    TextField("Add note", text: $pet.additionalNotes[index])
+                        .foregroundStyle(.primary)
+                }
+                .onDelete { indexSet in
+                    pet.additionalNotes.remove(atOffsets: indexSet)
+                }
+
+                Button(action: {
+                    pet.additionalNotes.append("")
+                }) {
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                        Text("Add Item")
+                    }
+                    .foregroundStyle(Color(hex: "44C0FF"))
+                }
+            } header: {
+                Text("Additional Notes")
+            } footer: {
+                Text("Any other important information about your pet")
             }
         }
         .navigationTitle(isEditing ? "Edit Pet" : "Add Pet")
@@ -1506,9 +1680,18 @@ struct AddPetView: View {
                     dismiss()
                 }
             }
-            
+
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Save") {
+                    // Filter out empty strings from all sections
+                    pet.basicInformation = pet.basicInformation.filter { !$0.isEmpty }
+                    pet.healthInformation = pet.healthInformation.filter { !$0.isEmpty }
+                    pet.behaviorTraits = pet.behaviorTraits.filter { !$0.isEmpty }
+                    pet.careDetails = pet.careDetails.filter { !$0.isEmpty }
+                    pet.memoriesAndMilestones = pet.memoriesAndMilestones.filter { !$0.isEmpty }
+                    pet.importantDates = pet.importantDates.filter { !$0.isEmpty }
+                    pet.additionalNotes = pet.additionalNotes.filter { !$0.isEmpty }
+
                     if isEditing {
                         // Update existing pet
                         if let index = bioData.pets.firstIndex(where: { $0.id == pet.id }) {

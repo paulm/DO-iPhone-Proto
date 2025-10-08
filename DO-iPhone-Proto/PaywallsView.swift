@@ -3,6 +3,7 @@ import SwiftUI
 struct PaywallsView: View {
     @State private var showingFlashSale = false
     @State private var showingOnboardingUpgrade = false
+    @State private var showingPremiumOffer = false
 
     var body: some View {
         List {
@@ -32,6 +33,19 @@ struct PaywallsView: View {
                             .foregroundStyle(.tertiary)
                     }
                 }
+
+                Button(action: {
+                    showingPremiumOffer = true
+                }) {
+                    HStack {
+                        Text("Premium Offer")
+                            .foregroundStyle(.primary)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                    }
+                }
             }
         }
         .navigationTitle("Paywalls")
@@ -41,6 +55,9 @@ struct PaywallsView: View {
         }
         .sheet(isPresented: $showingOnboardingUpgrade) {
             OnboardingUpgradeView()
+        }
+        .sheet(isPresented: $showingPremiumOffer) {
+            PremiumOfferView()
         }
     }
 }

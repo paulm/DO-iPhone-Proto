@@ -25,7 +25,7 @@ struct StravaIntegrationView: View {
 
                     // Description
                     Text("Sign into Strava to connect your account to Day One and never miss capturing your fitness achievements and milestones.")
-                        .font(.subheadline)
+                        .font(.system(size: 13))
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 28)
@@ -64,7 +64,7 @@ struct StravaIntegrationView: View {
                         )
                     }
                     .background(Color(.systemBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .clipShape(RoundedRectangle(cornerRadius: 28))
                     .padding(.horizontal, 16)
                     .padding(.top, 8)
 
@@ -131,11 +131,11 @@ struct StravaFeatureRow: View {
                 // Text content
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
-                        .font(.system(size: 17, weight: .semibold))
+                        .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(.primary)
 
                     Text(description)
-                        .font(.system(size: 15))
+                        .font(.system(size: 13))
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }

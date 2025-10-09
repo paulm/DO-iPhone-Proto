@@ -23,7 +23,7 @@ struct EntryView: View {
     @State private var entryDate: Date
     @State private var showingEditDate = false
     @State private var showEntryChatEmbed = false
-    @State private var showGeneratedFromDailyChat = false
+    @State private var showGeneratedFromDailyChat = true
     @State private var isPlayingAudio = false
     @State private var audioDuration: TimeInterval = 125 // 2:05 duration
     @State private var currentPlayTime: TimeInterval = 0
@@ -506,13 +506,13 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                                     // Entry chat removed - do nothing
                                 } label: {
                                     HStack(spacing: 10) {
-                                        Text("Entry Chat Session")
+                                        Text("Entry Chat")
                                             .font(.caption)
                                             .foregroundStyle(.primary.opacity(0.7))
                                         
                                         Spacer()
                                         
-                                        Text("3")
+                                        Text("Resume")
                                             .font(.caption2)
                                             .foregroundStyle(.secondary)
                                     }
@@ -531,49 +531,24 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                         
                         // Text content with inline audio embeds
                         VStack(alignment: .leading, spacing: 8) {
-                            // Journal metadata row - always visible at top
-                            HStack {
-                                Text(journalName)
-                                    .foregroundStyle(journalColor)
-                                    .fontWeight(.medium)
-                                Text("•")
-                                    .foregroundStyle(.secondary)
-                                Text(locationName)
-                                    .foregroundStyle(.secondary)
-                                Text("•")
-                                    .foregroundStyle(.secondary)
-                                HStack(spacing: 4) {
-                                    Image(systemName: "cloud.rain")
-                                        .font(.system(size: 14))
-                                    Text("17°C")
-                                }
-                                .foregroundStyle(.secondary)
-                            }
-                            .font(.caption)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.bottom, 8)
-                            
-                            // Generated from Daily Chat indicator - moved here below metadata
+                            // Generated from Daily Chat indicator
                             if showGeneratedFromDailyChat {
                                 Button {
                                     showingDailyChat = true
                                 } label: {
-                                    HStack(spacing: 10) {
-                                        Text("Generated from Daily Chat")
-                                            .font(.caption)
-                                            .fontWeight(Font.Weight.medium)
-                                            .foregroundStyle(.primary.opacity(0.7))
-                                        
-                                        Spacer()
+                                    HStack(spacing: 12) {
+                                        Text("Resume Daily Chat")
+                                            .font(.caption2)
+                                            .foregroundStyle(.secondary)
                                     }
                                     .padding(.horizontal, 12)
                                     .padding(.vertical, 12)
-                                    .frame(maxWidth: .infinity)
-                                    .background(Color(hex: "F3F1F8"))
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                    .background(Color(hex: "F8F8F8"))
+                                    .clipShape(RoundedRectangle(cornerRadius: 18))
                                 }
                                 .buttonStyle(.plain)
-                                .padding(.bottom, 8)
+                                //frame(maxWidth: .infinity, alignment: .trailing)
+                                .padding(.bottom, 14)
                             }
                             
                             // Display full text without any formatting

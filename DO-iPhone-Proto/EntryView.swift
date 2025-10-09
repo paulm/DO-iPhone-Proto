@@ -498,175 +498,165 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                     ZStack {
                         ScrollView {
                             VStack(alignment: .leading, spacing: 0) {
-                        // Embeds section with gray background - only Entry Chat Session now
-                        if hasChatActivity && showEntryChatEmbed {
-                            VStack(spacing: 10) {
-                                // Chat activity indicator
-                                Button {
-                                    // Entry chat removed - do nothing
-                                } label: {
-                                    HStack(spacing: 10) {
-                                        Text("Entry Chat")
-                                            .font(.caption)
-                                            .foregroundStyle(.primary.opacity(0.7))
-                                        
-                                        Spacer()
-                                        
-                                        Text("Resume")
-                                            .font(.caption2)
-                                            .foregroundStyle(.secondary)
-                                    }
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 12)
-                                    .frame(maxWidth: .infinity)
-                                    .background(Color(hex: "F8F8F8"))
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                                }
-                                .buttonStyle(.plain)
-                            }
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 14)
-                            .frame(maxWidth: .infinity)
-                        }
-                        
-                        // Text content with inline audio embeds
-                        VStack(alignment: .leading, spacing: 8) {
-                            // Generated from Daily Chat indicator
-                            if showGeneratedFromDailyChat {
-                                Button {
-                                    showingDailyChat = true
-                                } label: {
-                                    HStack(spacing: 12) {
-                                        Text("Resume Daily Chat")
-                                            .font(.caption2)
-                                            .foregroundStyle(.secondary)
-                                    }
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 12)
-                                    .background(Color(hex: "F8F8F8"))
-                                    .clipShape(RoundedRectangle(cornerRadius: 18))
-                                }
-                                .buttonStyle(.plain)
-                                //frame(maxWidth: .infinity, alignment: .trailing)
-                                .padding(.bottom, 14)
-                            }
-                            
-                            // Display full text without any formatting
-                            Text(entryText)
-                                .font(useLatoFont ? Font.custom("Lato-Regular", size: 18) : .system(size: 18))
-                                .lineSpacing(4)
-                                .foregroundColor(Color(hex: "292F33"))
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .textSelection(.enabled)
-                                .onTapGesture {
-                                    withAnimation(.easeInOut(duration: 0.3)) {
-                                        isEditMode = true
-                                        textEditorFocused = true
-                                    }
-                                }
-                                .padding(.bottom, 8)
-                            
-                            // Show embeds after text with proper spacing
-                                // First audio recording embed (can have transcription or not)
-                                if showAudioEmbedWithTranscription {
-                                if let audioData = insertedAudioData {
-                                    // Use inserted audio data
-                                    audioRecordingEmbed(
-                                        hasTranscription: audioData.hasTranscription,
-                                        isPlaying: $isPlayingAudio,
-                                        duration: audioData.duration,
-                                        title: audioData.title,
-                                        transcriptionPreview: audioData.hasTranscription ? String(audioData.transcriptionText.prefix(200)) : nil,
-                                        onTap: {
-                                            selectedAudioHasTranscription = audioData.hasTranscription
-                                            showingAudioPage = true
+                                // Embeds section with gray background - only Entry Chat Session now
+                                if hasChatActivity && showEntryChatEmbed {
+                                    Button {
+                                        showingDailyChat = true
+                                    } label: {
+                                        HStack(spacing: 12) {
+                                            Text("Resume Entry Chat")
+                                                .font(.caption2)
+                                                .foregroundStyle(.secondary)
                                         }
-                                    )
-                                } else {
-                                    // Use default audio embed with transcription
-                                    audioRecordingEmbed(
-                                        hasTranscription: true,
-                                        isPlaying: $isPlayingAudio,
-                                        duration: audioDuration,
-                                        title: "Morning Reflections at Stewart Falls",
-                                        transcriptionPreview: "So, I'm sitting here at Stewart Falls, and I just... I can't even put into words how beautiful this is. The water is just cascading down, and there's this mist that's catching the morning light. It's creating these tiny rainbows everywhere I look.",
-                                        onTap: {
-                                            selectedAudioHasTranscription = true
-                                            showingAudioPage = true
-                                        }
-                                    )
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 12)
+                                        //.background(Color(hex: "F8F8F8"))
+                                        .clipShape(RoundedRectangle(cornerRadius: 18))
+                                    }
+                                    .buttonStyle(.plain)
+                                    .frame(maxWidth: .infinity, alignment: .trailing)
+                                    .padding(.bottom, 1)
                                 }
-                            }
-                            
-                            // Image embed
-                            if showImageEmbed {
-                                imageEmbed(
-                                    imageName: "bike-wide",
-                                    caption: "Timeless style on two wheels—vintage charm meets modern café culture",
-                                    showCaption: showImageCaption,
-                                    onTap: {
-                                        showingMediaPage = true
-                                    }
-                                )
-                            }
-                            
-                            
-                            // Second audio recording embed (without transcription by default)
-                            if showSecondAudioEmbed {
-                                audioRecordingEmbed(
-                                    hasTranscription: false,
-                                    isPlaying: $isPlayingAudio2,
-                                    duration: audioDuration2,
-                                    title: "Sounds of the Mountain Stream",
-                                    transcriptionPreview: nil,
-                                    onTap: {
-                                        selectedAudioHasTranscription = false
-                                        showingAudioPage2 = true
-                                    }
-                                )
-                            }
-                            
-                            // Map footer section
-                            VStack(alignment: .leading, spacing: 6) {
-                                // Journal metadata with weather
-                                HStack {
-                                    Text(journalName)
-                                        .foregroundStyle(journalColor)
-                                        .fontWeight(.medium)
-                                    Text("•")
-                                        .foregroundStyle(.secondary)
-                                    Text(locationName)
-                                        .foregroundStyle(.secondary)
-                                    Text("•")
-                                        .foregroundStyle(.secondary)
-                                    HStack(spacing: 4) {
-                                        Image(systemName: "cloud.rain")
-                                            .font(.system(size: 14))
-                                        Text("17°C")
-                                    }
-                                    .foregroundStyle(.secondary)
-                                }
-                                .font(.caption)
                                 
-                                // Map with rounded corners and inset
-                                Map(position: .constant(.region(MKCoordinateRegion(
-                                    center: entryLocation,
-                                    span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
-                                )))) {
-                                    Marker(locationName, coordinate: entryLocation)
-                                        .tint(journalColor)
+                                // Text content with inline audio embeds
+                                VStack(alignment: .leading, spacing: 8) {
+                                    
+                                    // Generated from Daily Chat indicator
+                                    if showGeneratedFromDailyChat {
+                                        Button {
+                                            showingDailyChat = true
+                                        } label: {
+                                            HStack(spacing: 12) {
+                                                Text("Resume Daily Chat")
+                                                    .font(.caption2)
+                                                    .foregroundStyle(.secondary)
+                                            }
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 12)
+                                            .background(Color(hex: "F8F8F8"))
+                                            .clipShape(RoundedRectangle(cornerRadius: 18))
+                                        }
+                                        .buttonStyle(.plain)
+                                        // .frame(maxWidth: .infinity, alignment: .trailing)
+                                        .padding(.bottom, 14)
+                                    }
+                                    
+                                    // Display full text without any formatting
+                                    Text(entryText)
+                                        .font(useLatoFont ? Font.custom("Lato-Regular", size: 18) : .system(size: 18))
+                                        .lineSpacing(4)
+                                        .foregroundColor(Color(hex: "292F33"))
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .textSelection(.enabled)
+                                        .onTapGesture {
+                                            withAnimation(.easeInOut(duration: 0.3)) {
+                                                isEditMode = true
+                                                textEditorFocused = true
+                                            }
+                                        }
+                                        .padding(.bottom, 8)
+                                    
+                                    // Show embeds after text with proper spacing
+                                    // First audio recording embed (can have transcription or not)
+                                    if showAudioEmbedWithTranscription {
+                                        if let audioData = insertedAudioData {
+                                            // Use inserted audio data
+                                            audioRecordingEmbed(
+                                                hasTranscription: audioData.hasTranscription,
+                                                isPlaying: $isPlayingAudio,
+                                                duration: audioData.duration,
+                                                title: audioData.title,
+                                                transcriptionPreview: audioData.hasTranscription ? String(audioData.transcriptionText.prefix(200)) : nil,
+                                                onTap: {
+                                                    selectedAudioHasTranscription = audioData.hasTranscription
+                                                    showingAudioPage = true
+                                                }
+                                            )
+                                        } else {
+                                            // Use default audio embed with transcription
+                                            audioRecordingEmbed(
+                                                hasTranscription: true,
+                                                isPlaying: $isPlayingAudio,
+                                                duration: audioDuration,
+                                                title: "Morning Reflections at Stewart Falls",
+                                                transcriptionPreview: "So, I'm sitting here at Stewart Falls, and I just... I can't even put into words how beautiful this is. The water is just cascading down, and there's this mist that's catching the morning light. It's creating these tiny rainbows everywhere I look.",
+                                                onTap: {
+                                                    selectedAudioHasTranscription = true
+                                                    showingAudioPage = true
+                                                }
+                                            )
+                                        }
+                                    }
+                                    
+                                    // Image embed
+                                    if showImageEmbed {
+                                        imageEmbed(
+                                            imageName: "bike-wide",
+                                            caption: "Timeless style on two wheels—vintage charm meets modern café culture",
+                                            showCaption: showImageCaption,
+                                            onTap: {
+                                                showingMediaPage = true
+                                            }
+                                        )
+                                    }
+                                    
+                                    
+                                    // Second audio recording embed (without transcription by default)
+                                    if showSecondAudioEmbed {
+                                        audioRecordingEmbed(
+                                            hasTranscription: false,
+                                            isPlaying: $isPlayingAudio2,
+                                            duration: audioDuration2,
+                                            title: "Sounds of the Mountain Stream",
+                                            transcriptionPreview: nil,
+                                            onTap: {
+                                                selectedAudioHasTranscription = false
+                                                showingAudioPage2 = true
+                                            }
+                                        )
+                                    }
+                                    
+                                    // Map footer section
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        // Journal metadata with weather
+                                        HStack {
+                                            Text(journalName)
+                                                .foregroundStyle(journalColor)
+                                                .fontWeight(.medium)
+                                            Text("•")
+                                                .foregroundStyle(.secondary)
+                                            Text(locationName)
+                                                .foregroundStyle(.secondary)
+                                            Text("•")
+                                                .foregroundStyle(.secondary)
+                                            HStack(spacing: 4) {
+                                                Image(systemName: "cloud.rain")
+                                                    .font(.system(size: 14))
+                                                Text("17°C")
+                                            }
+                                            .foregroundStyle(.secondary)
+                                        }
+                                        .font(.caption)
+                                        
+                                        // Map with rounded corners and inset
+                                        Map(position: .constant(.region(MKCoordinateRegion(
+                                            center: entryLocation,
+                                            span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+                                        )))) {
+                                            Marker(locationName, coordinate: entryLocation)
+                                                .tint(journalColor)
+                                        }
+                                        .frame(height: 180)
+                                        .clipShape(RoundedRectangle(cornerRadius: 24))
+                                        .mapStyle(.standard)
+                                        .allowsHitTesting(false)
+                                    }
+                                    .padding(.top, 24)
                                 }
-                                .frame(height: 180)
-                                .clipShape(RoundedRectangle(cornerRadius: 24))
-                                .mapStyle(.standard)
-                                .allowsHitTesting(false)
-                            }
-                            .padding(.top, 24)
-                        }
-                        // left and right margins
-                        .padding(.horizontal, 16)
-                        .padding(.top, hasChatActivity && showEntryChatEmbed ? 28 : 12)
-                        .padding(.bottom, 24)
+                                // left and right margins
+                                .padding(.horizontal, 16)
+                                .padding(.top, hasChatActivity && showEntryChatEmbed ? 28 : 12)
+                                .padding(.bottom, 24)
                             }
                         }
                     } // End of ZStack
@@ -1135,3 +1125,4 @@ struct GoDeeperPromptsView: View {
         )
     )
 }
+

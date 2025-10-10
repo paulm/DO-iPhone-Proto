@@ -1126,21 +1126,28 @@ struct TodayView: View {
         if showDateNavigation {
             Section {
                 HStack {
-                    VStack(alignment: .leading, spacing: 0) {
-                        // Row 1: "Today" or relative date
-                        Text(relativeDateText(for: selectedDate))
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .foregroundStyle(Color(hex: "292F33")) // Day One Deep Blue
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        
-                        // Row 2: Full date - show weekday only for Today/Yesterday/Tomorrow
-                        Text(formattedDateForNavigation(selectedDate))
-                            .font(.system(size: 15, weight: .medium))
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            selectedDate = Date()
+                        }
+                    }) {
+                        VStack(alignment: .leading, spacing: 0) {
+                            // Row 1: "Today" or relative date
+                            Text(relativeDateText(for: selectedDate))
+                                .font(.largeTitle)
+                                .fontWeight(.bold)
+                                .foregroundStyle(Color(hex: "292F33")) // Day One Deep Blue
+                                .frame(maxWidth: .infinity, alignment: .leading)
+
+                            // Row 2: Full date - show weekday only for Today/Yesterday/Tomorrow
+                            Text(formattedDateForNavigation(selectedDate))
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundStyle(.secondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
                     }
-                    
+                    .buttonStyle(PlainButtonStyle())
+
                     Spacer()
                     
                     // Arrow navigation buttons

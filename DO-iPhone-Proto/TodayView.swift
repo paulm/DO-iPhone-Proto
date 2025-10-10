@@ -70,6 +70,7 @@ private struct SizePreferenceKey: PreferenceKey {
 struct DatePickerGrid: View {
     let dates: [Date]
     @Binding var selectedDate: Date
+    @Binding var showingChatCalendar: Bool
     let showDates: Bool
     let showStreak: Bool
 
@@ -78,21 +79,22 @@ struct DatePickerGrid: View {
     @State private var isDragging = false
     @State private var lastSelectedDate: Date?
     @State private var dynamicSpacing: CGFloat = DatePickerConstants.spacing
-    
+
     // Check if a date has chat messages (completed)
     private func hasMessagesForDate(_ date: Date) -> Bool {
         let messages = ChatSessionManager.shared.getMessages(for: date)
         return !messages.isEmpty && messages.contains { $0.isUser }
     }
-    
+
     // Check if a date has an entry created
     private func hasEntryForDate(_ date: Date) -> Bool {
         return DailyContentManager.shared.hasEntry(for: date)
     }
-    
-    init(dates: [Date], selectedDate: Binding<Date>, showDates: Bool = true, showStreak: Bool = true) {
+
+    init(dates: [Date], selectedDate: Binding<Date>, showingChatCalendar: Binding<Bool>, showDates: Bool = true, showStreak: Bool = true) {
         self.dates = dates
         self._selectedDate = selectedDate
+        self._showingChatCalendar = showingChatCalendar
         self.showDates = showDates
         self.showStreak = showStreak
     }
@@ -195,6 +197,20 @@ struct DatePickerGrid: View {
                     .font(.caption)
                     .fontWeight(.medium)
                     .foregroundStyle(.secondary)
+
+                Text("•")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                Button(action: {
+                    showingChatCalendar = true
+                }) {
+                    Text("View All")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundStyle(Color(hex: "44C0FF"))
+                }
+                .buttonStyle(PlainButtonStyle())
             }
             .frame(maxWidth: .infinity)
             .padding(.bottom, -14)
@@ -565,7 +581,8 @@ struct TodayView: View {
     @State private var showingMediaSheet = false
     @State private var showingBio = false
     @State private var showingChatSettings = false
-    
+    @State private var showingChatCalendar = false
+
     // Show/hide toggles for Daily Activities
     @State private var showWeather = false
     @State private var showDatePickerGrid = true
@@ -607,7 +624,6 @@ struct TodayView: View {
     
     // Options toggles
     @State private var showGridDates = false
-    @State private var initialScrollOffset: CGFloat = 125
 
     private var dateRange: [Date] {
         let calendar = Calendar.current
@@ -1251,6 +1267,7 @@ struct TodayView: View {
                         DatePickerGrid(
                             dates: dateRange,
                             selectedDate: $selectedDate,
+                            showingChatCalendar: $showingChatCalendar,
                             showDates: showGridDates,
                             showStreak: false
                         )
@@ -1852,6 +1869,9 @@ struct TodayView: View {
             DailyChatSettingsView()
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $showingChatCalendar) {
+            DailyChatCalendarView(selectedDate: $selectedDate)
         }
         .onChange(of: showingPreviewEntry) { oldValue, newValue in
             // When sheet is dismissed, check if summary was generated
@@ -3468,6 +3488,226 @@ struct JournalSelectionView: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - Daily Chat Calendar View
+struct DailyChatCalendarView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var selectedDate: Date
+
+    @State private var showingActionSheet = false
+    @State private var actionSheetDate: Date?
+    @State private var showingDailyChat = false
+    @State private var showingEntry = false
+    @State private var entryData: EntryView.EntryData?
+
+    private let calendar = Calendar.current
+    private let weekdaySymbols = ["S", "M", "T", "W", "T", "F", "S"]
+
+    // Get all dates with chats, grouped by month
+    private var monthsWithChats: [(month: Date, dates: [Date])] {
+        var allDates: [Date] = []
+
+        // Look back 2 years
+        let today = Date()
+        for days in 0..<730 {
+            if let date = calendar.date(byAdding: .day, value: -days, to: today) {
+                allDates.append(date)
+            }
+        }
+
+        // Filter dates with chats
+        let datesWithChats = allDates.filter { date in
+            let messages = ChatSessionManager.shared.getMessages(for: date)
+            return !messages.isEmpty && messages.contains { $0.isUser }
+        }
+
+        // Group by month
+        let groupedByMonth = Dictionary(grouping: datesWithChats) { date in
+            calendar.dateComponents([.year, .month], from: date)
+        }
+
+        // Convert to array and sort by month (newest first)
+        let months = groupedByMonth.compactMap { components, dates -> (month: Date, dates: [Date])? in
+            guard let monthDate = calendar.date(from: components) else { return nil }
+            return (monthDate, dates.sorted())
+        }
+        .sorted { $0.month > $1.month }
+
+        return months
+    }
+
+    // Check if a date has chat messages
+    private func hasMessagesForDate(_ date: Date) -> Bool {
+        let messages = ChatSessionManager.shared.getMessages(for: date)
+        return !messages.isEmpty && messages.contains { $0.isUser }
+    }
+
+    // Check if a date has an entry
+    private func hasEntryForDate(_ date: Date) -> Bool {
+        return DailyContentManager.shared.hasEntry(for: date)
+    }
+
+    @ViewBuilder
+    private func monthView(for monthData: (month: Date, dates: [Date])) -> some View {
+        VStack(spacing: 12) {
+            // Month header
+            Text(monthYearString(from: monthData.month))
+                .font(.headline)
+                .fontWeight(.semibold)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 16)
+
+            // Weekday headers
+            HStack(spacing: 12) {
+                ForEach(weekdaySymbols, id: \.self) { symbol in
+                    Text(symbol)
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.secondary)
+                        .frame(width: 30)
+                }
+            }
+            .frame(maxWidth: .infinity)
+
+            // Calendar grid
+            calendarGrid(for: monthData.month, dates: monthData.dates)
+        }
+    }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 32) {
+                    ForEach(monthsWithChats, id: \.month) { monthData in
+                        monthView(for: monthData)
+                    }
+                }
+                .padding(.vertical, 20)
+            }
+            .navigationTitle("Daily Chat Calendar")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done", systemImage: "checkmark") {
+                        dismiss()
+                    }
+                    .labelStyle(.titleAndIcon)
+                    .tint(Color(hex: "44C0FF"))
+                }
+            }
+            .confirmationDialog("Date Actions", isPresented: $showingActionSheet, presenting: actionSheetDate) { date in
+                Button("Select Date") {
+                    selectedDate = date
+                    dismiss()
+                }
+
+                Button("Open Chat") {
+                    selectedDate = date
+                    showingDailyChat = true
+                }
+
+                if hasEntryForDate(date) {
+                    Button("View Entry") {
+                        selectedDate = date
+                        let formatter = DateFormatter()
+                        formatter.dateFormat = "h:mm a"
+                        let timeString = formatter.string(from: date)
+
+                        entryData = EntryView.EntryData(
+                            title: "Entry",
+                            content: "Entry content...",
+                            date: date,
+                            time: timeString
+                        )
+                        showingEntry = true
+                    }
+                }
+
+                Button("Cancel", role: .cancel) { }
+            }
+            .sheet(isPresented: $showingDailyChat) {
+                if let date = actionSheetDate {
+                    DailyChatView(
+                        selectedDate: date,
+                        initialLogMode: false,
+                        entryCreated: .constant(false),
+                        onChatStarted: {},
+                        onMessageCountChanged: { _ in }
+                    )
+                }
+            }
+            .sheet(isPresented: $showingEntry) {
+                if let data = entryData {
+                    EntryView(journal: nil, entryData: data, startInEditMode: false)
+                }
+            }
+        }
+    }
+
+    private func calendarGrid(for month: Date, dates: [Date]) -> some View {
+        let daysInMonth = calendar.range(of: .day, in: .month, for: month)?.count ?? 30
+        let firstDayOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: month))!
+        let startingWeekday = calendar.component(.weekday, from: firstDayOfMonth) - 1 // 0 = Sunday
+
+        let rows = calculateRows(daysInMonth: daysInMonth, startingWeekday: startingWeekday)
+
+        return VStack(spacing: 12) {
+            ForEach(0..<rows, id: \.self) { row in
+                HStack(spacing: 12) {
+                    ForEach(0..<7, id: \.self) { column in
+                        let day = row * 7 + column - startingWeekday + 1
+
+                        if day > 0 && day <= daysInMonth {
+                            let dateComponents = calendar.dateComponents([.year, .month], from: month)
+                            if let date = calendar.date(from: DateComponents(year: dateComponents.year, month: dateComponents.month, day: day)) {
+                                let hasContent = hasMessagesForDate(date) || hasEntryForDate(date)
+
+                                Button(action: {
+                                    actionSheetDate = date
+                                    showingActionSheet = true
+                                }) {
+                                    DateCircle(
+                                        date: date,
+                                        isSelected: calendar.isDate(date, inSameDayAs: selectedDate),
+                                        isToday: calendar.isDateInToday(date),
+                                        isFuture: date > Date(),
+                                        isCompleted: hasMessagesForDate(date),
+                                        hasEntry: hasEntryForDate(date),
+                                        showDate: hasContent, // Only show date number if has content
+                                        onTap: {
+                                            actionSheetDate = date
+                                            showingActionSheet = true
+                                        }
+                                    )
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                .frame(width: 30, height: 30)
+                            } else {
+                                Color.clear
+                                    .frame(width: 30, height: 30)
+                            }
+                        } else {
+                            Color.clear
+                                .frame(width: 30, height: 30)
+                        }
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func calculateRows(daysInMonth: Int, startingWeekday: Int) -> Int {
+        let totalCells = daysInMonth + startingWeekday
+        return (totalCells + 6) / 7 // Round up
+    }
+
+    private func monthYearString(from date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM yyyy"
+        return formatter.string(from: date)
     }
 }
 

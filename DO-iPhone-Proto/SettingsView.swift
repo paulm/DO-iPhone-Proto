@@ -9,12 +9,6 @@ struct SettingsView: View {
         NavigationStack {
             List {
                 Section {
-                    NavigationLink("Bio") {
-                        BioSettingsView()
-                    }
-                }
-                
-                Section {
                     Button(action: {
                         // Dismiss keyboard before showing settings
                         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)

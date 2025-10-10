@@ -1113,6 +1113,7 @@ struct BioEditView: View {
     @State private var editingBio = ""
     @State private var bioData = BioData.shared
     @State private var showingImagePicker = false
+    @State private var showingBioChat = false
     @FocusState private var focusedField: Field?
 
     enum Field: Hashable {
@@ -1123,6 +1124,38 @@ struct BioEditView: View {
     var body: some View {
         NavigationStack {
             List {
+                // Bio Chat section
+                Section {
+                    Button(action: {
+                        showingBioChat = true
+                    }) {
+                        HStack {
+                            Text(DayOneIcon.support_chat.rawValue)
+                                .dayOneIconFont(size: 28)
+                                .foregroundStyle(Color(hex: "44C0FF"))
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Bio Chat")
+                                    .font(.headline)
+                                    .foregroundStyle(.primary)
+
+                                Text("Chat to enhance and complete your Bio details")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 14))
+                                .foregroundStyle(.tertiary)
+                        }
+                        .padding(.vertical, 8)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+                .listRowBackground(Color.white)
+
                 // Profile Photo Section
                 Section {
                     HStack(spacing: 16) {
@@ -1271,6 +1304,9 @@ struct BioEditView: View {
             }
             .sheet(isPresented: $showingImagePicker) {
                 ImagePickerPlaceholder()
+            }
+            .sheet(isPresented: $showingBioChat) {
+                BioChatPlaceholder()
             }
         }
     }

@@ -541,8 +541,8 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                                         .padding(.bottom, 14)
                                     }
                                     
-                                    // Display full text without any formatting
-                                    Text(entryText)
+                                    // Display full text with first line bolded
+                                    formattedEntryText()
                                         .font(useLatoFont ? Font.custom("Lato-Regular", size: 18) : .system(size: 18))
                                         .lineSpacing(4)
                                         .foregroundColor(Color(hex: "292F33"))
@@ -1047,6 +1047,25 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
         let formatter = DateFormatter()
         formatter.dateFormat = "EEE, MMM d, yyyy · h:mm a"
         return formatter.string(from: date)
+    }
+
+    private func formattedEntryText() -> Text {
+        let lines = entryText.components(separatedBy: "\n")
+
+        guard let firstLine = lines.first, !firstLine.isEmpty else {
+            return Text(entryText)
+        }
+
+        let remainingText = lines.dropFirst().joined(separator: "\n")
+
+        if remainingText.isEmpty {
+            return Text(firstLine)
+                .fontWeight(.semibold)
+        } else {
+            return Text(firstLine)
+                .fontWeight(.semibold) +
+            Text("\n" + remainingText)
+        }
     }
 } // End of EntryView
 

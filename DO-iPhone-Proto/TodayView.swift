@@ -106,14 +106,22 @@ struct DatePickerGrid: View {
         let today = calendar.startOfDay(for: Date())
         var streak = 0
         var checkDate = calendar.date(byAdding: .day, value: -1, to: today)! // Start with yesterday
-        
+
         // Check consecutive days backwards starting from yesterday
         while isDateCompleted(checkDate) {
             streak += 1
             checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate)!
         }
-        
+
         return streak
+    }
+
+    private var totalChats: Int {
+        dates.filter { hasMessagesForDate($0) }.count
+    }
+
+    private var totalEntries: Int {
+        dates.filter { hasEntryForDate($0) }.count
     }
     
     private var columns: Int {
@@ -163,6 +171,34 @@ struct DatePickerGrid: View {
     
     var body: some View {
         VStack(spacing: dynamicSpacing) {
+            // Stats row
+            HStack(spacing: 6) {
+                Text("\(currentStreak) Day\(currentStreak == 1 ? "" : "s") Streak")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.secondary)
+
+                Text("•")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                Text("\(totalChats) Chat\(totalChats == 1 ? "" : "s")")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.secondary)
+
+                Text("•")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                Text("\(totalEntries) Entr\(totalEntries == 1 ? "y" : "ies")")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.bottom, -14)
+
             // Streak and Today button
             HStack {
                 if showStreak && currentStreak > 0 {
@@ -175,9 +211,9 @@ struct DatePickerGrid: View {
                         .background(Color.gray.opacity(0.2))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
-                
+
                 Spacer()
-                
+
                 if showStreak && !Calendar.current.isDateInToday(selectedDate) {
                     Button(action: {
                         selectedDate = Date()

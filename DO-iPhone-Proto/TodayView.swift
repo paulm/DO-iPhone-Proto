@@ -607,7 +607,8 @@ struct TodayView: View {
     
     // Options toggles
     @State private var showGridDates = false
-    
+    @State private var initialScrollOffset: CGFloat = 125
+
     private var dateRange: [Date] {
         let calendar = Calendar.current
         var dates: [Date] = []
@@ -1235,27 +1236,36 @@ struct TodayView: View {
         NavigationStack {
             ZStack {
             // Main content
-            List {
-                
-                // Date picker grid at top of scrollable content (off by default for now)
-                if showDatePickerGrid {
-                    DatePickerGrid(
-                        dates: dateRange,
-                        selectedDate: $selectedDate,
-                        showDates: showGridDates,
-                        showStreak: false
-                    )
-                    .padding(.horizontal, DatePickerConstants.horizontalPadding)
-                    .id(chatUpdateTrigger) // Force refresh when data changes
-                    .background(Color.clear)
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-                    .listRowInsets(EdgeInsets()) // Remove default list insets
-                    .padding(.bottom, 20)
-                }
-                
-                // Date Navigation section
-                dateNavigationSection
+            ScrollViewReader { proxy in
+                List {
+                    // Initial scroll anchor
+                    Color.clear
+                        .frame(height: 0)
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                        .listRowInsets(EdgeInsets())
+                        .id("scrollAnchor")
+
+                    // Date picker grid at top of scrollable content (off by default for now)
+                    if showDatePickerGrid {
+                        DatePickerGrid(
+                            dates: dateRange,
+                            selectedDate: $selectedDate,
+                            showDates: showGridDates,
+                            showStreak: false
+                        )
+                        .padding(.horizontal, DatePickerConstants.horizontalPadding)
+                        .id(chatUpdateTrigger) // Force refresh when data changes
+                        .background(Color.clear)
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                        .listRowInsets(EdgeInsets()) // Remove default list insets
+                        .padding(.bottom, 20)
+                    }
+
+                    // Date Navigation section
+                    dateNavigationSection
+                        .id("dateNavigation")
                 
                 // Entries Section - Two buttons side by side (no title)
                 entryLinksSection
@@ -1368,6 +1378,14 @@ struct TodayView: View {
             .scrollContentBackground(.hidden)
             .background(backgroundColor)
             .ignoresSafeArea(edges: .bottom)
+            .onAppear {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    withAnimation(.easeOut(duration: 0.3)) {
+                        proxy.scrollTo("dateNavigation", anchor: .top)
+                    }
+                }
+            }
+            } // ScrollViewReader
             
                 // Chat elements at bottom
                 VStack {

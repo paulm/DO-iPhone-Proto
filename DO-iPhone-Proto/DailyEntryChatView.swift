@@ -392,22 +392,32 @@ Later, I went for a walk in the park and noticed how the leaves are just beginni
             Button("Update", role: .none) {
                 // Start the update process
                 isUpdatingEntry = true
-                
+
                 // Simulate update process (replace with actual update logic)
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                     // Mark entry as updated
                     DailyContentManager.shared.setHasEntry(true, for: selectedDate)
-                    
+
                     // Update the message count to current count
                     let messages = ChatSessionManager.shared.getMessages(for: selectedDate)
                     let userMessageCount = messages.filter { $0.isUser }.count
                     DailyContentManager.shared.setEntryMessageCount(userMessageCount, for: selectedDate)
-                    
+
                     // Reset the updating state
                     isUpdatingEntry = false
-                    
+
                     // Post notification to refresh the UI
                     NotificationCenter.default.post(name: NSNotification.Name("DailyEntryUpdatedStatusChanged"), object: selectedDate)
+
+                    // Automatically open the entry after update
+                    let data = EntryView.EntryData(
+                        title: "Morning Reflections",
+                        content: "Today started with a beautiful sunrise over the mountains. I took a moment to appreciate the quiet before the day began. The morning light streaming through my window reminded me of how much I value these peaceful moments.",
+                        date: selectedDate,
+                        time: formatTime(selectedDate)
+                    )
+                    entryData = data
+                    showingEntry = true
                 }
             }
             .tint(Color(hex: "44C0FF"))

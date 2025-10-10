@@ -160,6 +160,7 @@ struct DailyChatView: View {
     @State private var showingPreviewEntry = false
     @State private var isGeneratingEntry = false
     @State private var showingEntry = false
+    @State private var entryData: EntryView.EntryData? = nil
     @State private var showingChatSettings = false
     @State private var showingClearChatAlert = false
     @State private var showingUpdateConfirmation = false
@@ -733,7 +734,11 @@ struct DailyChatView: View {
             }
         }
         .sheet(isPresented: $showingEntry) {
-            EntryView(journal: nil)
+            if let data = entryData {
+                EntryView(journal: nil, entryData: data, startInEditMode: false)
+            } else {
+                EntryView(journal: nil)
+            }
         }
         .sheet(isPresented: $showingChatSettings) {
             DailyChatSettingsView()
@@ -756,25 +761,39 @@ struct DailyChatView: View {
             Button("Update", role: .none) {
                 // Start the update process
                 isUpdatingEntry = true
-                
+
                 // Simulate update process
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                     // Mark entry as updated
                     DailyContentManager.shared.setHasEntry(true, for: selectedDate)
-                    
+
                     // Update the message count to current count
                     let messages = chatSessionManager.getMessages(for: selectedDate)
                     let userMessageCount = messages.filter { $0.isUser }.count
                     DailyContentManager.shared.setEntryMessageCount(userMessageCount, for: selectedDate)
-                    
+
                     // Reset the updating state
                     isUpdatingEntry = false
-                    
+
                     // Update local state
                     entryCreated = true
-                    
+
                     // Post notification to refresh the UI
                     NotificationCenter.default.post(name: NSNotification.Name("DailyEntryUpdatedStatusChanged"), object: selectedDate)
+
+                    // Automatically open the entry after update
+                    let formatter = DateFormatter()
+                    formatter.dateFormat = "h:mm a"
+                    let timeString = formatter.string(from: selectedDate)
+
+                    let data = EntryView.EntryData(
+                        title: "Morning Reflections",
+                        content: "Today started with a beautiful sunrise over the mountains. I took a moment to appreciate the quiet before the day began. The morning light streaming through my window reminded me of how much I value these peaceful moments.",
+                        date: selectedDate,
+                        time: timeString
+                    )
+                    entryData = data
+                    showingEntry = true
                 }
             }
             .tint(Color(hex: "44C0FF"))

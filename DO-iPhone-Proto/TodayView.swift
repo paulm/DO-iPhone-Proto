@@ -855,7 +855,7 @@ struct TodayView: View {
         }
     }
     
-    // Extract Daily Entry Chat section as computed property
+    // Extract Daily Chat section as computed property
     @ViewBuilder
     private var dailyEntryChatSection: some View {
         Section {
@@ -867,7 +867,7 @@ struct TodayView: View {
                 
                 // Header content (now part of the section body so it scrolls)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Daily Entry Chat")
+                    Text("Daily Chat")
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundStyle(Color(hex: "292F33"))
@@ -1332,8 +1332,6 @@ struct TodayView: View {
             .scrollContentBackground(.hidden)
             .background(backgroundColor)
             .ignoresSafeArea(edges: .bottom)
-            .offset(y: showDatePickerGrid ? -175 : 0)
-            .padding(.bottom, showDatePickerGrid ? -175 : 0)
             
                 // Chat elements at bottom
                 VStack {

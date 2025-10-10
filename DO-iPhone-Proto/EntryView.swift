@@ -47,6 +47,7 @@ struct EntryView: View {
     @State private var scrollProxy: ScrollViewProxy?
     @FocusState private var textEditorFocused: Bool
     @State private var showingTitleSuggestions = false
+    @AppStorage("metadataPosition") private var isMetadataAnchored = true
     
     // Location for the map - Sundance Resort coordinates
     private let entryLocation = CLLocationCoordinate2D(latitude: 40.6006, longitude: -111.5878)
@@ -495,7 +496,7 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                     }
                 } else {
                     // Read mode - scrollable content with embeds
-                    ZStack {
+                    ZStack(alignment: .bottom) {
                         ScrollView {
                             VStack(alignment: .leading, spacing: 0) {
                                 // Embeds section with gray background - only Entry Chat Session now
@@ -517,10 +518,10 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                                     .frame(maxWidth: .infinity, alignment: .trailing)
                                     .padding(.bottom, 1)
                                 }
-                                
+
                                 // Text content with inline audio embeds
                                 VStack(alignment: .leading, spacing: 8) {
-                                    
+
                                     // Generated from Daily Chat indicator
                                     if showGeneratedFromDailyChat {
                                         Button {
@@ -540,7 +541,7 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                                         // .frame(maxWidth: .infinity, alignment: .trailing)
                                         .padding(.bottom, 14)
                                     }
-                                    
+
                                     // Display full text with first line bolded
                                     formattedEntryText()
                                         .font(useLatoFont ? Font.custom("Lato-Regular", size: 18) : .system(size: 18))
@@ -555,7 +556,7 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                                             }
                                         }
                                         .padding(.bottom, 8)
-                                    
+
                                     // Show embeds after text with proper spacing
                                     // First audio recording embed (can have transcription or not)
                                     if showAudioEmbedWithTranscription {
@@ -587,7 +588,7 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                                             )
                                         }
                                     }
-                                    
+
                                     // Image embed
                                     if showImageEmbed {
                                         imageEmbed(
@@ -599,8 +600,8 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                                             }
                                         )
                                     }
-                                    
-                                    
+
+
                                     // Second audio recording embed (without transcription by default)
                                     if showSecondAudioEmbed {
                                         audioRecordingEmbed(
@@ -615,49 +616,40 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                                             }
                                         )
                                     }
-                                    
-                                    // Map footer section
-                                    VStack(alignment: .leading, spacing: 6) {
-                                        // Journal metadata with weather
-                                        HStack {
-                                            Text(journalName)
-                                                .foregroundStyle(journalColor)
-                                                .fontWeight(.medium)
-                                            Text("•")
-                                                .foregroundStyle(.secondary)
-                                            Text(locationName)
-                                                .foregroundStyle(.secondary)
-                                            Text("•")
-                                                .foregroundStyle(.secondary)
-                                            HStack(spacing: 4) {
-                                                Image(systemName: "cloud.rain")
-                                                    .font(.system(size: 14))
-                                                Text("17°C")
-                                            }
-                                            .foregroundStyle(.secondary)
-                                        }
-                                        .font(.caption)
-                                        
-                                        // Map with rounded corners and inset
-                                        Map(position: .constant(.region(MKCoordinateRegion(
-                                            center: entryLocation,
-                                            span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
-                                        )))) {
-                                            Marker(locationName, coordinate: entryLocation)
-                                                .tint(journalColor)
-                                        }
-                                        .frame(height: 180)
-                                        .clipShape(RoundedRectangle(cornerRadius: 24))
-                                        .mapStyle(.standard)
-                                        .allowsHitTesting(false)
+
+                                    // Inline metadata - only shown when not anchored
+                                    if !isMetadataAnchored {
+                                        metadataView
+                                            .padding(.top, 24)
                                     }
-                                    .padding(.top, 24)
                                 }
                                 // left and right margins
                                 .padding(.horizontal, 16)
                                 .padding(.top, hasChatActivity && showEntryChatEmbed ? 28 : 12)
-                                .padding(.bottom, 24)
+                                .padding(.bottom, isMetadataAnchored ? 120 : 24)
                             }
+                        }
+
+                        // Anchored metadata - shown when anchored mode is enabled
+                        if isMetadataAnchored {
+                            VStack(spacing: 0) {
+                                metadataView
+                                    .padding(.horizontal, 16)
+                                    .padding(.top, 16)
+                                    .padding(.bottom, 24)
+                                    .background(
+                                        LinearGradient(
+                                            colors: [
+                                                Color(.systemBackground).opacity(0),
+                                                Color(.systemBackground)
+                                            ],
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        )
+                                    )
+                            }
+                            .frame(maxHeight: .infinity, alignment: .bottom)
+                            .offset(y: 200)
                         }
                     } // End of ZStack
                 }
@@ -819,11 +811,40 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                             Button {
                                 showImageCaption.toggle()
                             } label: {
-                                Label(showImageCaption ? "Hide Image Caption" : "Show Image Caption", 
+                                Label(showImageCaption ? "Hide Image Caption" : "Show Image Caption",
                                       systemImage: showImageCaption ? "text.bubble.slash" : "text.bubble")
                             }
                         }
-                        
+
+                        Divider()
+
+                        // Metadata Position Section
+                        Menu {
+                            Button {
+                                isMetadataAnchored = false
+                            } label: {
+                                HStack {
+                                    Text("Inline")
+                                    if !isMetadataAnchored {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+
+                            Button {
+                                isMetadataAnchored = true
+                            } label: {
+                                HStack {
+                                    Text("Anchored")
+                                    if isMetadataAnchored {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        } label: {
+                            Label("Metadata Position", systemImage: "map")
+                        }
+
                         Divider()
                         
                         Button {
@@ -1065,6 +1086,43 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
             return Text(firstLine)
                 .fontWeight(.semibold) +
             Text("\n" + remainingText)
+        }
+    }
+
+    private var metadataView: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            // Journal metadata with weather
+            HStack {
+                Text(journalName)
+                    .foregroundStyle(journalColor)
+                    .fontWeight(.medium)
+                Text("•")
+                    .foregroundStyle(.secondary)
+                Text(locationName)
+                    .foregroundStyle(.secondary)
+                Text("•")
+                    .foregroundStyle(.secondary)
+                HStack(spacing: 4) {
+                    Image(systemName: "cloud.rain")
+                        .font(.system(size: 14))
+                    Text("17°C")
+                }
+                .foregroundStyle(.secondary)
+            }
+            .font(.caption)
+
+            // Map with rounded corners and inset
+            Map(position: .constant(.region(MKCoordinateRegion(
+                center: entryLocation,
+                span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+            )))) {
+                Marker(locationName, coordinate: entryLocation)
+                    .tint(journalColor)
+            }
+            .frame(height: 180)
+            .clipShape(RoundedRectangle(cornerRadius: 24))
+            .mapStyle(.standard)
+            .allowsHitTesting(false)
         }
     }
 } // End of EntryView

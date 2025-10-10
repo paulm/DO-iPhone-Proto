@@ -61,7 +61,7 @@ struct MainTabView: View {
                 Tab {
                     TimelineView()
                 } label: {
-                    Label("Today", dayOneIcon: .calendar)
+                    Label("Today", dayOneIcon: .sunrise)
                 }
                 
                 Tab {

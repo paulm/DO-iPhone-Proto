@@ -3496,14 +3496,11 @@ struct DailyChatCalendarView: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var selectedDate: Date
 
-    @State private var showingActionSheet = false
-    @State private var actionSheetDate: Date?
     @State private var showingDailyChat = false
     @State private var showingEntry = false
     @State private var entryData: EntryView.EntryData?
 
     private let calendar = Calendar.current
-    private let weekdaySymbols = ["S", "M", "T", "W", "T", "F", "S"]
 
     // Get all dates with chats, grouped by month
     private var monthsWithChats: [(month: Date, dates: [Date])] {
@@ -3584,46 +3581,14 @@ struct DailyChatCalendarView: View {
                     .tint(Color(hex: "44C0FF"))
                 }
             }
-            .confirmationDialog("Date Actions", isPresented: $showingActionSheet, presenting: actionSheetDate) { date in
-                Button("Select Date") {
-                    selectedDate = date
-                    dismiss()
-                }
-
-                Button("Open Chat") {
-                    selectedDate = date
-                    showingDailyChat = true
-                }
-
-                if hasEntryForDate(date) {
-                    Button("View Entry") {
-                        selectedDate = date
-                        let formatter = DateFormatter()
-                        formatter.dateFormat = "h:mm a"
-                        let timeString = formatter.string(from: date)
-
-                        entryData = EntryView.EntryData(
-                            title: "Entry",
-                            content: "Entry content...",
-                            date: date,
-                            time: timeString
-                        )
-                        showingEntry = true
-                    }
-                }
-
-                Button("Cancel", role: .cancel) { }
-            }
             .sheet(isPresented: $showingDailyChat) {
-                if let date = actionSheetDate {
-                    DailyChatView(
-                        selectedDate: date,
-                        initialLogMode: false,
-                        entryCreated: .constant(false),
-                        onChatStarted: {},
-                        onMessageCountChanged: { _ in }
-                    )
-                }
+                DailyChatView(
+                    selectedDate: selectedDate,
+                    initialLogMode: false,
+                    entryCreated: .constant(false),
+                    onChatStarted: {},
+                    onMessageCountChanged: { _ in }
+                )
             }
             .sheet(isPresented: $showingEntry) {
                 if let data = entryData {
@@ -3651,26 +3616,17 @@ struct DailyChatCalendarView: View {
                             if let date = calendar.date(from: DateComponents(year: dateComponents.year, month: dateComponents.month, day: day)) {
                                 let hasContent = hasMessagesForDate(date) || hasEntryForDate(date)
 
-                                Button(action: {
-                                    actionSheetDate = date
-                                    showingActionSheet = true
-                                }) {
-                                    DateCircle(
-                                        date: date,
-                                        isSelected: calendar.isDate(date, inSameDayAs: selectedDate),
-                                        isToday: calendar.isDateInToday(date),
-                                        isFuture: date > Date(),
-                                        isCompleted: hasMessagesForDate(date),
-                                        hasEntry: hasEntryForDate(date),
-                                        showDate: hasContent, // Only show date number if has content
-                                        onTap: {
-                                            actionSheetDate = date
-                                            showingActionSheet = true
-                                        }
-                                    )
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                                .frame(width: 30, height: 30)
+                                DateCellButton(
+                                    date: date,
+                                    selectedDate: $selectedDate,
+                                    showingDailyChat: $showingDailyChat,
+                                    showingEntry: $showingEntry,
+                                    entryData: $entryData,
+                                    hasContent: hasContent,
+                                    hasMessages: hasMessagesForDate(date),
+                                    hasEntry: hasEntryForDate(date),
+                                    onDismiss: { dismiss() }
+                                )
                             } else {
                                 Color.clear
                                     .frame(width: 30, height: 30)
@@ -3695,6 +3651,94 @@ struct DailyChatCalendarView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMMM yyyy"
         return formatter.string(from: date)
+    }
+}
+
+// MARK: - Date Cell Button with Popover
+struct DateCellButton: View {
+    let date: Date
+    @Binding var selectedDate: Date
+    @Binding var showingDailyChat: Bool
+    @Binding var showingEntry: Bool
+    @Binding var entryData: EntryView.EntryData?
+    let hasContent: Bool
+    let hasMessages: Bool
+    let hasEntry: Bool
+    let onDismiss: () -> Void
+
+    @State private var showingPopover = false
+    private let calendar = Calendar.current
+
+    var body: some View {
+        Button(action: {
+            showingPopover = true
+        }) {
+            DateCircle(
+                date: date,
+                isSelected: calendar.isDate(date, inSameDayAs: selectedDate),
+                isToday: calendar.isDateInToday(date),
+                isFuture: date > Date(),
+                isCompleted: hasMessages,
+                hasEntry: hasEntry,
+                showDate: hasContent,
+                onTap: {
+                    showingPopover = true
+                }
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
+        .frame(width: 30, height: 30)
+        .popover(isPresented: $showingPopover) {
+            VStack(spacing: 0) {
+                Button(action: {
+                    selectedDate = date
+                    showingPopover = false
+                    onDismiss()
+                }) {
+                    Text("Select Date")
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                }
+
+                Divider()
+
+                Button(action: {
+                    selectedDate = date
+                    showingPopover = false
+                    showingDailyChat = true
+                }) {
+                    Text("Open Chat")
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                }
+
+                if hasEntry {
+                    Divider()
+
+                    Button(action: {
+                        selectedDate = date
+                        let formatter = DateFormatter()
+                        formatter.dateFormat = "h:mm a"
+                        let timeString = formatter.string(from: date)
+
+                        entryData = EntryView.EntryData(
+                            title: "Entry",
+                            content: "Entry content...",
+                            date: date,
+                            time: timeString
+                        )
+                        showingPopover = false
+                        showingEntry = true
+                    }) {
+                        Text("View Entry")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                    }
+                }
+            }
+            .frame(width: 200)
+            .presentationCompactAdaptation(.popover)
+        }
     }
 }
 

@@ -3528,12 +3528,12 @@ struct DailyChatCalendarView: View {
             calendar.dateComponents([.year, .month], from: date)
         }
 
-        // Convert to array and sort by month (newest first)
+        // Convert to array and sort by month (oldest first)
         let months = groupedByMonth.compactMap { components, dates -> (month: Date, dates: [Date])? in
             guard let monthDate = calendar.date(from: components) else { return nil }
             return (monthDate, dates.sorted())
         }
-        .sorted { $0.month > $1.month }
+        .sorted { $0.month < $1.month }
 
         return months
     }
@@ -3554,22 +3554,9 @@ struct DailyChatCalendarView: View {
         VStack(spacing: 12) {
             // Month header
             Text(monthYearString(from: monthData.month))
-                .font(.headline)
+                .font(.subheadline)
                 .fontWeight(.semibold)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 16)
-
-            // Weekday headers
-            HStack(spacing: 12) {
-                ForEach(weekdaySymbols, id: \.self) { symbol in
-                    Text(symbol)
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.secondary)
-                        .frame(width: 30)
-                }
-            }
-            .frame(maxWidth: .infinity)
+                .frame(maxWidth: .infinity)
 
             // Calendar grid
             calendarGrid(for: monthData.month, dates: monthData.dates)

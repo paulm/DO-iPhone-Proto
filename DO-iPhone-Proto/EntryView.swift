@@ -47,6 +47,7 @@ struct EntryView: View {
     @State private var scrollProxy: ScrollViewProxy?
     @FocusState private var textEditorFocused: Bool
     @State private var showingTitleSuggestions = false
+    @State private var showingImageGeneration = false
     @AppStorage("metadataPosition") private var isMetadataAnchored = true
     
     // Location for the map - Sundance Resort coordinates
@@ -349,7 +350,10 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                                                         }
                                                         
                                                         Button {
-                                                            // Generate Image action
+                                                            textEditorFocused = false
+                                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                                                showingImageGeneration = true
+                                                            }
                                                         } label: {
                                                             Label("Generate Image", systemImage: "photo.badge.plus")
                                                         }
@@ -981,6 +985,9 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                 }
 
                 Button("Cancel", role: .cancel) {}
+            }
+            .sheet(isPresented: $showingImageGeneration) {
+                ImageGenerationView()
             }
         }
     }

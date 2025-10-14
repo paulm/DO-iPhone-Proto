@@ -580,6 +580,7 @@ struct TodayView: View {
     @State private var showingEventsSheet = false
     @State private var showingMediaSheet = false
     @State private var placesData: [(name: String, icon: DayOneIcon, time: String)] = []
+    @State private var eventsData: [(name: String, icon: DayOneIcon, time: String, type: String)] = []
     @State private var showingBio = false
     @State private var showingChatSettings = false
     @State private var showingChatCalendar = false
@@ -1050,10 +1051,10 @@ struct TodayView: View {
                             Text("Events")
                                 .font(.system(size: 16))
                                 .foregroundStyle(.primary)
-                            
+
                             Spacer()
-                            
-                            Text("3")
+
+                            Text("\(eventsData.count)")
                                 .font(.system(size: 15))
                                 .foregroundStyle(.secondary)
                             
@@ -1673,6 +1674,10 @@ struct TodayView: View {
                         Button("Add Places") {
                             addPlacesData()
                         }
+
+                        Button("Add Events") {
+                            addEventsData()
+                        }
                     }
                 } label: {
                     // Profile avatar button
@@ -1793,7 +1798,7 @@ struct TodayView: View {
             VisitsSheetView(visits: $placesData, selectedDate: $selectedDate, onAddPlaces: addPlacesData)
         }
         .sheet(isPresented: $showingEventsSheet) {
-            EventsSheetView()
+            EventsSheetView(events: $eventsData, onAddEvents: addEventsData)
         }
         .sheet(isPresented: $showingMediaSheet) {
             MediaSheetView()
@@ -2208,6 +2213,17 @@ struct TodayView: View {
             (name: "Park City Library", icon: DayOneIcon.books_filled, time: "1:15 PM · 1 hour"),
             (name: "Starbucks Coffee", icon: DayOneIcon.food, time: "3:30 PM · 30 min"),
             (name: "Silver Lake Trail", icon: DayOneIcon.hiking, time: "5:45 PM · 2 hours")
+        ]
+    }
+
+    private func addEventsData() {
+        // Populate with sample events
+        eventsData = [
+            (name: "Morning Team Standup", icon: DayOneIcon.calendar, time: "9:00 AM - 9:30 AM", type: "Work"),
+            (name: "Dentist Appointment", icon: DayOneIcon.calendar, time: "11:00 AM - 12:00 PM", type: "Health"),
+            (name: "Lunch with Sarah", icon: DayOneIcon.calendar, time: "12:30 PM - 1:30 PM", type: "Personal"),
+            (name: "Project Review Meeting", icon: DayOneIcon.calendar, time: "2:00 PM - 3:00 PM", type: "Work"),
+            (name: "Yoga Class", icon: DayOneIcon.calendar, time: "5:30 PM - 6:30 PM", type: "Wellness")
         ]
     }
 
@@ -3204,15 +3220,8 @@ struct EventsSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showingEntryView = false
     @State private var selectedEventName: String = ""
-    
-    // Sample events data
-    private let events = [
-        (name: "Morning Team Standup", icon: DayOneIcon.users_group, time: "9:00 AM - 9:30 AM", type: "Work"),
-        (name: "Dentist Appointment", icon: DayOneIcon.health, time: "11:00 AM - 12:00 PM", type: "Health"),
-        (name: "Lunch with Sarah", icon: DayOneIcon.fork_knife, time: "12:30 PM - 1:30 PM", type: "Personal"),
-        (name: "Project Review Meeting", icon: DayOneIcon.stats, time: "2:00 PM - 3:00 PM", type: "Work"),
-        (name: "Yoga Class", icon: DayOneIcon.yoga, time: "5:30 PM - 6:30 PM", type: "Wellness")
-    ]
+    @Binding var events: [(name: String, icon: DayOneIcon, time: String, type: String)]
+    let onAddEvents: () -> Void
     
     var body: some View {
         NavigationStack {
@@ -3224,9 +3233,41 @@ struct EventsSheetView: View {
                     .padding(.horizontal, 20)
                     .padding(.top, 20)
                     .padding(.bottom, 16)
-                
-                // Events list
-                List {
+
+                if events.isEmpty {
+                    // Empty state
+                    VStack(spacing: 12) {
+                        Spacer()
+
+                        Image(systemName: "calendar")
+                            .font(.system(size: 48))
+                            .foregroundStyle(.secondary.opacity(0.5))
+
+                        VStack(spacing: 16) {
+                            Text("No events on this day")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 40)
+
+                            // Select Calendars button
+                            Button {
+                                onAddEvents()
+                            } label: {
+                                Text("Select Calendars")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(Color(hex: "44C0FF"))
+                            }
+                            .padding(.top, 4)
+                        }
+
+                        Spacer()
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    // Events list
+                    List {
                     ForEach(events, id: \.name) { event in
                         Button(action: {
                             selectedEventName = event.name
@@ -3313,6 +3354,7 @@ struct EventsSheetView: View {
                 .listStyle(.plain)
                 .scrollContentBackground(.hidden)
                 .background(Color(.systemBackground))
+                }
             }
             .background(Color(.systemBackground))
             .navigationBarTitleDisplayMode(.inline)

@@ -579,6 +579,7 @@ struct TodayView: View {
     @State private var showingVisitsSheet = false
     @State private var showingEventsSheet = false
     @State private var showingMediaSheet = false
+    @State private var placesData: [(name: String, icon: DayOneIcon, time: String)] = []
     @State private var showingBio = false
     @State private var showingChatSettings = false
     @State private var showingChatCalendar = false
@@ -1016,10 +1017,10 @@ struct TodayView: View {
                             Text("Places")
                                 .font(.system(size: 16))
                                 .foregroundStyle(.primary)
-                            
+
                             Spacer()
-                            
-                            Text("4")
+
+                            Text("\(placesData.count)")
                                 .font(.system(size: 15))
                                 .foregroundStyle(.secondary)
                             
@@ -1660,13 +1661,17 @@ struct TodayView: View {
                         Button("New") {
                             populateNewUserData()
                         }
-                        
+
                         Button("Past 2 Weeks") {
                             populatePast2WeeksData()
                         }
-                        
+
                         Button("2 Months") {
                             populate2MonthsData()
+                        }
+
+                        Button("Add Places") {
+                            addPlacesData()
                         }
                     }
                 } label: {
@@ -1785,7 +1790,7 @@ struct TodayView: View {
             }
         }
         .sheet(isPresented: $showingVisitsSheet) {
-            VisitsSheetView()
+            VisitsSheetView(visits: $placesData, selectedDate: $selectedDate, onAddPlaces: addPlacesData)
         }
         .sheet(isPresented: $showingEventsSheet) {
             EventsSheetView()
@@ -2194,7 +2199,18 @@ struct TodayView: View {
         // Post notification to update UI
         NotificationCenter.default.post(name: NSNotification.Name("DataPopulationChanged"), object: nil)
     }
-    
+
+    private func addPlacesData() {
+        // Populate with sample places
+        placesData = [
+            (name: "Sundance Mountain Resort", icon: DayOneIcon.skiing, time: "7:44 AM · 3 hours"),
+            (name: "Whole Foods Market", icon: DayOneIcon.cart, time: "11:22 AM · 45 min"),
+            (name: "Park City Library", icon: DayOneIcon.books_filled, time: "1:15 PM · 1 hour"),
+            (name: "Starbucks Coffee", icon: DayOneIcon.food, time: "3:30 PM · 30 min"),
+            (name: "Silver Lake Trail", icon: DayOneIcon.hiking, time: "5:45 PM · 2 hours")
+        ]
+    }
+
     private func generateSampleResponse(for daysAgo: Int) -> String {
         let responses = [
             "Had a great day today! Finished some important work and feeling accomplished.",
@@ -3000,15 +3016,9 @@ struct VisitsSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showingEntryView = false
     @State private var selectedVisitName: String = ""
-    
-    // Sample visits data matching MomentsView
-    private let visits = [
-        (name: "Sundance Mountain Resort", icon: DayOneIcon.skiing, time: "3 hours"),
-        (name: "Whole Foods Market", icon: DayOneIcon.cart, time: "45 min"),
-        (name: "Park City Library", icon: DayOneIcon.books_filled, time: "1 hour"),
-        (name: "Starbucks Coffee", icon: DayOneIcon.food, time: "30 min"),
-        (name: "Silver Lake Trail", icon: DayOneIcon.hiking, time: "2 hours")
-    ]
+    @Binding var visits: [(name: String, icon: DayOneIcon, time: String)]
+    @Binding var selectedDate: Date
+    let onAddPlaces: () -> Void
     
     var body: some View {
         NavigationStack {
@@ -3020,9 +3030,63 @@ struct VisitsSheetView: View {
                     .padding(.horizontal, 20)
                     .padding(.top, 20)
                     .padding(.bottom, 16)
-                
-                // Visits list
-                List {
+
+                if visits.isEmpty {
+                    // Empty state
+                    VStack(spacing: 12) {
+                        Spacer()
+
+                        Image(systemName: "mappin.and.ellipse")
+                            .font(.system(size: 48))
+                            .foregroundStyle(.secondary.opacity(0.5))
+
+                        // Only show this message when viewing today
+                        if Calendar.current.isDateInToday(selectedDate) {
+                            VStack(spacing: 16) {
+                                Text("Places will be added as you visit locations throughout the day")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal, 40)
+
+                                // View Yesterday button
+                                Button {
+                                    onAddPlaces()
+                                } label: {
+                                    Text("View Yesterday")
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                        .foregroundStyle(Color(hex: "44C0FF"))
+                                }
+                                .padding(.top, 4)
+
+                                // Check Settings button
+                                Button {
+                                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                                        UIApplication.shared.open(url)
+                                    }
+                                } label: {
+                                    Text("Check Settings")
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                        .foregroundStyle(Color(hex: "44C0FF"))
+                                }
+                                .padding(.top, 4)
+                            }
+                        } else {
+                            Text("No places visited on this day")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 40)
+                        }
+
+                        Spacer()
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    // Visits list
+                    List {
                     ForEach(visits, id: \.name) { visit in
                         Button(action: {
                             selectedVisitName = visit.name
@@ -3099,6 +3163,7 @@ struct VisitsSheetView: View {
                 .listStyle(.plain)
                 .scrollContentBackground(.hidden)
                 .background(Color(.systemBackground))
+                }
             }
             .background(Color(.systemBackground))
             .navigationBarTitleDisplayMode(.inline)
@@ -3108,7 +3173,7 @@ struct VisitsSheetView: View {
                         // TODO: Handle View All action
                     }
                 }
-                
+
                 ToolbarItem(placement: .principal) {
                     Text("Places")
                         .font(.headline)

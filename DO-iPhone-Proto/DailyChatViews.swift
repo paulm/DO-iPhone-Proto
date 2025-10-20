@@ -166,6 +166,7 @@ struct DailyChatView: View {
     @State private var showingUpdateConfirmation = false
     @State private var isUpdatingEntry = false
     @State private var showingVoiceMode = false
+    @State private var showingChatInfo = false
     
     private let chatSessionManager = ChatSessionManager.shared
     
@@ -674,6 +675,15 @@ struct DailyChatView: View {
                     }
                 }
                 
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showingChatInfo = true
+                    } label: {
+                        Image(systemName: "info.circle")
+                            .font(.body)
+                    }
+                }
+
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done", systemImage: "checkmark") {
                         dismiss()
@@ -747,6 +757,9 @@ struct DailyChatView: View {
         }
         .fullScreenCover(isPresented: $showingVoiceMode) {
             VoiceModeView()
+        }
+        .sheet(isPresented: $showingChatInfo) {
+            DailyChatInfoView()
         }
         .alert("Clear Chat?", isPresented: $showingClearChatAlert) {
             Button("Cancel", role: .cancel) { }
@@ -1313,3 +1326,91 @@ struct BioEditView: View {
 }
 
 // ChatSettingsView has been replaced with DailyChatSettingsView
+
+// MARK: - Daily Chat Info View
+struct DailyChatInfoView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+
+                    // Instructions section
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Daily Chat Instructions:")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+
+                        Text("You direct the conversation; the AI responses are suggestions to help inspire ideas. Ignore anything not useful, and just write naturally.  Enable Log Mode to disable the AI responses.")
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                        
+                    }
+                    .padding(.top, 12)
+                    .padding(.horizontal)
+
+                    // Note section
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Note on context:")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+
+                        Text("Currently, each day is a new day without any context from previous chats. Historical context and memories are coming soon.")
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.horizontal)
+
+                    // Roadmap section
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Roadmap:")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack(alignment: .top, spacing: 8) {
+                                Text("•")
+                                    .foregroundStyle(.secondary)
+                                Text("Context from previous days/chats/entries")
+                                    .font(.body)
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            HStack(alignment: .top, spacing: 8) {
+                                Text("•")
+                                    .foregroundStyle(.secondary)
+                                Text("Memory system and tool calling")
+                                    .font(.body)
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            HStack(alignment: .top, spacing: 8) {
+                                Text("•")
+                                    .foregroundStyle(.secondary)
+                                Text("Moments curation from locations, events, media")
+                                    .font(.body)
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            HStack(alignment: .top, spacing: 8) {
+                                Text("•")
+                                    .foregroundStyle(.secondary)
+                                Text("Tracking system")
+                                    .font(.body)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
+
+                    Spacer()
+                }
+                .padding(.vertical)
+            }
+
+        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+    }
+}

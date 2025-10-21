@@ -680,7 +680,7 @@ struct DailyChatView: View {
                         showingChatInfo = true
                     } label: {
                         Image(systemName: "info.circle")
-                            .font(.body)
+                            .font(.system(size: 14))
                     }
                 }
 

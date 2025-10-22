@@ -5,7 +5,6 @@ import UIKit
 // MARK: - Style Options
 enum TodayViewStyle: String, CaseIterable {
     case standard = "Standard"
-    case transparent = "Transparent"
 }
 
 // MARK: - Moments Selection Manager
@@ -587,7 +586,7 @@ struct TodayView: View {
 
     // Show/hide toggles for Daily Activities
     @State private var showWeather = false
-    @State private var showDatePickerGrid = true
+    @State private var showDatePickerGrid = false
     @State private var showDateNavigation = true
     @State private var showChat = false
     @State private var showMomentsList = true
@@ -614,7 +613,6 @@ struct TodayView: View {
     @AppStorage("showEntryFAB") private var showEntryFAB = false
     @AppStorage("showChatInputBox") private var showChatInputBox = false
     @AppStorage("showChatMessage") private var showChatMessage = false
-    @AppStorage("showMomentsCarousel") private var showMomentsCarousel = false
     @AppStorage("showDailyEntryChat") private var showDailyEntryChat = true
     @AppStorage("showLogVoiceModeButtons") private var showLogVoiceModeButtons = false
     @AppStorage("showBioSection") private var showBioSection = false
@@ -623,9 +621,6 @@ struct TodayView: View {
     
     // Sheet presentation state
     @State private var shouldPresentWelcomeSheet = false
-    
-    // Options toggles
-    @State private var showGridDates = false
 
     private var dateRange: [Date] {
         let calendar = Calendar.current
@@ -761,12 +756,7 @@ struct TodayView: View {
     }
     
     private var cellBackgroundColor: Color {
-        switch selectedStyle {
-        case .standard:
-            return Color(UIColor.secondarySystemGroupedBackground)
-        case .transparent:
-            return Color(UIColor.systemGroupedBackground)
-        }
+        return Color(UIColor.secondarySystemGroupedBackground)
     }
     
     private var dailyChatTitle: String {
@@ -1270,7 +1260,7 @@ struct TodayView: View {
                             dates: dateRange,
                             selectedDate: $selectedDate,
                             showingChatCalendar: $showingChatCalendar,
-                            showDates: showGridDates,
+                            showDates: false,
                             showStreak: false
                         )
                         .padding(.horizontal, DatePickerConstants.horizontalPadding)
@@ -1293,20 +1283,7 @@ struct TodayView: View {
                 if showDailyEntryChat {
                     dailyEntryChatSection
                 }
-                
-                // Moments Carousel Section
-                if showMomentsCarousel {
-                    Section {
-                        MomentsCarouselView(
-                            showingMoments: $showingMoments,
-                            momentsInitialSection: $momentsInitialSection
-                        )
-                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                        .listRowBackground(Color.clear)
-                        .padding(.horizontal, -20)
-                    }
-                }
-                
+
                 // Moments List Section
                 if showMomentsList {
                     momentsListSection
@@ -1457,18 +1434,7 @@ struct TodayView: View {
                     }
 
                     Section("Show in Today") {
-                        
-                        Button {
-                            showWelcomeToTodaySheet.toggle()
-                        } label: {
-                            HStack {
-                                Text("Welcome to Today Sheet")
-                                if showWelcomeToTodaySheet {
-                                    Image(dayOneIcon: .checkmark)
-                                }
-                            }
-                        }
-                        
+
                         Button {
                             showDatePickerGrid.toggle()
                         } label: {
@@ -1479,7 +1445,7 @@ struct TodayView: View {
                                 }
                             }
                         }
-                        
+
                         Button {
                             showDateNavigation.toggle()
                         } label: {
@@ -1490,51 +1456,7 @@ struct TodayView: View {
                                 }
                             }
                         }
-                        
-                        Button {
-                            showMomentsCarousel.toggle()
-                        } label: {
-                            HStack {
-                                Text("Moments Carousel")
-                                if showMomentsCarousel {
-                                    Image(dayOneIcon: .checkmark)
-                                }
-                            }
-                        }
-                        
-                        Button {
-                            showMomentsList.toggle()
-                        } label: {
-                            HStack {
-                                Text("Moments List")
-                                if showMomentsList {
-                                    Image(dayOneIcon: .checkmark)
-                                }
-                            }
-                        }
-                        
-                        Button {
-                            showTrackers.toggle()
-                        } label: {
-                            HStack {
-                                Text("Trackers")
-                                if showTrackers {
-                                    Image(dayOneIcon: .checkmark)
-                                }
-                            }
-                        }
-                        
-                        Button {
-                            showGuides.toggle()
-                        } label: {
-                            HStack {
-                                Text("Guides")
-                                if showGuides {
-                                    Image(dayOneIcon: .checkmark)
-                                }
-                            }
-                        }
-                        
+
                         Button {
                             showInsights.toggle()
                         } label: {
@@ -1545,8 +1467,7 @@ struct TodayView: View {
                                 }
                             }
                         }
-                        
-                        
+
                         Button {
                             showDailyEntryChat.toggle()
                         } label: {
@@ -1557,19 +1478,29 @@ struct TodayView: View {
                                 }
                             }
                         }
-                        
-                        
+
                         Button {
-                            showLogVoiceModeButtons.toggle()
+                            showMomentsList.toggle()
                         } label: {
                             HStack {
-                                Text("Log and Voice Mode Buttons")
-                                if showLogVoiceModeButtons {
+                                Text("Moments List")
+                                if showMomentsList {
                                     Image(dayOneIcon: .checkmark)
                                 }
                             }
                         }
-                        
+
+                        Button {
+                            showTrackers.toggle()
+                        } label: {
+                            HStack {
+                                Text("Trackers")
+                                if showTrackers {
+                                    Image(dayOneIcon: .checkmark)
+                                }
+                            }
+                        }
+
                         Button {
                             showBioSection.toggle()
                         } label: {
@@ -1580,7 +1511,40 @@ struct TodayView: View {
                                 }
                             }
                         }
-                        
+
+                        Button {
+                            showGuides.toggle()
+                        } label: {
+                            HStack {
+                                Text("Guides")
+                                if showGuides {
+                                    Image(dayOneIcon: .checkmark)
+                                }
+                            }
+                        }
+
+                        Button {
+                            showLogVoiceModeButtons.toggle()
+                        } label: {
+                            HStack {
+                                Text("Log and Voice Mode Buttons")
+                                if showLogVoiceModeButtons {
+                                    Image(dayOneIcon: .checkmark)
+                                }
+                            }
+                        }
+
+                        Button {
+                            showWelcomeToTodaySheet.toggle()
+                        } label: {
+                            HStack {
+                                Text("Welcome to Today Sheet")
+                                if showWelcomeToTodaySheet {
+                                    Image(dayOneIcon: .checkmark)
+                                }
+                            }
+                        }
+
                     }
                     
                     Section("Show HUD") {
@@ -1628,36 +1592,7 @@ struct TodayView: View {
                             }
                         }
                     }
-                    
-                    Section("Options") {
-                        Button {
-                            showGridDates.toggle()
-                        } label: {
-                            HStack {
-                                Text("Grid Dates")
-                                if showGridDates {
-                                    Image(dayOneIcon: .checkmark)
-                                }
-                            }
-                        }
 
-                    }
-                    
-                    Section("Style") {
-                        ForEach(TodayViewStyle.allCases, id: \.self) { style in
-                            Button {
-                                selectedStyle = style
-                            } label: {
-                                HStack {
-                                    Text(style.rawValue)
-                                    if selectedStyle == style {
-                                        Image(dayOneIcon: .checkmark)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
                     Section("Populate Data") {
                         Button("New") {
                             populateNewUserData()
@@ -2853,125 +2788,6 @@ struct TodayInsightItemView: View {
 }
 
 // MARK: - ChatEntryPreviewView moved to DailyChatViews.swift
-
-
-// MARK: - Moments Carousel View
-struct MomentsCarouselView: View {
-    @Binding var showingMoments: Bool
-    @Binding var momentsInitialSection: String?
-    @StateObject private var momentsSelection = MomentsSelectionManager.shared
-    
-    struct MomentCategory {
-        let title: String
-        let icon: String
-        let count: Int
-        let color: Color
-    }
-    
-    let categories = [
-        MomentCategory(title: "Visits", icon: "location.fill", count: 5, color: Color(hex: "44C0FF")),
-        MomentCategory(title: "Media", icon: "photo.fill", count: 12, color: Color(hex: "44C0FF")),
-        MomentCategory(title: "Events", icon: "calendar", count: 3, color: Color(hex: "44C0FF")),
-        MomentCategory(title: "Health", icon: "heart.fill", count: 8, color: Color(hex: "44C0FF"))
-    ]
-    
-    var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                // Summary item (shown when there are selections)
-                if momentsSelection.hasSelections {
-                    Text(momentsSelection.selectionSummary)
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                        .lineLimit(3)
-                        .multilineTextAlignment(.leading)
-                        .padding(12)
-                        .frame(width: 163, height: 84) // 2/3 of 244 = ~163
-                        .background(Color(hex: "F3F1F8"))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .padding(.leading, 20)
-                }
-                
-                // Regular category items
-                ForEach(Array(categories.enumerated()), id: \.element.title) { index, category in
-                    Button(action: {
-                        momentsInitialSection = category.title
-                        showingMoments = true
-                    }) {
-                        VStack(spacing: 0) {
-                            // Icon
-                            Image(systemName: category.icon)
-                                .font(.system(size: 28))
-                                .foregroundStyle(category.color)
-                                .frame(maxHeight: .infinity)
-                            
-                            // Count label with menu for Visits
-                            if category.title == "Visits" {
-                                HStack(spacing: 4) {
-                                    Text("\(category.count) \(category.title)")
-                                        .font(.system(size: 11))
-                                        .foregroundStyle(.secondary)
-                                    
-                                    Menu {
-                                        Button("Home - 6:00 AM") {
-                                            // TODO: Open new entry for Home visit
-                                        }
-                                        Button("Starbucks - 8:15 AM") {
-                                            // TODO: Open new entry for Starbucks visit
-                                        }
-                                        Button("Office - 9:30 AM") {
-                                            // TODO: Open new entry for Office visit
-                                        }
-                                        Button("Gym - 12:30 PM") {
-                                            // TODO: Open new entry for Gym visit
-                                        }
-                                        Button("Park - 5:30 PM") {
-                                            // TODO: Open new entry for Park visit
-                                        }
-                                    } label: {
-                                        Image(dayOneIcon: .dots_horizontal)
-                                            .font(.system(size: 11))
-                                            .foregroundStyle(.secondary)
-                                    }
-                                    .onTapGesture {
-                                        // Prevent button tap when menu is tapped
-                                    }
-                                }
-                                .padding(.bottom, 8)
-                            } else {
-                                Text("\(category.count) \(category.title)")
-                                    .font(.system(size: 11))
-                                    .foregroundStyle(.secondary)
-                                    .padding(.bottom, 8)
-                            }
-                        }
-                        .frame(width: 116, height: 84)
-                        .background(Color(hex: "F3F1F8"))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .padding(.leading, index == 0 && !momentsSelection.hasSelections ? 20 : 0)
-                    .padding(.trailing, 0)
-                }
-                
-                // Settings button
-                Button(action: {
-                    // TODO: Open moments settings
-                }) {
-                    Image(dayOneIcon: .settings)
-                        .font(.system(size: 24))
-                        .foregroundStyle(Color.gray.opacity(0.5))
-                        .frame(width: 60, height: 84)
-                        .background(Color(hex: "F3F1F8"))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                }
-                .buttonStyle(PlainButtonStyle())
-                .padding(.trailing, 20)
-            }
-        }
-        .padding(.vertical, 4)
-    }
-}
 
 // MARK: - Entry Links Carousel View
 struct EntryLinksCarouselView: View {

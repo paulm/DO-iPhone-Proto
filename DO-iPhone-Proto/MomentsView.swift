@@ -103,24 +103,13 @@ struct MomentsView: View {
     private var allMoments: [Moment] { Self.staticMoments }
     
     var body: some View {
-        switch experimentsManager.variant(for: .momentsModal) {
-        case .grid:
-            MomentsViewGrid(
-                selectedLocations: $selectedLocations,
-                selectedEvents: $selectedEvents,
-                selectedPhotos: $selectedPhotos,
-                selectedHealth: $selectedHealth,
-                initialSection: initialSection
-            )
-        default:
-            MomentsViewOriginal(
-                selectedLocations: $selectedLocations,
-                selectedEvents: $selectedEvents,
-                selectedPhotos: $selectedPhotos,
-                selectedHealth: $selectedHealth,
-                initialSection: initialSection
-            )
-        }
+        MomentsViewGrid(
+            selectedLocations: $selectedLocations,
+            selectedEvents: $selectedEvents,
+            selectedPhotos: $selectedPhotos,
+            selectedHealth: $selectedHealth,
+            initialSection: initialSection
+        )
     }
     
     private func isMomentSelected(_ moment: Moment) -> Bool {

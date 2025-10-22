@@ -10,8 +10,7 @@ enum AppSection: String, CaseIterable, Identifiable {
     case searchTab = "Search Tab"
     case journalPicker = "Journal Picker"
     case entryView = "Entry View"
-    case momentsModal = "Moments Modal"
-    
+
     var id: String { rawValue }
 }
 
@@ -41,10 +40,7 @@ class ExperimentsManager {
         
         // Set Today tab to use v1i2 as default
         variants[.todayTab] = .v1i2
-        
-        // Set Moments modal to use grid as default
-        variants[.momentsModal] = .grid
-        
+
         // Set Journals tab to use paged as default
         variants[.journalsTab] = .paged
     }
@@ -92,8 +88,6 @@ class ExperimentsManager {
             return [.original] // All use compact layout now
         case .entryView:
             return [.original] // Only original for now, will expand later
-        case .momentsModal:
-            return [.original, .grid] // List and Grid variants
         }
     }
 }
@@ -113,36 +107,7 @@ struct ExperimentsView: View {
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                 }
-                
-                // Global Controls Section
-                Section("Global Controls") {
-                    Text("Apply the same variant to all sections at once")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
-                    
-                    ForEach([ExperimentVariant.original, ExperimentVariant.appleSettings], id: \.self) { variant in
-                        HStack {
-                            Text(variant.rawValue)
-                                .font(.body)
-                            
-                            Spacer()
-                            
-                            if experimentsManager.getGlobalVariant() == variant {
-                                Image(systemName: "checkmark")
-                                    .foregroundStyle(Color(hex: "44C0FF"))
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                            }
-                        }
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            experimentsManager.setGlobalVariant(variant)
-                        }
-                    }
-                }
-                
+
                 // Individual Section Controls
                 Section("Individual Section Controls") {
                     ForEach(AppSection.allCases) { section in

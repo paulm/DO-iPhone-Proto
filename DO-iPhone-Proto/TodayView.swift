@@ -998,150 +998,154 @@ struct TodayView: View {
         .listRowSeparator(.hidden)
     }
 
-    // Moments Section
+    // Moments Section - Photos
     @ViewBuilder
-    private var momentsSection: some View {
+    private var momentsPhotosSection: some View {
         Section {
-            VStack(alignment: .leading, spacing: 12) {
-                // Header content (now part of the section body so it scrolls)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Moments")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundStyle(Color(hex: "292F33"))
-                    Text("Select notable moments from this day...")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+            Button(action: {
+                showingMomentsMediaSheet = true
+            }) {
+                HStack(spacing: 12) {
+                    Image(dayOneIcon: .photo)
+                        .font(.system(size: 20))
+                        .foregroundStyle(BrandColors.journalLavender)
+                        .frame(width: 32)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Photos")
+                            .font(.body)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.primary)
+
+                        Text("Select notable photos...")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+
+                    if selectedMomentsPhotos.isEmpty {
+                        Text("Select from 12")
+                            .font(.subheadline)
+                            .foregroundStyle(Color(hex: "44C0FF"))
+                    } else {
+                        HStack(spacing: 4) {
+                            Text("\(selectedMomentsPhotos.count) Selected")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.subheadline)
+                                .foregroundStyle(.green)
+                        }
+                    }
                 }
-                // Moments Types
-                VStack(alignment: .leading, spacing: 0) {
-                    // Photos row
-                    Button(action: {
-                        showingMomentsMediaSheet = true
-                    }) {
-                        HStack {
-                            Image(dayOneIcon: .photo)
-                                .font(.system(size: 16))
-                                .foregroundStyle(.primary)
-                                .frame(width: 28)
-
-                            Text("Photos")
-                                .font(.system(size: 16))
-                                .foregroundStyle(.primary)
-
-                            Spacer()
-
-                            if selectedMomentsPhotos.isEmpty {
-                                Text("Select from 12")
-                                    .font(.system(size: 15))
-                                    .foregroundStyle(Color(hex: "44C0FF"))
-                            } else {
-                                HStack(spacing: 6) {
-                                    Text("\(selectedMomentsPhotos.count) Selected")
-                                        .font(.system(size: 15))
-                                        .foregroundStyle(Color(.darkGray))
-
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .font(.system(size: 16))
-                                        .foregroundStyle(.green)
-                                }
-                            }
-                        }
-                        .padding(.vertical, 16)
-                        .padding(.horizontal, 16)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(PlainButtonStyle())
-
-                    Divider()
-                        .padding(.leading, 60)
-
-                    // Places row
-                    Button(action: {
-                        showingMomentsVisitsSheet = true
-                    }) {
-                        HStack {
-                            Image(dayOneIcon: .map_pin)
-                                .font(.system(size: 16))
-                                .foregroundStyle(.primary)
-                                .frame(width: 28)
-
-                            Text("Places")
-                                .font(.system(size: 16))
-                                .foregroundStyle(.primary)
-
-                            Spacer()
-
-                            if selectedMomentsPlaces.isEmpty {
-                                Text("Select from \(placesData.count)")
-                                    .font(.system(size: 15))
-                                    .foregroundStyle(Color(hex: "44C0FF"))
-                            } else {
-                                HStack(spacing: 6) {
-                                    Text("\(selectedMomentsPlaces.count) Selected")
-                                        .font(.system(size: 15))
-                                        .foregroundStyle(Color(.darkGray))
-
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .font(.system(size: 16))
-                                        .foregroundStyle(.green)
-                                }
-                            }
-                        }
-                        .padding(.vertical, 16)
-                        .padding(.horizontal, 16)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(PlainButtonStyle())
-
-                    Divider()
-                        .padding(.leading, 60)
-
-                    // Events row
-                    Button(action: {
-                        showingMomentsEventsSheet = true
-                    }) {
-                        HStack {
-                            Image(dayOneIcon: .calendar)
-                                .font(.system(size: 16))
-                                .foregroundStyle(.primary)
-                                .frame(width: 28)
-
-                            Text("Events")
-                                .font(.system(size: 16))
-                                .foregroundStyle(.primary)
-
-                            Spacer()
-
-                            if selectedMomentsEvents.isEmpty {
-                                Text("Select from \(eventsData.count)")
-                                    .font(.system(size: 15))
-                                    .foregroundStyle(Color(hex: "44C0FF"))
-                            } else {
-                                HStack(spacing: 6) {
-                                    Text("\(selectedMomentsEvents.count) Selected")
-                                        .font(.system(size: 15))
-                                        .foregroundStyle(Color(.darkGray))
-
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .font(.system(size: 16))
-                                        .foregroundStyle(.green)
-                                }
-                            }
-                        }
-                        .padding(.vertical, 16)
-                        .padding(.horizontal, 16)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                }
-                .background(Color(.systemGray6))
-                .clipShape(RoundedRectangle(cornerRadius: 24))
+                .padding(.vertical, 4)
+                .contentShape(Rectangle())
             }
+            .buttonStyle(PlainButtonStyle())
         }
-        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-        .listRowBackground(showGuides ? Color.orange.opacity(0.2) : Color.clear)
-        .listRowSeparator(.hidden)
+        .listRowBackground(cellBackgroundColor)
+    }
+
+    // Moments Section - Places
+    @ViewBuilder
+    private var momentsPlacesSection: some View {
+        Section {
+            Button(action: {
+                showingMomentsVisitsSheet = true
+            }) {
+                HStack(spacing: 12) {
+                    Image(dayOneIcon: .map_pin)
+                        .font(.system(size: 20))
+                        .foregroundStyle(BrandColors.journalAqua)
+                        .frame(width: 32)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Places")
+                            .font(.body)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.primary)
+
+                        Text("Select notable visits...")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+
+                    if selectedMomentsPlaces.isEmpty {
+                        Text("Select from \(placesData.count)")
+                            .font(.subheadline)
+                            .foregroundStyle(Color(hex: "44C0FF"))
+                    } else {
+                        HStack(spacing: 4) {
+                            Text("\(selectedMomentsPlaces.count) Selected")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.subheadline)
+                                .foregroundStyle(.green)
+                        }
+                    }
+                }
+                .padding(.vertical, 4)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(PlainButtonStyle())
+        }
+        .listRowBackground(cellBackgroundColor)
+    }
+
+    // Moments Section - Events
+    @ViewBuilder
+    private var momentsEventsSection: some View {
+        Section {
+            Button(action: {
+                showingMomentsEventsSheet = true
+            }) {
+                HStack(spacing: 12) {
+                    Image(dayOneIcon: .calendar)
+                        .font(.system(size: 20))
+                        .foregroundStyle(BrandColors.journalFire)
+                        .frame(width: 32)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Events")
+                            .font(.body)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.primary)
+
+                        Text("Select notable events...")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+
+                    if selectedMomentsEvents.isEmpty {
+                        Text("Select from \(eventsData.count)")
+                            .font(.subheadline)
+                            .foregroundStyle(Color(hex: "44C0FF"))
+                    } else {
+                        HStack(spacing: 4) {
+                            Text("\(selectedMomentsEvents.count) Selected")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.subheadline)
+                                .foregroundStyle(.green)
+                        }
+                    }
+                }
+                .padding(.vertical, 4)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(PlainButtonStyle())
+        }
+        .listRowBackground(cellBackgroundColor)
     }
 
     @ViewBuilder
@@ -1363,7 +1367,9 @@ struct TodayView: View {
 
                 // Moments Section
                 if showMoments {
-                    momentsSection
+                    momentsPhotosSection
+                    momentsPlacesSection
+                    momentsEventsSection
                 }
 
                 // Trackers Section

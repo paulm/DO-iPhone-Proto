@@ -1067,9 +1067,17 @@ struct TodayView: View {
                             .fontWeight(.medium)
                             .foregroundStyle(.primary)
 
-                        Text("Select notable visits...")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                        if selectedMomentsPlaces.isEmpty {
+                            Text("Select notable visits...")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        } else {
+                            Text(Array(selectedMomentsPlaces).sorted().joined(separator: ", "))
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(2)
+                                .truncationMode(.tail)
+                        }
                     }
 
                     Spacer()
@@ -1117,9 +1125,17 @@ struct TodayView: View {
                             .fontWeight(.medium)
                             .foregroundStyle(.primary)
 
-                        Text("Select notable events...")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                        if selectedMomentsEvents.isEmpty {
+                            Text("Select notable events...")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        } else {
+                            Text(Array(selectedMomentsEvents).sorted().joined(separator: ", "))
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(2)
+                                .truncationMode(.tail)
+                        }
                     }
 
                     Spacer()

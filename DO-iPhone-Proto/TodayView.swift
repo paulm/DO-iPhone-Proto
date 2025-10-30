@@ -580,10 +580,12 @@ struct TodayView: View {
     @State private var showingEventsSheet = false
     @State private var showingMomentsEventsSheet = false
     @State private var showingMediaSheet = false
+    @State private var showingMomentsMediaSheet = false
     @State private var placesData: [(name: String, icon: DayOneIcon, time: String)] = []
     @State private var eventsData: [(name: String, icon: DayOneIcon, time: String, type: String)] = []
     @State private var selectedMomentsPlaces: Set<String> = []
     @State private var selectedMomentsEvents: Set<String> = []
+    @State private var selectedMomentsPhotos: Set<String> = []
     @State private var showingBio = false
     @State private var showingChatSettings = false
     @State private var showingChatCalendar = false
@@ -1090,7 +1092,7 @@ struct TodayView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     // Photos row
                     Button(action: {
-                        showingMediaSheet = true
+                        showingMomentsMediaSheet = true
                     }) {
                         HStack {
                             Image(dayOneIcon: .photo)
@@ -1104,13 +1106,21 @@ struct TodayView: View {
 
                             Spacer()
 
-                            Text("5")
-                                .font(.system(size: 15))
-                                .foregroundStyle(.secondary)
+                            if selectedMomentsPhotos.isEmpty {
+                                Text("Select from 12")
+                                    .font(.system(size: 15))
+                                    .foregroundStyle(Color(hex: "44C0FF"))
+                            } else {
+                                HStack(spacing: 6) {
+                                    Text("\(selectedMomentsPhotos.count) Selected")
+                                        .font(.system(size: 15))
+                                        .foregroundStyle(Color(.darkGray))
 
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundStyle(Color(.systemGray3))
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .font(.system(size: 16))
+                                        .foregroundStyle(.green)
+                                }
+                            }
                         }
                         .padding(.vertical, 16)
                         .padding(.horizontal, 16)
@@ -1886,6 +1896,9 @@ struct TodayView: View {
         .sheet(isPresented: $showingMediaSheet) {
             MediaSheetView()
         }
+        .sheet(isPresented: $showingMomentsMediaSheet) {
+            MediaSheetView(isForChat: true, selectedPhotosForChat: $selectedMomentsPhotos)
+        }
         .sheet(isPresented: $showingTrackers) {
             TrackerView(
                 moodRating: $moodRating,
@@ -1930,6 +1943,7 @@ struct TodayView: View {
             momentsSelection.selectedHealth.removeAll()
             selectedMomentsPlaces.removeAll()
             selectedMomentsEvents.removeAll()
+            selectedMomentsPhotos.removeAll()
 
             // Clear tracker data
             moodRating = 0
@@ -3052,7 +3066,7 @@ struct VisitsSheetView: View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 0) {
                 // Header text
-                Text("Select notable visits from this day")
+                Text("Select notable visits from this day...")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 20)
@@ -3270,7 +3284,7 @@ struct EventsSheetView: View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 0) {
                 // Header text
-                Text("Create an entry from any event")
+                Text("Select notable events from this day...")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 20)
@@ -3456,7 +3470,14 @@ struct MediaSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showingEntryView = false
     @State private var selectedImageIndex: Int = 0
-    
+    var isForChat: Bool = false
+    @Binding var selectedMomentsPhotos: Set<String>
+
+    init(isForChat: Bool = false, selectedPhotosForChat: Binding<Set<String>> = .constant([])) {
+        self.isForChat = isForChat
+        self._selectedMomentsPhotos = selectedPhotosForChat
+    }
+
     // Placeholder colors for the media grid
     private let mediaColors: [Color] = [
         Color(hex: "44C0FF").opacity(0.3),
@@ -3477,7 +3498,7 @@ struct MediaSheetView: View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 0) {
                 // Header text
-                Text("Tap any photo to create an entry")
+                Text("Select notable photos from this day...")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 20)
@@ -3487,17 +3508,51 @@ struct MediaSheetView: View {
                 // Media grid - 4 columns x 3 rows
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), spacing: 8) {
                     ForEach(0..<12) { index in
+                        let photoId = "photo_\(index)"
+                        let isSelected = selectedMomentsPhotos.contains(photoId)
+
                         Button(action: {
-                            selectedImageIndex = index
-                            showingEntryView = true
+                            if isForChat {
+                                // In chat mode, toggle the selection
+                                if selectedMomentsPhotos.contains(photoId) {
+                                    selectedMomentsPhotos.remove(photoId)
+                                } else {
+                                    selectedMomentsPhotos.insert(photoId)
+                                }
+                            } else {
+                                // In regular mode, open entry view
+                                selectedImageIndex = index
+                                showingEntryView = true
+                            }
                         }) {
                             RoundedRectangle(cornerRadius: 8)
                                 .fill(mediaColors[index])
                                 .aspectRatio(1, contentMode: .fit)
+                                .opacity(isForChat ? (isSelected ? 1.0 : 0.5) : 1.0)
                                 .overlay(
-                                    Image(dayOneIcon: .photo)
-                                        .font(.system(size: 24))
-                                        .foregroundStyle(.white.opacity(0.5))
+                                    ZStack {
+                                        if !isForChat {
+                                            Image(dayOneIcon: .photo)
+                                                .font(.system(size: 24))
+                                                .foregroundStyle(.white.opacity(0.5))
+                                        } else {
+                                            // Radio button indicator for chat mode
+                                            VStack {
+                                                HStack {
+                                                    Image(systemName: isSelected ? "circle.inset.filled" : "circle")
+                                                        .font(.system(size: 20))
+                                                        .foregroundStyle(isSelected ? Color(hex: "44C0FF") : .white.opacity(0.8))
+                                                        .padding(8)
+                                                    Spacer()
+                                                }
+                                                Spacer()
+                                            }
+                                        }
+                                    }
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(isForChat && isSelected ? Color(hex: "44C0FF") : Color.clear, lineWidth: 2)
                                 )
                         }
                         .buttonStyle(PlainButtonStyle())

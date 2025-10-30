@@ -3095,20 +3095,10 @@ struct VisitsSheetView: View {
                             HStack(spacing: 12) {
                                 // Radio button (chat mode) or Icon (regular mode)
                                 if isForChat {
-                                    Button(action: {
-                                        if selectedPlacesForChat.contains(visit.name) {
-                                            selectedPlacesForChat.remove(visit.name)
-                                        } else {
-                                            selectedPlacesForChat.insert(visit.name)
-                                        }
-                                    }) {
-                                        Image(systemName: selectedPlacesForChat.contains(visit.name) ? "circle.inset.filled" : "circle")
-                                            .font(.system(size: 24))
-                                            .foregroundStyle(selectedPlacesForChat.contains(visit.name) ? Color(hex: "44C0FF") : .secondary)
-                                            .frame(width: 32, height: 32)
-                                            .contentShape(Rectangle())
-                                    }
-                                    .buttonStyle(PlainButtonStyle())
+                                    Image(systemName: selectedPlacesForChat.contains(visit.name) ? "circle.inset.filled" : "circle")
+                                        .font(.system(size: 24))
+                                        .foregroundStyle(selectedPlacesForChat.contains(visit.name) ? Color(hex: "44C0FF") : .secondary)
+                                        .frame(width: 32, height: 32)
                                 } else {
                                     Image(dayOneIcon: visit.icon)
                                         .font(.system(size: 20))
@@ -3158,6 +3148,7 @@ struct VisitsSheetView: View {
                                 }
                                 .menuStyle(.borderlessButton)
                             }
+                            .contentShape(Rectangle())
                         }
                         .buttonStyle(PlainButtonStyle())
                         .swipeActions(edge: .trailing, allowsFullSwipe: false) {

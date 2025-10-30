@@ -581,7 +581,7 @@ struct TodayView: View {
     @State private var showingMediaSheet = false
     @State private var placesData: [(name: String, icon: DayOneIcon, time: String)] = []
     @State private var eventsData: [(name: String, icon: DayOneIcon, time: String, type: String)] = []
-    @State private var selectedPlaceForChat: String? = nil
+    @State private var selectedPlacesForChat: Set<String> = []
     @State private var showingBio = false
     @State private var showingChatSettings = false
     @State private var showingChatCalendar = false
@@ -1874,7 +1874,7 @@ struct TodayView: View {
             VisitsSheetView(visits: $placesData, selectedDate: $selectedDate, onAddPlaces: addPlacesData)
         }
         .sheet(isPresented: $showingVisitsSheetForChat) {
-            VisitsSheetView(visits: $placesData, selectedDate: $selectedDate, onAddPlaces: addPlacesData, isForChat: true, selectedPlaceForChat: $selectedPlaceForChat)
+            VisitsSheetView(visits: $placesData, selectedDate: $selectedDate, onAddPlaces: addPlacesData, isForChat: true, selectedPlacesForChat: $selectedPlacesForChat)
         }
         .sheet(isPresented: $showingEventsSheet) {
             EventsSheetView(events: $eventsData, onAddEvents: addEventsData)
@@ -2996,18 +2996,18 @@ struct VisitsSheetView: View {
     @Binding var selectedDate: Date
     let onAddPlaces: () -> Void
     var isForChat: Bool = false
-    @Binding var selectedPlaceForChat: String?
+    @Binding var selectedPlacesForChat: Set<String>
 
     init(visits: Binding<[(name: String, icon: DayOneIcon, time: String)]>,
          selectedDate: Binding<Date>,
          onAddPlaces: @escaping () -> Void,
          isForChat: Bool = false,
-         selectedPlaceForChat: Binding<String?> = .constant(nil)) {
+         selectedPlacesForChat: Binding<Set<String>> = .constant([])) {
         self._visits = visits
         self._selectedDate = selectedDate
         self.onAddPlaces = onAddPlaces
         self.isForChat = isForChat
-        self._selectedPlaceForChat = selectedPlaceForChat
+        self._selectedPlacesForChat = selectedPlacesForChat
     }
     
     var body: some View {
@@ -3079,18 +3079,32 @@ struct VisitsSheetView: View {
                     List {
                     ForEach(visits, id: \.name) { visit in
                         Button(action: {
-                            selectedVisitName = visit.name
-                            showingEntryView = true
+                            if isForChat {
+                                // In chat mode, toggle the selection
+                                if selectedPlacesForChat.contains(visit.name) {
+                                    selectedPlacesForChat.remove(visit.name)
+                                } else {
+                                    selectedPlacesForChat.insert(visit.name)
+                                }
+                            } else {
+                                // In regular mode, open entry view
+                                selectedVisitName = visit.name
+                                showingEntryView = true
+                            }
                         }) {
                             HStack(spacing: 12) {
                                 // Radio button (chat mode) or Icon (regular mode)
                                 if isForChat {
                                     Button(action: {
-                                        selectedPlaceForChat = visit.name
+                                        if selectedPlacesForChat.contains(visit.name) {
+                                            selectedPlacesForChat.remove(visit.name)
+                                        } else {
+                                            selectedPlacesForChat.insert(visit.name)
+                                        }
                                     }) {
-                                        Image(systemName: selectedPlaceForChat == visit.name ? "circle.inset.filled" : "circle")
+                                        Image(systemName: selectedPlacesForChat.contains(visit.name) ? "circle.inset.filled" : "circle")
                                             .font(.system(size: 24))
-                                            .foregroundStyle(selectedPlaceForChat == visit.name ? Color(hex: "44C0FF") : .secondary)
+                                            .foregroundStyle(selectedPlacesForChat.contains(visit.name) ? Color(hex: "44C0FF") : .secondary)
                                             .frame(width: 32, height: 32)
                                             .contentShape(Rectangle())
                                     }

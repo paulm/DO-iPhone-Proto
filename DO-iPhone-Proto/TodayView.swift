@@ -1006,29 +1006,45 @@ struct TodayView: View {
                 showingMomentsMediaSheet = true
             }) {
                 HStack(spacing: 12) {
+                    // Left icon - fixed width
                     Image(dayOneIcon: .photo)
                         .font(.system(size: 20))
                         .foregroundStyle(BrandColors.journalLavender)
                         .frame(width: 32)
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Photos")
-                            .font(.body)
-                            .fontWeight(.medium)
-                            .foregroundStyle(.primary)
-
-                        Text("Select notable photos...")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    Spacer()
-
                     if selectedMomentsPhotos.isEmpty {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Photos")
+                                .font(.body)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.primary)
+
+                            Text("Select notable photos...")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        Spacer()
+
                         Text("Select from 12")
                             .font(.subheadline)
                             .foregroundStyle(Color(hex: "44C0FF"))
                     } else {
+                        // Show photo thumbnails horizontally in a scrollable container
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 4) {
+                                ForEach(Array(selectedMomentsPhotos).sorted(), id: \.self) { photoId in
+                                    if let index = Int(photoId.replacingOccurrences(of: "photo_", with: "")) {
+                                        RoundedRectangle(cornerRadius: 4)
+                                            .fill(photoColors[index % photoColors.count])
+                                            .frame(width: 40, height: 40)
+                                    }
+                                }
+                            }
+                        }
+                        .frame(height: 40)
+
+                        // Right side indicator - fixed
                         HStack(spacing: 4) {
                             Text("\(selectedMomentsPhotos.count)")
                                 .font(.subheadline)
@@ -1047,6 +1063,22 @@ struct TodayView: View {
         }
         .listRowBackground(cellBackgroundColor)
     }
+
+    // Photo colors for thumbnails
+    private let photoColors: [Color] = [
+        Color(hex: "44C0FF").opacity(0.3),
+        Color(hex: "FF6B6B").opacity(0.3),
+        Color(hex: "4ECDC4").opacity(0.3),
+        Color(hex: "FFD93D").opacity(0.3),
+        Color(hex: "6BCF7F").opacity(0.3),
+        Color(hex: "A8E6CF").opacity(0.3),
+        Color(hex: "FF8B94").opacity(0.3),
+        Color(hex: "C1E1DC").opacity(0.3),
+        Color(hex: "FFB6C1").opacity(0.3),
+        Color(hex: "B4A7D6").opacity(0.3),
+        Color(hex: "FFE4B5").opacity(0.3),
+        Color(hex: "E0BBE4").opacity(0.3)
+    ]
 
     // Moments Section - Places
     @ViewBuilder
@@ -3442,8 +3474,8 @@ struct MediaSheetView: View {
                     .padding(.top, 20)
                     .padding(.bottom, 16)
                 
-                // Media grid - 4 columns x 3 rows
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), spacing: 8) {
+                // Media grid - 3 columns x 4 rows
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
                     ForEach(0..<12) { index in
                         let photoId = "photo_\(index)"
                         let isSelected = selectedMomentsPhotos.contains(photoId)

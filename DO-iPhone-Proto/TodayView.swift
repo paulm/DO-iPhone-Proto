@@ -3096,6 +3096,7 @@ struct VisitsSheetView: View {
                                     Text(visit.name)
                                         .font(.body)
                                         .foregroundStyle(.primary)
+                                        .opacity(isForChat ? (selectedPlacesForChat.contains(visit.name) ? 1.0 : 0.5) : 1.0)
 
                                     Text(visit.time)
                                         .font(.caption)

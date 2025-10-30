@@ -576,10 +576,12 @@ struct TodayView: View {
     @AppStorage("hasShownFirstTimeJournalAlert") private var hasShownFirstTimeJournalAlert = false
     @AppStorage("selectedJournalForEntries") private var selectedJournalForEntries = "Daily"
     @State private var showingVisitsSheet = false
+    @State private var showingVisitsSheetForChat = false
     @State private var showingEventsSheet = false
     @State private var showingMediaSheet = false
     @State private var placesData: [(name: String, icon: DayOneIcon, time: String)] = []
     @State private var eventsData: [(name: String, icon: DayOneIcon, time: String, type: String)] = []
+    @State private var selectedPlaceForChat: String? = nil
     @State private var showingBio = false
     @State private var showingChatSettings = false
     @State private var showingChatCalendar = false
@@ -590,6 +592,7 @@ struct TodayView: View {
     @State private var showDateNavigation = true
     @State private var showChat = false
     @State private var showMomentsList = true
+    @State private var showMomentsForChat = true
     @State private var showTrackers = false
     @State private var showInsights = true
     @State private var showPrompts = true
@@ -1066,7 +1069,129 @@ struct TodayView: View {
         .listRowBackground(showGuides ? Color.orange.opacity(0.2) : Color.clear)
         .listRowSeparator(.hidden)
     }
-    
+
+    // Moments for Chat Section
+    @ViewBuilder
+    private var momentsForChatSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 12) {
+                // Header content (now part of the section body so it scrolls)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Moments for Chat")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundStyle(Color(hex: "292F33"))
+                    Text("Create an entry from a moment ...")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                // Moments Types
+                VStack(alignment: .leading, spacing: 0) {
+                    // Photos row
+                    Button(action: {
+                        showingMediaSheet = true
+                    }) {
+                        HStack {
+                            Image(dayOneIcon: .photo)
+                                .font(.system(size: 16))
+                                .foregroundStyle(.primary)
+                                .frame(width: 28)
+
+                            Text("Photos")
+                                .font(.system(size: 16))
+                                .foregroundStyle(.primary)
+
+                            Spacer()
+
+                            Text("5")
+                                .font(.system(size: 15))
+                                .foregroundStyle(.secondary)
+
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(Color(.systemGray3))
+                        }
+                        .padding(.vertical, 16)
+                        .padding(.horizontal, 16)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(PlainButtonStyle())
+
+                    Divider()
+                        .padding(.leading, 60)
+
+                    // Places row
+                    Button(action: {
+                        showingVisitsSheetForChat = true
+                    }) {
+                        HStack {
+                            Image(dayOneIcon: .map_pin)
+                                .font(.system(size: 16))
+                                .foregroundStyle(.primary)
+                                .frame(width: 28)
+
+                            Text("Places")
+                                .font(.system(size: 16))
+                                .foregroundStyle(.primary)
+
+                            Spacer()
+
+                            Text("\(placesData.count)")
+                                .font(.system(size: 15))
+                                .foregroundStyle(.secondary)
+
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(Color(.systemGray3))
+                        }
+                        .padding(.vertical, 16)
+                        .padding(.horizontal, 16)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(PlainButtonStyle())
+
+                    Divider()
+                        .padding(.leading, 60)
+
+                    // Events row
+                    Button(action: {
+                        showingEventsSheet = true
+                    }) {
+                        HStack {
+                            Image(dayOneIcon: .calendar)
+                                .font(.system(size: 16))
+                                .foregroundStyle(.primary)
+                                .frame(width: 28)
+
+                            Text("Events")
+                                .font(.system(size: 16))
+                                .foregroundStyle(.primary)
+
+                            Spacer()
+
+                            Text("\(eventsData.count)")
+                                .font(.system(size: 15))
+                                .foregroundStyle(.secondary)
+
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(Color(.systemGray3))
+                        }
+                        .padding(.vertical, 16)
+                        .padding(.horizontal, 16)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+                .background(Color(.systemGray6))
+                .clipShape(RoundedRectangle(cornerRadius: 24))
+            }
+        }
+        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+        .listRowBackground(showGuides ? Color.orange.opacity(0.2) : Color.clear)
+        .listRowSeparator(.hidden)
+    }
+
     @ViewBuilder
     private var entryLinksSection: some View {
         let entryCount = DailyDataManager.shared.getEntryCount(for: selectedDate)
@@ -1288,7 +1413,12 @@ struct TodayView: View {
                 if showMomentsList {
                     momentsListSection
                 }
-                
+
+                // Moments for Chat Section
+                if showMomentsForChat {
+                    momentsForChatSection
+                }
+
                 // Trackers Section
                 if showTrackers {
                     Section {
@@ -1485,6 +1615,17 @@ struct TodayView: View {
                             HStack {
                                 Text("Moments List")
                                 if showMomentsList {
+                                    Image(dayOneIcon: .checkmark)
+                                }
+                            }
+                        }
+
+                        Button {
+                            showMomentsForChat.toggle()
+                        } label: {
+                            HStack {
+                                Text("Moments for Chat")
+                                if showMomentsForChat {
                                     Image(dayOneIcon: .checkmark)
                                 }
                             }
@@ -1731,6 +1872,9 @@ struct TodayView: View {
         }
         .sheet(isPresented: $showingVisitsSheet) {
             VisitsSheetView(visits: $placesData, selectedDate: $selectedDate, onAddPlaces: addPlacesData)
+        }
+        .sheet(isPresented: $showingVisitsSheetForChat) {
+            VisitsSheetView(visits: $placesData, selectedDate: $selectedDate, onAddPlaces: addPlacesData, isForChat: true, selectedPlaceForChat: $selectedPlaceForChat)
         }
         .sheet(isPresented: $showingEventsSheet) {
             EventsSheetView(events: $eventsData, onAddEvents: addEventsData)
@@ -2851,6 +2995,20 @@ struct VisitsSheetView: View {
     @Binding var visits: [(name: String, icon: DayOneIcon, time: String)]
     @Binding var selectedDate: Date
     let onAddPlaces: () -> Void
+    var isForChat: Bool = false
+    @Binding var selectedPlaceForChat: String?
+
+    init(visits: Binding<[(name: String, icon: DayOneIcon, time: String)]>,
+         selectedDate: Binding<Date>,
+         onAddPlaces: @escaping () -> Void,
+         isForChat: Bool = false,
+         selectedPlaceForChat: Binding<String?> = .constant(nil)) {
+        self._visits = visits
+        self._selectedDate = selectedDate
+        self.onAddPlaces = onAddPlaces
+        self.isForChat = isForChat
+        self._selectedPlaceForChat = selectedPlaceForChat
+    }
     
     var body: some View {
         NavigationStack {
@@ -2925,25 +3083,38 @@ struct VisitsSheetView: View {
                             showingEntryView = true
                         }) {
                             HStack(spacing: 12) {
-                                // Icon
-                                Image(dayOneIcon: visit.icon)
-                                    .font(.system(size: 20))
-                                    .foregroundStyle(Color(hex: "44C0FF"))
-                                    .frame(width: 32, height: 32)
-                                
+                                // Radio button (chat mode) or Icon (regular mode)
+                                if isForChat {
+                                    Button(action: {
+                                        selectedPlaceForChat = visit.name
+                                    }) {
+                                        Image(systemName: selectedPlaceForChat == visit.name ? "circle.inset.filled" : "circle")
+                                            .font(.system(size: 24))
+                                            .foregroundStyle(selectedPlaceForChat == visit.name ? Color(hex: "44C0FF") : .secondary)
+                                            .frame(width: 32, height: 32)
+                                            .contentShape(Rectangle())
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
+                                } else {
+                                    Image(dayOneIcon: visit.icon)
+                                        .font(.system(size: 20))
+                                        .foregroundStyle(Color(hex: "44C0FF"))
+                                        .frame(width: 32, height: 32)
+                                }
+
                                 // Visit details
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(visit.name)
                                         .font(.body)
                                         .foregroundStyle(.primary)
-                                    
+
                                     Text(visit.time)
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
-                                
+
                                 Spacer()
-                                
+
                                 // Ellipsis menu
                                 Menu {
                                     Button(action: {
@@ -2952,13 +3123,13 @@ struct VisitsSheetView: View {
                                     }) {
                                         Label("Create Entry", dayOneIcon: .pen_edit)
                                     }
-                                    
+
                                     Button(action: {
                                         // Handle select nearby place
                                     }) {
                                         Label("Select Nearby Place", dayOneIcon: .map_pin)
                                     }
-                                    
+
                                     Button(action: {
                                         // Handle hide
                                     }) {

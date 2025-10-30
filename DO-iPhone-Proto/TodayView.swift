@@ -576,12 +576,12 @@ struct TodayView: View {
     @AppStorage("hasShownFirstTimeJournalAlert") private var hasShownFirstTimeJournalAlert = false
     @AppStorage("selectedJournalForEntries") private var selectedJournalForEntries = "Daily"
     @State private var showingVisitsSheet = false
-    @State private var showingVisitsSheetForChat = false
+    @State private var showingMomentsVisitsSheet = false
     @State private var showingEventsSheet = false
     @State private var showingMediaSheet = false
     @State private var placesData: [(name: String, icon: DayOneIcon, time: String)] = []
     @State private var eventsData: [(name: String, icon: DayOneIcon, time: String, type: String)] = []
-    @State private var selectedPlacesForChat: Set<String> = []
+    @State private var selectedMomentsPlaces: Set<String> = []
     @State private var showingBio = false
     @State private var showingChatSettings = false
     @State private var showingChatCalendar = false
@@ -591,7 +591,7 @@ struct TodayView: View {
     @State private var showDatePickerGrid = false
     @State private var showDateNavigation = true
     @State private var showChat = false
-    @State private var showMomentsForChat = true
+    @State private var showMoments = true
     @State private var showTrackers = false
     @State private var showInsights = true
     @State private var showPrompts = true
@@ -1069,14 +1069,14 @@ struct TodayView: View {
         .listRowSeparator(.hidden)
     }
 
-    // Moments for Chat Section
+    // Moments Section
     @ViewBuilder
-    private var momentsForChatSection: some View {
+    private var momentsSection: some View {
         Section {
             VStack(alignment: .leading, spacing: 12) {
                 // Header content (now part of the section body so it scrolls)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Moments for Chat")
+                    Text("Moments")
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundStyle(Color(hex: "292F33"))
@@ -1121,7 +1121,7 @@ struct TodayView: View {
 
                     // Places row
                     Button(action: {
-                        showingVisitsSheetForChat = true
+                        showingMomentsVisitsSheet = true
                     }) {
                         HStack {
                             Image(dayOneIcon: .map_pin)
@@ -1135,12 +1135,12 @@ struct TodayView: View {
 
                             Spacer()
 
-                            if selectedPlacesForChat.isEmpty {
+                            if selectedMomentsPlaces.isEmpty {
                                 Text("Select from \(placesData.count)")
                                     .font(.system(size: 15))
                                     .foregroundStyle(Color(hex: "44C0FF"))
                             } else {
-                                Text("\(selectedPlacesForChat.count) Selected")
+                                Text("\(selectedMomentsPlaces.count) Selected")
                                     .font(.system(size: 15))
                                     .foregroundStyle(Color(.darkGray))
                             }
@@ -1410,9 +1410,9 @@ struct TodayView: View {
                     dailyEntryChatSection
                 }
 
-                // Moments for Chat Section
-                if showMomentsForChat {
-                    momentsForChatSection
+                // Moments Section
+                if showMoments {
+                    momentsSection
                 }
 
                 // Trackers Section
@@ -1606,11 +1606,11 @@ struct TodayView: View {
                         }
 
                         Button {
-                            showMomentsForChat.toggle()
+                            showMoments.toggle()
                         } label: {
                             HStack {
-                                Text("Moments for Chat")
-                                if showMomentsForChat {
+                                Text("Moments")
+                                if showMoments {
                                     Image(dayOneIcon: .checkmark)
                                 }
                             }
@@ -1858,8 +1858,8 @@ struct TodayView: View {
         .sheet(isPresented: $showingVisitsSheet) {
             VisitsSheetView(visits: $placesData, selectedDate: $selectedDate, onAddPlaces: addPlacesData)
         }
-        .sheet(isPresented: $showingVisitsSheetForChat) {
-            VisitsSheetView(visits: $placesData, selectedDate: $selectedDate, onAddPlaces: addPlacesData, isForChat: true, selectedPlacesForChat: $selectedPlacesForChat)
+        .sheet(isPresented: $showingMomentsVisitsSheet) {
+            VisitsSheetView(visits: $placesData, selectedDate: $selectedDate, onAddPlaces: addPlacesData, isForChat: true, selectedPlacesForChat: $selectedMomentsPlaces)
         }
         .sheet(isPresented: $showingEventsSheet) {
             EventsSheetView(events: $eventsData, onAddEvents: addEventsData)
@@ -2981,7 +2981,7 @@ struct VisitsSheetView: View {
     @Binding var selectedDate: Date
     let onAddPlaces: () -> Void
     var isForChat: Bool = false
-    @Binding var selectedPlacesForChat: Set<String>
+    @Binding var selectedMomentsPlaces: Set<String>
 
     init(visits: Binding<[(name: String, icon: DayOneIcon, time: String)]>,
          selectedDate: Binding<Date>,
@@ -2992,7 +2992,7 @@ struct VisitsSheetView: View {
         self._selectedDate = selectedDate
         self.onAddPlaces = onAddPlaces
         self.isForChat = isForChat
-        self._selectedPlacesForChat = selectedPlacesForChat
+        self._selectedMomentsPlaces = selectedPlacesForChat
     }
     
     var body: some View {
@@ -3066,10 +3066,10 @@ struct VisitsSheetView: View {
                         Button(action: {
                             if isForChat {
                                 // In chat mode, toggle the selection
-                                if selectedPlacesForChat.contains(visit.name) {
-                                    selectedPlacesForChat.remove(visit.name)
+                                if selectedMomentsPlaces.contains(visit.name) {
+                                    selectedMomentsPlaces.remove(visit.name)
                                 } else {
-                                    selectedPlacesForChat.insert(visit.name)
+                                    selectedMomentsPlaces.insert(visit.name)
                                 }
                             } else {
                                 // In regular mode, open entry view
@@ -3080,9 +3080,9 @@ struct VisitsSheetView: View {
                             HStack(spacing: 12) {
                                 // Radio button (chat mode) or Icon (regular mode)
                                 if isForChat {
-                                    Image(systemName: selectedPlacesForChat.contains(visit.name) ? "circle.inset.filled" : "circle")
+                                    Image(systemName: selectedMomentsPlaces.contains(visit.name) ? "circle.inset.filled" : "circle")
                                         .font(.system(size: 24))
-                                        .foregroundStyle(selectedPlacesForChat.contains(visit.name) ? Color(hex: "44C0FF") : .secondary)
+                                        .foregroundStyle(selectedMomentsPlaces.contains(visit.name) ? Color(hex: "44C0FF") : .secondary)
                                         .frame(width: 32, height: 32)
                                 } else {
                                     Image(dayOneIcon: visit.icon)
@@ -3096,7 +3096,7 @@ struct VisitsSheetView: View {
                                     Text(visit.name)
                                         .font(.body)
                                         .foregroundStyle(.primary)
-                                        .opacity(isForChat ? (selectedPlacesForChat.contains(visit.name) ? 1.0 : 0.5) : 1.0)
+                                        .opacity(isForChat ? (selectedMomentsPlaces.contains(visit.name) ? 1.0 : 0.5) : 1.0)
 
                                     Text(visit.time)
                                         .font(.caption)

@@ -578,10 +578,12 @@ struct TodayView: View {
     @State private var showingVisitsSheet = false
     @State private var showingMomentsVisitsSheet = false
     @State private var showingEventsSheet = false
+    @State private var showingMomentsEventsSheet = false
     @State private var showingMediaSheet = false
     @State private var placesData: [(name: String, icon: DayOneIcon, time: String)] = []
     @State private var eventsData: [(name: String, icon: DayOneIcon, time: String, type: String)] = []
     @State private var selectedMomentsPlaces: Set<String> = []
+    @State private var selectedMomentsEvents: Set<String> = []
     @State private var showingBio = false
     @State private var showingChatSettings = false
     @State private var showingChatCalendar = false
@@ -1162,7 +1164,7 @@ struct TodayView: View {
 
                     // Events row
                     Button(action: {
-                        showingEventsSheet = true
+                        showingMomentsEventsSheet = true
                     }) {
                         HStack {
                             Image(dayOneIcon: .calendar)
@@ -1176,13 +1178,21 @@ struct TodayView: View {
 
                             Spacer()
 
-                            Text("\(eventsData.count)")
-                                .font(.system(size: 15))
-                                .foregroundStyle(.secondary)
+                            if selectedMomentsEvents.isEmpty {
+                                Text("Select from \(eventsData.count)")
+                                    .font(.system(size: 15))
+                                    .foregroundStyle(Color(hex: "44C0FF"))
+                            } else {
+                                HStack(spacing: 6) {
+                                    Text("\(selectedMomentsEvents.count) Selected")
+                                        .font(.system(size: 15))
+                                        .foregroundStyle(Color(.darkGray))
 
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundStyle(Color(.systemGray3))
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .font(.system(size: 16))
+                                        .foregroundStyle(.green)
+                                }
+                            }
                         }
                         .padding(.vertical, 16)
                         .padding(.horizontal, 16)
@@ -1870,6 +1880,9 @@ struct TodayView: View {
         .sheet(isPresented: $showingEventsSheet) {
             EventsSheetView(events: $eventsData, onAddEvents: addEventsData)
         }
+        .sheet(isPresented: $showingMomentsEventsSheet) {
+            EventsSheetView(events: $eventsData, onAddEvents: addEventsData, isForChat: true, selectedEventsForChat: $selectedMomentsEvents)
+        }
         .sheet(isPresented: $showingMediaSheet) {
             MediaSheetView()
         }
@@ -1916,6 +1929,7 @@ struct TodayView: View {
             momentsSelection.selectedPhotos.removeAll()
             momentsSelection.selectedHealth.removeAll()
             selectedMomentsPlaces.removeAll()
+            selectedMomentsEvents.removeAll()
 
             // Clear tracker data
             moodRating = 0
@@ -3239,6 +3253,18 @@ struct EventsSheetView: View {
     @State private var selectedEventName: String = ""
     @Binding var events: [(name: String, icon: DayOneIcon, time: String, type: String)]
     let onAddEvents: () -> Void
+    var isForChat: Bool = false
+    @Binding var selectedMomentsEvents: Set<String>
+
+    init(events: Binding<[(name: String, icon: DayOneIcon, time: String, type: String)]>,
+         onAddEvents: @escaping () -> Void,
+         isForChat: Bool = false,
+         selectedEventsForChat: Binding<Set<String>> = .constant([])) {
+        self._events = events
+        self.onAddEvents = onAddEvents
+        self.isForChat = isForChat
+        self._selectedMomentsEvents = selectedEventsForChat
+    }
     
     var body: some View {
         NavigationStack {
@@ -3287,21 +3313,39 @@ struct EventsSheetView: View {
                     List {
                     ForEach(events, id: \.name) { event in
                         Button(action: {
-                            selectedEventName = event.name
-                            showingEntryView = true
+                            if isForChat {
+                                // In chat mode, toggle the selection
+                                if selectedMomentsEvents.contains(event.name) {
+                                    selectedMomentsEvents.remove(event.name)
+                                } else {
+                                    selectedMomentsEvents.insert(event.name)
+                                }
+                            } else {
+                                // In regular mode, open entry view
+                                selectedEventName = event.name
+                                showingEntryView = true
+                            }
                         }) {
                             HStack(spacing: 12) {
-                                // Icon
-                                Image(dayOneIcon: event.icon)
-                                    .font(.system(size: 20))
-                                    .foregroundStyle(Color(hex: "44C0FF"))
-                                    .frame(width: 32, height: 32)
+                                // Radio button (chat mode) or Icon (regular mode)
+                                if isForChat {
+                                    Image(systemName: selectedMomentsEvents.contains(event.name) ? "circle.inset.filled" : "circle")
+                                        .font(.system(size: 24))
+                                        .foregroundStyle(selectedMomentsEvents.contains(event.name) ? Color(hex: "44C0FF") : .secondary)
+                                        .frame(width: 32, height: 32)
+                                } else {
+                                    Image(dayOneIcon: event.icon)
+                                        .font(.system(size: 20))
+                                        .foregroundStyle(Color(hex: "44C0FF"))
+                                        .frame(width: 32, height: 32)
+                                }
                                 
                                 // Event details
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(event.name)
                                         .font(.body)
                                         .foregroundStyle(.primary)
+                                        .opacity(isForChat ? (selectedMomentsEvents.contains(event.name) ? 1.0 : 0.5) : 1.0)
                                     
                                     HStack(spacing: 4) {
                                         Text(event.time)
@@ -3349,6 +3393,7 @@ struct EventsSheetView: View {
                                 }
                                 .menuStyle(.borderlessButton)
                             }
+                            .contentShape(Rectangle())
                         }
                         .buttonStyle(PlainButtonStyle())
                         .swipeActions(edge: .trailing, allowsFullSwipe: false) {

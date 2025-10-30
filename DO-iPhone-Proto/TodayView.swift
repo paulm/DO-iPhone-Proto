@@ -3038,7 +3038,7 @@ struct VisitsSheetView: View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 0) {
                 // Header text
-                Text("Create an entry from any visit")
+                Text("Select notable visits from this day")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 20)

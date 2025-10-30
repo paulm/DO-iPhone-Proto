@@ -1018,7 +1018,7 @@ struct TodayView: View {
                             .foregroundStyle(.primary)
 
                         Text("Select notable photos...")
-                            .font(.subheadline)
+                            .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
 
@@ -1030,7 +1030,7 @@ struct TodayView: View {
                             .foregroundStyle(Color(hex: "44C0FF"))
                     } else {
                         HStack(spacing: 4) {
-                            Text("\(selectedMomentsPhotos.count) Selected")
+                            Text("\(selectedMomentsPhotos.count)")
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
 
@@ -1069,11 +1069,11 @@ struct TodayView: View {
 
                         if selectedMomentsPlaces.isEmpty {
                             Text("Select notable visits...")
-                                .font(.subheadline)
+                                .font(.footnote)
                                 .foregroundStyle(.secondary)
                         } else {
                             Text(Array(selectedMomentsPlaces).sorted().joined(separator: ", "))
-                                .font(.subheadline)
+                                .font(.footnote)
                                 .foregroundStyle(.secondary)
                                 .lineLimit(2)
                                 .truncationMode(.tail)
@@ -1088,7 +1088,7 @@ struct TodayView: View {
                             .foregroundStyle(Color(hex: "44C0FF"))
                     } else {
                         HStack(spacing: 4) {
-                            Text("\(selectedMomentsPlaces.count) Selected")
+                            Text("\(selectedMomentsPlaces.count)")
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
 
@@ -1127,11 +1127,11 @@ struct TodayView: View {
 
                         if selectedMomentsEvents.isEmpty {
                             Text("Select notable events...")
-                                .font(.subheadline)
+                                .font(.footnote)
                                 .foregroundStyle(.secondary)
                         } else {
                             Text(Array(selectedMomentsEvents).sorted().joined(separator: ", "))
-                                .font(.subheadline)
+                                .font(.footnote)
                                 .foregroundStyle(.secondary)
                                 .lineLimit(2)
                                 .truncationMode(.tail)
@@ -1146,7 +1146,7 @@ struct TodayView: View {
                             .foregroundStyle(Color(hex: "44C0FF"))
                     } else {
                         HStack(spacing: 4) {
-                            Text("\(selectedMomentsEvents.count) Selected")
+                            Text("\(selectedMomentsEvents.count)")
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
 

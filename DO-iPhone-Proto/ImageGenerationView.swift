@@ -11,6 +11,7 @@ struct ImageGenerationView: View {
     @State private var isSharePresented: Bool = false
     @State private var shareImage: UIImage?
     @State private var selectedStyle: ImageStyle = .lineArt
+    @State private var showStylePicker: Bool = false
 
     // Three separate sets of images for each row
     @State private var row1Images: [GeneratedImage] = [
@@ -46,63 +47,64 @@ struct ImageGenerationView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 30) {
                     // Row 1
-                    ImageCarouselRow(
-                        images: $row1Images,
-                        currentPage: $row1CurrentPage,
-                        accentColor: accentColor,
-                        rowNumber: 1,
-                        onDismiss: { dismiss() },
-                        onShare: { image in
-                            shareImage = image
-                            isSharePresented = true
-                        }
-                    )
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Image Title 1")
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                            .padding(.horizontal)
+
+                        ImageCarouselRow(
+                            images: $row1Images,
+                            currentPage: $row1CurrentPage,
+                            accentColor: accentColor,
+                            rowNumber: 1,
+                            onDismiss: { dismiss() },
+                            onShare: { image in
+                                shareImage = image
+                                isSharePresented = true
+                            }
+                        )
+                    }
 
                     // Row 2
-                    ImageCarouselRow(
-                        images: $row2Images,
-                        currentPage: $row2CurrentPage,
-                        accentColor: accentColor,
-                        rowNumber: 2,
-                        onDismiss: { dismiss() },
-                        onShare: { image in
-                            shareImage = image
-                            isSharePresented = true
-                        }
-                    )
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Image Title 2")
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                            .padding(.horizontal)
+
+                        ImageCarouselRow(
+                            images: $row2Images,
+                            currentPage: $row2CurrentPage,
+                            accentColor: accentColor,
+                            rowNumber: 2,
+                            onDismiss: { dismiss() },
+                            onShare: { image in
+                                shareImage = image
+                                isSharePresented = true
+                            }
+                        )
+                    }
 
                     // Row 3
-                    ImageCarouselRow(
-                        images: $row3Images,
-                        currentPage: $row3CurrentPage,
-                        accentColor: accentColor,
-                        rowNumber: 3,
-                        onDismiss: { dismiss() },
-                        onShare: { image in
-                            shareImage = image
-                            isSharePresented = true
-                        }
-                    )
-
-                    // Style picker section
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Style")
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Image Title 3")
                             .font(.headline)
-                            .foregroundColor(.black)
+                            .foregroundColor(.primary)
                             .padding(.horizontal)
 
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 8) {
-                                ForEach(styles, id: \.self) { style in
-                                    StyleButton(style: style, isSelected: selectedStyle == style) {
-                                        selectedStyle = style
-                                    }
-                                }
+                        ImageCarouselRow(
+                            images: $row3Images,
+                            currentPage: $row3CurrentPage,
+                            accentColor: accentColor,
+                            rowNumber: 3,
+                            onDismiss: { dismiss() },
+                            onShare: { image in
+                                shareImage = image
+                                isSharePresented = true
                             }
-                            .padding(.horizontal)
-                        }
+                        )
                     }
-                    .padding(.top, 10)
 
                     Spacer()
                 }
@@ -122,6 +124,15 @@ struct ImageGenerationView: View {
                             .foregroundColor(accentColor)
                     }
                 }
+
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showStylePicker = true
+                    } label: {
+                        Text("Style: \(selectedStyle.displayName)")
+                            .foregroundColor(accentColor)
+                    }
+                }
             }
         }
         .presentationDetents([.large])
@@ -130,6 +141,9 @@ struct ImageGenerationView: View {
             if let imageToShare = shareImage {
                 ActivityViewController(activityItems: [imageToShare])
             }
+        }
+        .sheet(isPresented: $showStylePicker) {
+            StylePickerModal(selectedStyle: $selectedStyle, accentColor: accentColor)
         }
     }
 
@@ -237,7 +251,7 @@ struct ImageCarouselRow: View {
                         RoundedRectangle(cornerRadius: 12)
                             .fill(Color.gray.opacity(0.2))
                             .aspectRatio(1, contentMode: .fit)
-                            .frame(width: UIScreen.main.bounds.width * 0.6)
+                            .frame(width: UIScreen.main.bounds.width * 0.48)
 
                         if imageItem.isLoading {
                             ProgressView()
@@ -245,7 +259,7 @@ struct ImageCarouselRow: View {
                             image
                                 .resizable()
                                 .scaledToFill()
-                                .frame(width: UIScreen.main.bounds.width * 0.6, height: UIScreen.main.bounds.width * 0.6)
+                                .frame(width: UIScreen.main.bounds.width * 0.48, height: UIScreen.main.bounds.width * 0.48)
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
                                 .overlay(alignment: .bottomTrailing) {
                                     // Down arrow button on bottom right
@@ -305,7 +319,7 @@ struct ImageCarouselRow: View {
             }
             .id(images.count) // Force TabView to reinitialize when number of items changes
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-            .frame(height: UIScreen.main.bounds.width * 0.6)
+            .frame(height: UIScreen.main.bounds.width * 0.48)
             .onChange(of: currentPage) { oldValue, newValue in
                 // Delay to allow animation to complete
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
@@ -400,6 +414,58 @@ struct ImageCarouselRow: View {
                 UIColor(randomColor)
             ]
         )
+    }
+}
+
+// Style picker modal view
+struct StylePickerModal: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var selectedStyle: ImageStyle
+    let accentColor: Color
+
+    // All available styles
+    let styles: [ImageStyle] = [
+        .lineArt, .threeD, .analogFilm, .anime, .cinematic,
+        .comicbook, .craftClay, .digitalArt, .enhance, .fantasyArt,
+        .isometric, .lowpoly, .neonpunk,
+        .origami, .photographic, .pixelArt, .texture
+    ]
+
+    var body: some View {
+        NavigationStack {
+            List(styles, id: \.self) { style in
+                Button {
+                    selectedStyle = style
+                    dismiss()
+                } label: {
+                    HStack {
+                        Text(style.displayName)
+                            .foregroundColor(.primary)
+
+                        Spacer()
+
+                        if selectedStyle == style {
+                            Image(systemName: "checkmark")
+                                .foregroundColor(accentColor)
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Select Style")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text("Done")
+                            .foregroundColor(accentColor)
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
     }
 }
 

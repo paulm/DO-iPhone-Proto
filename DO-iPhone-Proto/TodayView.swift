@@ -7,50 +7,6 @@ enum TodayViewStyle: String, CaseIterable {
     case standard = "Standard"
 }
 
-// MARK: - Moments Selection Manager
-class MomentsSelectionManager: ObservableObject {
-    static let shared = MomentsSelectionManager()
-    
-    @Published var selectedLocations: Set<String> = []
-    @Published var selectedEvents: Set<String> = []
-    @Published var selectedPhotos: Set<String> = []
-    @Published var selectedHealth: Set<String> = []
-    
-    var hasSelections: Bool {
-        !selectedLocations.isEmpty || !selectedEvents.isEmpty || !selectedPhotos.isEmpty || !selectedHealth.isEmpty
-    }
-    
-    var selectionSummary: String {
-        var items: [String] = []
-        
-        if !selectedLocations.isEmpty {
-            items.append(contentsOf: selectedLocations)
-        }
-        
-        if !selectedEvents.isEmpty {
-            items.append(contentsOf: selectedEvents)
-        }
-        
-        if !selectedPhotos.isEmpty {
-            items.append("\(selectedPhotos.count) Images")
-        }
-        
-        if !selectedHealth.isEmpty {
-            items.append(contentsOf: selectedHealth)
-        }
-        
-        return items.joined(separator: ", ")
-    }
-    
-    func clearAll() {
-        selectedLocations.removeAll()
-        selectedEvents.removeAll()
-        selectedPhotos.removeAll()
-        selectedHealth.removeAll()
-    }
-}
-
-
 // MARK: - Date Picker Components
 private struct DatePickerConstants {
     static let circleSize: CGFloat = 22
@@ -530,7 +486,6 @@ struct TodayView: View {
     @State private var showingSettings = false
     @State private var showingDatePicker = false
     @State private var showingDailySurvey = false
-    @State private var showingMoments = false
     @State private var showingTrackers = false
     @State private var selectedDate = Date()
     @State private var surveyCompleted = false
@@ -543,10 +498,7 @@ struct TodayView: View {
     @State private var prioritiesInput = ""
     @State private var mediaInput = ""
     @State private var peopleInput = ""
-    
-    // Moments selection manager
-    @StateObject private var momentsSelection = MomentsSelectionManager.shared
-    
+
     @State private var showingDailyChat = false
     @State private var chatCompleted = false
     @State private var openChatInLogMode = false
@@ -570,7 +522,6 @@ struct TodayView: View {
     @State private var entryData: EntryView.EntryData? = nil
     @State private var isGeneratingEntry = false
     @State private var chatUpdateTrigger = false
-    @State private var momentsInitialSection: String? = nil
     @State private var showingJournalSelectionAlert = false
     @State private var showingJournalPicker = false
     @AppStorage("hasShownFirstTimeJournalAlert") private var hasShownFirstTimeJournalAlert = false
@@ -591,13 +542,10 @@ struct TodayView: View {
     @State private var showingChatCalendar = false
 
     // Show/hide toggles for Daily Activities
-    @State private var showWeather = false
     @State private var showDatePickerGrid = false
     @State private var showDateNavigation = true
-    @State private var showChat = false
     @State private var showMoments = true
     @State private var showTrackers = true
-    @State private var showPrompts = true
     @State private var showGuides = false
     @State private var selectedPrompt: String? = nil
     
@@ -709,15 +657,6 @@ struct TodayView: View {
         }
     }
     
-    private var momentsSummaryText: String {
-        let totalMoments = momentsSelection.selectedLocations.count + momentsSelection.selectedEvents.count + momentsSelection.selectedPhotos.count
-        if totalMoments == 0 {
-            return "No moments selected"
-        } else {
-            return "\(totalMoments) moment\(totalMoments == 1 ? "" : "s") selected"
-        }
-    }
-    
     private var trackersSummaryText: String {
         let completedCount = [
             moodRating > 0 ? 1 : 0,
@@ -731,20 +670,7 @@ struct TodayView: View {
         
         return "\(completedCount) of 7 completed"
     }
-    
-    private var hasSelectedMoments: Bool {
-        !momentsSelection.selectedLocations.isEmpty || !momentsSelection.selectedEvents.isEmpty || !momentsSelection.selectedPhotos.isEmpty || !momentsSelection.selectedHealth.isEmpty
-    }
-    
-    private var momentsCountText: String {
-        let totalSelected = momentsSelection.selectedLocations.count + momentsSelection.selectedEvents.count + momentsSelection.selectedPhotos.count + momentsSelection.selectedHealth.count
-        if totalSelected == 0 {
-            return "Capture meaningful moments from your day"
-        } else {
-            return "\(totalSelected) selected."
-        }
-    }
-    
+
     private var hasTrackerData: Bool {
         moodRating > 0 || energyRating > 0 || stressRating > 0 || 
         !foodInput.isEmpty || !prioritiesInput.isEmpty || !mediaInput.isEmpty || !peopleInput.isEmpty
@@ -1874,19 +1800,6 @@ struct TodayView: View {
                 }
             )
         }
-        .sheet(isPresented: $showingMoments) {
-            MomentsView(
-                selectedLocations: $momentsSelection.selectedLocations,
-                selectedEvents: $momentsSelection.selectedEvents,
-                selectedPhotos: $momentsSelection.selectedPhotos,
-                selectedHealth: $momentsSelection.selectedHealth,
-                initialSection: momentsInitialSection
-            )
-            .onDisappear {
-                // Reset the initial section when sheet is dismissed
-                momentsInitialSection = nil
-            }
-        }
         .sheet(isPresented: $showingVisitsSheet) {
             VisitsSheetView(visits: $placesData, selectedDate: $selectedDate, onAddPlaces: addPlacesData)
         }
@@ -1941,12 +1854,8 @@ struct TodayView: View {
             // Check if summary and entry exist for the new date
             summaryGenerated = DailyContentManager.shared.hasSummary(for: newValue)
             entryCreated = DailyContentManager.shared.hasEntry(for: newValue)
-            
+
             // Clear moments data
-            momentsSelection.selectedLocations.removeAll()
-            momentsSelection.selectedEvents.removeAll()
-            momentsSelection.selectedPhotos.removeAll()
-            momentsSelection.selectedHealth.removeAll()
             selectedMomentsPlaces.removeAll()
             selectedMomentsEvents.removeAll()
             selectedMomentsPhotos.removeAll()

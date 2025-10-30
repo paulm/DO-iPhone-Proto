@@ -591,7 +591,6 @@ struct TodayView: View {
     @State private var showDatePickerGrid = false
     @State private var showDateNavigation = true
     @State private var showChat = false
-    @State private var showMomentsList = true
     @State private var showMomentsForChat = true
     @State private var showTrackers = false
     @State private var showInsights = true
@@ -1136,13 +1135,15 @@ struct TodayView: View {
 
                             Spacer()
 
-                            Text("\(placesData.count)")
-                                .font(.system(size: 15))
-                                .foregroundStyle(.secondary)
-
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundStyle(Color(.systemGray3))
+                            if selectedPlacesForChat.isEmpty {
+                                Text("Select from \(placesData.count)")
+                                    .font(.system(size: 15))
+                                    .foregroundStyle(Color(hex: "44C0FF"))
+                            } else {
+                                Text("\(selectedPlacesForChat.count) Selected")
+                                    .font(.system(size: 15))
+                                    .foregroundStyle(Color(.darkGray))
+                            }
                         }
                         .padding(.vertical, 16)
                         .padding(.horizontal, 16)
@@ -1409,11 +1410,6 @@ struct TodayView: View {
                     dailyEntryChatSection
                 }
 
-                // Moments List Section
-                if showMomentsList {
-                    momentsListSection
-                }
-
                 // Moments for Chat Section
                 if showMomentsForChat {
                     momentsForChatSection
@@ -1604,17 +1600,6 @@ struct TodayView: View {
                             HStack {
                                 Text("Daily Entry Chat")
                                 if showDailyEntryChat {
-                                    Image(dayOneIcon: .checkmark)
-                                }
-                            }
-                        }
-
-                        Button {
-                            showMomentsList.toggle()
-                        } label: {
-                            HStack {
-                                Text("Moments List")
-                                if showMomentsList {
                                     Image(dayOneIcon: .checkmark)
                                 }
                             }

@@ -1909,7 +1909,8 @@ struct TodayView: View {
             momentsSelection.selectedEvents.removeAll()
             momentsSelection.selectedPhotos.removeAll()
             momentsSelection.selectedHealth.removeAll()
-            
+            selectedMomentsPlaces.removeAll()
+
             // Clear tracker data
             moodRating = 0
             energyRating = 0
@@ -1918,6 +1919,9 @@ struct TodayView: View {
             prioritiesInput = ""
             mediaInput = ""
             peopleInput = ""
+
+            // Update Moments data based on selected date
+            updateMomentsDataForSelectedDate()
         }
         .sheet(isPresented: $showingWeather) {
             NavigationStack {
@@ -2041,7 +2045,10 @@ struct TodayView: View {
             // Check if summary and entry exist for current date on appear
             summaryGenerated = DailyContentManager.shared.hasSummary(for: selectedDate)
             entryCreated = DailyContentManager.shared.hasEntry(for: selectedDate)
-            
+
+            // Update Moments data based on selected date
+            updateMomentsDataForSelectedDate()
+
             // Show Welcome to Today sheet if enabled
             if showWelcomeToTodaySheet {
                 shouldPresentWelcomeSheet = true
@@ -2289,6 +2296,32 @@ struct TodayView: View {
             (name: "Project Review Meeting", icon: DayOneIcon.calendar, time: "2:00 PM - 3:00 PM", type: "Work"),
             (name: "Yoga Class", icon: DayOneIcon.calendar, time: "5:30 PM - 6:30 PM", type: "Wellness")
         ]
+    }
+
+    private func updateMomentsDataForSelectedDate() {
+        // Only show data for today, clear for all other dates
+        if Calendar.current.isDateInToday(selectedDate) {
+            // Populate with sample data for today
+            placesData = [
+                (name: "Sundance Mountain Resort", icon: DayOneIcon.skiing, time: "7:44 AM · 3 hours"),
+                (name: "Whole Foods Market", icon: DayOneIcon.cart, time: "11:22 AM · 45 min"),
+                (name: "Park City Library", icon: DayOneIcon.books_filled, time: "1:15 PM · 1 hour"),
+                (name: "Starbucks Coffee", icon: DayOneIcon.food, time: "3:30 PM · 30 min"),
+                (name: "Silver Lake Trail", icon: DayOneIcon.hiking, time: "5:45 PM · 2 hours")
+            ]
+
+            eventsData = [
+                (name: "Morning Team Standup", icon: DayOneIcon.calendar, time: "9:00 AM - 9:30 AM", type: "Work"),
+                (name: "Dentist Appointment", icon: DayOneIcon.calendar, time: "11:00 AM - 12:00 PM", type: "Health"),
+                (name: "Lunch with Sarah", icon: DayOneIcon.calendar, time: "12:30 PM - 1:30 PM", type: "Personal"),
+                (name: "Project Review Meeting", icon: DayOneIcon.calendar, time: "2:00 PM - 3:00 PM", type: "Work"),
+                (name: "Yoga Class", icon: DayOneIcon.calendar, time: "5:30 PM - 6:30 PM", type: "Wellness")
+            ]
+        } else {
+            // Clear data for non-today dates (show zero state)
+            placesData = []
+            eventsData = []
+        }
     }
 
     private func generateSampleResponse(for daysAgo: Int) -> String {

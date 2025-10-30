@@ -958,7 +958,7 @@ struct TodayView: View {
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundStyle(Color(hex: "292F33"))
-                    Text("Create an entry from a moment ...")
+                    Text("Select notable moments from this day...")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -1080,7 +1080,7 @@ struct TodayView: View {
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundStyle(Color(hex: "292F33"))
-                    Text("Create an entry from a moment ...")
+                    Text("Select notable moments from this day...")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -1140,9 +1140,15 @@ struct TodayView: View {
                                     .font(.system(size: 15))
                                     .foregroundStyle(Color(hex: "44C0FF"))
                             } else {
-                                Text("\(selectedMomentsPlaces.count) Selected")
-                                    .font(.system(size: 15))
-                                    .foregroundStyle(Color(.darkGray))
+                                HStack(spacing: 6) {
+                                    Text("\(selectedMomentsPlaces.count) Selected")
+                                        .font(.system(size: 15))
+                                        .foregroundStyle(Color(.darkGray))
+
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .font(.system(size: 16))
+                                        .foregroundStyle(.green)
+                                }
                             }
                         }
                         .padding(.vertical, 16)

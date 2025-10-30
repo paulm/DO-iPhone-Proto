@@ -596,8 +596,7 @@ struct TodayView: View {
     @State private var showDateNavigation = true
     @State private var showChat = false
     @State private var showMoments = true
-    @State private var showTrackers = false
-    @State private var showInsights = true
+    @State private var showTrackers = true
     @State private var showPrompts = true
     @State private var showGuides = false
     @State private var selectedPrompt: String? = nil
@@ -1622,17 +1621,6 @@ struct TodayView: View {
                             HStack {
                                 Text("Date Navigation")
                                 if showDateNavigation {
-                                    Image(dayOneIcon: .checkmark)
-                                }
-                            }
-                        }
-
-                        Button {
-                            showInsights.toggle()
-                        } label: {
-                            HStack {
-                                Text("Entry Links")
-                                if showInsights {
                                     Image(dayOneIcon: .checkmark)
                                 }
                             }

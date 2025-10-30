@@ -1533,6 +1533,24 @@ struct TodayView: View {
                     }
                 }
             }
+            .gesture(
+                DragGesture(minimumDistance: 50, coordinateSpace: .local)
+                    .onEnded { value in
+                        let horizontalAmount = value.translation.width
+                        let verticalAmount = value.translation.height
+
+                        // Only trigger if horizontal swipe is more significant than vertical
+                        if abs(horizontalAmount) > abs(verticalAmount) {
+                            if horizontalAmount < 0 {
+                                // Swipe left - go to next day
+                                navigateToNextDay()
+                            } else if horizontalAmount > 0 {
+                                // Swipe right - go to previous day
+                                navigateToPreviousDay()
+                            }
+                        }
+                    }
+            )
             } // ScrollViewReader
             
                 // Chat elements at bottom

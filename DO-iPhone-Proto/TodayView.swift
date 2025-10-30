@@ -1005,7 +1005,7 @@ struct TodayView: View {
             Button(action: {
                 showingMomentsMediaSheet = true
             }) {
-                HStack(spacing: 12) {
+                HStack(alignment: .center, spacing: 12) {
                     // Left icon - fixed width
                     Image(dayOneIcon: .photo)
                         .font(.system(size: 20))
@@ -1041,8 +1041,9 @@ struct TodayView: View {
                                     }
                                 }
                             }
+                            .padding(.vertical, 2)
                         }
-                        .frame(height: 40)
+                        .frame(height: 44)
 
                         // Right side indicator - fixed
                         HStack(spacing: 4) {
@@ -1056,7 +1057,8 @@ struct TodayView: View {
                         }
                     }
                 }
-                .padding(.vertical, 4)
+                .frame(minHeight: 44)
+                .padding(.vertical, 8)
                 .contentShape(Rectangle())
             }
             .buttonStyle(PlainButtonStyle())

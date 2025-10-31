@@ -51,6 +51,7 @@ struct ImageGenerationView: View {
                         Text("Image Title 1")
                             .font(.headline)
                             .foregroundColor(.primary)
+                            .frame(maxWidth: .infinity, alignment: .center)
                             .padding(.horizontal)
 
                         ImageCarouselRow(
@@ -71,6 +72,7 @@ struct ImageGenerationView: View {
                         Text("Image Title 2")
                             .font(.headline)
                             .foregroundColor(.primary)
+                            .frame(maxWidth: .infinity, alignment: .center)
                             .padding(.horizontal)
 
                         ImageCarouselRow(
@@ -91,6 +93,7 @@ struct ImageGenerationView: View {
                         Text("Image Title 3")
                             .font(.headline)
                             .foregroundColor(.primary)
+                            .frame(maxWidth: .infinity, alignment: .center)
                             .padding(.horizontal)
 
                         ImageCarouselRow(

@@ -537,6 +537,9 @@ struct TodayView: View {
     @State private var selectedMomentsPlaces: Set<String> = []
     @State private var selectedMomentsEvents: Set<String> = []
     @State private var selectedMomentsPhotos: Set<String> = []
+    @State private var showingMomentsTrackersSheet = false
+    @State private var showingMomentsInputsSheet = false
+    @State private var selectedMomentsTrackers: [String: Int] = [:] // tracker name -> rating (1-5)
     @State private var showingBio = false
     @State private var showingChatSettings = false
     @State private var showingChatCalendar = false
@@ -545,7 +548,6 @@ struct TodayView: View {
     @State private var showDatePickerGrid = false
     @State private var showDateNavigation = true
     @State private var showMoments = true
-    @State private var showTrackers = true
     @State private var showGuides = false
     @State private var selectedPrompt: String? = nil
     
@@ -1198,6 +1200,146 @@ struct TodayView: View {
         .listRowBackground(cellBackgroundColor)
     }
 
+    // Moments Section - Trackers
+    @ViewBuilder
+    private var momentsTrackersSection: some View {
+        Section {
+            Button(action: {
+                showingMomentsTrackersSheet = true
+            }) {
+                HStack(spacing: 12) {
+                    Image(systemName: "chart.line.uptrend.xyaxis")
+                        .font(.system(size: 20))
+                        .foregroundStyle(.orange)
+                        .frame(width: 32)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Trackers")
+                            .font(.body)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.primary)
+
+                        if selectedMomentsTrackers.isEmpty {
+                            Text("Track mood, energy, and stress...")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        } else {
+                            Text(selectedMomentsTrackers.sorted(by: { $0.key < $1.key }).map { "\($0.key): \($0.value)" }.joined(separator: ", "))
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(2)
+                                .truncationMode(.tail)
+                        }
+                    }
+
+                    Spacer()
+
+                    if selectedMomentsTrackers.isEmpty {
+                        let hour = Calendar.current.component(.hour, from: Date())
+                        let timeOfDay = hour < 12 ? "AM" : "PM"
+                        Text("Input \(timeOfDay)")
+                            .font(.subheadline)
+                            .foregroundStyle(Color(hex: "44C0FF"))
+                    } else {
+                        HStack(spacing: 4) {
+                            Text("\(selectedMomentsTrackers.count)")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.subheadline)
+                                .foregroundStyle(.green)
+                        }
+                    }
+                }
+                .padding(.vertical, 4)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(PlainButtonStyle())
+        }
+        .listRowBackground(cellBackgroundColor)
+    }
+
+    // Moments Section - Inputs
+    @ViewBuilder
+    private var momentsInputsSection: some View {
+        Section {
+            Button(action: {
+                showingMomentsInputsSheet = true
+            }) {
+                HStack(spacing: 12) {
+                    Image(systemName: "text.bubble")
+                        .font(.system(size: 20))
+                        .foregroundStyle(BrandColors.journalGreen)
+                        .frame(width: 32)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Inputs")
+                            .font(.body)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.primary)
+
+                        if hasInputsData {
+                            Text(completedInputsList)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(2)
+                                .truncationMode(.tail)
+                        } else {
+                            Text("Add text inputs...")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    Spacer()
+
+                    if hasInputsData {
+                        HStack(spacing: 4) {
+                            Text("\(completedInputsCount)")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.subheadline)
+                                .foregroundStyle(.green)
+                        }
+                    } else {
+                        Text("Log Daily Details")
+                            .font(.subheadline)
+                            .foregroundStyle(Color(hex: "44C0FF"))
+                    }
+                }
+                .padding(.vertical, 4)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(PlainButtonStyle())
+        }
+        .listRowBackground(cellBackgroundColor)
+    }
+
+    private var hasInputsData: Bool {
+        !foodInput.isEmpty || !prioritiesInput.isEmpty || !mediaInput.isEmpty || !peopleInput.isEmpty
+    }
+
+    private var completedInputsCount: Int {
+        var count = 0
+        if !foodInput.isEmpty { count += 1 }
+        if !prioritiesInput.isEmpty { count += 1 }
+        if !mediaInput.isEmpty { count += 1 }
+        if !peopleInput.isEmpty { count += 1 }
+        return count
+    }
+
+    private var completedInputsList: String {
+        var inputs: [String] = []
+        if !foodInput.isEmpty { inputs.append("Food") }
+        if !prioritiesInput.isEmpty { inputs.append("Priorities") }
+        if !mediaInput.isEmpty { inputs.append("Media") }
+        if !peopleInput.isEmpty { inputs.append("People") }
+        return inputs.joined(separator: ", ")
+    }
+
     @ViewBuilder
     private var entryLinksSection: some View {
         let entryCount = DailyDataManager.shared.getEntryCount(for: selectedDate)
@@ -1420,25 +1562,10 @@ struct TodayView: View {
                     momentsPhotosSection
                     momentsPlacesSection
                     momentsEventsSection
+                    momentsTrackersSection
+                    momentsInputsSection
                 }
 
-                // Trackers Section
-                if showTrackers {
-                    Section {
-                        TodayActivityRowWithCheckbox(
-                            icon: "chart.line.uptrend.xyaxis",
-                            iconColor: .orange,
-                            title: "Trackers",
-                            subtitle: hasTrackerData ? "Trackers completed for today" : "Track your mood, energy, and daily activities",
-                            isCompleted: hasTrackerData,
-                            action: { 
-                                showingTrackers = true
-                            }
-                        )
-                    }
-                    .listRowBackground(cellBackgroundColor)
-                }
-                
                 // Bio Section
                 if showBioSection {
                     Section {
@@ -1625,17 +1752,6 @@ struct TodayView: View {
                             HStack {
                                 Text("Moments")
                                 if showMoments {
-                                    Image(dayOneIcon: .checkmark)
-                                }
-                            }
-                        }
-
-                        Button {
-                            showTrackers.toggle()
-                        } label: {
-                            HStack {
-                                Text("Trackers")
-                                if showTrackers {
                                     Image(dayOneIcon: .checkmark)
                                 }
                             }
@@ -1874,6 +1990,17 @@ struct TodayView: View {
         .sheet(isPresented: $showingMomentsMediaSheet) {
             MediaSheetView(isForChat: true, selectedPhotosForChat: $selectedMomentsPhotos)
         }
+        .sheet(isPresented: $showingMomentsTrackersSheet) {
+            MomentsTrackersSheetView(selectedTrackers: $selectedMomentsTrackers)
+        }
+        .sheet(isPresented: $showingMomentsInputsSheet) {
+            MomentsInputsSheetView(
+                foodInput: $foodInput,
+                prioritiesInput: $prioritiesInput,
+                mediaInput: $mediaInput,
+                peopleInput: $peopleInput
+            )
+        }
         .sheet(isPresented: $showingTrackers) {
             TrackerView(
                 moodRating: $moodRating,
@@ -1915,6 +2042,7 @@ struct TodayView: View {
             selectedMomentsPlaces.removeAll()
             selectedMomentsEvents.removeAll()
             selectedMomentsPhotos.removeAll()
+            selectedMomentsTrackers.removeAll()
 
             // Clear tracker data
             moodRating = 0
@@ -3933,6 +4061,154 @@ struct DateCellButton: View {
             }
             .frame(width: 200)
             .presentationCompactAdaptation(.popover)
+        }
+    }
+}
+
+// MARK: - Moments Trackers Sheet View
+struct MomentsTrackersSheetView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var selectedTrackers: [String: Int]
+
+    private let trackers = ["Mood", "Energy", "Stress", "Custom"]
+    private let trackerIcons: [String: String] = [
+        "Mood": "face.smiling",
+        "Energy": "bolt.fill",
+        "Stress": "wind",
+        "Custom": "slider.horizontal.3"
+    ]
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    Text("Select trackers and rate them on a scale of 1-5...")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                }
+
+                Section {
+                    ForEach(trackers, id: \.self) { tracker in
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Image(systemName: trackerIcons[tracker] ?? "circle")
+                                    .font(.title3)
+                                    .foregroundStyle(.tint)
+
+                                Text(tracker)
+                                    .font(.body)
+                                    .fontWeight(.medium)
+                            }
+
+                            // 1-5 rating circles
+                            HStack(spacing: 12) {
+                                ForEach(1...5, id: \.self) { rating in
+                                    Button(action: {
+                                        if selectedTrackers[tracker] == rating {
+                                            // Deselect if tapping the same rating
+                                            selectedTrackers.removeValue(forKey: tracker)
+                                        } else {
+                                            selectedTrackers[tracker] = rating
+                                        }
+                                    }) {
+                                        ZStack {
+                                            Circle()
+                                                .fill(selectedTrackers[tracker] == rating ? Color(hex: "44C0FF") : Color.gray.opacity(0.2))
+                                                .frame(width: 44, height: 44)
+
+                                            Text("\(rating)")
+                                                .font(.body)
+                                                .fontWeight(.medium)
+                                                .foregroundStyle(selectedTrackers[tracker] == rating ? .white : .primary)
+                                        }
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
+                                }
+                            }
+                            .padding(.bottom, 4)
+                        }
+                        .padding(.vertical, 8)
+                    }
+                }
+            }
+            .navigationTitle("Trackers")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Moments Inputs Sheet View
+struct MomentsInputsSheetView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var foodInput: String
+    @Binding var prioritiesInput: String
+    @Binding var mediaInput: String
+    @Binding var peopleInput: String
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    Text("Log what you did, ate, and who you spent time with")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                }
+
+                Section {
+                    TrackerInputRow(
+                        title: "Food",
+                        text: $foodInput,
+                        icon: "fork.knife",
+                        placeholder: "What did you eat today?",
+                        suggestions: ["Salad", "Pizza", "Coffee", "Sandwich", "Pasta", "Sushi", "Smoothie", "Burger"]
+                    )
+
+                    TrackerInputRow(
+                        title: "Priorities",
+                        text: $prioritiesInput,
+                        icon: "target",
+                        placeholder: "What were your main priorities?",
+                        suggestions: ["Work project", "Exercise", "Family time", "Reading", "Meetings", "Planning", "Learning", "Errands"]
+                    )
+
+                    TrackerInputRow(
+                        title: "Media",
+                        text: $mediaInput,
+                        icon: "tv",
+                        placeholder: "What did you watch or read?",
+                        suggestions: ["Netflix", "YouTube", "News", "Podcast", "Book", "Instagram", "Twitter", "Music"]
+                    )
+
+                    TrackerInputRow(
+                        title: "People",
+                        text: $peopleInput,
+                        icon: "person.2",
+                        placeholder: "Who did you spend time with?",
+                        suggestions: ["Family", "Friends", "Colleagues", "Sarah", "Team", "Partner", "Kids", "Parents"]
+                    )
+                }
+            }
+            .listStyle(.insetGrouped)
+            .navigationTitle("Inputs")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
         }
     }
 }

@@ -181,6 +181,31 @@ struct JournalsTabPagedView: View {
     
     private var compactJournalList: some View {
         LazyVStack(spacing: 4) {
+            // Recent Journals horizontal scroll section
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Recent Journals")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.primary)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 16) {
+                        ForEach(recentJournals) { journal in
+                            JournalBookView(
+                                journal: journal,
+                                isSelected: false,
+                                onSelect: {
+                                    journalViewModel.selectJournal(journal)
+                                    selectedJournal = journal
+                                }
+                            )
+                            .frame(width: 80)
+                        }
+                    }
+                }
+            }
+            .padding(.bottom, 16)
+
             // Show "All Entries" only if there are multiple journals
             if filteredJournals.count > 1 {
                 let allEntriesJournal = Journal(
@@ -197,7 +222,7 @@ struct JournalsTabPagedView: View {
                     }
                 )
             }
-            
+
             ForEach(filteredJournals) { journal in
                 CompactJournalRow(
                     journal: journal,
@@ -214,8 +239,47 @@ struct JournalsTabPagedView: View {
         .padding(.bottom, 100)
     }
     
+    // Recent journals for horizontal scroll
+    private var recentJournals: [Journal] {
+        return [
+            Journal(name: "Travel 2025", color: Color(hex: "FF6B6B"), entryCount: 42),
+            Journal(name: "Work Notes", color: Color(hex: "4ECDC4"), entryCount: 156),
+            Journal(name: "Gratitude", color: Color(hex: "FFD93D"), entryCount: 89),
+            Journal(name: "Reading Log", color: Color(hex: "95E1D3"), entryCount: 34),
+            Journal(name: "Fitness", color: Color(hex: "F38181"), entryCount: 67),
+            Journal(name: "Recipes", color: Color(hex: "AA96DA"), entryCount: 23)
+        ]
+    }
+
     private var listJournalList: some View {
         LazyVStack(spacing: 8) {
+            // Recent Journals horizontal scroll section
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Recent Journals")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.primary)
+                    .padding(.horizontal)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 16) {
+                        ForEach(recentJournals) { journal in
+                            JournalBookView(
+                                journal: journal,
+                                isSelected: false,
+                                onSelect: {
+                                    journalViewModel.selectJournal(journal)
+                                    selectedJournal = journal
+                                }
+                            )
+                            .frame(width: 80)
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+            }
+            .padding(.bottom, 16)
+
             // Show "All Entries" only if there are multiple journals
             if filteredJournals.count > 1 {
                 let allEntriesJournal = Journal(
@@ -232,7 +296,7 @@ struct JournalsTabPagedView: View {
                     }
                 )
             }
-            
+
             ForEach(filteredJournals) { journal in
                 JournalRow(
                     journal: journal,

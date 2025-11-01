@@ -3603,63 +3603,64 @@ struct MediaSheetView: View {
                     .padding(.horizontal, 20)
                     .padding(.top, 20)
                     .padding(.bottom, 16)
-                
-                // Media grid - 3 columns x 4 rows
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
-                    ForEach(0..<12) { index in
-                        let photoId = "photo_\(index)"
-                        let isSelected = selectedMomentsPhotos.contains(photoId)
 
-                        Button(action: {
-                            if isForChat {
-                                // In chat mode, toggle the selection
-                                if selectedMomentsPhotos.contains(photoId) {
-                                    selectedMomentsPhotos.remove(photoId)
+                // Media grid - 3 columns x 4 rows
+                ScrollView {
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
+                        ForEach(0..<12) { index in
+                            let photoId = "photo_\(index)"
+                            let isSelected = selectedMomentsPhotos.contains(photoId)
+
+                            Button(action: {
+                                if isForChat {
+                                    // In chat mode, toggle the selection
+                                    if selectedMomentsPhotos.contains(photoId) {
+                                        selectedMomentsPhotos.remove(photoId)
+                                    } else {
+                                        selectedMomentsPhotos.insert(photoId)
+                                    }
                                 } else {
-                                    selectedMomentsPhotos.insert(photoId)
+                                    // In regular mode, open entry view
+                                    selectedImageIndex = index
+                                    showingEntryView = true
                                 }
-                            } else {
-                                // In regular mode, open entry view
-                                selectedImageIndex = index
-                                showingEntryView = true
-                            }
-                        }) {
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(mediaColors[index])
-                                .aspectRatio(1, contentMode: .fit)
-                                .opacity(isForChat ? (isSelected ? 1.0 : 0.5) : 1.0)
-                                .overlay(
-                                    ZStack {
-                                        if !isForChat {
-                                            Image(dayOneIcon: .photo)
-                                                .font(.system(size: 24))
-                                                .foregroundStyle(.white.opacity(0.5))
-                                        } else {
-                                            // Radio button indicator for chat mode
-                                            VStack {
-                                                HStack {
-                                                    Image(systemName: isSelected ? "circle.inset.filled" : "circle")
-                                                        .font(.system(size: 20))
-                                                        .foregroundStyle(isSelected ? Color(hex: "44C0FF") : .white.opacity(0.8))
-                                                        .padding(8)
+                            }) {
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(mediaColors[index])
+                                    .aspectRatio(1, contentMode: .fit)
+                                    .opacity(isForChat ? (isSelected ? 1.0 : 0.5) : 1.0)
+                                    .overlay(
+                                        ZStack {
+                                            if !isForChat {
+                                                Image(dayOneIcon: .photo)
+                                                    .font(.system(size: 24))
+                                                    .foregroundStyle(.white.opacity(0.5))
+                                            } else {
+                                                // Radio button indicator for chat mode
+                                                VStack {
+                                                    HStack {
+                                                        Image(systemName: isSelected ? "circle.inset.filled" : "circle")
+                                                            .font(.system(size: 20))
+                                                            .foregroundStyle(isSelected ? Color(hex: "44C0FF") : .white.opacity(0.8))
+                                                            .padding(8)
+                                                        Spacer()
+                                                    }
                                                     Spacer()
                                                 }
-                                                Spacer()
                                             }
                                         }
-                                    }
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .stroke(isForChat && isSelected ? Color(hex: "44C0FF") : Color.clear, lineWidth: 2)
-                                )
+                                    )
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(isForChat && isSelected ? Color(hex: "44C0FF") : Color.clear, lineWidth: 2)
+                                    )
+                            }
+                            .buttonStyle(PlainButtonStyle())
                         }
-                        .buttonStyle(PlainButtonStyle())
                     }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 20)
                 }
-                .padding(.horizontal, 20)
-                
-                Spacer()
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -3667,7 +3668,7 @@ struct MediaSheetView: View {
                     Text("Media")
                         .font(.headline)
                 }
-                
+
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
                         dismiss()

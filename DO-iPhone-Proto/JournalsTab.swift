@@ -1144,23 +1144,18 @@ struct CompactFolderRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            // Chevron for expand/collapse
+            // Folder icon - tappable to toggle expand/collapse
             Button(action: onToggle) {
-                Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.secondary)
-                    .frame(width: 20)
+                Image(systemName: isExpanded ? "folder.fill" : "folder")
+                    .font(.body)
+                    .foregroundStyle(folder.color)
+                    .frame(width: 24)
             }
             .buttonStyle(PlainButtonStyle())
 
             // Folder content - tappable to select folder
             Button(action: onSelectFolder) {
                 HStack(spacing: 12) {
-                    // Folder icon
-                    Image(systemName: "folder.fill")
-                        .font(.body)
-                        .foregroundStyle(folder.color)
-
                     // Folder name
                     Text(folder.name)
                         .font(.body)
@@ -1200,24 +1195,18 @@ struct FolderRow: View {
 
     var body: some View {
         HStack(spacing: 16) {
-            // Chevron for expand/collapse
+            // Folder icon - tappable to toggle expand/collapse
             Button(action: onToggle) {
-                Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(.secondary)
-                    .frame(width: 24)
+                Image(systemName: isExpanded ? "folder.fill" : "folder")
+                    .font(.title2)
+                    .foregroundStyle(folder.color)
+                    .frame(width: 36)
             }
             .buttonStyle(PlainButtonStyle())
 
             // Folder content - tappable to select folder
             Button(action: onSelectFolder) {
                 HStack(spacing: 16) {
-                    // Folder icon
-                    Image(systemName: "folder.fill")
-                        .font(.title2)
-                        .foregroundStyle(folder.color)
-                        .frame(width: 36)
-
                     // Folder info
                     VStack(alignment: .leading, spacing: 2) {
                         Text(folder.name)

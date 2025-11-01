@@ -1333,10 +1333,10 @@ struct TodayView: View {
 
     private var completedInputsList: String {
         var inputs: [String] = []
-        if !foodInput.isEmpty { inputs.append("Food") }
-        if !prioritiesInput.isEmpty { inputs.append("Priorities") }
-        if !mediaInput.isEmpty { inputs.append("Media") }
-        if !peopleInput.isEmpty { inputs.append("People") }
+        if !foodInput.isEmpty { inputs.append(foodInput) }
+        if !prioritiesInput.isEmpty { inputs.append(prioritiesInput) }
+        if !mediaInput.isEmpty { inputs.append(mediaInput) }
+        if !peopleInput.isEmpty { inputs.append(peopleInput) }
         return inputs.joined(separator: ", ")
     }
 
@@ -4080,30 +4080,32 @@ struct MomentsTrackersSheetView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                Section {
-                    Text("Select trackers and rate them on a scale of 1-5...")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
-                }
+            VStack(alignment: .leading, spacing: 0) {
+                // Header text
+                Text("Select trackers and rate them on a scale of 1-5...")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
+                    .padding(.bottom, 16)
 
-                Section {
+                // Trackers list
+                List {
                     ForEach(trackers, id: \.self) { tracker in
                         VStack(alignment: .leading, spacing: 12) {
-                            HStack {
+                            HStack(alignment: .center) {
                                 Image(systemName: trackerIcons[tracker] ?? "circle")
                                     .font(.title3)
-                                    .foregroundStyle(.tint)
+                                    .foregroundStyle(Color(hex: "44C0FF"))
 
                                 Text(tracker)
                                     .font(.body)
                                     .fontWeight(.medium)
                             }
 
-                            // 1-5 rating circles
+                            // 1-5 rating circles - centered
                             HStack(spacing: 12) {
+                                Spacer()
                                 ForEach(1...5, id: \.self) { rating in
                                     Button(action: {
                                         if selectedTrackers[tracker] == rating {
@@ -4126,12 +4128,14 @@ struct MomentsTrackersSheetView: View {
                                     }
                                     .buttonStyle(PlainButtonStyle())
                                 }
+                                Spacer()
                             }
                             .padding(.bottom, 4)
                         }
                         .padding(.vertical, 8)
                     }
                 }
+                .listStyle(.plain)
             }
             .navigationTitle("Trackers")
             .navigationBarTitleDisplayMode(.inline)

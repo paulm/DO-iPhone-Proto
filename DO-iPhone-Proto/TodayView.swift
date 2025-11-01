@@ -4160,16 +4160,17 @@ struct MomentsInputsSheetView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                Section {
-                    Text("Log what you did, ate, and who you spent time with")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
-                }
+            VStack(alignment: .leading, spacing: 0) {
+                // Header text
+                Text("Log what you did, ate, and who you spent time with")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
+                    .padding(.bottom, 16)
 
-                Section {
+                // Inputs list
+                List {
                     TrackerInputRow(
                         title: "Food",
                         text: $foodInput,
@@ -4202,8 +4203,8 @@ struct MomentsInputsSheetView: View {
                         suggestions: ["Family", "Friends", "Colleagues", "Sarah", "Team", "Partner", "Kids", "Parents"]
                     )
                 }
+                .listStyle(.plain)
             }
-            .listStyle(.insetGrouped)
             .navigationTitle("Inputs")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

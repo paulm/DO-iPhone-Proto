@@ -1149,7 +1149,7 @@ struct CompactFolderRow: View {
                 Image(systemName: isExpanded ? "folder.fill" : "folder")
                     .font(.body)
                     .foregroundStyle(folder.color)
-                    .frame(width: 24)
+                    .frame(width: 12)
             }
             .buttonStyle(PlainButtonStyle())
 
@@ -1200,7 +1200,7 @@ struct FolderRow: View {
                 Image(systemName: isExpanded ? "folder.fill" : "folder")
                     .font(.title2)
                     .foregroundStyle(folder.color)
-                    .frame(width: 36)
+                    .frame(width: 32)
             }
             .buttonStyle(PlainButtonStyle())
 

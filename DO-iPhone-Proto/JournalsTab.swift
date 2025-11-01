@@ -40,7 +40,7 @@ struct JournalRowPreferenceKey: PreferenceKey {
 struct JournalsTabPagedView: View {
     @State private var journalViewModel = JournalSelectionViewModel()
     @State private var showingSettings = false
-    @State private var viewMode: ViewMode = .list // Default to Icons view
+    @State private var viewMode: ViewMode = .compact // Default to List view
     @State private var selectedJournal: Journal?
     @State private var showingNewEntry = false
     @State private var shouldShowAudioAfterEntry = false
@@ -197,6 +197,10 @@ struct JournalsTabPagedView: View {
                                 onSelect: {
                                     journalViewModel.selectJournal(journal)
                                     selectedJournal = journal
+                                },
+                                onNewEntry: {
+                                    journalViewModel.selectJournal(journal)
+                                    showingNewEntry = true
                                 }
                             )
                             .frame(width: 80)
@@ -270,6 +274,10 @@ struct JournalsTabPagedView: View {
                                 onSelect: {
                                     journalViewModel.selectJournal(journal)
                                     selectedJournal = journal
+                                },
+                                onNewEntry: {
+                                    journalViewModel.selectJournal(journal)
+                                    showingNewEntry = true
                                 }
                             )
                             .frame(width: 80)
@@ -1082,7 +1090,8 @@ struct JournalBookView: View {
     let journal: Journal
     let isSelected: Bool
     let onSelect: () -> Void
-    
+    var onNewEntry: (() -> Void)? = nil
+
     var body: some View {
         Button(action: onSelect) {
             VStack(spacing: 8) {
@@ -1123,8 +1132,36 @@ struct JournalBookView: View {
                         RoundedRectangle(cornerRadius: 8)
                             .stroke(isSelected ? .blue : .clear, lineWidth: 3)
                     )
+                    .overlay(
+                        // New Entry button (top-right corner)
+                        Group {
+                            if let onNewEntry = onNewEntry {
+                                VStack {
+                                    HStack {
+                                        Spacer()
+                                        Button(action: {
+                                            onNewEntry()
+                                        }) {
+                                            Circle()
+                                                .fill(.white)
+                                                .frame(width: 24, height: 24)
+                                                .overlay(
+                                                    Image(systemName: "plus")
+                                                        .font(.system(size: 12, weight: .semibold))
+                                                        .foregroundStyle(journal.color)
+                                                )
+                                                .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
+                                        }
+                                        .buttonStyle(PlainButtonStyle())
+                                        .padding(6)
+                                    }
+                                    Spacer()
+                                }
+                            }
+                        }
+                    )
                     .shadow(color: journal.color.opacity(0.3), radius: 4, x: 2, y: 4)
-                
+
                 // Entry count only
                 if let count = journal.entryCount {
                     Text("\(count)")
@@ -1141,7 +1178,7 @@ struct JournalBookView: View {
             }) {
                 Label("Edit Journal", systemImage: "pencil")
             }
-            
+
             Button(action: {
                 // TODO: New entry action
             }) {

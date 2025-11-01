@@ -52,13 +52,14 @@ struct Journal: Identifiable, Equatable, Hashable {
     let features: JournalFeatures
     let appearance: JournalAppearance
     let entryCount: Int?
-    
+    let journalCount: Int? // For "All Entries" - number of journals included
+
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
     
     // Initialize from JournalData
-    init(from data: JournalData, entryCount: Int? = nil) {
+    init(from data: JournalData, entryCount: Int? = nil, journalCount: Int? = nil) {
         self.id = data.id
         self.name = data.name
         self.description = data.description
@@ -69,10 +70,11 @@ struct Journal: Identifiable, Equatable, Hashable {
         self.features = data.features
         self.appearance = data.appearance
         self.entryCount = entryCount
+        self.journalCount = journalCount
     }
-    
+
     // Legacy initializer for compatibility
-    init(name: String, color: Color, entryCount: Int?) {
+    init(name: String, color: Color, entryCount: Int?, journalCount: Int? = nil) {
         self.id = UUID().uuidString
         self.name = name
         self.description = ""
@@ -99,6 +101,7 @@ struct Journal: Identifiable, Equatable, Hashable {
             croppedCoverImageData: ""
         )
         self.entryCount = entryCount
+        self.journalCount = journalCount
     }
 }
 
@@ -156,20 +159,171 @@ class JournalLoader {
     }
 }
 
+// MARK: - Folder Model
+struct JournalFolder: Identifiable, Equatable, Hashable {
+    let id: String
+    let name: String
+    let journals: [Journal]
+
+    var entryCount: Int {
+        journals.compactMap { $0.entryCount }.reduce(0, +)
+    }
+
+    var journalCount: Int {
+        journals.count
+    }
+
+    // Combined color for folder (uses first journal's color)
+    var color: Color {
+        journals.first?.color ?? .gray
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+}
+
+// MARK: - Journal Item Protocol
+protocol JournalItem: Identifiable {
+    var id: String { get }
+    var name: String { get }
+    var color: Color { get }
+}
+
+extension Journal: JournalItem {}
+extension JournalFolder: JournalItem {}
+
 // MARK: - Journal Extension
 extension Journal {
     static let allJournals = JournalLoader.shared.loadJournals()
-    
+
     // Filter journals based on their features
     static var visibleJournals: [Journal] {
         allJournals.filter { !$0.settings.hidden }
     }
-    
+
     static var todayViewJournals: [Journal] {
         allJournals.filter { $0.features.shouldBeIncludedInTodayView && !$0.settings.hidden }
     }
-    
+
     static var onThisDayJournals: [Journal] {
         allJournals.filter { $0.features.shouldBeIncludedInOnThisDay && !$0.settings.hidden }
+    }
+
+    // All Entries journal (always shown at top)
+    // This is a special journal that aggregates all entries from all journals
+    static var allEntriesJournal: Journal? {
+        // Try to find a journal named "All Entries"
+        if let allEntries = allJournals.first(where: { $0.name == "All Entries" }) {
+            return allEntries
+        }
+        // If not found, create a synthetic "All Entries" journal
+        let totalEntryCount = visibleJournals.compactMap { $0.entryCount }.reduce(0, +)
+        let totalJournalCount = visibleJournals.count
+        // Use Day One's dark gray color (#5A5A5A)
+        return Journal(
+            name: "All Entries",
+            color: Color(hex: "5A5A5A"),
+            entryCount: totalEntryCount,
+            journalCount: totalJournalCount
+        )
+    }
+
+    // Journals excluding All Entries
+    static var journalsExcludingAllEntries: [Journal] {
+        guard let allEntries = allEntriesJournal else { return visibleJournals }
+        return visibleJournals.filter { $0.id != allEntries.id }
+    }
+
+    // Example folders with journals (excluding All Entries)
+    static var folders: [JournalFolder] {
+        let journals = journalsExcludingAllEntries
+        guard journals.count >= 5 else { return [] }
+
+        return [
+            JournalFolder(
+                id: "folder-work",
+                name: "Work",
+                journals: Array(journals.prefix(2))
+            ),
+            JournalFolder(
+                id: "folder-personal",
+                name: "Personal",
+                journals: Array(journals.dropFirst(2).prefix(3))
+            )
+        ]
+    }
+
+    // Journals not in any folder (excluding All Entries)
+    static var unfolderedJournals: [Journal] {
+        let folderedJournalIDs = Set(folders.flatMap { $0.journals.map { $0.id } })
+        return journalsExcludingAllEntries.filter { !folderedJournalIDs.contains($0.id) }
+    }
+
+    // Wrapper for mixed journal items
+    struct MixedJournalItem: Identifiable {
+        let id: String
+        let isFolder: Bool
+        let journal: Journal?
+        let folder: JournalFolder?
+
+        init(journal: Journal) {
+            self.id = journal.id
+            self.isFolder = false
+            self.journal = journal
+            self.folder = nil
+        }
+
+        init(folder: JournalFolder) {
+            self.id = folder.id
+            self.isFolder = true
+            self.journal = nil
+            self.folder = folder
+        }
+    }
+
+    // Mixed list of folders and unfoldered journals (for display)
+    static var mixedJournalItems: [MixedJournalItem] {
+        var items: [MixedJournalItem] = []
+
+        let allFolders = folders
+        let allUnfoldered = unfolderedJournals
+
+        // Mix folders and journals based on their original indices
+        var folderIndex = 0
+        var journalIndex = 0
+
+        // Simple interleaving: folder, journal, journal, folder, journal, etc.
+        // Insert first folder at position 0
+        if folderIndex < allFolders.count {
+            items.append(MixedJournalItem(folder: allFolders[folderIndex]))
+            folderIndex += 1
+        }
+
+        // Add some journals
+        while journalIndex < min(2, allUnfoldered.count) {
+            items.append(MixedJournalItem(journal: allUnfoldered[journalIndex]))
+            journalIndex += 1
+        }
+
+        // Add second folder
+        if folderIndex < allFolders.count {
+            items.append(MixedJournalItem(folder: allFolders[folderIndex]))
+            folderIndex += 1
+        }
+
+        // Add remaining journals
+        while journalIndex < allUnfoldered.count {
+            items.append(MixedJournalItem(journal: allUnfoldered[journalIndex]))
+            journalIndex += 1
+        }
+
+        // Add any remaining folders
+        while folderIndex < allFolders.count {
+            items.append(MixedJournalItem(folder: allFolders[folderIndex]))
+            folderIndex += 1
+        }
+
+        return items
     }
 }

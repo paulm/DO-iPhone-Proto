@@ -42,22 +42,30 @@ struct JournalsTabPagedView: View {
     @State private var showingSettings = false
     @State private var viewMode: ViewMode = .compact // Default to List view
     @State private var selectedJournal: Journal?
+    @State private var selectedFolder: JournalFolder?
     @State private var showingNewEntry = false
     @State private var shouldShowAudioAfterEntry = false
-    
+
+    // Folder expansion state
+    @State private var expandedFolders: Set<String> = []
+
     // Draggable FAB state
     @GestureState private var dragState = CGSize.zero
     @State private var hoveredJournal: Journal?
     @State private var showFAB = false
     @State private var temporaryHoveredJournal: Journal?
     @State private var lastHapticJournal: Journal?
-    
+
     // Sheet regular position from top (in points)
     let sheetRegularPosition: CGFloat = 250
-    
-    // Get visible journals
-    private var filteredJournals: [Journal] {
-        return Journal.visibleJournals
+
+    // Get visible journals and folders
+    private var folders: [JournalFolder] {
+        return Journal.folders
+    }
+
+    private var unfolderedJournals: [Journal] {
+        return Journal.unfolderedJournals
     }
     
     var body: some View {
@@ -210,32 +218,60 @@ struct JournalsTabPagedView: View {
             }
             .padding(.bottom, 16)
 
-            // Show "All Entries" only if there are multiple journals
-            if filteredJournals.count > 1 {
-                let allEntriesJournal = Journal(
-                    name: "All Entries",
-                    color: Color(hex: "333B40"),
-                    entryCount: filteredJournals.reduce(0) { $0 + ($1.entryCount ?? 0) }
-                )
+            // All Entries at the top
+            if let allEntries = Journal.allEntriesJournal {
                 CompactJournalRow(
-                    journal: allEntriesJournal,
-                    isSelected: temporaryHoveredJournal?.id == allEntriesJournal.id || (temporaryHoveredJournal == nil && journalViewModel.selectedJournal.id == allEntriesJournal.id),
+                    journal: allEntries,
+                    isSelected: temporaryHoveredJournal?.id == allEntries.id || (temporaryHoveredJournal == nil && allEntries.id == journalViewModel.selectedJournal.id),
                     onSelect: {
-                        journalViewModel.selectJournal(allEntriesJournal)
-                        selectedJournal = allEntriesJournal
+                        journalViewModel.selectJournal(allEntries)
+                        selectedJournal = allEntries
                     }
                 )
             }
 
-            ForEach(filteredJournals) { journal in
-                CompactJournalRow(
-                    journal: journal,
-                    isSelected: temporaryHoveredJournal?.id == journal.id || (temporaryHoveredJournal == nil && journal.id == journalViewModel.selectedJournal.id),
-                    onSelect: {
-                        journalViewModel.selectJournal(journal)
-                        selectedJournal = journal
+            // Mixed folders and journals
+            ForEach(Journal.mixedJournalItems) { item in
+                if item.isFolder, let folder = item.folder {
+                    CompactFolderRow(
+                        folder: folder,
+                        isExpanded: expandedFolders.contains(folder.id),
+                        onToggle: {
+                            if expandedFolders.contains(folder.id) {
+                                expandedFolders.remove(folder.id)
+                            } else {
+                                expandedFolders.insert(folder.id)
+                            }
+                        },
+                        onSelectFolder: {
+                            selectedFolder = folder
+                        }
+                    )
+
+                    // Show journals inside expanded folder
+                    if expandedFolders.contains(folder.id) {
+                        ForEach(folder.journals) { journal in
+                            CompactJournalRow(
+                                journal: journal,
+                                isSelected: temporaryHoveredJournal?.id == journal.id || (temporaryHoveredJournal == nil && journal.id == journalViewModel.selectedJournal.id),
+                                onSelect: {
+                                    journalViewModel.selectJournal(journal)
+                                    selectedJournal = journal
+                                }
+                            )
+                            .padding(.leading, 20) // Indent journals inside folders
+                        }
                     }
-                )
+                } else if let journal = item.journal {
+                    CompactJournalRow(
+                        journal: journal,
+                        isSelected: temporaryHoveredJournal?.id == journal.id || (temporaryHoveredJournal == nil && journal.id == journalViewModel.selectedJournal.id),
+                        onSelect: {
+                            journalViewModel.selectJournal(journal)
+                            selectedJournal = journal
+                        }
+                    )
+                }
             }
         }
         .padding(.horizontal)
@@ -288,32 +324,60 @@ struct JournalsTabPagedView: View {
             }
             .padding(.bottom, 16)
 
-            // Show "All Entries" only if there are multiple journals
-            if filteredJournals.count > 1 {
-                let allEntriesJournal = Journal(
-                    name: "All Entries",
-                    color: Color(hex: "333B40"),
-                    entryCount: filteredJournals.reduce(0) { $0 + ($1.entryCount ?? 0) }
-                )
+            // All Entries at the top
+            if let allEntries = Journal.allEntriesJournal {
                 JournalRow(
-                    journal: allEntriesJournal,
-                    isSelected: temporaryHoveredJournal?.id == allEntriesJournal.id || (temporaryHoveredJournal == nil && journalViewModel.selectedJournal.id == allEntriesJournal.id),
+                    journal: allEntries,
+                    isSelected: temporaryHoveredJournal?.id == allEntries.id || (temporaryHoveredJournal == nil && allEntries.id == journalViewModel.selectedJournal.id),
                     onSelect: {
-                        journalViewModel.selectJournal(allEntriesJournal)
-                        selectedJournal = allEntriesJournal
+                        journalViewModel.selectJournal(allEntries)
+                        selectedJournal = allEntries
                     }
                 )
             }
 
-            ForEach(filteredJournals) { journal in
-                JournalRow(
-                    journal: journal,
-                    isSelected: temporaryHoveredJournal?.id == journal.id || (temporaryHoveredJournal == nil && journal.id == journalViewModel.selectedJournal.id),
-                    onSelect: {
-                        journalViewModel.selectJournal(journal)
-                        selectedJournal = journal
+            // Mixed folders and journals
+            ForEach(Journal.mixedJournalItems) { item in
+                if item.isFolder, let folder = item.folder {
+                    FolderRow(
+                        folder: folder,
+                        isExpanded: expandedFolders.contains(folder.id),
+                        onToggle: {
+                            if expandedFolders.contains(folder.id) {
+                                expandedFolders.remove(folder.id)
+                            } else {
+                                expandedFolders.insert(folder.id)
+                            }
+                        },
+                        onSelectFolder: {
+                            selectedFolder = folder
+                        }
+                    )
+
+                    // Show journals inside expanded folder
+                    if expandedFolders.contains(folder.id) {
+                        ForEach(folder.journals) { journal in
+                            JournalRow(
+                                journal: journal,
+                                isSelected: temporaryHoveredJournal?.id == journal.id || (temporaryHoveredJournal == nil && journal.id == journalViewModel.selectedJournal.id),
+                                onSelect: {
+                                    journalViewModel.selectJournal(journal)
+                                    selectedJournal = journal
+                                }
+                            )
+                            .padding(.leading, 20) // Indent journals inside folders
+                        }
                     }
-                )
+                } else if let journal = item.journal {
+                    JournalRow(
+                        journal: journal,
+                        isSelected: temporaryHoveredJournal?.id == journal.id || (temporaryHoveredJournal == nil && journal.id == journalViewModel.selectedJournal.id),
+                        onSelect: {
+                            journalViewModel.selectJournal(journal)
+                            selectedJournal = journal
+                        }
+                    )
+                }
             }
         }
         .padding(.horizontal)
@@ -323,32 +387,43 @@ struct JournalsTabPagedView: View {
     
     private var gridJournalList: some View {
         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 3), spacing: 20) {
-            // Show "All Entries" only if there are multiple journals
-            if filteredJournals.count > 1 {
-                let allEntriesJournal = Journal(
-                    name: "All Entries",
-                    color: Color(hex: "333B40"),
-                    entryCount: filteredJournals.reduce(0) { $0 + ($1.entryCount ?? 0) }
-                )
+            // All Entries at the top
+            if let allEntries = Journal.allEntriesJournal {
                 JournalBookView(
-                    journal: allEntriesJournal,
-                    isSelected: temporaryHoveredJournal?.id == allEntriesJournal.id || (temporaryHoveredJournal == nil && journalViewModel.selectedJournal.id == allEntriesJournal.id),
+                    journal: allEntries,
+                    isSelected: temporaryHoveredJournal?.id == allEntries.id || (temporaryHoveredJournal == nil && allEntries.id == journalViewModel.selectedJournal.id),
                     onSelect: {
-                        journalViewModel.selectJournal(allEntriesJournal)
-                        selectedJournal = allEntriesJournal
+                        journalViewModel.selectJournal(allEntries)
+                        selectedJournal = allEntries
                     }
                 )
             }
-            
-            ForEach(filteredJournals) { journal in
-                JournalBookView(
-                    journal: journal,
-                    isSelected: temporaryHoveredJournal?.id == journal.id || (temporaryHoveredJournal == nil && journal.id == journalViewModel.selectedJournal.id),
-                    onSelect: {
-                        journalViewModel.selectJournal(journal)
-                        selectedJournal = journal
+
+            // Mixed folders and journals for Books view
+            // Note: Books view doesn't support expand/collapse, just shows all journals flat
+            ForEach(Journal.mixedJournalItems) { item in
+                if item.isFolder, let folder = item.folder {
+                    // Show folder journals in Books view
+                    ForEach(folder.journals) { journal in
+                        JournalBookView(
+                            journal: journal,
+                            isSelected: temporaryHoveredJournal?.id == journal.id || (temporaryHoveredJournal == nil && journal.id == journalViewModel.selectedJournal.id),
+                            onSelect: {
+                                journalViewModel.selectJournal(journal)
+                                selectedJournal = journal
+                            }
+                        )
                     }
-                )
+                } else if let journal = item.journal {
+                    JournalBookView(
+                        journal: journal,
+                        isSelected: temporaryHoveredJournal?.id == journal.id || (temporaryHoveredJournal == nil && journal.id == journalViewModel.selectedJournal.id),
+                        onSelect: {
+                            journalViewModel.selectJournal(journal)
+                            selectedJournal = journal
+                        }
+                    )
+                }
             }
         }
         .padding(.horizontal)
@@ -458,26 +533,37 @@ struct JournalsTabPagedView: View {
         // Get the current FAB position
         let fabX = geometry.size.width - 46 + dragState.width
         let fabY = geometry.size.height - 80 + dragState.height
-        
-        // Estimate which journal based on Y position and view mode
-        let journals = filteredJournals
+
+        // Collect all journals in display order for FAB hover detection
+        var allVisibleJournals: [Journal] = []
+        if let allEntries = Journal.allEntriesJournal {
+            allVisibleJournals.append(allEntries)
+        }
+        // Add journals from mixed items
+        for item in Journal.mixedJournalItems {
+            if item.isFolder, let folder = item.folder {
+                allVisibleJournals.append(contentsOf: folder.journals)
+            } else if let journal = item.journal {
+                allVisibleJournals.append(journal)
+            }
+        }
         let contentStartY: CGFloat = 180 // Approximate start of content (after nav + segmented control)
         
         switch viewMode {
         case .compact:
             let rowHeight: CGFloat = 40
             let index = Int((fabY - contentStartY) / rowHeight)
-            if index >= 0 && index < journals.count {
-                hoveredJournal = journals[index]
+            if index >= 0 && index < allVisibleJournals.count {
+                hoveredJournal = allVisibleJournals[index]
             } else {
                 hoveredJournal = nil
             }
-            
+
         case .list:
             let rowHeight: CGFloat = 76 // Height includes padding
             let index = Int((fabY - contentStartY) / rowHeight)
-            if index >= 0 && index < journals.count {
-                hoveredJournal = journals[index]
+            if index >= 0 && index < allVisibleJournals.count {
+                hoveredJournal = allVisibleJournals[index]
             } else {
                 hoveredJournal = nil
             }
@@ -489,8 +575,8 @@ struct JournalsTabPagedView: View {
             let row = Int((fabY - contentStartY) / gridCellHeight)
             let col = Int(fabX / (geometry.size.width / CGFloat(columns)))
             let index = row * columns + col
-            if index >= 0 && index < journals.count {
-                hoveredJournal = journals[index]
+            if index >= 0 && index < allVisibleJournals.count {
+                hoveredJournal = allVisibleJournals[index]
             } else {
                 hoveredJournal = nil
             }
@@ -1000,9 +1086,27 @@ struct CompactJournalRow: View {
                     .foregroundStyle(.primary)
                 
                 Spacer()
-                
-                // Entry count
-                if let count = journal.entryCount {
+
+                // Journal count and entry count
+                if let journalCount = journal.journalCount {
+                    // For "All Entries" - show journal count and entry count
+                    HStack(spacing: 8) {
+                        Text("\(journalCount) journals")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        Text("•")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        if let entryCount = journal.entryCount {
+                            Text("\(entryCount)")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                } else if let count = journal.entryCount {
+                    // Regular journal - just show entry count
                     Text("\(count)")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
@@ -1032,11 +1136,125 @@ struct CompactJournalRow: View {
     }
 }
 
+struct CompactFolderRow: View {
+    let folder: JournalFolder
+    let isExpanded: Bool
+    let onToggle: () -> Void
+    let onSelectFolder: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            // Chevron for expand/collapse
+            Button(action: onToggle) {
+                Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 20)
+            }
+            .buttonStyle(PlainButtonStyle())
+
+            // Folder content - tappable to select folder
+            Button(action: onSelectFolder) {
+                HStack(spacing: 12) {
+                    // Folder icon
+                    Image(systemName: "folder.fill")
+                        .font(.body)
+                        .foregroundStyle(folder.color)
+
+                    // Folder name
+                    Text(folder.name)
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+
+                    Spacer()
+
+                    // Folder info: journal count and entry count
+                    HStack(spacing: 8) {
+                        Text("\(folder.journalCount) journals")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        Text("•")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        Text("\(folder.entryCount)")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .buttonStyle(PlainButtonStyle())
+        }
+        .padding(.vertical, 8)
+        .padding(.horizontal, 16)
+    }
+}
+
+struct FolderRow: View {
+    let folder: JournalFolder
+    let isExpanded: Bool
+    let onToggle: () -> Void
+    let onSelectFolder: () -> Void
+
+    var body: some View {
+        HStack(spacing: 16) {
+            // Chevron for expand/collapse
+            Button(action: onToggle) {
+                Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 24)
+            }
+            .buttonStyle(PlainButtonStyle())
+
+            // Folder content - tappable to select folder
+            Button(action: onSelectFolder) {
+                HStack(spacing: 16) {
+                    // Folder icon
+                    Image(systemName: "folder.fill")
+                        .font(.title2)
+                        .foregroundStyle(folder.color)
+                        .frame(width: 36)
+
+                    // Folder info
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(folder.name)
+                            .font(.headline)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.primary)
+
+                        HStack(spacing: 4) {
+                            Text("\(folder.journalCount) journals")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+
+                            Text("•")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+
+                            Text("\(folder.entryCount) entries")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    Spacer()
+                }
+            }
+            .buttonStyle(PlainButtonStyle())
+        }
+        .padding(.vertical, 12)
+        .padding(.horizontal, 16)
+    }
+}
+
 struct JournalRow: View {
     let journal: Journal
     let isSelected: Bool
     let onSelect: () -> Void
-    
+
     var body: some View {
         Button(action: onSelect) {
             HStack(spacing: 16) {
@@ -1051,8 +1269,25 @@ struct JournalRow: View {
                         .font(.headline)
                         .fontWeight(.medium)
                         .foregroundStyle(.primary)
-                    
-                    if let count = journal.entryCount {
+
+                    // Show journal count for "All Entries"
+                    if let journalCount = journal.journalCount {
+                        HStack(spacing: 4) {
+                            Text("\(journalCount) journals")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+
+                            Text("•")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+
+                            if let entryCount = journal.entryCount {
+                                Text("\(entryCount) entries")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    } else if let count = journal.entryCount {
                         Text("\(count) entries")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
@@ -1162,8 +1397,26 @@ struct JournalBookView: View {
                     )
                     .shadow(color: journal.color.opacity(0.3), radius: 4, x: 2, y: 4)
 
-                // Entry count only
-                if let count = journal.entryCount {
+                // Entry count (and journal count for "All Entries")
+                if let journalCount = journal.journalCount {
+                    // For "All Entries"
+                    HStack(spacing: 4) {
+                        Text("\(journalCount) journals")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+
+                        Text("•")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+
+                        if let entryCount = journal.entryCount {
+                            Text("\(entryCount)")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .padding(.top, 4)
+                } else if let count = journal.entryCount {
                     Text("\(count)")
                         .font(.caption2)
                         .foregroundStyle(.secondary)

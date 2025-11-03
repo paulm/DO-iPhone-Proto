@@ -40,7 +40,7 @@ struct JournalRowPreferenceKey: PreferenceKey {
 struct JournalsTabPagedView: View {
     @State private var journalViewModel = JournalSelectionViewModel()
     @State private var showingSettings = false
-    @State private var viewMode: ViewMode = .compact // Default to List view
+    @State private var viewMode: ViewMode = .list // Default to Icons view
     @State private var selectedJournal: Journal?
     @State private var selectedFolder: JournalFolder?
     @State private var showingNewEntry = false
@@ -275,7 +275,7 @@ struct JournalsTabPagedView: View {
     }
 
     private var listJournalList: some View {
-        LazyVStack(spacing: 2) {
+        LazyVStack(spacing: 4) {
             // Recent Journals horizontal scroll section
             VStack(alignment: .leading, spacing: 12) {
                 Text("Recent Journals")
@@ -1047,15 +1047,15 @@ struct FolderRow: View {
 
                         HStack(spacing: 4) {
                             Text("\(folder.journalCount) journals")
-                                .font(.subheadline)
+                                .font(.caption)
                                 .foregroundStyle(.secondary)
 
                             Text("•")
-                                .font(.subheadline)
+                                .font(.caption)
                                 .foregroundStyle(.secondary)
 
                             Text("\(folder.entryCount) entries")
-                                .font(.subheadline)
+                                .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -1080,12 +1080,21 @@ struct JournalRow: View {
             Button(action: onSelect) {
                 HStack(spacing: 16) {
                     // Color square
-                    RoundedRectangle(cornerRadius: 6)
+                    RoundedRectangle(cornerRadius: 4)
                         .fill(journal.color)
-                        .frame(width: 31, height: 42)
+                        .frame(width: 30, height: 40)
+                        .overlay(
+                            // Vertical line inset 2pt from left
+                            GeometryReader { geometry in
+                                Rectangle()
+                                    .fill(Color.black.opacity(0.1))
+                                    .frame(width: 1)
+                                    .offset(x: 3)
+                            }
+                        )
 
                     // Journal info
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: 4) {
                         Text(journal.name)
                             .font(.headline)
                             .fontWeight(.medium)

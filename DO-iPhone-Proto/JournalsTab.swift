@@ -85,6 +85,10 @@ struct JournalsTabPagedView: View {
             withAnimation(.easeOut(duration: 0.3)) {
                 showFAB = true
             }
+            // Expand all folders by default
+            if expandedFolders.isEmpty {
+                expandedFolders = Set(Journal.folders.map { $0.id })
+            }
         }
         .sheet(isPresented: $showingNewEntry) {
             EntryView(
@@ -292,7 +296,7 @@ struct JournalsTabPagedView: View {
     }
 
     private var listJournalList: some View {
-        LazyVStack(spacing: 8) {
+        LazyVStack(spacing: 2) {
             // Recent Journals horizontal scroll section
             VStack(alignment: .leading, spacing: 12) {
                 Text("Recent Journals")
@@ -1245,55 +1249,60 @@ struct JournalRow: View {
     let onSelect: () -> Void
 
     var body: some View {
-        Button(action: onSelect) {
-            HStack(spacing: 16) {
-                // Color square
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(journal.color)
-                    .frame(width: 32, height: 32)
-                
-                // Journal info
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(journal.name)
-                        .font(.headline)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.primary)
+        VStack(spacing: 0) {
+            Button(action: onSelect) {
+                HStack(spacing: 16) {
+                    // Color square
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(journal.color)
+                        .frame(width: 31, height: 42)
 
-                    // Show journal count for "All Entries"
-                    if let journalCount = journal.journalCount {
-                        HStack(spacing: 4) {
-                            Text("\(journalCount) journals")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                    // Journal info
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(journal.name)
+                            .font(.headline)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.primary)
 
-                            Text("•")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-
-                            if let entryCount = journal.entryCount {
-                                Text("\(entryCount) entries")
-                                    .font(.subheadline)
+                        // Show journal count for "All Entries"
+                        if let journalCount = journal.journalCount {
+                            HStack(spacing: 4) {
+                                Text("\(journalCount) journals")
+                                    .font(.caption)
                                     .foregroundStyle(.secondary)
+
+                                Text("•")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+
+                                if let entryCount = journal.entryCount {
+                                    Text("\(entryCount) entries")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
                             }
+                        } else if let count = journal.entryCount {
+                            Text("\(count) entries")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
-                    } else if let count = journal.entryCount {
-                        Text("\(count) entries")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
                     }
+
+                    Spacer()
                 }
-                
-                Spacer()
+                .padding(.vertical, 6)
+                .padding(.horizontal, 16)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(isSelected ? .gray.opacity(0.15) : .clear)
+                )
+                .contentShape(Rectangle())
             }
-            .padding(.vertical, 12)
-            .padding(.horizontal, 16)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? .gray.opacity(0.15) : .clear)
-            )
-            .contentShape(Rectangle())
+            .buttonStyle(PlainButtonStyle())
+
+            Divider()
+                .padding(.leading, 16)
         }
-        .buttonStyle(PlainButtonStyle())
         .contextMenu {
             Button(action: {
                 // TODO: Edit journal action

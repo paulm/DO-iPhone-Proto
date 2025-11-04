@@ -464,7 +464,7 @@ struct JournalDetailPagedView: View {
     let journalViewModel: JournalSelectionViewModel
     let sheetRegularPosition: CGFloat
     @State private var showingEditView = false
-    @State private var useStandardController = true
+    @State private var useStandardController = false
     @StateObject private var sheetState = SheetState()
     @Environment(\.dismiss) private var dismiss
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass

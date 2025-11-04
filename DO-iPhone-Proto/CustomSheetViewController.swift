@@ -540,13 +540,13 @@ struct TextBasedSegmentedControl: View {
                 }) {
                     VStack(spacing: 6) {
                         Image(systemName: "book")
-                            .font(.system(size: 16, weight: .medium))
+                            .font(.system(size: 14, weight: .medium))
                             .foregroundColor(tabSelection.selectedTab == 0 ? .black : .gray)
 
-                        // Underline for selected item
-                        Rectangle()
+                        // Underline for selected item - 10pt wide with rounded corners
+                        RoundedRectangle(cornerRadius: 1.5)
                             .fill(tabSelection.selectedTab == 0 ? Color.black : Color.clear)
-                            .frame(height: 2)
+                            .frame(width: 10, height: 3)
                     }
                     .padding(.horizontal, 12)
                 }
@@ -564,13 +564,13 @@ struct TextBasedSegmentedControl: View {
                     }) {
                         VStack(spacing: 6) {
                             Text(tab.title)
-                                .font(.system(size: 16, weight: .medium))
+                                .font(.system(size: 14, weight: .medium))
                                 .foregroundColor(tabSelection.selectedTab == tab.index ? .black : .gray)
 
-                            // Underline for selected item
-                            Rectangle()
+                            // Underline for selected item - 10pt wide with rounded corners
+                            RoundedRectangle(cornerRadius: 1.5)
                                 .fill(tabSelection.selectedTab == tab.index ? Color.black : Color.clear)
-                                .frame(height: 2)
+                                .frame(width: 10, height: 3)
                         }
                         .padding(.horizontal, 12)
                     }
@@ -582,7 +582,7 @@ struct TextBasedSegmentedControl: View {
             .padding(.bottom, 12)
         }
         .frame(maxHeight: .infinity)
-        .background(.ultraThinMaterial)
+        .background(Color.white.opacity(0))
     }
 }
 

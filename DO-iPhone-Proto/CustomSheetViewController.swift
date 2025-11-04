@@ -46,6 +46,7 @@ class CustomSheetViewController: UIViewController {
     private let sheetState: SheetState
     private let tabSelection = TabSelection()
     private let useStandardController: Bool
+    private let useLargeListDates: Bool
 
     enum Detent {
         case medium
@@ -59,11 +60,13 @@ class CustomSheetViewController: UIViewController {
          sheetState: SheetState,
          mediumDetentHeight: CGFloat? = nil,
          largeDetentHeight: CGFloat? = nil,
-         useStandardController: Bool = true) {
+         useStandardController: Bool = true,
+         useLargeListDates: Bool = false) {
         self.journal = journal
         self.sheetRegularPosition = sheetRegularPosition
         self.sheetState = sheetState
         self.useStandardController = useStandardController
+        self.useLargeListDates = useLargeListDates
 
         // Use custom heights if provided, otherwise calculate from defaults
         self.mediumDetentHeight = mediumDetentHeight ?? (UIScreen.main.bounds.height * Self.defaultMediumDetentRatio)
@@ -83,7 +86,8 @@ class CustomSheetViewController: UIViewController {
             sheetState: sheetState,
             sheetRegularPosition: sheetRegularPosition,
             showFAB: false, // Disable FAB in sheet content
-            tabSelection: tabSelection
+            tabSelection: tabSelection,
+            useLargeListDates: useLargeListDates
         )
         
         self.contentHostingController = UIHostingController(rootView: AnyView(sheetContent))
@@ -592,9 +596,10 @@ struct PagedJournalSheetContentWithoutSegmented: View {
     let sheetRegularPosition: CGFloat
     var showFAB: Bool = false
     @ObservedObject var tabSelection: TabSelection
+    let useLargeListDates: Bool
     @State private var showingEntryView = false
     @State private var showingAudioRecord = false
-    
+
     var body: some View {
         // Content based on selected tab
         Group {
@@ -602,7 +607,7 @@ struct PagedJournalSheetContentWithoutSegmented: View {
             case 0:
                 PagedCoverTabView(journal: journal)
             case 1:
-                ListTabView(journal: journal)
+                ListTabView(journal: journal, useLargeListDates: useLargeListDates)
             case 2:
                 CalendarTabView(journal: journal)
             case 3:
@@ -610,7 +615,7 @@ struct PagedJournalSheetContentWithoutSegmented: View {
             case 4:
                 MapTabView()
             default:
-                ListTabView(journal: journal)
+                ListTabView(journal: journal, useLargeListDates: useLargeListDates)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

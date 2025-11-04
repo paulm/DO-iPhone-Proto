@@ -183,6 +183,7 @@ struct IPadListTabView: View {
                                 title: entry.title,
                                 preview: entry.preview,
                                 time: entry.time,
+                                useLargeListDates: false,
                                 onTap: {
                                     selectEntry(entry)
                                 }
@@ -205,6 +206,7 @@ struct IPadListTabView: View {
                                 title: entry.title,
                                 preview: entry.preview,
                                 time: entry.time,
+                                useLargeListDates: false,
                                 onTap: {
                                     selectEntry(entry)
                                 }

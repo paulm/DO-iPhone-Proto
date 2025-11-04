@@ -471,6 +471,8 @@ struct JournalDetailPagedView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.verticalSizeClass) private var verticalSizeClass
 
+    @State private var useLargeListDates = false
+
     init(journal: Journal, journalViewModel: JournalSelectionViewModel, sheetRegularPosition: CGFloat) {
         self.journal = journal
         self.journalViewModel = journalViewModel
@@ -557,9 +559,10 @@ struct JournalDetailPagedView: View {
                 mediumDetentHeight: mediumDetentHeight,
                 largeDetentHeight: largeDetentHeight,
                 sheetState: sheetState,
-                useStandardController: useStandardController
+                useStandardController: useStandardController,
+                useLargeListDates: useLargeListDates
             )
-            .id(useStandardController) // Recreate when toggle changes
+            .id("\(useStandardController)-\(useLargeListDates)") // Recreate when toggles change
             .zIndex(2) // Ensure sheet appears above title text (which has zIndex 1)
         }
         .navigationBarTitleDisplayMode(.inline)
@@ -600,6 +603,10 @@ struct JournalDetailPagedView: View {
 
                     Toggle(isOn: $showCoverImage) {
                         Label("Show Cover Image", systemImage: "photo")
+                    }
+
+                    Toggle(isOn: $useLargeListDates) {
+                        Label("Large List Dates", systemImage: "calendar")
                     }
                 } label: {
                     Image(systemName: "ellipsis")
@@ -732,6 +739,7 @@ struct PagedJournalSheetContent: View {
     @ObservedObject var sheetState: SheetState
     let sheetRegularPosition: CGFloat
     var showFAB: Bool = true  // Make this configurable
+    let useLargeListDates: Bool
     @State private var selectedTab = 1
     @State private var showingEntryView = false
     @State private var showingFABState = false
@@ -758,7 +766,7 @@ struct PagedJournalSheetContent: View {
                 case 0:
                     PagedCoverTabView(journal: journal)
                 case 1:
-                    ListTabView(journal: journal)
+                    ListTabView(journal: journal, useLargeListDates: useLargeListDates)
                 case 2:
                     CalendarTabView(journal: journal)
                 case 3:
@@ -766,7 +774,7 @@ struct PagedJournalSheetContent: View {
                 case 4:
                     MapTabView()
                 default:
-                    ListTabView(journal: journal)
+                    ListTabView(journal: journal, useLargeListDates: useLargeListDates)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -1488,6 +1496,7 @@ struct FolderDetailView: View {
     @State private var showingEditView = false
     @State private var useStandardController = false
     @State private var showCoverImage = false
+    @State private var useLargeListDates = false
     @StateObject private var sheetState = SheetState()
     @Environment(\.dismiss) private var dismiss
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -1570,9 +1579,10 @@ struct FolderDetailView: View {
                 mediumDetentHeight: mediumDetentHeight,
                 largeDetentHeight: largeDetentHeight,
                 sheetState: sheetState,
-                useStandardController: useStandardController
+                useStandardController: useStandardController,
+                useLargeListDates: useLargeListDates
             )
-            .id(useStandardController) // Recreate when toggle changes
+            .id("\(useStandardController)-\(useLargeListDates)") // Recreate when toggles change
             .zIndex(2)
         }
         .navigationBarTitleDisplayMode(.inline)
@@ -1613,6 +1623,10 @@ struct FolderDetailView: View {
 
                     Toggle(isOn: $showCoverImage) {
                         Label("Show Cover Image", systemImage: "photo")
+                    }
+
+                    Toggle(isOn: $useLargeListDates) {
+                        Label("Large List Dates", systemImage: "calendar")
                     }
                 } label: {
                     Image(systemName: "ellipsis")

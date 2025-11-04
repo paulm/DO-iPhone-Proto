@@ -125,6 +125,7 @@ struct ListTabView: View {
     @State private var showingEntryView = false
     @State private var selectedEntryData: EntryView.EntryData?
     let journal: Journal?
+    let useLargeListDates: Bool
     
     // Sample entry data
     private let marchEntries = [
@@ -164,6 +165,7 @@ struct ListTabView: View {
                                 title: entry.title,
                                 preview: entry.preview,
                                 time: entry.time,
+                                useLargeListDates: useLargeListDates,
                                 onTap: {
                                     // Create date from components
                                     var components = DateComponents()
@@ -225,6 +227,7 @@ Finished with some stretching by the fountain. Feeling ready to tackle whatever 
                                 title: entry.title,
                                 preview: entry.preview,
                                 time: entry.time,
+                                useLargeListDates: useLargeListDates,
                                 onTap: {
                                     // Create date from components
                                     var components = DateComponents()
@@ -309,41 +312,45 @@ struct EntryRow: View {
     let title: String
     let preview: String
     let time: String
+    let useLargeListDates: Bool
     let onTap: () -> Void
-    
+
     var body: some View {
         Button(action: onTap) {
             HStack(alignment: .top, spacing: 12) {
-                VStack(spacing: 2) {
-                    Text(day)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                    Text(date)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.primary)
+                // Only show date column when useLargeListDates is true
+                if useLargeListDates {
+                    VStack(spacing: 2) {
+                        Text(day)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        Text(date)
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.primary)
+                    }
+                    .frame(width: 40)
                 }
-                .frame(width: 40)
-                
+
                 VStack(alignment: .leading, spacing: 3) {
                     Text(title)
                         .font(.subheadline)
                         .fontWeight(.semibold)
                         .foregroundStyle(.primary)
                         .multilineTextAlignment(.leading)
-                    
+
                     Text(preview)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
-                    
+
                     Text(time)
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                         .padding(.top, 2)
                 }
-                
+
                 Spacer()
             }
             .padding(.horizontal)
@@ -356,7 +363,8 @@ struct EntryRow: View {
             Rectangle()
                 .fill(.gray.opacity(0.2))
                 .frame(height: 0.5)
-                .padding(.leading, 64),
+                // Adjust leading padding based on mode
+                .padding(.leading, useLargeListDates ? 64 : 16),
             alignment: .bottom
         )
     }

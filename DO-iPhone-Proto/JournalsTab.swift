@@ -464,6 +464,7 @@ struct JournalDetailPagedView: View {
     let journalViewModel: JournalSelectionViewModel
     let sheetRegularPosition: CGFloat
     @State private var showingEditView = false
+    @State private var useStandardController = true
     @StateObject private var sheetState = SheetState()
     @Environment(\.dismiss) private var dismiss
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -544,8 +545,10 @@ struct JournalDetailPagedView: View {
                 sheetRegularPosition: 350,
                 mediumDetentHeight: mediumDetentHeight,
                 largeDetentHeight: largeDetentHeight,
-                sheetState: sheetState
+                sheetState: sheetState,
+                useStandardController: useStandardController
             )
+            .id(useStandardController) // Recreate when toggle changes
             .zIndex(2) // Ensure sheet appears above title text (which has zIndex 1)
         }
         .navigationBarTitleDisplayMode(.inline)
@@ -576,6 +579,12 @@ struct JournalDetailPagedView: View {
                         // TODO: Export action
                     }) {
                         Label("Export", systemImage: "square.and.arrow.up")
+                    }
+
+                    Divider()
+
+                    Toggle(isOn: $useStandardController) {
+                        Label("Content Controller Standard", systemImage: "switch.2")
                     }
                 } label: {
                     Image(systemName: "ellipsis")

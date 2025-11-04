@@ -6,18 +6,21 @@ struct CustomSheetView: View {
     let mediumDetentHeight: CGFloat?
     let largeDetentHeight: CGFloat?
     @ObservedObject var sheetState: SheetState
+    let useStandardController: Bool
     @State private var isSheetPresented = false
 
     init(journal: Journal?,
          sheetRegularPosition: CGFloat,
          mediumDetentHeight: CGFloat? = nil,
          largeDetentHeight: CGFloat? = nil,
-         sheetState: SheetState? = nil) {
+         sheetState: SheetState? = nil,
+         useStandardController: Bool = true) {
         self.journal = journal
         self.sheetRegularPosition = sheetRegularPosition
         self.mediumDetentHeight = mediumDetentHeight
         self.largeDetentHeight = largeDetentHeight
         self.sheetState = sheetState ?? SheetState()
+        self.useStandardController = useStandardController
     }
     
     var body: some View {
@@ -27,7 +30,8 @@ struct CustomSheetView: View {
             sheetState: sheetState,
             isPresented: $isSheetPresented,
             mediumDetentHeight: mediumDetentHeight,
-            largeDetentHeight: largeDetentHeight
+            largeDetentHeight: largeDetentHeight,
+            useStandardController: useStandardController
         )
         .ignoresSafeArea()
         .onAppear {
@@ -46,7 +50,8 @@ struct CustomSheetHostingController: UIViewControllerRepresentable {
     @Binding var isPresented: Bool
     let mediumDetentHeight: CGFloat?
     let largeDetentHeight: CGFloat?
-    
+    let useStandardController: Bool
+
     func makeUIViewController(context: Context) -> CustomSheetParentViewController {
         return CustomSheetParentViewController(
             journal: journal,
@@ -54,7 +59,8 @@ struct CustomSheetHostingController: UIViewControllerRepresentable {
             sheetState: sheetState,
             isPresented: $isPresented,
             mediumDetentHeight: mediumDetentHeight,
-            largeDetentHeight: largeDetentHeight
+            largeDetentHeight: largeDetentHeight,
+            useStandardController: useStandardController
         )
     }
     
@@ -72,19 +78,22 @@ class CustomSheetParentViewController: UIViewController {
     private var isPresented: Binding<Bool>
     private let mediumDetentHeight: CGFloat?
     private let largeDetentHeight: CGFloat?
-    
-    init(journal: Journal?, 
-         sheetRegularPosition: CGFloat, 
-         sheetState: SheetState, 
+    private let useStandardController: Bool
+
+    init(journal: Journal?,
+         sheetRegularPosition: CGFloat,
+         sheetState: SheetState,
          isPresented: Binding<Bool>,
          mediumDetentHeight: CGFloat? = nil,
-         largeDetentHeight: CGFloat? = nil) {
+         largeDetentHeight: CGFloat? = nil,
+         useStandardController: Bool = true) {
         self.journal = journal
         self.sheetRegularPosition = sheetRegularPosition
         self.sheetState = sheetState
         self.isPresented = isPresented
         self.mediumDetentHeight = mediumDetentHeight
         self.largeDetentHeight = largeDetentHeight
+        self.useStandardController = useStandardController
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -115,7 +124,8 @@ class CustomSheetParentViewController: UIViewController {
             sheetRegularPosition: sheetRegularPosition,
             sheetState: sheetState,
             mediumDetentHeight: mediumDetentHeight,
-            largeDetentHeight: largeDetentHeight
+            largeDetentHeight: largeDetentHeight,
+            useStandardController: useStandardController
         )
         
         sheetViewController = sheet

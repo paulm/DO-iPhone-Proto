@@ -3,13 +3,13 @@ import SwiftUI
 
 class CustomSheetViewController: UIViewController {
     // MARK: - Properties
-    
+
     private let scrollView = UIScrollView()
     private let contentView = UIView()
     private let grabberView = UIView()
     private let segmentedControlContainer = UIView()
     private let contentHostingController: UIHostingController<AnyView>
-    private let segmentedHostingController: UIHostingController<AnyView>
+    private var segmentedHostingController: UIHostingController<AnyView>
     
     // Constraints for sheet positioning
     private var heightConstraint: NSLayoutConstraint!
@@ -45,30 +45,37 @@ class CustomSheetViewController: UIViewController {
     private let sheetRegularPosition: CGFloat
     private let sheetState: SheetState
     private let tabSelection = TabSelection()
-    
+    private let useStandardController: Bool
+
     enum Detent {
         case medium
         case large
     }
-    
+
     // MARK: - Initialization
-    
-    init(journal: Journal?, 
-         sheetRegularPosition: CGFloat, 
+
+    init(journal: Journal?,
+         sheetRegularPosition: CGFloat,
          sheetState: SheetState,
          mediumDetentHeight: CGFloat? = nil,
-         largeDetentHeight: CGFloat? = nil) {
+         largeDetentHeight: CGFloat? = nil,
+         useStandardController: Bool = true) {
         self.journal = journal
         self.sheetRegularPosition = sheetRegularPosition
         self.sheetState = sheetState
-        
+        self.useStandardController = useStandardController
+
         // Use custom heights if provided, otherwise calculate from defaults
         self.mediumDetentHeight = mediumDetentHeight ?? (UIScreen.main.bounds.height * Self.defaultMediumDetentRatio)
         self.largeDetentHeight = largeDetentHeight ?? (UIScreen.main.bounds.height * Self.defaultLargeDetentRatio)
-        
-        // Create the segmented control with shared tab selection
-        let segmentedControl = CustomSheetSegmentedControl(tabSelection: tabSelection)
-        self.segmentedHostingController = UIHostingController(rootView: AnyView(segmentedControl))
+
+        // Create the appropriate segmented control based on toggle setting
+        // When useStandardController is true, show standard segmented control
+        // When useStandardController is false (unchecked), show custom text-based control
+        let segmentedControl = useStandardController ?
+            AnyView(CustomSheetSegmentedControl(tabSelection: tabSelection)) :
+            AnyView(TextBasedSegmentedControl(tabSelection: tabSelection))
+        self.segmentedHostingController = UIHostingController(rootView: segmentedControl)
         
         // Create the SwiftUI content without the segmented control
         let sheetContent = PagedJournalSheetContentWithoutSegmented(
@@ -109,9 +116,9 @@ class CustomSheetViewController: UIViewController {
     
     private func setupView() {
         view.backgroundColor = .systemBackground
-        
+
         // Add rounded corners
-        view.layer.cornerRadius = 16
+        view.layer.cornerRadius = 20
         view.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         view.layer.shadowColor = UIColor.black.cgColor
         view.layer.shadowOpacity = 0.1
@@ -139,7 +146,7 @@ class CustomSheetViewController: UIViewController {
     }
     
     private func setupSegmentedControl() {
-        segmentedControlContainer.backgroundColor = .systemBackground
+        segmentedControlContainer.backgroundColor = .clear
         segmentedControlContainer.translatesAutoresizingMaskIntoConstraints = false
         
         view.addSubview(segmentedControlContainer)
@@ -499,17 +506,77 @@ class TabSelection: ObservableObject {
 
 struct CustomSheetSegmentedControl: View {
     @ObservedObject var tabSelection: TabSelection
-    
+
     var body: some View {
         VStack(spacing: 0) {
             Picker("View", selection: $tabSelection.selectedTab) {
-                Text("Cover").tag(0)
+                Image(systemName: "book").tag(0)
                 Text("List").tag(1)
                 Text("Calendar").tag(2)
                 Text("Media").tag(3)
                 Text("Map").tag(4)
             }
             .pickerStyle(.segmented)
+            .padding(.horizontal)
+            .padding(.top, 20)  // Space for grabber
+            .padding(.bottom, 12)
+        }
+        .frame(maxHeight: .infinity)
+        .background(.ultraThinMaterial)
+    }
+}
+
+// MARK: - Text-Based Segmented Control
+
+struct TextBasedSegmentedControl: View {
+    @ObservedObject var tabSelection: TabSelection
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 0) {
+                // Cover tab - icon only
+                Button(action: {
+                    tabSelection.selectedTab = 0
+                }) {
+                    VStack(spacing: 6) {
+                        Image(systemName: "book")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(tabSelection.selectedTab == 0 ? .black : .gray)
+
+                        // Underline for selected item
+                        Rectangle()
+                            .fill(tabSelection.selectedTab == 0 ? Color.black : Color.clear)
+                            .frame(height: 2)
+                    }
+                    .padding(.horizontal, 12)
+                }
+                .buttonStyle(PlainButtonStyle())
+
+                // Text-based tabs
+                ForEach([
+                    (index: 1, title: "List"),
+                    (index: 2, title: "Calendar"),
+                    (index: 3, title: "Media"),
+                    (index: 4, title: "Map")
+                ], id: \.index) { tab in
+                    Button(action: {
+                        tabSelection.selectedTab = tab.index
+                    }) {
+                        VStack(spacing: 6) {
+                            Text(tab.title)
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(tabSelection.selectedTab == tab.index ? .black : .gray)
+
+                            // Underline for selected item
+                            Rectangle()
+                                .fill(tabSelection.selectedTab == tab.index ? Color.black : Color.clear)
+                                .frame(height: 2)
+                        }
+                        .padding(.horizontal, 12)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+            }
             .padding(.horizontal)
             .padding(.top, 20)  // Space for grabber
             .padding(.bottom, 12)

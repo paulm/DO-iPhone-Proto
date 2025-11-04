@@ -195,7 +195,7 @@ struct JournalsTabPagedView: View {
                             .frame(width: 70)
                         }
                     }
-                    .padding(.horizontal)
+                    .padding(.leading, 0)
                 }
             }
             .padding(.bottom, 16)
@@ -323,7 +323,7 @@ struct JournalsTabPagedView: View {
                             .frame(width: 70)
                         }
                     }
-                    .padding(.horizontal)
+                    .padding(.leading, 0)
                 }
             }
             .padding(.bottom, 16)

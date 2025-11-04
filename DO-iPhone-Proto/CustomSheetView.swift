@@ -5,17 +5,19 @@ struct CustomSheetView: View {
     let sheetRegularPosition: CGFloat
     let mediumDetentHeight: CGFloat?
     let largeDetentHeight: CGFloat?
-    @StateObject private var sheetState = SheetState()
+    @ObservedObject var sheetState: SheetState
     @State private var isSheetPresented = false
-    
-    init(journal: Journal?, 
+
+    init(journal: Journal?,
          sheetRegularPosition: CGFloat,
          mediumDetentHeight: CGFloat? = nil,
-         largeDetentHeight: CGFloat? = nil) {
+         largeDetentHeight: CGFloat? = nil,
+         sheetState: SheetState? = nil) {
         self.journal = journal
         self.sheetRegularPosition = sheetRegularPosition
         self.mediumDetentHeight = mediumDetentHeight
         self.largeDetentHeight = largeDetentHeight
+        self.sheetState = sheetState ?? SheetState()
     }
     
     var body: some View {

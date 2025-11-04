@@ -464,6 +464,7 @@ struct JournalDetailPagedView: View {
     let journalViewModel: JournalSelectionViewModel
     let sheetRegularPosition: CGFloat
     @State private var showingEditView = false
+    @StateObject private var sheetState = SheetState()
     @Environment(\.dismiss) private var dismiss
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.verticalSizeClass) private var verticalSizeClass
@@ -542,7 +543,8 @@ struct JournalDetailPagedView: View {
                 journal: journal,
                 sheetRegularPosition: 350,
                 mediumDetentHeight: mediumDetentHeight,
-                largeDetentHeight: largeDetentHeight
+                largeDetentHeight: largeDetentHeight,
+                sheetState: sheetState
             )
             .zIndex(2) // Ensure sheet appears above title text (which has zIndex 1)
         }
@@ -552,6 +554,8 @@ struct JournalDetailPagedView: View {
                 Text(journal.name)
                     .font(.headline)
                     .foregroundStyle(.white)
+                    .opacity(sheetState.isExpanded ? 1 : 0)
+                    .animation(.easeInOut(duration: 0.2), value: sheetState.isExpanded)
             }
 
             ToolbarItemGroup(placement: .navigationBarTrailing) {

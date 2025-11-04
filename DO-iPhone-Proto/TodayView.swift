@@ -563,7 +563,10 @@ struct TodayView: View {
     
     // TipKit
     private let journalingTip = JournalingMadeEasyTip()
-    
+
+    // Layout Constants
+    private let momentsSectionSpacing: CGFloat = 8
+
     @AppStorage("showChatFAB") private var showChatFAB = false
     @AppStorage("showEntryFAB") private var showEntryFAB = false
     @AppStorage("showChatInputBox") private var showChatInputBox = false
@@ -947,6 +950,7 @@ struct TodayView: View {
             }
             .buttonStyle(PlainButtonStyle())
         }
+        .listRowInsets(EdgeInsets(top: momentsSectionSpacing, leading: 16, bottom: momentsSectionSpacing, trailing: 16))
         .listRowBackground(cellBackgroundColor)
     }
 
@@ -1021,6 +1025,7 @@ struct TodayView: View {
             }
             .buttonStyle(PlainButtonStyle())
         }
+        .listRowInsets(EdgeInsets(top: momentsSectionSpacing, leading: 16, bottom: momentsSectionSpacing, trailing: 16))
         .listRowBackground(cellBackgroundColor)
     }
 
@@ -1079,6 +1084,7 @@ struct TodayView: View {
             }
             .buttonStyle(PlainButtonStyle())
         }
+        .listRowInsets(EdgeInsets(top: momentsSectionSpacing, leading: 16, bottom: momentsSectionSpacing, trailing: 16))
         .listRowBackground(cellBackgroundColor)
     }
 
@@ -1139,6 +1145,7 @@ struct TodayView: View {
             }
             .buttonStyle(PlainButtonStyle())
         }
+        .listRowInsets(EdgeInsets(top: momentsSectionSpacing, leading: 16, bottom: momentsSectionSpacing, trailing: 16))
         .listRowBackground(cellBackgroundColor)
     }
 
@@ -1197,6 +1204,7 @@ struct TodayView: View {
             }
             .buttonStyle(PlainButtonStyle())
         }
+        .listRowInsets(EdgeInsets(top: momentsSectionSpacing, leading: 16, bottom: momentsSectionSpacing, trailing: 16))
         .listRowBackground(cellBackgroundColor)
     }
 
@@ -3959,12 +3967,12 @@ struct MomentsTrackersSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var selectedTrackers: [String: Int]
 
-    private let trackers = ["Mood", "Energy", "Stress", "Custom"]
+    private let trackers = ["Mood", "Energy", "Stress", "Focus"]
     private let trackerIcons: [String: String] = [
         "Mood": "face.smiling",
         "Energy": "bolt.fill",
         "Stress": "wind",
-        "Custom": "slider.horizontal.3"
+        "Focus": "scope"
     ]
 
     var body: some View {

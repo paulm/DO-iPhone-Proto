@@ -129,9 +129,12 @@ struct ListTabView: View {
     
     // Sample entry data
     private let marchEntries = [
-        (day: "WED", date: "12", title: "Had a wonderful lunch with Emily today.", 
+        (day: "WED", date: "12", title: "Had a wonderful lunch with Emily today.",
          preview: "It's refreshing to step away from the daily grind and catch up with old friends. We talked about...",
          time: "6:11 PM CDT", month: 3, year: 2025),
+        (day: "WED", date: "12", title: "Afternoon walk in the sunshine",
+         preview: "After lunch, I took a long walk around the neighborhood. The weather was perfect and it felt great to...",
+         time: "2:30 PM CDT", month: 3, year: 2025),
         (day: "TUE", date: "11", title: "Morning run through the park",
          preview: "Felt energized after a good night's sleep. The weather was perfect for running and I...",
          time: "7:45 AM CDT", month: 3, year: 2025),
@@ -154,128 +157,18 @@ struct ListTabView: View {
             LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
                 // Small top padding since segmented control is now fixed
                 Color.clear.frame(height: 20)
-                
+
                 // March 2025 Section
                 Section(header: MonthHeaderView(monthYear: "March 2025")) {
                     VStack(spacing: 0) {
-                        ForEach(marchEntries, id: \.title) { entry in
-                            EntryRow(
-                                day: entry.day,
-                                date: entry.date,
-                                title: entry.title,
-                                preview: entry.preview,
-                                time: entry.time,
-                                useLargeListDates: useLargeListDates,
-                                onTap: {
-                                    // Create date from components
-                                    var components = DateComponents()
-                                    components.year = entry.year
-                                    components.month = entry.month
-                                    components.day = Int(entry.date)
-                                    let date = Calendar.current.date(from: components) ?? Date()
-                                    
-                                    // Create full content based on the title
-                                    let fullContent: String
-                                    if entry.title.contains("lunch with Emily") {
-                                        fullContent = """
-Had a wonderful lunch with Emily today.
-
-It's refreshing to step away from the daily grind and catch up with old friends. We talked about her new job at the tech startup, my recent travels, and how much has changed since college. Time flies but good friendships remain constant.
-
-We went to that little Italian place downtown that we used to love. The food was just as good as I remembered - I had the seafood linguine and Emily got her usual margherita pizza. We split a tiramisu for dessert, just like old times.
-
-The best part was just being able to talk without any agenda. No work calls, no rushing to the next meeting. Just two friends catching up over good food and wine. We laughed about old memories and made plans to not let so much time pass before our next get-together.
-
-Days like this remind me how important it is to nurture these relationships. Work will always be there, but friends like Emily are rare and precious.
-"""
-                                    } else if entry.title.contains("Morning run") {
-                                        fullContent = """
-Morning run through the park
-
-Felt energized after a good night's sleep. The weather was perfect for running and I managed to do my full 5K route without stopping. The park was peaceful at this early hour, with just a few other runners and dog walkers out.
-
-I love how the morning light filters through the trees along the main path. There's something magical about being out there when the day is just beginning. My pace was steady - not trying to break any records, just enjoying the movement and the fresh air.
-
-Saw the usual group of older folks doing tai chi by the pond. Always makes me smile. There's such a nice community feel to the park in the mornings. Everyone waves or nods as they pass by.
-
-Finished with some stretching by the fountain. Feeling ready to tackle whatever the day brings!
-"""
-                                    } else {
-                                        fullContent = entry.title + "\n\n" + entry.preview.replacingOccurrences(of: "...", with: ".")
-                                    }
-                                    
-                                    selectedEntryData = EntryView.EntryData(
-                                        title: entry.title,
-                                        content: fullContent,
-                                        date: date,
-                                        time: entry.time
-                                    )
-                                    showingEntryView = true
-                                }
-                            )
-                        }
+                        renderEntries(marchEntries)
                     }
                 }
                 
                 // February 2025 Section
                 Section(header: MonthHeaderView(monthYear: "February 2025")) {
                     VStack(spacing: 0) {
-                        ForEach(februaryEntries, id: \.title) { entry in
-                            EntryRow(
-                                day: entry.day,
-                                date: entry.date,
-                                title: entry.title,
-                                preview: entry.preview,
-                                time: entry.time,
-                                useLargeListDates: useLargeListDates,
-                                onTap: {
-                                    // Create date from components
-                                    var components = DateComponents()
-                                    components.year = entry.year
-                                    components.month = entry.month
-                                    components.day = Int(entry.date)
-                                    let date = Calendar.current.date(from: components) ?? Date()
-                                    
-                                    // Create full content based on the title
-                                    let fullContent: String
-                                    if entry.title.contains("lunch with Emily") {
-                                        fullContent = """
-Had a wonderful lunch with Emily today.
-
-It's refreshing to step away from the daily grind and catch up with old friends. We talked about her new job at the tech startup, my recent travels, and how much has changed since college. Time flies but good friendships remain constant.
-
-We went to that little Italian place downtown that we used to love. The food was just as good as I remembered - I had the seafood linguine and Emily got her usual margherita pizza. We split a tiramisu for dessert, just like old times.
-
-The best part was just being able to talk without any agenda. No work calls, no rushing to the next meeting. Just two friends catching up over good food and wine. We laughed about old memories and made plans to not let so much time pass before our next get-together.
-
-Days like this remind me how important it is to nurture these relationships. Work will always be there, but friends like Emily are rare and precious.
-"""
-                                    } else if entry.title.contains("Morning run") {
-                                        fullContent = """
-Morning run through the park
-
-Felt energized after a good night's sleep. The weather was perfect for running and I managed to do my full 5K route without stopping. The park was peaceful at this early hour, with just a few other runners and dog walkers out.
-
-I love how the morning light filters through the trees along the main path. There's something magical about being out there when the day is just beginning. My pace was steady - not trying to break any records, just enjoying the movement and the fresh air.
-
-Saw the usual group of older folks doing tai chi by the pond. Always makes me smile. There's such a nice community feel to the park in the mornings. Everyone waves or nods as they pass by.
-
-Finished with some stretching by the fountain. Feeling ready to tackle whatever the day brings!
-"""
-                                    } else {
-                                        fullContent = entry.title + "\n\n" + entry.preview.replacingOccurrences(of: "...", with: ".")
-                                    }
-                                    
-                                    selectedEntryData = EntryView.EntryData(
-                                        title: entry.title,
-                                        content: fullContent,
-                                        date: date,
-                                        time: entry.time
-                                    )
-                                    showingEntryView = true
-                                }
-                            )
-                        }
+                        renderEntries(februaryEntries)
                     }
                 }
                 
@@ -287,22 +180,173 @@ Finished with some stretching by the fountain. Feeling ready to tackle whatever 
             EntryView(journal: journal, entryData: selectedEntryData, startInEditMode: false)
         }
     }
+
+    @ViewBuilder
+    private func renderEntries(_ entries: [(day: String, date: String, title: String, preview: String, time: String, month: Int, year: Int)]) -> some View {
+        if useLargeListDates {
+            // Original mode: show date on each row with dividers
+            ForEach(entries, id: \.title) { entry in
+                EntryRow(
+                    day: entry.day,
+                    date: entry.date,
+                    title: entry.title,
+                    preview: entry.preview,
+                    time: entry.time,
+                    useLargeListDates: useLargeListDates,
+                    showDivider: true,
+                    onTap: { handleEntryTap(entry) }
+                )
+            }
+        } else {
+            // New mode: group by date with date headers
+            let groupedEntries = Dictionary(grouping: entries) { "\($0.day) \($0.date)" }
+            let sortedDates = groupedEntries.keys.sorted { key1, key2 in
+                let date1 = groupedEntries[key1]!.first!.date
+                let date2 = groupedEntries[key2]!.first!.date
+                return Int(date1)! > Int(date2)!
+            }
+
+            ForEach(sortedDates, id: \.self) { dateKey in
+                let entriesForDate = groupedEntries[dateKey]!
+                let firstEntry = entriesForDate.first!
+                let isMultiEntry = entriesForDate.count > 1
+
+                // Date header row
+                DateHeaderRow(day: firstEntry.day, date: firstEntry.date)
+
+                // Entry rows for this date (without date column)
+                ForEach(Array(entriesForDate.enumerated()), id: \.element.title) { index, entry in
+                    let isLastEntry = index == entriesForDate.count - 1
+                    let shouldShowDivider = isMultiEntry && !isLastEntry
+
+                    EntryRow(
+                        day: entry.day,
+                        date: entry.date,
+                        title: entry.title,
+                        preview: entry.preview,
+                        time: entry.time,
+                        useLargeListDates: useLargeListDates,
+                        showDivider: shouldShowDivider,
+                        onTap: { handleEntryTap(entry) }
+                    )
+                }
+            }
+        }
+    }
+
+    private func handleEntryTap(_ entry: (day: String, date: String, title: String, preview: String, time: String, month: Int, year: Int)) {
+        // Create date from components
+        var components = DateComponents()
+        components.year = entry.year
+        components.month = entry.month
+        components.day = Int(entry.date)
+        let date = Calendar.current.date(from: components) ?? Date()
+
+        // Create full content based on the title
+        let fullContent = generateFullContent(for: entry.title, preview: entry.preview)
+
+        selectedEntryData = EntryView.EntryData(
+            title: entry.title,
+            content: fullContent,
+            date: date,
+            time: entry.time
+        )
+        showingEntryView = true
+    }
+
+    private func generateFullContent(for title: String, preview: String) -> String {
+        if title.contains("lunch with Emily") {
+            return """
+Had a wonderful lunch with Emily today.
+
+It's refreshing to step away from the daily grind and catch up with old friends. We talked about her new job at the tech startup, my recent travels, and how much has changed since college. Time flies but good friendships remain constant.
+
+We went to that little Italian place downtown that we used to love. The food was just as good as I remembered - I had the seafood linguine and Emily got her usual margherita pizza. We split a tiramisu for dessert, just like old times.
+
+The best part was just being able to talk without any agenda. No work calls, no rushing to the next meeting. Just two friends catching up over good food and wine. We laughed about old memories and made plans to not let so much time pass before our next get-together.
+
+Days like this remind me how important it is to nurture these relationships. Work will always be there, but friends like Emily are rare and precious.
+"""
+        } else if title.contains("Morning run") {
+            return """
+Morning run through the park
+
+Felt energized after a good night's sleep. The weather was perfect for running and I managed to do my full 5K route without stopping. The park was peaceful at this early hour, with just a few other runners and dog walkers out.
+
+I love how the morning light filters through the trees along the main path. There's something magical about being out there when the day is just beginning. My pace was steady - not trying to break any records, just enjoying the movement and the fresh air.
+
+Saw the usual group of older folks doing tai chi by the pond. Always makes me smile. There's such a nice community feel to the park in the mornings. Everyone waves or nods as they pass by.
+
+Finished with some stretching by the fountain. Feeling ready to tackle whatever the day brings!
+"""
+        } else if title.contains("Afternoon walk") {
+            return """
+Afternoon walk in the sunshine
+
+After lunch, I took a long walk around the neighborhood. The weather was perfect and it felt great to be outside. Sometimes the simplest activities bring the most joy.
+
+I noticed all the spring flowers starting to bloom - tulips, daffodils, and cherry blossoms. The fresh air and gentle exercise helped clear my mind and gave me time to think about the day's events.
+
+Walking without any particular destination in mind is one of my favorite ways to relax. No agenda, no rushing, just me and my thoughts.
+"""
+        } else {
+            return title + "\n\n" + preview.replacingOccurrences(of: "...", with: ".")
+        }
+    }
 }
 
 struct MonthHeaderView: View {
     let monthYear: String
-    
+
     var body: some View {
         HStack {
             Text(monthYear)
-                .font(.headline)
+                .font(.subheadline)
                 .fontWeight(.semibold)
-                .foregroundStyle(.primary)
+                .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal)
                 .padding(.vertical, 12)
                 .background(Color(UIColor.systemBackground))
         }
+    }
+}
+
+struct DateHeaderRow: View {
+    let day: String
+    let date: String
+
+    private var formattedDate: String {
+        let fullDay = dayNameFromAbbreviation(day)
+        return "\(date) · \(fullDay)"
+    }
+
+    private func dayNameFromAbbreviation(_ abbr: String) -> String {
+        let days = [
+            "MON": "Monday",
+            "TUE": "Tuesday",
+            "WED": "Wednesday",
+            "THU": "Thursday",
+            "FRI": "Friday",
+            "SAT": "Saturday",
+            "SUN": "Sunday"
+        ]
+        return days[abbr] ?? abbr
+    }
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Text(formattedDate)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+
+            Rectangle()
+                .fill(Color.gray.opacity(0.3))
+                .frame(height: 0.5)
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .background(Color(UIColor.systemBackground))
     }
 }
 
@@ -313,6 +357,7 @@ struct EntryRow: View {
     let preview: String
     let time: String
     let useLargeListDates: Bool
+    let showDivider: Bool
     let onTap: () -> Void
 
     var body: some View {
@@ -360,11 +405,15 @@ struct EntryRow: View {
         }
         .buttonStyle(PlainButtonStyle())
         .overlay(
-            Rectangle()
-                .fill(.gray.opacity(0.2))
-                .frame(height: 0.5)
-                // Adjust leading padding based on mode
-                .padding(.leading, useLargeListDates ? 64 : 16),
+            Group {
+                if showDivider {
+                    Rectangle()
+                        .fill(.gray.opacity(0.2))
+                        .frame(height: 0.5)
+                        // Adjust leading padding based on mode
+                        .padding(.leading, useLargeListDates ? 64 : 16)
+                }
+            },
             alignment: .bottom
         )
     }

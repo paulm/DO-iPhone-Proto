@@ -147,9 +147,12 @@ struct IPadListTabView: View {
     
     // Sample entry data (same as in ListTabView)
     private let marchEntries = [
-        (day: "WED", date: "12", title: "Had a wonderful lunch with Emily today.", 
+        (day: "WED", date: "12", title: "Had a wonderful lunch with Emily today.",
          preview: "It's refreshing to step away from the daily grind and catch up with old friends. We talked about...",
          time: "6:11 PM CDT", month: 3, year: 2025),
+        (day: "WED", date: "12", title: "Afternoon walk in the sunshine",
+         preview: "After lunch, I took a long walk around the neighborhood. The weather was perfect and it felt great to...",
+         time: "2:30 PM CDT", month: 3, year: 2025),
         (day: "TUE", date: "11", title: "Morning run through the park",
          preview: "Felt energized after a good night's sleep. The weather was perfect for running and I...",
          time: "7:45 AM CDT", month: 3, year: 2025),
@@ -184,6 +187,7 @@ struct IPadListTabView: View {
                                 preview: entry.preview,
                                 time: entry.time,
                                 useLargeListDates: false,
+                                showDivider: false,
                                 onTap: {
                                     selectEntry(entry)
                                 }
@@ -207,6 +211,7 @@ struct IPadListTabView: View {
                                 preview: entry.preview,
                                 time: entry.time,
                                 useLargeListDates: false,
+                                showDivider: false,
                                 onTap: {
                                     selectEntry(entry)
                                 }
@@ -269,6 +274,16 @@ I love how the morning light filters through the trees along the main path. Ther
 Saw the usual group of older folks doing tai chi by the pond. Always makes me smile. There's such a nice community feel to the park in the mornings. Everyone waves or nods as they pass by.
 
 Finished with some stretching by the fountain. Feeling ready to tackle whatever the day brings!
+"""
+        } else if title.contains("Afternoon walk") {
+            return """
+Afternoon walk in the sunshine
+
+After lunch, I took a long walk around the neighborhood. The weather was perfect and it felt great to be outside. Sometimes the simplest activities bring the most joy.
+
+I noticed all the spring flowers starting to bloom - tulips, daffodils, and cherry blossoms. The fresh air and gentle exercise helped clear my mind and gave me time to think about the day's events.
+
+Walking without any particular destination in mind is one of my favorite ways to relax. No agenda, no rushing, just me and my thoughts.
 """
         } else if title.contains("Started reading") {
             return """

@@ -522,6 +522,20 @@ struct JournalDetailPagedView: View {
                             .frame(width: geometry.size.width, height: sheetRegularPosition + 100)
                             .clipped()
                             .ignoresSafeArea()
+                            .overlay(
+                                VStack {
+                                    Spacer()
+                                    LinearGradient(
+                                        colors: [
+                                            Color.clear,
+                                            journal.color
+                                        ],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
+                                    .frame(height: 100)
+                                }
+                            )
 
                         Spacer()
                     }
@@ -1541,6 +1555,20 @@ struct FolderDetailView: View {
                             .frame(width: geometry.size.width, height: sheetRegularPosition + 100)
                             .clipped()
                             .ignoresSafeArea()
+                            .overlay(
+                                VStack {
+                                    Spacer()
+                                    LinearGradient(
+                                        colors: [
+                                            Color.clear,
+                                            folder.color
+                                        ],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
+                                    .frame(height: 100)
+                                }
+                            )
 
                         Spacer()
                     }

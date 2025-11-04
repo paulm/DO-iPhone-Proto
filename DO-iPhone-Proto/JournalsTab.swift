@@ -1383,6 +1383,34 @@ struct RecentJournalBookView: View {
                         RoundedRectangle(cornerRadius: 6)
                             .stroke(isSelected ? .blue : .clear, lineWidth: 2)
                     )
+                    .overlay(
+                        // New Entry button (top-right corner)
+                        Group {
+                            if let onNewEntry = onNewEntry {
+                                VStack {
+                                    HStack {
+                                        Spacer()
+                                        Button(action: {
+                                            onNewEntry()
+                                        }) {
+                                            Circle()
+                                                .fill(.white)
+                                                .frame(width: 26, height: 26)
+                                                .overlay(
+                                                    Image(systemName: "plus")
+                                                        .font(.system(size: 12, weight: .bold))
+                                                        .foregroundStyle(journal.color)
+                                                )
+                                                .shadow(color: .black.opacity(0.15), radius: 2, x: 0, y: 0)
+                                        }
+                                        .buttonStyle(PlainButtonStyle())
+                                        .padding(6)
+                                    }
+                                    Spacer()
+                                }
+                            }
+                        }
+                    )
                     .shadow(color: journal.color.opacity(0.3), radius: 4, x: 2, y: 4)
                 // No entry count displayed
             }

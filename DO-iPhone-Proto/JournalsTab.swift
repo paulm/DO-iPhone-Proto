@@ -85,8 +85,8 @@ struct JournalsTabPagedView: View {
                         .padding(.top, 12)
                 }
             }
-            .navigationTitle("Journals")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     Menu {
@@ -175,11 +175,12 @@ struct JournalsTabPagedView: View {
                     .font(.headline)
                     .fontWeight(.semibold)
                     .foregroundStyle(.primary)
+                    .padding(.horizontal)
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 16) {
                         ForEach(recentJournals) { journal in
-                            JournalBookView(
+                            RecentJournalBookView(
                                 journal: journal,
                                 isSelected: false,
                                 onSelect: {
@@ -191,12 +192,22 @@ struct JournalsTabPagedView: View {
                                     showingNewEntry = true
                                 }
                             )
-                            .frame(width: 80)
+                            .frame(width: 70)
                         }
                     }
+                    .padding(.horizontal)
                 }
             }
             .padding(.bottom, 16)
+
+            // Journals section header
+            Text("Journals")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundStyle(.primary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal)
+                .padding(.bottom, 8)
 
             // All Entries at the top
             if let allEntries = Journal.allEntriesJournal {
@@ -259,16 +270,29 @@ struct JournalsTabPagedView: View {
         .padding(.bottom, 100)
     }
     
-    // Recent journals for horizontal scroll
+    // Recent journals for horizontal scroll - pick from actual journals, always including Journal, Work Notes, Daily
     private var recentJournals: [Journal] {
-        return [
-            Journal(name: "Travel 2025", color: Color(hex: "FF6B6B"), entryCount: 42),
-            Journal(name: "Work Notes", color: Color(hex: "4ECDC4"), entryCount: 156),
-            Journal(name: "Gratitude", color: Color(hex: "FFD93D"), entryCount: 89),
-            Journal(name: "Reading Log", color: Color(hex: "95E1D3"), entryCount: 34),
-            Journal(name: "Fitness", color: Color(hex: "F38181"), entryCount: 67),
-            Journal(name: "Recipes", color: Color(hex: "AA96DA"), entryCount: 23)
-        ]
+        let allJournals = Journal.sampleJournals
+        var recents: [Journal] = []
+
+        // Always include these three
+        if let journal = allJournals.first(where: { $0.name == "Journal" }) {
+            recents.append(journal)
+        }
+        if let workNotes = allJournals.first(where: { $0.name == "Work Notes" }) {
+            recents.append(workNotes)
+        }
+        if let daily = allJournals.first(where: { $0.name == "Daily" }) {
+            recents.append(daily)
+        }
+
+        // Add a few more from the available journals
+        let remaining = allJournals.filter { journal in
+            !["Journal", "Work Notes", "Daily"].contains(journal.name)
+        }
+        recents.append(contentsOf: remaining.prefix(3))
+
+        return recents
     }
 
     private var listJournalList: some View {
@@ -284,7 +308,7 @@ struct JournalsTabPagedView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 16) {
                         ForEach(recentJournals) { journal in
-                            JournalBookView(
+                            RecentJournalBookView(
                                 journal: journal,
                                 isSelected: false,
                                 onSelect: {
@@ -296,13 +320,22 @@ struct JournalsTabPagedView: View {
                                     showingNewEntry = true
                                 }
                             )
-                            .frame(width: 80)
+                            .frame(width: 70)
                         }
                     }
                     .padding(.horizontal)
                 }
             }
             .padding(.bottom, 16)
+
+            // Journals section header
+            Text("Journals")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundStyle(.primary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal)
+                .padding(.bottom, 8)
 
             // All Entries at the top
             if let allEntries = Journal.allEntriesJournal {
@@ -526,6 +559,15 @@ struct JournalDetailPagedView: View {
             .zIndex(2) // Ensure sheet appears above title text (which has zIndex 1)
         }
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text(journal.name)
+                    .font(.headline)
+                    .foregroundStyle(.white)
+            }
+        }
+        .toolbarBackground(.visible, for: .navigationBar)
+        .toolbarBackground(journal.color, for: .navigationBar)
         .sheet(isPresented: $showingEditView) {
             PagedEditJournalView(journal: journal)
         }
@@ -1294,6 +1336,61 @@ struct JournalBookView: View {
     }
 }
 
+// MARK: - Recent Journal Book View (smaller, no entry count)
+struct RecentJournalBookView: View {
+    let journal: Journal
+    let isSelected: Bool
+    let onSelect: () -> Void
+    var onNewEntry: (() -> Void)? = nil
+
+    var body: some View {
+        Button(action: onSelect) {
+            VStack(spacing: 4) {
+                // Book shape
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(journal.color)
+                    .aspectRatio(0.7, contentMode: .fit)
+                    .overlay(
+                        // Book spine effect
+                        VStack {
+                            Spacer()
+                            Rectangle()
+                                .fill(journal.color.opacity(0.3))
+                                .frame(height: 2)
+                                .padding(.horizontal, 6)
+                            Spacer()
+                        }
+                    )
+                    .overlay(
+                        // Journal title on book cover - smaller font
+                        VStack {
+                            Spacer()
+                            HStack {
+                                Text(journal.name)
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(.white.opacity(0.8))
+                                    .multilineTextAlignment(.leading)
+                                    .lineLimit(2)
+                                Spacer()
+                            }
+                            .padding(.bottom, 6)
+                            .padding(.leading, 6)
+                        }
+                    )
+                    .overlay(
+                        // Selection indicator
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(isSelected ? .blue : .clear, lineWidth: 2)
+                    )
+                    .shadow(color: journal.color.opacity(0.3), radius: 4, x: 2, y: 4)
+                // No entry count displayed
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
 // MARK: - Folder Detail View
 struct FolderDetailView: View {
     let folder: JournalFolder
@@ -1388,6 +1485,15 @@ struct FolderDetailView: View {
             .zIndex(2)
         }
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text(folder.name)
+                    .font(.headline)
+                    .foregroundStyle(.white)
+            }
+        }
+        .toolbarBackground(.visible, for: .navigationBar)
+        .toolbarBackground(Color(hex: "333B40"), for: .navigationBar)
         .tint(folder.color)
     }
 }

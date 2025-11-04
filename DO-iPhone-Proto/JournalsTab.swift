@@ -1059,6 +1059,11 @@ struct FolderRow: View {
                         }
 
                         Spacer()
+
+                        // Disclosure arrow
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(.tertiary)
                     }
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -1130,12 +1135,18 @@ struct JournalRow: View {
                     }
 
                     Spacer()
+
+                    // Disclosure arrow
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(.tertiary)
                 }
-                .padding(.vertical, 6)
+                .padding(.vertical, 7)
                 .padding(.horizontal, 16)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
                         .fill(isSelected ? .gray.opacity(0.15) : .clear)
+                        .padding(.vertical, 0)
                 )
                 .contentShape(Rectangle())
             }

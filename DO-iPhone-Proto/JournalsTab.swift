@@ -38,7 +38,7 @@ struct JournalRowPreferenceKey: PreferenceKey {
 // MARK: - Journals Tab Paged Variant
 
 struct JournalsTabPagedView: View {
-    @State private var journalViewModel = JournalSelectionViewModel()
+    @Environment(JournalSelectionViewModel.self) private var journalViewModel
     @State private var showingSettings = false
     @State private var viewMode: ViewMode = .list // Default to Icons view
     @State private var selectedJournal: Journal?
@@ -46,6 +46,8 @@ struct JournalsTabPagedView: View {
     @State private var showingNewEntry = false
     @State private var shouldShowAudioAfterEntry = false
     @State private var showRecentJournals = true
+    @State private var isEditMode = false
+    @State private var journalItems: [Journal.MixedJournalItem] = Journal.mixedJournalItems
 
     // Folder expansion state - expand all by default
     @State private var expandedFolders: Set<String> = Set(Journal.folders.map { $0.id })
@@ -92,9 +94,9 @@ struct JournalsTabPagedView: View {
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     Menu {
                         Button(action: {
-                            // TODO: Edit journals action
+                            isEditMode.toggle()
                         }) {
-                            Label("Edit", systemImage: "pencil")
+                            Label(isEditMode ? "Done" : "Edit", systemImage: isEditMode ? "checkmark" : "pencil")
                         }
                         
                         Button(action: {
@@ -353,6 +355,7 @@ struct JournalsTabPagedView: View {
                 JournalRow(
                     journal: allEntries,
                     isSelected: allEntries.id == journalViewModel.selectedJournal.id,
+                    isEditMode: false, // All Entries cannot be reordered
                     onSelect: {
                         journalViewModel.selectJournal(allEntries)
                         selectedJournal = allEntries
@@ -361,11 +364,12 @@ struct JournalsTabPagedView: View {
             }
 
             // Mixed folders and journals
-            ForEach(Journal.mixedJournalItems) { item in
+            ForEach(journalItems) { item in
                 if item.isFolder, let folder = item.folder {
                     FolderRow(
                         folder: folder,
                         isExpanded: expandedFolders.contains(folder.id),
+                        isEditMode: isEditMode,
                         onToggle: {
                             withAnimation {
                                 if expandedFolders.contains(folder.id) {
@@ -387,6 +391,7 @@ struct JournalsTabPagedView: View {
                             JournalRow(
                                 journal: journal,
                                 isSelected: journal.id == journalViewModel.selectedJournal.id,
+                                isEditMode: isEditMode,
                                 onSelect: {
                                     journalViewModel.selectJournal(journal)
                                     selectedJournal = journal
@@ -399,6 +404,7 @@ struct JournalsTabPagedView: View {
                     JournalRow(
                         journal: journal,
                         isSelected: journal.id == journalViewModel.selectedJournal.id,
+                        isEditMode: isEditMode,
                         onSelect: {
                             journalViewModel.selectJournal(journal)
                             selectedJournal = journal
@@ -406,12 +412,16 @@ struct JournalsTabPagedView: View {
                     )
                 }
             }
+            .onMove { indices, newOffset in
+                journalItems.move(fromOffsets: indices, toOffset: newOffset)
+            }
         }
         .padding(.horizontal)
         .padding(.top, 12)
         .padding(.bottom, 100)
+        .environment(\.editMode, .constant(isEditMode ? .active : .inactive))
     }
-    
+
     private var gridJournalList: some View {
         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 3), spacing: 20) {
             // All Entries at the top
@@ -1146,6 +1156,7 @@ struct CompactFolderRow: View {
 struct FolderRow: View {
     let folder: JournalFolder
     let isExpanded: Bool
+    let isEditMode: Bool
     let onToggle: () -> Void
     let onSelectFolder: () -> Void
 
@@ -1188,10 +1199,16 @@ struct FolderRow: View {
 
                         Spacer()
 
-                        // Disclosure arrow
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(.tertiary)
+                        // Show drag handle in edit mode, chevron otherwise
+                        if isEditMode {
+                            Image(systemName: "line.3.horizontal")
+                                .font(.system(size: 14, weight: .regular))
+                                .foregroundStyle(.secondary)
+                        } else {
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(.tertiary)
+                        }
                     }
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -1211,6 +1228,7 @@ struct FolderRow: View {
 struct JournalRow: View {
     let journal: Journal
     let isSelected: Bool
+    let isEditMode: Bool
     let onSelect: () -> Void
 
     var body: some View {
@@ -1264,10 +1282,16 @@ struct JournalRow: View {
 
                     Spacer()
 
-                    // Disclosure arrow
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.tertiary)
+                    // Show drag handle in edit mode, chevron otherwise
+                    if isEditMode {
+                        Image(systemName: "line.3.horizontal")
+                            .font(.system(size: 14, weight: .regular))
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(.tertiary)
+                    }
                 }
                 .padding(.vertical, 7)
                 .padding(.horizontal, 16)

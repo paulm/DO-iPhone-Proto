@@ -13,6 +13,7 @@ struct MainTabView: View {
     @State private var messageCountAtResume = 0
     @State private var updateTrigger = false
     @State private var showUpdateEntry = false
+    @State private var journalViewModel = JournalSelectionViewModel()
     
     private var dayOfWeek: String {
         let formatter = DateFormatter()
@@ -66,6 +67,7 @@ struct MainTabView: View {
 
                 Tab {
                     JournalsView()
+                        .environment(journalViewModel)
                 } label: {
                     Label("Journals", dayOneIcon: .books_filled)
                 }
@@ -119,9 +121,9 @@ struct MainTabView: View {
                                 }
                             }
                             if showEntryFAB {
-                                FloatingActionButton {
+                                FloatingActionButton(action: {
                                     showingEntry = true
-                                }
+                                }, backgroundColor: journalViewModel.selectedJournal.color)
                             }
                         }
                     }
@@ -207,7 +209,8 @@ struct MainTabView: View {
 
 struct FloatingActionButton: View {
     let action: () -> Void
-    
+    var backgroundColor: Color = Color(hex: "44C0FF")
+
     var body: some View {
         Button(action: action) {
             Text(DayOneIcon.plus.rawValue)
@@ -215,7 +218,7 @@ struct FloatingActionButton: View {
                 .foregroundColor(.white)
                 .frame(width: 56, height: 56)
         }
-        .background(Color(hex: "44C0FF"))
+        .background(backgroundColor)
         .clipShape(Circle())
         .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
     }

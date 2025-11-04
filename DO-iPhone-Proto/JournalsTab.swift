@@ -145,6 +145,9 @@ struct JournalsTabPagedView: View {
             .navigationDestination(item: $selectedJournal) { journal in
                 JournalDetailPagedView(journal: journal, journalViewModel: journalViewModel, sheetRegularPosition: sheetRegularPosition)
             }
+            .navigationDestination(item: $selectedFolder) { folder in
+                FolderDetailView(folder: folder, sheetRegularPosition: sheetRegularPosition)
+            }
         }
         .sheet(isPresented: $showingSettings) {
             SettingsView()
@@ -1288,6 +1291,103 @@ struct JournalBookView: View {
                 Label("New Entry", systemImage: "plus")
             }
         }
+    }
+}
+
+// MARK: - Folder Detail View
+struct FolderDetailView: View {
+    let folder: JournalFolder
+    let sheetRegularPosition: CGFloat
+    @State private var showingEditView = false
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
+
+    // Computed properties for orientation-specific values
+    private var isLandscape: Bool {
+        verticalSizeClass == .compact
+    }
+
+    private var mediumDetentHeight: CGFloat {
+        isLandscape ? 240 : 540
+    }
+
+    private var largeDetentHeight: CGFloat {
+        isLandscape ? 350 : 750
+    }
+
+    private var titleTopPadding: CGFloat {
+        isLandscape ? 50 : (sheetRegularPosition - 100)
+    }
+
+    // Get journal names as comma-separated string
+    private var journalNames: String {
+        folder.journals.map { $0.name }.joined(separator: ", ")
+    }
+
+    var body: some View {
+        ZStack {
+            // Full screen folder color background - use deep blue
+            Color(hex: "333B40")
+                .ignoresSafeArea()
+
+            VStack(alignment: .leading) {
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text(folder.name)
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .foregroundStyle(.white)
+
+                        // Journal names in the same format as date range
+                        Text(journalNames)
+                            .font(.caption)
+                            .foregroundStyle(.white.opacity(0.8))
+                    }
+
+                    Spacer()
+
+                    // Ellipsis menu button
+                    Menu {
+                        Button(action: {
+                            showingEditView = true
+                        }) {
+                            Label("Edit Folder", systemImage: "pencil")
+                        }
+
+                        Button(action: {
+                            // TODO: Export action
+                        }) {
+                            Label("Export", systemImage: "square.and.arrow.up")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundStyle(.white)
+                            .frame(width: 44, height: 44)
+                            .background(Color.white.opacity(0.001))
+                            .contentShape(Rectangle())
+                    }
+                    .padding(.trailing, 18)
+                }
+                .padding(.leading, 18)
+                .padding(.top, titleTopPadding)
+
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .zIndex(1)
+
+            // Custom sheet overlay
+            CustomSheetView(
+                journal: folder.journals.first ?? Journal(name: folder.name, color: folder.color, entryCount: folder.entryCount),
+                sheetRegularPosition: sheetRegularPosition,
+                mediumDetentHeight: mediumDetentHeight,
+                largeDetentHeight: largeDetentHeight
+            )
+            .zIndex(2)
+        }
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

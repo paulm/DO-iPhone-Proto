@@ -220,10 +220,10 @@ extension Journal {
         // If not found, create a synthetic "All Entries" journal
         let totalEntryCount = visibleJournals.compactMap { $0.entryCount }.reduce(0, +)
         let totalJournalCount = visibleJournals.count
-        // Use Day One's dark gray color (#5A5A5A)
+        // Use deep blue color
         return Journal(
             name: "All Entries",
-            color: Color(hex: "5A5A5A"),
+            color: Color(hex: "333B40"),
             entryCount: totalEntryCount,
             journalCount: totalJournalCount
         )

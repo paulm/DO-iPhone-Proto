@@ -1368,7 +1368,7 @@ struct RecentJournalBookView: View {
                             HStack {
                                 Text(journal.name)
                                     .font(.caption)
-                                    .fontWeight(.semibold)
+                                    .fontWeight(.bold)
                                     .foregroundStyle(.white.opacity(0.8))
                                     .multilineTextAlignment(.leading)
                                     .lineLimit(2)
@@ -1380,7 +1380,7 @@ struct RecentJournalBookView: View {
                     )
                     .overlay(
                         // Selection indicator
-                        RoundedRectangle(cornerRadius: 6)
+                        RoundedRectangle(cornerRadius: 4)
                             .stroke(isSelected ? .blue : .clear, lineWidth: 2)
                     )
                     .overlay(
@@ -1411,7 +1411,7 @@ struct RecentJournalBookView: View {
                             }
                         }
                     )
-                    .shadow(color: journal.color.opacity(0.3), radius: 4, x: 2, y: 4)
+                    .shadow(color: journal.color.opacity(0.3), radius: 4, x: 0, y: 0)
                 // No entry count displayed
             }
         }

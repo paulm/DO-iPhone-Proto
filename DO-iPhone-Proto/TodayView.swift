@@ -577,6 +577,10 @@ struct TodayView: View {
     // Sheet presentation state
     @State private var shouldPresentWelcomeSheet = false
 
+    private var hasMomentsSelected: Bool {
+        !selectedMomentsPlaces.isEmpty || !selectedMomentsEvents.isEmpty || !selectedMomentsPhotos.isEmpty
+    }
+
     private var dateRange: [Date] {
         let calendar = Calendar.current
         var dates: [Date] = []
@@ -587,18 +591,18 @@ struct TodayView: View {
         let approximateWidth = UIScreen.main.bounds.width - (DatePickerConstants.horizontalPadding * 2)
         let columnsPerRow = Int((approximateWidth + DatePickerConstants.spacing) / (DatePickerConstants.circleSize + DatePickerConstants.spacing))
         let totalDates = columnsPerRow * DatePickerConstants.numberOfRows
-        
+
         // Calculate the starting date to ensure we end 4 days in the future
         let endDate = 4
         let startDate = endDate - totalDates + 1
-        
+
         // Generate dates from calculated start to 4 days in the future
         for i in startDate...endDate {
             if let date = calendar.date(byAdding: .day, value: i, to: today) {
                 dates.append(date)
             }
         }
-        
+
         return dates
     }
     
@@ -878,128 +882,6 @@ struct TodayView: View {
         .listRowSeparator(.hidden)
     }
     
-    // Extract Moments List section as computed property
-    @ViewBuilder
-    private var momentsListSection: some View {
-        Section {
-            VStack(alignment: .leading, spacing: 12) {
-                // Header content (now part of the section body so it scrolls)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Moments")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundStyle(Color(hex: "292F33"))
-                    Text("Select notable moments from this day...")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                // Moments Types
-                VStack(alignment: .leading, spacing: 0) {
-                    // Photos row
-                    Button(action: {
-                        showingMediaSheet = true
-                    }) {
-                        HStack {
-                            Image(dayOneIcon: .photo)
-                                .font(.system(size: 16))
-                                .foregroundStyle(.primary)
-                                .frame(width: 28)
-                            
-                            Text("Photos")
-                                .font(.system(size: 16))
-                                .foregroundStyle(.primary)
-                            
-                            Spacer()
-                            
-                            Text("5")
-                                .font(.system(size: 15))
-                                .foregroundStyle(.secondary)
-                            
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundStyle(Color(.systemGray3))
-                        }
-                        .padding(.vertical, 16)
-                        .padding(.horizontal, 16)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    
-                    Divider()
-                        .padding(.leading, 60)
-                    
-                    // Places row
-                    Button(action: {
-                        showingVisitsSheet = true
-                    }) {
-                        HStack {
-                            Image(dayOneIcon: .map_pin)
-                                .font(.system(size: 16))
-                                .foregroundStyle(.primary)
-                                .frame(width: 28)
-                            
-                            Text("Places")
-                                .font(.system(size: 16))
-                                .foregroundStyle(.primary)
-
-                            Spacer()
-
-                            Text("\(placesData.count)")
-                                .font(.system(size: 15))
-                                .foregroundStyle(.secondary)
-                            
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundStyle(Color(.systemGray3))
-                        }
-                        .padding(.vertical, 16)
-                        .padding(.horizontal, 16)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    
-                    Divider()
-                        .padding(.leading, 60)
-                    
-                    // Events row
-                    Button(action: {
-                        showingEventsSheet = true
-                    }) {
-                        HStack {
-                            Image(dayOneIcon: .calendar)
-                                .font(.system(size: 16))
-                                .foregroundStyle(.primary)
-                                .frame(width: 28)
-                            
-                            Text("Events")
-                                .font(.system(size: 16))
-                                .foregroundStyle(.primary)
-
-                            Spacer()
-
-                            Text("\(eventsData.count)")
-                                .font(.system(size: 15))
-                                .foregroundStyle(.secondary)
-                            
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundStyle(Color(.systemGray3))
-                        }
-                        .padding(.vertical, 16)
-                        .padding(.horizontal, 16)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                }
-                .background(Color(.systemGray6))
-                .clipShape(RoundedRectangle(cornerRadius: 24))
-            }
-        }
-        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-        .listRowBackground(showGuides ? Color.orange.opacity(0.2) : Color.clear)
-        .listRowSeparator(.hidden)
-    }
-
     // Moments Section - Photos
     @ViewBuilder
     private var momentsPhotosSection: some View {
@@ -1060,7 +942,7 @@ struct TodayView: View {
                     }
                 }
                 .frame(minHeight: 44)
-                .padding(.vertical, 8)
+                .padding(.vertical, 4)
                 .contentShape(Rectangle())
             }
             .buttonStyle(PlainButtonStyle())
@@ -1559,9 +1441,9 @@ struct TodayView: View {
 
                 // Moments Section
                 if showMoments {
-                    momentsPhotosSection
-                    momentsPlacesSection
                     momentsEventsSection
+                    momentsPlacesSection
+                    momentsPhotosSection
                     momentsTrackersSection
                     momentsInputsSection
                 }
@@ -2212,6 +2094,12 @@ struct TodayView: View {
                 updateCurrentDateState()
                 // Force view refresh
                 chatUpdateTrigger.toggle()
+            }
+        }
+        .onChange(of: hasMomentsSelected) { oldValue, newValue in
+            // Show Create Entry FAB when any moments are selected
+            if newValue {
+                showEntryFAB = true
             }
         }
     }

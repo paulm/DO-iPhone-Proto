@@ -465,10 +465,19 @@ struct JournalDetailPagedView: View {
     let sheetRegularPosition: CGFloat
     @State private var showingEditView = false
     @State private var useStandardController = false
+    @State private var showCoverImage: Bool
     @StateObject private var sheetState = SheetState()
     @Environment(\.dismiss) private var dismiss
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.verticalSizeClass) private var verticalSizeClass
+
+    init(journal: Journal, journalViewModel: JournalSelectionViewModel, sheetRegularPosition: CGFloat) {
+        self.journal = journal
+        self.journalViewModel = journalViewModel
+        self.sheetRegularPosition = sheetRegularPosition
+        // Show cover image by default only for Dreams journal
+        _showCoverImage = State(initialValue: journal.name == "Dreams")
+    }
     
     // Computed properties for orientation-specific values
     private var isLandscape: Bool {
@@ -499,17 +508,19 @@ struct JournalDetailPagedView: View {
             journal.color
                 .ignoresSafeArea()
             
-            // Cover image overlay from journals.json
-            if !journal.appearance.originalCoverImageData.isEmpty {
+            // Cover image overlay - use journal's cover or fallback to bike
+            if showCoverImage {
                 GeometryReader { geometry in
                     VStack {
-                        Image(journal.appearance.originalCoverImageData)
+                        let imageName = !journal.appearance.originalCoverImageData.isEmpty ?
+                            journal.appearance.originalCoverImageData : "bike"
+                        Image(imageName)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                             .frame(width: geometry.size.width, height: sheetRegularPosition + 100)
                             .clipped()
                             .ignoresSafeArea()
-                        
+
                         Spacer()
                     }
                 }
@@ -586,6 +597,10 @@ struct JournalDetailPagedView: View {
                     Toggle(isOn: $useStandardController) {
                         Label("Content Controller Standard", systemImage: "switch.2")
                     }
+
+                    Toggle(isOn: $showCoverImage) {
+                        Label("Show Cover Image", systemImage: "photo")
+                    }
                 } label: {
                     Image(systemName: "ellipsis")
                         .foregroundStyle(.white)
@@ -611,8 +626,9 @@ struct JournalDetailPagedView: View {
                 }
             }
         }
-        .toolbarBackground(.visible, for: .navigationBar)
+        .toolbarBackground(showCoverImage ? .hidden : .visible, for: .navigationBar)
         .toolbarBackground(journal.color, for: .navigationBar)
+        .toolbarColorScheme(showCoverImage ? .dark : nil, for: .navigationBar)
         .sheet(isPresented: $showingEditView) {
             PagedEditJournalView(journal: journal)
         }

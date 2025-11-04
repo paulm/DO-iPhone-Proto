@@ -74,7 +74,7 @@ struct Journal: Identifiable, Equatable, Hashable {
     }
 
     // Legacy initializer for compatibility
-    init(name: String, color: Color, entryCount: Int?, journalCount: Int? = nil) {
+    init(name: String, color: Color, entryCount: Int?, journalCount: Int? = nil, coverImage: String? = nil) {
         self.id = UUID().uuidString
         self.name = name
         self.description = ""
@@ -97,8 +97,8 @@ struct Journal: Identifiable, Equatable, Hashable {
         self.appearance = JournalAppearance(
             templateID: "template-default",
             presetID: "preset-default",
-            originalCoverImageData: "",
-            croppedCoverImageData: ""
+            originalCoverImageData: coverImage ?? "",
+            croppedCoverImageData: coverImage ?? ""
         )
         self.entryCount = entryCount
         self.journalCount = journalCount
@@ -207,7 +207,7 @@ extension Journal {
             Journal(name: "Product Docs", color: Color(hex: "3398DB"), entryCount: 28), // Blue
             Journal(name: "Work Notes", color: Color(hex: "3398DB"), entryCount: 91), // Blue
             // Standalone journals
-            Journal(name: "Dreams", color: Color(hex: "C27BD2"), entryCount: 19), // Lavender
+            Journal(name: "Dreams", color: Color(hex: "C27BD2"), entryCount: 19, coverImage: "bike"), // Lavender
             Journal(name: "Fitness", color: Color(hex: "FF983B"), entryCount: 104), // Fire
             // Personal folder journals - all use Hot Pink
             Journal(name: "Reflections", color: Color(hex: "E91E63"), entryCount: 56), // Hot Pink

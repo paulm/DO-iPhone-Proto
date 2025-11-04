@@ -655,6 +655,7 @@ struct TodayView: View {
     @State private var energyRating = 0
     @State private var stressRating = 0
     @State private var foodInput = ""
+    @State private var dailyIntentionInput = ""
     @State private var prioritiesInput = ""
     @State private var mediaInput = ""
     @State private var peopleInput = ""
@@ -1370,12 +1371,13 @@ struct TodayView: View {
     }
 
     private var hasInputsData: Bool {
-        !foodInput.isEmpty || !prioritiesInput.isEmpty || !mediaInput.isEmpty || !peopleInput.isEmpty
+        !foodInput.isEmpty || !dailyIntentionInput.isEmpty || !prioritiesInput.isEmpty || !mediaInput.isEmpty || !peopleInput.isEmpty
     }
 
     private var completedInputsCount: Int {
         var count = 0
         if !foodInput.isEmpty { count += 1 }
+        if !dailyIntentionInput.isEmpty { count += 1 }
         if !prioritiesInput.isEmpty { count += 1 }
         if !mediaInput.isEmpty { count += 1 }
         if !peopleInput.isEmpty { count += 1 }
@@ -1385,6 +1387,7 @@ struct TodayView: View {
     private var completedInputsList: String {
         var inputs: [String] = []
         if !foodInput.isEmpty { inputs.append(foodInput) }
+        if !dailyIntentionInput.isEmpty { inputs.append(dailyIntentionInput) }
         if !prioritiesInput.isEmpty { inputs.append(prioritiesInput) }
         if !mediaInput.isEmpty { inputs.append(mediaInput) }
         if !peopleInput.isEmpty { inputs.append(peopleInput) }
@@ -1700,13 +1703,6 @@ struct TodayView: View {
             .scrollContentBackground(.hidden)
             .background(backgroundColor)
             .ignoresSafeArea(edges: .bottom)
-            .onAppear {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    withAnimation(.easeOut(duration: 0.3)) {
-                        proxy.scrollTo("dateNavigation", anchor: .top)
-                    }
-                }
-            }
             .gesture(
                 DragGesture(minimumDistance: 50, coordinateSpace: .local)
                     .onEnded { value in
@@ -2073,6 +2069,7 @@ struct TodayView: View {
         .sheet(isPresented: $showingMomentsInputsSheet) {
             MomentsInputsSheetView(
                 foodInput: $foodInput,
+                dailyIntentionInput: $dailyIntentionInput,
                 prioritiesInput: $prioritiesInput,
                 mediaInput: $mediaInput,
                 peopleInput: $peopleInput
@@ -2126,6 +2123,7 @@ struct TodayView: View {
             energyRating = 0
             stressRating = 0
             foodInput = ""
+            dailyIntentionInput = ""
             prioritiesInput = ""
             mediaInput = ""
             peopleInput = ""
@@ -4238,6 +4236,7 @@ struct MomentsTrackersSheetView: View {
 struct MomentsInputsSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var foodInput: String
+    @Binding var dailyIntentionInput: String
     @Binding var prioritiesInput: String
     @Binding var mediaInput: String
     @Binding var peopleInput: String
@@ -4260,23 +4259,31 @@ struct MomentsInputsSheetView: View {
                         text: $foodInput,
                         icon: "fork.knife",
                         placeholder: "What did you eat today?",
-                        suggestions: ["Salad", "Pizza", "Coffee", "Sandwich", "Pasta", "Sushi", "Smoothie", "Burger"]
+                        suggestions: ["Coffee", "Eggs", "Salad", "Sandwich", "Smoothie"]
+                    )
+
+                    TrackerInputRow(
+                        title: "Daily Intention",
+                        text: $dailyIntentionInput,
+                        icon: "target",
+                        placeholder: "What's one intention for today?",
+                        suggestions: ["Mindfulness", "Connection", "Focus"]
                     )
 
                     TrackerInputRow(
                         title: "Priorities",
                         text: $prioritiesInput,
-                        icon: "target",
-                        placeholder: "What were your main priorities?",
-                        suggestions: ["Work project", "Exercise", "Family time", "Reading", "Meetings", "Planning", "Learning", "Errands"]
+                        icon: "checklist",
+                        placeholder: "What are your main priorities?",
+                        suggestions: ["Work", "Family", "Learning"]
                     )
 
                     TrackerInputRow(
                         title: "Media",
                         text: $mediaInput,
                         icon: "tv",
-                        placeholder: "What did you watch or read?",
-                        suggestions: ["Netflix", "YouTube", "News", "Podcast", "Book", "Instagram", "Twitter", "Music"]
+                        placeholder: "What did you consume?",
+                        suggestions: ["Instagram", "Movie: ", "Show: ", "Podcast: "]
                     )
 
                     TrackerInputRow(
@@ -4284,7 +4291,7 @@ struct MomentsInputsSheetView: View {
                         text: $peopleInput,
                         icon: "person.2",
                         placeholder: "Who did you spend time with?",
-                        suggestions: ["Family", "Friends", "Colleagues", "Sarah", "Team", "Partner", "Kids", "Parents"]
+                        suggestions: ["Murphy Randle", "Hoss", "Paul Smart", "Reggie"]
                     )
                 }
                 .listStyle(.plain)

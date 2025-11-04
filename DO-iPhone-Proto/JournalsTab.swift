@@ -46,8 +46,8 @@ struct JournalsTabPagedView: View {
     @State private var showingNewEntry = false
     @State private var shouldShowAudioAfterEntry = false
 
-    // Folder expansion state
-    @State private var expandedFolders: Set<String> = []
+    // Folder expansion state - expand all by default
+    @State private var expandedFolders: Set<String> = Set(Journal.folders.map { $0.id })
 
     // Sheet regular position from top (in points)
     let sheetRegularPosition: CGFloat = 250
@@ -63,12 +63,6 @@ struct JournalsTabPagedView: View {
     
     var body: some View {
         navigationContent
-            .onAppear {
-                // Expand all folders by default
-                if expandedFolders.isEmpty {
-                    expandedFolders = Set(Journal.folders.map { $0.id })
-                }
-            }
         .sheet(isPresented: $showingNewEntry) {
             EntryView(
                 journal: journalViewModel.selectedJournal,
@@ -326,16 +320,19 @@ struct JournalsTabPagedView: View {
                         folder: folder,
                         isExpanded: expandedFolders.contains(folder.id),
                         onToggle: {
-                            if expandedFolders.contains(folder.id) {
-                                expandedFolders.remove(folder.id)
-                            } else {
-                                expandedFolders.insert(folder.id)
+                            withAnimation {
+                                if expandedFolders.contains(folder.id) {
+                                    expandedFolders.remove(folder.id)
+                                } else {
+                                    expandedFolders.insert(folder.id)
+                                }
                             }
                         },
                         onSelectFolder: {
                             selectedFolder = folder
                         }
                     )
+                    .id(folder.id)
 
                     // Show journals inside expanded folder
                     if expandedFolders.contains(folder.id) {
@@ -1025,48 +1022,56 @@ struct FolderRow: View {
     let onSelectFolder: () -> Void
 
     var body: some View {
-        HStack(spacing: 16) {
-            // Folder icon - tappable to toggle expand/collapse
-            Button(action: onToggle) {
-                Image(systemName: isExpanded ? "folder.fill" : "folder")
-                    .font(.title2)
-                    .foregroundStyle(folder.color)
-                    .frame(width: 32)
-            }
-            .buttonStyle(PlainButtonStyle())
-
-            // Folder content - tappable to select folder
-            Button(action: onSelectFolder) {
-                HStack(spacing: 16) {
-                    // Folder info
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(folder.name)
-                            .font(.headline)
-                            .fontWeight(.medium)
-                            .foregroundStyle(.primary)
-
-                        HStack(spacing: 4) {
-                            Text("\(folder.journalCount) journals")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-
-                            Text("•")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-
-                            Text("\(folder.entryCount) entries")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-
-                    Spacer()
+        VStack(spacing: 0) {
+            HStack(spacing: 16) {
+                // Folder icon - tappable to toggle expand/collapse
+                Button(action: onToggle) {
+                    Image(systemName: isExpanded ? "folder.fill" : "folder")
+                        .font(.title2)
+                        .foregroundStyle(folder.color)
+                        .frame(width: 32)
                 }
+                .buttonStyle(PlainButtonStyle())
+
+                // Folder content - tappable to select folder
+                Button(action: onSelectFolder) {
+                    HStack(spacing: 16) {
+                        // Folder info
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(folder.name)
+                                .font(.headline)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.primary)
+
+                            HStack(spacing: 4) {
+                                Text("\(folder.journalCount) journals")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+
+                                Text("•")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+
+                                Text("\(folder.entryCount) entries")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+
+                        Spacer()
+                    }
+                }
+                .buttonStyle(PlainButtonStyle())
             }
-            .buttonStyle(PlainButtonStyle())
+            .padding(.vertical, 12)
+            .padding(.horizontal, 16)
+
+            // Only show divider when folder is collapsed
+            if !isExpanded {
+                Divider()
+                    .padding(.leading, 16)
+            }
         }
-        .padding(.vertical, 12)
-        .padding(.horizontal, 16)
     }
 }
 

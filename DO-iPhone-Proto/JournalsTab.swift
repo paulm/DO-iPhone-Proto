@@ -45,6 +45,7 @@ struct JournalsTabPagedView: View {
     @State private var selectedFolder: JournalFolder?
     @State private var showingNewEntry = false
     @State private var shouldShowAudioAfterEntry = false
+    @State private var showRecentJournals = true
 
     // Folder expansion state - expand all by default
     @State private var expandedFolders: Set<String> = Set(Journal.folders.map { $0.id })
@@ -109,7 +110,7 @@ struct JournalsTabPagedView: View {
                         }
                         
                         Divider()
-                        
+
                         Picker("View Style", selection: $viewMode) {
                             Label("List", systemImage: "list.bullet")
                                 .tag(ViewMode.compact)
@@ -117,6 +118,12 @@ struct JournalsTabPagedView: View {
                                 .tag(ViewMode.list)
                             Label("Books", systemImage: "books.vertical")
                                 .tag(ViewMode.grid)
+                        }
+
+                        Divider()
+
+                        Toggle(isOn: $showRecentJournals) {
+                            Label("Show Recent Journals", systemImage: "clock")
                         }
                     } label: {
                         Image(systemName: "ellipsis")
@@ -170,35 +177,37 @@ struct JournalsTabPagedView: View {
     private var compactJournalList: some View {
         LazyVStack(spacing: 4) {
             // Recent Journals horizontal scroll section
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Recent Journals")
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.primary)
-                    .padding(.horizontal)
+            if showRecentJournals {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Recent Journals")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.primary)
+                        .padding(.horizontal)
 
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 16) {
-                        ForEach(recentJournals) { journal in
-                            RecentJournalBookView(
-                                journal: journal,
-                                isSelected: false,
-                                onSelect: {
-                                    journalViewModel.selectJournal(journal)
-                                    selectedJournal = journal
-                                },
-                                onNewEntry: {
-                                    journalViewModel.selectJournal(journal)
-                                    showingNewEntry = true
-                                }
-                            )
-                            .frame(width: 70)
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 16) {
+                            ForEach(recentJournals) { journal in
+                                RecentJournalBookView(
+                                    journal: journal,
+                                    isSelected: false,
+                                    onSelect: {
+                                        journalViewModel.selectJournal(journal)
+                                        selectedJournal = journal
+                                    },
+                                    onNewEntry: {
+                                        journalViewModel.selectJournal(journal)
+                                        showingNewEntry = true
+                                    }
+                                )
+                                .frame(width: 70)
+                            }
                         }
+                        .padding(.leading, 0)
                     }
-                    .padding(.leading, 0)
                 }
+                .padding(.bottom, 16)
             }
-            .padding(.bottom, 16)
 
             // Journals section header
             Text("Journals")
@@ -298,35 +307,37 @@ struct JournalsTabPagedView: View {
     private var listJournalList: some View {
         LazyVStack(spacing: 4) {
             // Recent Journals horizontal scroll section
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Recent Journals")
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.primary)
-                    .padding(.horizontal)
+            if showRecentJournals {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Recent Journals")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.primary)
+                        .padding(.horizontal)
 
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 16) {
-                        ForEach(recentJournals) { journal in
-                            RecentJournalBookView(
-                                journal: journal,
-                                isSelected: false,
-                                onSelect: {
-                                    journalViewModel.selectJournal(journal)
-                                    selectedJournal = journal
-                                },
-                                onNewEntry: {
-                                    journalViewModel.selectJournal(journal)
-                                    showingNewEntry = true
-                                }
-                            )
-                            .frame(width: 70)
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 16) {
+                            ForEach(recentJournals) { journal in
+                                RecentJournalBookView(
+                                    journal: journal,
+                                    isSelected: false,
+                                    onSelect: {
+                                        journalViewModel.selectJournal(journal)
+                                        selectedJournal = journal
+                                    },
+                                    onNewEntry: {
+                                        journalViewModel.selectJournal(journal)
+                                        showingNewEntry = true
+                                    }
+                                )
+                                .frame(width: 70)
+                            }
                         }
+                        .padding(.leading, 0)
                     }
-                    .padding(.leading, 0)
                 }
+                .padding(.bottom, 16)
             }
-            .padding(.bottom, 16)
 
             // Journals section header
             Text("Journals")

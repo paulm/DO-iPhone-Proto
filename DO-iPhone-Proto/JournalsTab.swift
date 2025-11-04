@@ -480,11 +480,17 @@ struct JournalDetailPagedView: View {
     private var largeDetentHeight: CGFloat {
         isLandscape ? 350 : 750  // Landscape: 450pt, Portrait: 750pt
     }
-    
+
     private var titleTopPadding: CGFloat {
-        isLandscape ? 50 : (sheetRegularPosition - 100)
+        // Position title between nav bar and sheet
+        // Nav bar is ~44pt, safe area top is ~47pt (total ~91pt from top of screen)
+        // sheetRegularPosition is 350pt from top
+        // Available space: 350 - 91 = 259pt
+        // Title height is ~50pt (title + date)
+        // Center it: (259 - 50) / 2 = ~104pt from safe area top
+        isLandscape ? 1 : 25
     }
-    
+
     var body: some View {
         ZStack {
             // Full screen journal color background

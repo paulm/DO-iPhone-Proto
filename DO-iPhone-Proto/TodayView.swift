@@ -481,6 +481,166 @@ struct DateCircle: View {
     }
 }
 
+// MARK: - Date Picker Row (Shows only bottom row from Date Picker Grid)
+struct DatePickerRow: View {
+    let dates: [Date]
+    @Binding var selectedDate: Date
+
+    @State private var availableWidth: CGFloat = 0
+    @State private var dragLocation: CGPoint = .zero
+    @State private var isDragging = false
+    @State private var lastSelectedDate: Date?
+    @State private var dynamicSpacing: CGFloat = DatePickerConstants.spacing
+
+    // Check if a date has chat messages (completed)
+    private func hasMessagesForDate(_ date: Date) -> Bool {
+        let messages = ChatSessionManager.shared.getMessages(for: date)
+        return !messages.isEmpty && messages.contains { $0.isUser }
+    }
+
+    // Check if a date has an entry created
+    private func hasEntryForDate(_ date: Date) -> Bool {
+        return DailyContentManager.shared.hasEntry(for: date)
+    }
+
+    private func isDateCompleted(_ date: Date) -> Bool {
+        return hasMessagesForDate(date)
+    }
+
+    private var columns: Int {
+        guard availableWidth > 0 else { return 10 } // Default to 10 columns if width not yet calculated
+
+        // Calculate optimal number of columns and spacing
+        let minColumns = 7  // Minimum columns we want
+        let maxColumns = 14 // Maximum columns for readability
+
+        // Try different column counts to find the best fit
+        for cols in (minColumns...maxColumns).reversed() {
+            let totalCircleWidth = CGFloat(cols) * DatePickerConstants.circleSize
+            let totalSpacingWidth = availableWidth - totalCircleWidth
+            let spacingBetween = totalSpacingWidth / CGFloat(cols - 1)
+
+            // If spacing is reasonable (between 8 and 20 points), use this column count
+            if spacingBetween >= 8 && spacingBetween <= 20 {
+                // Update dynamic spacing for this configuration
+                DispatchQueue.main.async {
+                    self.dynamicSpacing = spacingBetween
+                }
+                return cols
+            }
+        }
+
+        // Fallback: use minimum columns with calculated spacing
+        return minColumns
+    }
+
+    private var rows: [[Date]] {
+        var result: [[Date]] = []
+        var currentRow: [Date] = []
+
+        // Force exactly the configured number of rows
+        let datesPerRow = (dates.count + DatePickerConstants.numberOfRows - 1) / DatePickerConstants.numberOfRows // Round up division
+
+        for (index, date) in dates.enumerated() {
+            currentRow.append(date)
+            if currentRow.count == datesPerRow || index == dates.count - 1 {
+                result.append(currentRow)
+                currentRow = []
+            }
+        }
+
+        return result
+    }
+
+    // Get only the last row (bottom row that contains Today) and adjust to show Today centered
+    private var bottomRow: [Date] {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+
+        // Find today's index in the dates array
+        guard let todayIndex = dates.firstIndex(where: { calendar.isDate($0, inSameDayAs: today) }) else {
+            // If today not found, fall back to last row
+            let allRows = rows
+            return allRows.last ?? []
+        }
+
+        // Calculate range: 5 dates before today and 5 dates after today (11 total with today)
+        let startIndex = max(0, todayIndex - 5)
+        let endIndex = min(dates.count - 1, todayIndex + 5)
+
+        // Extract the range of dates
+        return Array(dates[startIndex...endIndex])
+    }
+
+    var body: some View {
+        HStack(spacing: dynamicSpacing) {
+            ForEach(Array(bottomRow.enumerated()), id: \.offset) { index, date in
+                DateCircle(
+                    date: date,
+                    isSelected: Calendar.current.isDate(date, inSameDayAs: selectedDate),
+                    isToday: Calendar.current.isDateInToday(date),
+                    isFuture: date > Date(),
+                    isCompleted: isDateCompleted(date),
+                    hasEntry: hasEntryForDate(date),
+                    showDate: false,
+                    onTap: {
+                        selectedDate = date
+                    }
+                )
+                .background(
+                    GeometryReader { geometry in
+                        Color.clear
+                            .onAppear {
+                                // Store the frame for hit testing during drag
+                            }
+                    }
+                )
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .background(
+            GeometryReader { geometry in
+                Color.clear
+                    .preference(key: SizePreferenceKey.self, value: geometry.size.width)
+            }
+        )
+        .onPreferenceChange(SizePreferenceKey.self) { width in
+            if width > 0 && abs(availableWidth - width) > 1 { // Only update if there's a significant change
+                availableWidth = width
+            }
+        }
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { value in
+                    isDragging = true
+                    dragLocation = value.location
+
+                    // Find which date circle contains the drag location
+                    let col = Int(value.location.x / (DatePickerConstants.circleSize + dynamicSpacing))
+
+                    if col >= 0 && col < bottomRow.count {
+                        let date = bottomRow[col]
+
+                        // Only provide haptic feedback if we're over a new date
+                        if lastSelectedDate == nil || !Calendar.current.isDate(lastSelectedDate!, inSameDayAs: date) {
+                            // Haptic feedback when selecting a new date
+                            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                            impactFeedback.impactOccurred()
+                            lastSelectedDate = date
+                        }
+
+                        // Always update the selected date
+                        selectedDate = date
+                    }
+                }
+                .onEnded { _ in
+                    isDragging = false
+                    lastSelectedDate = nil
+                }
+        )
+    }
+}
+
 /// Today tab view
 struct TodayView: View {
     @State private var showingSettings = false
@@ -546,6 +706,7 @@ struct TodayView: View {
 
     // Show/hide toggles for Daily Activities
     @State private var showDatePickerGrid = false
+    @State private var showDatePickerRow = true
     @State private var showDateNavigation = true
     @State private var showMoments = true
     @State private var showGuides = false
@@ -595,11 +756,11 @@ struct TodayView: View {
         let columnsPerRow = Int((approximateWidth + DatePickerConstants.spacing) / (DatePickerConstants.circleSize + DatePickerConstants.spacing))
         let totalDates = columnsPerRow * DatePickerConstants.numberOfRows
 
-        // Calculate the starting date to ensure we end 4 days in the future
-        let endDate = 4
+        // Calculate the starting date to ensure we end at least 5 days in the future (for Date Picker Row)
+        let endDate = 5
         let startDate = endDate - totalDates + 1
 
-        // Generate dates from calculated start to 4 days in the future
+        // Generate dates from calculated start to 5 days in the future
         for i in startDate...endDate {
             if let date = calendar.date(byAdding: .day, value: i, to: today) {
                 dates.append(date)
@@ -1435,6 +1596,21 @@ struct TodayView: View {
                         .padding(.bottom, 20)
                     }
 
+                    // Date picker row (single row version)
+                    if showDatePickerRow {
+                        DatePickerRow(
+                            dates: dateRange,
+                            selectedDate: $selectedDate
+                        )
+                        .padding(.horizontal, DatePickerConstants.horizontalPadding)
+                        .id(chatUpdateTrigger) // Force refresh when data changes
+                        .background(Color.clear)
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                        .listRowInsets(EdgeInsets()) // Remove default list insets
+                        .padding(.bottom, 20)
+                    }
+
                     // Date Navigation section
                     dateNavigationSection
                         .id("dateNavigation")
@@ -1609,6 +1785,17 @@ struct TodayView: View {
                             HStack {
                                 Text("Date Picker Grid")
                                 if showDatePickerGrid {
+                                    Image(dayOneIcon: .checkmark)
+                                }
+                            }
+                        }
+
+                        Button {
+                            showDatePickerRow.toggle()
+                        } label: {
+                            HStack {
+                                Text("Date Picker Row")
+                                if showDatePickerRow {
                                     Image(dayOneIcon: .checkmark)
                                 }
                             }

@@ -474,7 +474,7 @@ struct JournalDetailPagedView: View {
     }
     
     private var mediumDetentHeight: CGFloat {
-        isLandscape ? 240 : 540  // Landscape: 320pt, Portrait: 540pt
+        isLandscape ? 240 : 650  // Landscape: 240pt, Portrait: 650pt (increased to show more content by default)
     }
     
     private var largeDetentHeight: CGFloat {
@@ -534,7 +534,7 @@ struct JournalDetailPagedView: View {
             // Custom sheet overlay with orientation-specific detent positions
             CustomSheetView(
                 journal: journal,
-                sheetRegularPosition: 100,
+                sheetRegularPosition: 350,
                 mediumDetentHeight: mediumDetentHeight,
                 largeDetentHeight: largeDetentHeight
             )

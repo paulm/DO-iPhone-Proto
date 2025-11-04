@@ -124,11 +124,8 @@ class CustomSheetViewController: UIViewController {
         // Add rounded corners
         view.layer.cornerRadius = 20
         view.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
-        view.layer.shadowColor = UIColor.black.cgColor
-        view.layer.shadowOpacity = 0.1
-        view.layer.shadowRadius = 10
-        view.layer.shadowOffset = CGSize(width: 0, height: -2)
-        
+        view.clipsToBounds = true  // Ensure subviews respect corner radius
+
         // Create height constraint with initial value
         heightConstraint = view.heightAnchor.constraint(equalToConstant: 0)
         heightConstraint.isActive = true

@@ -1388,6 +1388,7 @@ struct FolderDetailView: View {
             .zIndex(2)
         }
         .navigationBarTitleDisplayMode(.inline)
+        .tint(folder.color)
     }
 }
 

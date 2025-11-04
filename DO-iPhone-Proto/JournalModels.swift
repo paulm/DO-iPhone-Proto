@@ -195,7 +195,34 @@ extension JournalFolder: JournalItem {}
 
 // MARK: - Journal Extension
 extension Journal {
-    static let allJournals = JournalLoader.shared.loadJournals()
+    // Sample journals with varying entry counts (2-149)
+    // Using only Day One colors from day-one-colors.json
+    static var sampleJournals: [Journal] {
+        return [
+            Journal(name: "Journal", color: Color(hex: "44C0FF"), entryCount: 87), // DayOne Blue
+            Journal(name: "Notes", color: Color(hex: "FFC107"), entryCount: 142), // Honey
+            Journal(name: "Daily", color: Color(hex: "2DCC71"), entryCount: 63), // Green
+            // Work folder journals - all use Blue
+            Journal(name: "Meeting Notes", color: Color(hex: "3398DB"), entryCount: 45), // Blue
+            Journal(name: "Product Docs", color: Color(hex: "3398DB"), entryCount: 28), // Blue
+            Journal(name: "Work Notes", color: Color(hex: "3398DB"), entryCount: 91), // Blue
+            // Standalone journals
+            Journal(name: "Dreams", color: Color(hex: "C27BD2"), entryCount: 19), // Lavender
+            Journal(name: "Fitness", color: Color(hex: "FF983B"), entryCount: 104), // Fire
+            // Personal folder journals - all use Hot Pink
+            Journal(name: "Reflections", color: Color(hex: "E91E63"), entryCount: 56), // Hot Pink
+            Journal(name: "Ideas", color: Color(hex: "E91E63"), entryCount: 73), // Hot Pink
+            Journal(name: "Gratitude Daily", color: Color(hex: "E91E63"), entryCount: 38), // Hot Pink
+            // Standalone journal
+            Journal(name: "Movie Log", color: Color(hex: "6A6DCD"), entryCount: 22), // Iris
+            // Travel folder journals - all use Aqua
+            Journal(name: "Park City, Utah 2025-09", color: Color(hex: "16D6D9"), entryCount: 12), // Aqua
+            Journal(name: "Maui, Hawaii 2025-07", color: Color(hex: "16D6D9"), entryCount: 9), // Aqua
+            Journal(name: "Barcelona, Spain 2025-11", color: Color(hex: "16D6D9"), entryCount: 7) // Aqua
+        ]
+    }
+
+    static let allJournals = sampleJournals
 
     // Filter journals based on their features
     static var visibleJournals: [Journal] {
@@ -213,11 +240,6 @@ extension Journal {
     // All Entries journal (always shown at top)
     // This is a special journal that aggregates all entries from all journals
     static var allEntriesJournal: Journal? {
-        // Try to find a journal named "All Entries"
-        if let allEntries = allJournals.first(where: { $0.name == "All Entries" }) {
-            return allEntries
-        }
-        // If not found, create a synthetic "All Entries" journal
         let totalEntryCount = visibleJournals.compactMap { $0.entryCount }.reduce(0, +)
         let totalJournalCount = visibleJournals.count
         // Use deep blue color
@@ -231,25 +253,33 @@ extension Journal {
 
     // Journals excluding All Entries
     static var journalsExcludingAllEntries: [Journal] {
-        guard let allEntries = allEntriesJournal else { return visibleJournals }
-        return visibleJournals.filter { $0.id != allEntries.id }
+        return visibleJournals
     }
 
-    // Example folders with journals (excluding All Entries)
+    // Folders with specific journals
     static var folders: [JournalFolder] {
-        let journals = journalsExcludingAllEntries
-        guard journals.count >= 5 else { return [] }
+        let journals = sampleJournals
+
+        // Find journals by name for each folder
+        let workJournals = journals.filter { ["Meeting Notes", "Product Docs", "Work Notes"].contains($0.name) }
+        let personalJournals = journals.filter { ["Reflections", "Ideas", "Gratitude Daily"].contains($0.name) }
+        let travelJournals = journals.filter { ["Park City, Utah 2025-09", "Maui, Hawaii 2025-07", "Barcelona, Spain 2025-11"].contains($0.name) }
 
         return [
             JournalFolder(
                 id: "folder-work",
                 name: "Work",
-                journals: Array(journals.prefix(2))
+                journals: workJournals
             ),
             JournalFolder(
                 id: "folder-personal",
                 name: "Personal",
-                journals: Array(journals.dropFirst(2).prefix(3))
+                journals: personalJournals
+            ),
+            JournalFolder(
+                id: "folder-travel",
+                name: "Travel",
+                journals: travelJournals
             )
         ]
     }
@@ -285,43 +315,54 @@ extension Journal {
     // Mixed list of folders and unfoldered journals (for display)
     static var mixedJournalItems: [MixedJournalItem] {
         var items: [MixedJournalItem] = []
-
         let allFolders = folders
         let allUnfoldered = unfolderedJournals
 
-        // Mix folders and journals based on their original indices
-        var folderIndex = 0
-        var journalIndex = 0
+        // Specific order: Journal, Notes, Work folder, Daily, Dreams, Fitness, Personal folder, Movie Log, Travel folder
 
-        // Simple interleaving: folder, journal, journal, folder, journal, etc.
-        // Insert first folder at position 0
-        if folderIndex < allFolders.count {
-            items.append(MixedJournalItem(folder: allFolders[folderIndex]))
-            folderIndex += 1
+        // Add Journal
+        if let journal = allUnfoldered.first(where: { $0.name == "Journal" }) {
+            items.append(MixedJournalItem(journal: journal))
         }
 
-        // Add some journals
-        while journalIndex < min(2, allUnfoldered.count) {
-            items.append(MixedJournalItem(journal: allUnfoldered[journalIndex]))
-            journalIndex += 1
+        // Add Notes
+        if let notes = allUnfoldered.first(where: { $0.name == "Notes" }) {
+            items.append(MixedJournalItem(journal: notes))
         }
 
-        // Add second folder
-        if folderIndex < allFolders.count {
-            items.append(MixedJournalItem(folder: allFolders[folderIndex]))
-            folderIndex += 1
+        // Add Work folder
+        if let workFolder = allFolders.first(where: { $0.name == "Work" }) {
+            items.append(MixedJournalItem(folder: workFolder))
         }
 
-        // Add remaining journals
-        while journalIndex < allUnfoldered.count {
-            items.append(MixedJournalItem(journal: allUnfoldered[journalIndex]))
-            journalIndex += 1
+        // Add Daily
+        if let daily = allUnfoldered.first(where: { $0.name == "Daily" }) {
+            items.append(MixedJournalItem(journal: daily))
         }
 
-        // Add any remaining folders
-        while folderIndex < allFolders.count {
-            items.append(MixedJournalItem(folder: allFolders[folderIndex]))
-            folderIndex += 1
+        // Add Dreams
+        if let dreams = allUnfoldered.first(where: { $0.name == "Dreams" }) {
+            items.append(MixedJournalItem(journal: dreams))
+        }
+
+        // Add Fitness
+        if let fitness = allUnfoldered.first(where: { $0.name == "Fitness" }) {
+            items.append(MixedJournalItem(journal: fitness))
+        }
+
+        // Add Personal folder
+        if let personalFolder = allFolders.first(where: { $0.name == "Personal" }) {
+            items.append(MixedJournalItem(folder: personalFolder))
+        }
+
+        // Add Movie Log
+        if let movieLog = allUnfoldered.first(where: { $0.name == "Movie Log" }) {
+            items.append(MixedJournalItem(journal: movieLog))
+        }
+
+        // Add Travel folder
+        if let travelFolder = allFolders.first(where: { $0.name == "Travel" }) {
+            items.append(MixedJournalItem(folder: travelFolder))
         }
 
         return items

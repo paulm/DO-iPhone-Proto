@@ -1257,6 +1257,7 @@ struct JournalRow: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(PlainButtonStyle())
+            .padding(.bottom, 4)
 
             Divider()
                 .padding(.leading, 16)
@@ -1485,6 +1486,9 @@ struct FolderDetailView: View {
     let folder: JournalFolder
     let sheetRegularPosition: CGFloat
     @State private var showingEditView = false
+    @State private var useStandardController = false
+    @State private var showCoverImage = false
+    @StateObject private var sheetState = SheetState()
     @Environment(\.dismiss) private var dismiss
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.verticalSizeClass) private var verticalSizeClass
@@ -1495,15 +1499,16 @@ struct FolderDetailView: View {
     }
 
     private var mediumDetentHeight: CGFloat {
-        isLandscape ? 240 : 540
+        isLandscape ? 240 : 650  // Match journal detail view
     }
 
     private var largeDetentHeight: CGFloat {
-        isLandscape ? 350 : 750
+        isLandscape ? 350 : 750  // Match journal detail view
     }
 
     private var titleTopPadding: CGFloat {
-        isLandscape ? 50 : (sheetRegularPosition - 100)
+        // Match journal detail view positioning
+        isLandscape ? 1 : 25
     }
 
     // Get journal names as comma-separated string
@@ -1513,9 +1518,26 @@ struct FolderDetailView: View {
 
     var body: some View {
         ZStack {
-            // Full screen folder color background - use deep blue
-            Color(hex: "333B40")
+            // Full screen folder color background
+            folder.color
                 .ignoresSafeArea()
+
+            // Cover image overlay - use bike image as fallback
+            if showCoverImage {
+                GeometryReader { geometry in
+                    VStack {
+                        Image("bike")
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: geometry.size.width, height: sheetRegularPosition + 100)
+                            .clipped()
+                            .ignoresSafeArea()
+
+                        Spacer()
+                    }
+                }
+                .ignoresSafeArea()
+            }
 
             VStack(alignment: .leading) {
                 HStack(alignment: .top) {
@@ -1532,29 +1554,6 @@ struct FolderDetailView: View {
                     }
 
                     Spacer()
-
-                    // Ellipsis menu button
-                    Menu {
-                        Button(action: {
-                            showingEditView = true
-                        }) {
-                            Label("Edit Folder", systemImage: "pencil")
-                        }
-
-                        Button(action: {
-                            // TODO: Export action
-                        }) {
-                            Label("Export", systemImage: "square.and.arrow.up")
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis")
-                            .font(.system(size: 20, weight: .medium))
-                            .foregroundStyle(.white)
-                            .frame(width: 44, height: 44)
-                            .background(Color.white.opacity(0.001))
-                            .contentShape(Rectangle())
-                    }
-                    .padding(.trailing, 18)
                 }
                 .padding(.leading, 18)
                 .padding(.top, titleTopPadding)
@@ -1564,13 +1563,16 @@ struct FolderDetailView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .zIndex(1)
 
-            // Custom sheet overlay
+            // Custom sheet overlay with orientation-specific detent positions
             CustomSheetView(
                 journal: folder.journals.first ?? Journal(name: folder.name, color: folder.color, entryCount: folder.entryCount),
-                sheetRegularPosition: sheetRegularPosition,
+                sheetRegularPosition: 350,
                 mediumDetentHeight: mediumDetentHeight,
-                largeDetentHeight: largeDetentHeight
+                largeDetentHeight: largeDetentHeight,
+                sheetState: sheetState,
+                useStandardController: useStandardController
             )
+            .id(useStandardController) // Recreate when toggle changes
             .zIndex(2)
         }
         .navigationBarTitleDisplayMode(.inline)
@@ -1579,11 +1581,71 @@ struct FolderDetailView: View {
                 Text(folder.name)
                     .font(.headline)
                     .foregroundStyle(.white)
+                    .opacity(sheetState.isExpanded ? 1 : 0)
+                    .animation(.easeInOut(duration: 0.2), value: sheetState.isExpanded)
+            }
+
+            ToolbarItemGroup(placement: .navigationBarTrailing) {
+                Menu {
+                    Button(action: {
+                        showingEditView = true
+                    }) {
+                        Label("Folder Settings", systemImage: "gear")
+                    }
+
+                    Button(action: {
+                        // TODO: Preview Book action
+                    }) {
+                        Label("Preview Book", systemImage: "book")
+                    }
+
+                    Button(action: {
+                        // TODO: Export action
+                    }) {
+                        Label("Export", systemImage: "square.and.arrow.up")
+                    }
+
+                    Divider()
+
+                    Toggle(isOn: $useStandardController) {
+                        Label("Content Controller Standard", systemImage: "switch.2")
+                    }
+
+                    Toggle(isOn: $showCoverImage) {
+                        Label("Show Cover Image", systemImage: "photo")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .foregroundStyle(.white)
+                }
+
+                Button {
+                    // TODO: Show global settings
+                } label: {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.purple, Color.pink],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 32, height: 32)
+                        .overlay(
+                            Text("PM")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(.white)
+                        )
+                }
             }
         }
-        .toolbarBackground(.visible, for: .navigationBar)
-        .toolbarBackground(Color(hex: "333B40"), for: .navigationBar)
+        .toolbarBackground(showCoverImage ? .hidden : .visible, for: .navigationBar)
+        .toolbarBackground(folder.color, for: .navigationBar)
+        .toolbarColorScheme(showCoverImage ? .dark : nil, for: .navigationBar)
         .tint(folder.color)
+        .sheet(isPresented: $showingEditView) {
+            PagedEditJournalView(journal: folder.journals.first ?? Journal(name: folder.name, color: folder.color, entryCount: folder.entryCount))
+        }
     }
 }
 

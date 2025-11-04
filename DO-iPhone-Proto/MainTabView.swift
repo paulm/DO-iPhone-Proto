@@ -61,21 +61,21 @@ struct MainTabView: View {
                 Tab {
                     TimelineView()
                 } label: {
-                    Label("Today", dayOneIcon: .sunrise)
+                    Label("Today", dayOneIcon: .sunrise_filled)
                 }
-                
+
                 Tab {
                     JournalsView()
                 } label: {
-                    Label("Journals", dayOneIcon: .book)
+                    Label("Journals", dayOneIcon: .books_filled)
                 }
-                
+
                 Tab {
                     PromptsView()
                 } label: {
-                    Label("Prompts", dayOneIcon: .prompt)
+                    Label("Prompts", dayOneIcon: .prompt_filled)
                 }
-                
+
                 Tab {
                     MoreView()
                 } label: {

@@ -522,35 +522,6 @@ struct JournalDetailPagedView: View {
                     }
                     
                     Spacer()
-                    
-                    // Ellipsis menu button
-                    Menu {
-                        Button(action: {
-                            showingEditView = true
-                        }) {
-                            Label("Edit Journal", systemImage: "pencil")
-                        }
-                        
-                        Button(action: {
-                            // TODO: Preview Book action
-                        }) {
-                            Label("Preview Book", systemImage: "book")
-                        }
-                        
-                        Button(action: {
-                            // TODO: Export action
-                        }) {
-                            Label("Export", systemImage: "square.and.arrow.up")
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis")
-                            .font(.system(size: 20, weight: .medium))
-                            .foregroundStyle(.white)
-                            .frame(width: 44, height: 44)
-                            .background(Color.white.opacity(0.001))
-                            .contentShape(Rectangle())
-                    }
-                    .padding(.trailing, 18)
                 }
                 .padding(.leading, 18)
                 .padding(.top, titleTopPadding)
@@ -563,7 +534,7 @@ struct JournalDetailPagedView: View {
             // Custom sheet overlay with orientation-specific detent positions
             CustomSheetView(
                 journal: journal,
-                sheetRegularPosition: sheetRegularPosition,
+                sheetRegularPosition: 100,
                 mediumDetentHeight: mediumDetentHeight,
                 largeDetentHeight: largeDetentHeight
             )
@@ -575,6 +546,50 @@ struct JournalDetailPagedView: View {
                 Text(journal.name)
                     .font(.headline)
                     .foregroundStyle(.white)
+            }
+
+            ToolbarItemGroup(placement: .navigationBarTrailing) {
+                Menu {
+                    Button(action: {
+                        showingEditView = true
+                    }) {
+                        Label("Journal Settings", systemImage: "gear")
+                    }
+
+                    Button(action: {
+                        // TODO: Preview Book action
+                    }) {
+                        Label("Preview Book", systemImage: "book")
+                    }
+
+                    Button(action: {
+                        // TODO: Export action
+                    }) {
+                        Label("Export", systemImage: "square.and.arrow.up")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .foregroundStyle(.white)
+                }
+
+                Button {
+                    // TODO: Show global settings
+                } label: {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.purple, Color.pink],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 32, height: 32)
+                        .overlay(
+                            Text("PM")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(.white)
+                        )
+                }
             }
         }
         .toolbarBackground(.visible, for: .navigationBar)

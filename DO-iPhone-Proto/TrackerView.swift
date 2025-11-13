@@ -199,28 +199,31 @@ struct TrackerInputRow: View {
             }
             
             // Input field
-            TextField(placeholder, text: $text, axis: .vertical)
+            TextField(placeholder, text: $text)
                 .textFieldStyle(.roundedBorder)
-                .lineLimit(2...4)
+                .padding(.horizontal, 4)
+                .padding(.vertical, 8)
             
             // Suggestion bubbles
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 80))], spacing: 8) {
-                ForEach(suggestions, id: \.self) { suggestion in
-                    Button(action: {
-                        addSuggestionToText(suggestion)
-                    }) {
-                        Text(suggestion)
-                            .font(.caption)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(
-                                Capsule()
-                                    .fill(.gray.opacity(0.1))
-                            )
-                            .foregroundStyle(.primary)
-                            .lineLimit(1)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(suggestions, id: \.self) { suggestion in
+                        Button(action: {
+                            addSuggestionToText(suggestion)
+                        }) {
+                            Text(suggestion)
+                                .font(.caption)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(
+                                    Capsule()
+                                        .fill(.gray.opacity(0.1))
+                                )
+                                .foregroundStyle(.primary)
+                                .lineLimit(1)
+                        }
+                        .buttonStyle(PlainButtonStyle())
                     }
-                    .buttonStyle(PlainButtonStyle())
                 }
             }
         }

@@ -6,12 +6,11 @@ struct MomentsTrackersSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var selectedTrackers: [String: Int]
 
-    private let trackers = ["Mood", "Energy", "Stress", "Focus"]
+    private let trackers = ["Mood", "Energy", "Stress"]
     private let trackerIcons: [String: String] = [
         "Mood": "face.smiling",
         "Energy": "bolt.fill",
-        "Stress": "wind",
-        "Focus": "scope"
+        "Stress": "wind"
     ]
 
     var body: some View {
@@ -28,8 +27,9 @@ struct MomentsTrackersSheetView: View {
                 // Trackers list
                 List {
                     ForEach(trackers, id: \.self) { tracker in
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack(alignment: .center) {
+                        HStack(spacing: 12) {
+                            // Left column: Icon and label stacked horizontally
+                            HStack(alignment: .center, spacing: 8) {
                                 Image(systemName: trackerIcons[tracker] ?? "circle")
                                     .font(.title3)
                                     .foregroundStyle(Color(hex: "44C0FF"))
@@ -39,9 +39,10 @@ struct MomentsTrackersSheetView: View {
                                     .fontWeight(.medium)
                             }
 
-                            // 1-5 rating circles - centered
-                            HStack(spacing: 12) {
-                                Spacer()
+                            Spacer()
+
+                            // Right column: Rating circles right-aligned
+                            HStack(spacing: 8) {
                                 ForEach(1...5, id: \.self) { rating in
                                     Button(action: {
                                         if selectedTrackers[tracker] == rating {
@@ -54,7 +55,7 @@ struct MomentsTrackersSheetView: View {
                                         ZStack {
                                             Circle()
                                                 .fill(selectedTrackers[tracker] == rating ? Color(hex: "44C0FF") : Color.gray.opacity(0.2))
-                                                .frame(width: 44, height: 44)
+                                                .frame(width: 40, height: 40)
 
                                             Text("\(rating)")
                                                 .font(.body)
@@ -64,14 +65,14 @@ struct MomentsTrackersSheetView: View {
                                     }
                                     .buttonStyle(PlainButtonStyle())
                                 }
-                                Spacer()
                             }
-                            .padding(.bottom, 4)
                         }
-                        .padding(.vertical, 8)
+                        .padding(.vertical, 4)
+                        .listRowBackground(Color.clear)
                     }
                 }
                 .listStyle(.plain)
+                .scrollContentBackground(.hidden)
             }
             .navigationTitle("Trackers")
             .navigationBarTitleDisplayMode(.inline)

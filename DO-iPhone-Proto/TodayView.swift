@@ -1415,6 +1415,7 @@ struct TodayView: View {
         }
         .sheet(isPresented: $showingMomentsTrackersSheet) {
             MomentsTrackersSheetView(selectedTrackers: $selectedMomentsTrackers)
+                .presentationDetents([.medium, .large])
         }
         .sheet(isPresented: $showingMomentsInputsSheet) {
             MomentsInputsSheetView(

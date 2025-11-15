@@ -48,6 +48,7 @@ struct JournalsTabPagedView: View {
     @State private var showRecentJournals = true
     @State private var isEditMode = false
     @State private var journalItems: [Journal.MixedJournalItem] = Journal.mixedJournalItems
+    @State private var useSeparatedCollections = true
 
     // Folder expansion state - expand all by default
     @State private var expandedFolders: Set<String> = Set(Journal.folders.map { $0.id })
@@ -136,6 +137,14 @@ struct JournalsTabPagedView: View {
                             showingSettings = true
                         }) {
                             Label("Settings", systemImage: "gearshape")
+                        }
+
+                        Divider()
+
+                        Section("Journal Manager Options") {
+                            Toggle(isOn: $useSeparatedCollections) {
+                                Label("Separated Collections", systemImage: "folder.badge.gearshape")
+                            }
                         }
                     } label: {
                         Circle()
@@ -236,9 +245,33 @@ struct JournalsTabPagedView: View {
                 )
             }
 
-            // Mixed folders and journals
-            ForEach(Journal.mixedJournalItems) { item in
-                if item.isFolder, let folder = item.folder {
+            if useSeparatedCollections {
+                // Show only journals (no folders mixed in)
+                ForEach(Journal.mixedJournalItems) { item in
+                    if let journal = item.journal {
+                        CompactJournalRow(
+                            journal: journal,
+                            isSelected: journal.id == journalViewModel.selectedJournal.id,
+                            onSelect: {
+                                journalViewModel.selectJournal(journal)
+                                selectedJournal = journal
+                            }
+                        )
+                    }
+                }
+
+                // Collections section header
+                Text("Collections")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.primary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
+                    .padding(.top, 24)
+                    .padding(.bottom, 8)
+
+                // Show folders separately
+                ForEach(folders) { folder in
                     CompactFolderRow(
                         folder: folder,
                         isExpanded: expandedFolders.contains(folder.id),
@@ -268,15 +301,50 @@ struct JournalsTabPagedView: View {
                             .padding(.leading, 20) // Indent journals inside folders
                         }
                     }
-                } else if let journal = item.journal {
-                    CompactJournalRow(
-                        journal: journal,
-                        isSelected: journal.id == journalViewModel.selectedJournal.id,
-                        onSelect: {
-                            journalViewModel.selectJournal(journal)
-                            selectedJournal = journal
+                }
+            } else {
+                // Mixed folders and journals (original behavior)
+                ForEach(Journal.mixedJournalItems) { item in
+                    if item.isFolder, let folder = item.folder {
+                        CompactFolderRow(
+                            folder: folder,
+                            isExpanded: expandedFolders.contains(folder.id),
+                            onToggle: {
+                                if expandedFolders.contains(folder.id) {
+                                    expandedFolders.remove(folder.id)
+                                } else {
+                                    expandedFolders.insert(folder.id)
+                                }
+                            },
+                            onSelectFolder: {
+                                selectedFolder = folder
+                            }
+                        )
+
+                        // Show journals inside expanded folder
+                        if expandedFolders.contains(folder.id) {
+                            ForEach(folder.journals) { journal in
+                                CompactJournalRow(
+                                    journal: journal,
+                                    isSelected: journal.id == journalViewModel.selectedJournal.id,
+                                    onSelect: {
+                                        journalViewModel.selectJournal(journal)
+                                        selectedJournal = journal
+                                    }
+                                )
+                                .padding(.leading, 20) // Indent journals inside folders
+                            }
                         }
-                    )
+                    } else if let journal = item.journal {
+                        CompactJournalRow(
+                            journal: journal,
+                            isSelected: journal.id == journalViewModel.selectedJournal.id,
+                            onSelect: {
+                                journalViewModel.selectJournal(journal)
+                                selectedJournal = journal
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -367,9 +435,37 @@ struct JournalsTabPagedView: View {
                 )
             }
 
-            // Mixed folders and journals
-            ForEach(journalItems) { item in
-                if item.isFolder, let folder = item.folder {
+            if useSeparatedCollections {
+                // Show only journals (no folders mixed in)
+                ForEach(journalItems) { item in
+                    if let journal = item.journal {
+                        JournalRow(
+                            journal: journal,
+                            isSelected: journal.id == journalViewModel.selectedJournal.id,
+                            isEditMode: isEditMode,
+                            onSelect: {
+                                journalViewModel.selectJournal(journal)
+                                selectedJournal = journal
+                            }
+                        )
+                    }
+                }
+                .onMove { indices, newOffset in
+                    journalItems.move(fromOffsets: indices, toOffset: newOffset)
+                }
+
+                // Collections section header
+                Text("Collections")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.primary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
+                    .padding(.top, 24)
+                    .padding(.bottom, 8)
+
+                // Show folders separately
+                ForEach(folders) { folder in
                     FolderRow(
                         folder: folder,
                         isExpanded: expandedFolders.contains(folder.id),
@@ -404,20 +500,60 @@ struct JournalsTabPagedView: View {
                             .padding(.leading, 20) // Indent journals inside folders
                         }
                     }
-                } else if let journal = item.journal {
-                    JournalRow(
-                        journal: journal,
-                        isSelected: journal.id == journalViewModel.selectedJournal.id,
-                        isEditMode: isEditMode,
-                        onSelect: {
-                            journalViewModel.selectJournal(journal)
-                            selectedJournal = journal
-                        }
-                    )
                 }
-            }
-            .onMove { indices, newOffset in
-                journalItems.move(fromOffsets: indices, toOffset: newOffset)
+            } else {
+                // Mixed folders and journals (original behavior)
+                ForEach(journalItems) { item in
+                    if item.isFolder, let folder = item.folder {
+                        FolderRow(
+                            folder: folder,
+                            isExpanded: expandedFolders.contains(folder.id),
+                            isEditMode: isEditMode,
+                            onToggle: {
+                                withAnimation {
+                                    if expandedFolders.contains(folder.id) {
+                                        expandedFolders.remove(folder.id)
+                                    } else {
+                                        expandedFolders.insert(folder.id)
+                                    }
+                                }
+                            },
+                            onSelectFolder: {
+                                selectedFolder = folder
+                            }
+                        )
+                        .id(folder.id)
+
+                        // Show journals inside expanded folder
+                        if expandedFolders.contains(folder.id) {
+                            ForEach(folder.journals) { journal in
+                                JournalRow(
+                                    journal: journal,
+                                    isSelected: journal.id == journalViewModel.selectedJournal.id,
+                                    isEditMode: isEditMode,
+                                    onSelect: {
+                                        journalViewModel.selectJournal(journal)
+                                        selectedJournal = journal
+                                    }
+                                )
+                                .padding(.leading, 20) // Indent journals inside folders
+                            }
+                        }
+                    } else if let journal = item.journal {
+                        JournalRow(
+                            journal: journal,
+                            isSelected: journal.id == journalViewModel.selectedJournal.id,
+                            isEditMode: isEditMode,
+                            onSelect: {
+                                journalViewModel.selectJournal(journal)
+                                selectedJournal = journal
+                            }
+                        )
+                    }
+                }
+                .onMove { indices, newOffset in
+                    journalItems.move(fromOffsets: indices, toOffset: newOffset)
+                }
             }
         }
         .padding(.horizontal)

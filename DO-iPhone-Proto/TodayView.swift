@@ -953,7 +953,8 @@ struct TodayView: View {
                     if showDatePickerRow {
                         DatePickerRow(
                             dates: dateRange,
-                            selectedDate: $selectedDate
+                            selectedDate: $selectedDate,
+                            showingChatCalendar: $showingChatCalendar
                         )
                         .padding(.horizontal, DatePickerConstants.horizontalPadding)
                         .id(chatUpdateTrigger) // Force refresh when data changes

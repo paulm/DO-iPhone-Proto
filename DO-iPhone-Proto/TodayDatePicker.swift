@@ -480,6 +480,7 @@ struct DateCircle: View {
 struct DatePickerRow: View {
     let dates: [Date]
     @Binding var selectedDate: Date
+    @Binding var showingChatCalendar: Bool
 
     @State private var availableWidth: CGFloat = 0
     @State private var dragLocation: CGPoint = .zero
@@ -501,6 +502,29 @@ struct DatePickerRow: View {
 
     private func isDateCompleted(_ date: Date) -> Bool {
         return hasMessagesForDate(date)
+    }
+
+    private var currentStreak: Int {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        var streak = 0
+        var checkDate = calendar.date(byAdding: .day, value: -1, to: today)! // Start with yesterday
+
+        // Check consecutive days backwards starting from yesterday
+        while isDateCompleted(checkDate) {
+            streak += 1
+            checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate)!
+        }
+
+        return streak
+    }
+
+    private var totalChats: Int {
+        scrollableDates.filter { hasMessagesForDate($0) }.count
+    }
+
+    private var totalEntries: Int {
+        scrollableDates.filter { hasEntryForDate($0) }.count
     }
 
     private var columns: Int {
@@ -583,6 +607,49 @@ struct DatePickerRow: View {
         ScrollViewReader { proxy in
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: dynamicSpacing) {
+                    // Stats header on the left
+                    HStack(spacing: 6) {
+                        Text("\(currentStreak) Day\(currentStreak == 1 ? "" : "s") Streak")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.secondary)
+
+                        Text("•")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        Text("\(totalChats) Chat\(totalChats == 1 ? "" : "s")")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.secondary)
+
+                        Text("•")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        Text("\(totalEntries) Entr\(totalEntries == 1 ? "y" : "ies")")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.secondary)
+
+                        Text("•")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        Button(action: {
+                            showingChatCalendar = true
+                        }) {
+                            Text("View All")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundStyle(Color(hex: "44C0FF"))
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                    .padding(.trailing, 12)
+                    .id("header")
+
+                    // Date circles
                     ForEach(Array(scrollableDates.enumerated()), id: \.offset) { index, date in
                         DateCircle(
                             date: date,
@@ -604,9 +671,37 @@ struct DatePickerRow: View {
             }
             .onAppear {
                 // Scroll to center on today when view appears
-                // Calculate position to center today in the visible area
-                let targetIndex = todayIndex - 5 // Scroll back 5 positions to center today
-                proxy.scrollTo(max(0, targetIndex), anchor: .leading)
+                scrollToSelectedDate(proxy: proxy)
+            }
+            .onChange(of: selectedDate) { oldValue, newValue in
+                // Scroll to show the selected date when it changes
+                scrollToSelectedDate(proxy: proxy)
+            }
+        }
+    }
+
+    private func scrollToSelectedDate(proxy: ScrollViewProxy) {
+        let calendar = Calendar.current
+
+        // Find the index of the selected date in scrollableDates
+        if let selectedIndex = scrollableDates.firstIndex(where: { calendar.isDate($0, inSameDayAs: selectedDate) }) {
+            // Center the selected date by scrolling to 5 positions before it
+            let targetIndex = max(0, selectedIndex - 5)
+            withAnimation(.easeInOut(duration: 0.3)) {
+                proxy.scrollTo(targetIndex, anchor: .leading)
+            }
+        } else {
+            // If selected date is not in range, scroll to appropriate edge
+            if selectedDate < scrollableDates.first ?? Date() {
+                // Selected date is before our range, scroll to beginning (show header)
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    proxy.scrollTo("header", anchor: .leading)
+                }
+            } else if selectedDate > scrollableDates.last ?? Date() {
+                // Selected date is after our range, scroll to end
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    proxy.scrollTo(scrollableDates.count - 1, anchor: .trailing)
+                }
             }
         }
     }

@@ -124,6 +124,9 @@ struct EditJournalPlaceholder: View {
 struct ListTabView: View {
     @State private var showingEntryView = false
     @State private var selectedEntryData: EntryView.EntryData?
+    @State private var showingDateDialog = false
+    @State private var selectedDateForToday: Date?
+    @Environment(\.dismiss) private var dismiss
     let journal: Journal?
     let useLargeListDates: Bool
     
@@ -179,6 +182,32 @@ struct ListTabView: View {
         .sheet(isPresented: $showingEntryView) {
             EntryView(journal: journal, entryData: selectedEntryData, startInEditMode: false)
         }
+        .confirmationDialog(
+            "",
+            isPresented: $showingDateDialog,
+            titleVisibility: .hidden
+        ) {
+            if let date = selectedDateForToday {
+                Button(formattedDateForDialog(date)) {
+                    openDateInToday(date)
+                }
+                Button("Cancel", role: .cancel) { }
+            }
+        }
+    }
+
+    private func formattedDateForDialog(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM d, yyyy"
+        return "Open \(formatter.string(from: date)) in Today"
+    }
+
+    private func openDateInToday(_ date: Date) {
+        // Update the shared DateManager
+        DateManager.shared.selectedDate = date
+
+        // Dismiss current view to return to tabs
+        dismiss()
     }
 
     @ViewBuilder
@@ -192,9 +221,15 @@ struct ListTabView: View {
                     title: entry.title,
                     preview: entry.preview,
                     time: entry.time,
+                    month: entry.month,
+                    year: entry.year,
                     useLargeListDates: useLargeListDates,
                     showDivider: true,
-                    onTap: { handleEntryTap(entry) }
+                    onTap: { handleEntryTap(entry) },
+                    onDateTap: { date in
+                        selectedDateForToday = date
+                        showingDateDialog = true
+                    }
                 )
             }
         } else {
@@ -212,7 +247,16 @@ struct ListTabView: View {
                 let isMultiEntry = entriesForDate.count > 1
 
                 // Date header row
-                DateHeaderRow(day: firstEntry.day, date: firstEntry.date)
+                DateHeaderRow(
+                    day: firstEntry.day,
+                    date: firstEntry.date,
+                    month: firstEntry.month,
+                    year: firstEntry.year,
+                    onDateTap: { date in
+                        selectedDateForToday = date
+                        showingDateDialog = true
+                    }
+                )
 
                 // Entry rows for this date (without date column)
                 ForEach(Array(entriesForDate.enumerated()), id: \.element.title) { index, entry in
@@ -225,9 +269,12 @@ struct ListTabView: View {
                         title: entry.title,
                         preview: entry.preview,
                         time: entry.time,
+                        month: entry.month,
+                        year: entry.year,
                         useLargeListDates: useLargeListDates,
                         showDivider: shouldShowDivider,
-                        onTap: { handleEntryTap(entry) }
+                        onTap: { handleEntryTap(entry) },
+                        onDateTap: nil  // No date tap in compact mode (has DateHeaderRow)
                     )
                 }
             }
@@ -315,10 +362,21 @@ struct MonthHeaderView: View {
 struct DateHeaderRow: View {
     let day: String
     let date: String
+    let month: Int
+    let year: Int
+    let onDateTap: (Date) -> Void
 
     private var formattedDate: String {
         let fullDay = dayNameFromAbbreviation(day)
         return "\(date) · \(fullDay)"
+    }
+
+    private var dateObject: Date {
+        var components = DateComponents()
+        components.year = year
+        components.month = month
+        components.day = Int(date)
+        return Calendar.current.date(from: components) ?? Date()
     }
 
     private func dayNameFromAbbreviation(_ abbr: String) -> String {
@@ -335,18 +393,22 @@ struct DateHeaderRow: View {
     }
 
     var body: some View {
-        HStack(spacing: 8) {
-            Text(formattedDate)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
+        Button(action: { onDateTap(dateObject) }) {
+            HStack(spacing: 8) {
+                Text(formattedDate)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
 
-            Rectangle()
-                .fill(Color.gray.opacity(0.3))
-                .frame(height: 0.5)
+                Rectangle()
+                    .fill(Color.gray.opacity(0.3))
+                    .frame(height: 0.5)
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+            .background(Color(UIColor.systemBackground))
+            .contentShape(Rectangle())
         }
-        .padding(.horizontal)
-        .padding(.vertical, 8)
-        .background(Color(UIColor.systemBackground))
+        .buttonStyle(PlainButtonStyle())
     }
 }
 
@@ -356,25 +418,42 @@ struct EntryRow: View {
     let title: String
     let preview: String
     let time: String
+    let month: Int
+    let year: Int
     let useLargeListDates: Bool
     let showDivider: Bool
     let onTap: () -> Void
+    let onDateTap: ((Date) -> Void)?
+
+    private var dateObject: Date {
+        var components = DateComponents()
+        components.year = year
+        components.month = month
+        components.day = Int(date)
+        return Calendar.current.date(from: components) ?? Date()
+    }
 
     var body: some View {
         Button(action: onTap) {
             HStack(alignment: .top, spacing: 12) {
                 // Only show date column when useLargeListDates is true
                 if useLargeListDates {
-                    VStack(spacing: 2) {
-                        Text(day)
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                        Text(date)
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                            .foregroundStyle(.primary)
+                    Button(action: {
+                        onDateTap?(dateObject)
+                    }) {
+                        VStack(spacing: 2) {
+                            Text(day)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                            Text(date)
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.primary)
+                        }
+                        .frame(width: 40)
+                        .contentShape(Rectangle())
                     }
-                    .frame(width: 40)
+                    .buttonStyle(PlainButtonStyle())
                 }
 
                 VStack(alignment: .leading, spacing: 3) {

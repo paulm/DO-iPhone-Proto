@@ -186,11 +186,14 @@ struct IPadListTabView: View {
                                 title: entry.title,
                                 preview: entry.preview,
                                 time: entry.time,
+                                month: entry.month,
+                                year: entry.year,
                                 useLargeListDates: false,
                                 showDivider: false,
                                 onTap: {
                                     selectEntry(entry)
-                                }
+                                },
+                                onDateTap: nil
                             )
                             .background(
                                 selectedEntry?.title == entry.title ?
@@ -210,11 +213,14 @@ struct IPadListTabView: View {
                                 title: entry.title,
                                 preview: entry.preview,
                                 time: entry.time,
+                                month: entry.month,
+                                year: entry.year,
                                 useLargeListDates: false,
                                 showDivider: false,
                                 onTap: {
                                     selectEntry(entry)
-                                }
+                                },
+                                onDateTap: nil
                             )
                             .background(
                                 selectedEntry?.title == entry.title ?

@@ -3,12 +3,15 @@ import SwiftUI
 struct EditDateView: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var selectedDate: Date
-    @State private var isAllDay = false
+    @Binding var isAllDay: Bool
     @State private var tempDate: Date
-    
-    init(selectedDate: Binding<Date>) {
+    @State private var tempIsAllDay: Bool
+
+    init(selectedDate: Binding<Date>, isAllDay: Binding<Bool>) {
         self._selectedDate = selectedDate
+        self._isAllDay = isAllDay
         self._tempDate = State(initialValue: selectedDate.wrappedValue)
+        self._tempIsAllDay = State(initialValue: isAllDay.wrappedValue)
     }
     
     var body: some View {
@@ -19,20 +22,21 @@ struct EditDateView: View {
                         .datePickerStyle(.graphical)
                 }
                 
-                if !isAllDay {
+                if !tempIsAllDay {
                     Section {
                         DatePicker("Time", selection: $tempDate, displayedComponents: [.hourAndMinute])
                             .datePickerStyle(.wheel)
                     }
                 }
-                
+
                 Section {
-                    Toggle("All day", isOn: $isAllDay)
+                    Toggle("All day", isOn: $tempIsAllDay)
                 }
                 
                 Section {
                     Button(action: {
                         tempDate = Date()
+                        tempIsAllDay = false
                     }) {
                         HStack {
                             Image(systemName: "clock.arrow.circlepath")
@@ -54,6 +58,7 @@ struct EditDateView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") {
                         selectedDate = tempDate
+                        isAllDay = tempIsAllDay
                         dismiss()
                     }
                     .fontWeight(.semibold)
@@ -64,5 +69,5 @@ struct EditDateView: View {
 }
 
 #Preview {
-    EditDateView(selectedDate: .constant(Date()))
+    EditDateView(selectedDate: .constant(Date()), isAllDay: .constant(false))
 }

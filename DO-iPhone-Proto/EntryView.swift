@@ -943,7 +943,7 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                 SimpleJournalingToolsView()
             }
             .sheet(isPresented: $showingEditDate) {
-                EditDateView(selectedDate: $entryDate)
+                EditDateView(selectedDate: $entryDate, isAllDay: $isAllDay)
             }
             .sheet(isPresented: $showingDailyChat) {
                 DailyChatView(

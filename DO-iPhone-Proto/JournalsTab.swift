@@ -131,8 +131,12 @@ struct JournalsTabPagedView: View {
                         Image(systemName: "ellipsis")
                     }
                     
-                    Button {
-                        showingSettings = true
+                    Menu {
+                        Button(action: {
+                            showingSettings = true
+                        }) {
+                            Label("Settings", systemImage: "gearshape")
+                        }
                     } label: {
                         Circle()
                             .fill(
@@ -474,6 +478,7 @@ struct JournalDetailPagedView: View {
     let journalViewModel: JournalSelectionViewModel
     let sheetRegularPosition: CGFloat
     @State private var showingEditView = false
+    @State private var showingSettings = false
     @State private var useStandardController = false
     @State private var showCoverImage: Bool
     @StateObject private var sheetState = SheetState()
@@ -618,27 +623,33 @@ struct JournalDetailPagedView: View {
                     }) {
                         Label("Export", systemImage: "square.and.arrow.up")
                     }
-
-                    Divider()
-
-                    Toggle(isOn: $useStandardController) {
-                        Label("Content Controller Standard", systemImage: "switch.2")
-                    }
-
-                    Toggle(isOn: $showCoverImage) {
-                        Label("Show Cover Image", systemImage: "photo")
-                    }
-
-                    Toggle(isOn: $useLargeListDates) {
-                        Label("Large List Dates", systemImage: "calendar")
-                    }
                 } label: {
                     Image(systemName: "ellipsis")
                         .foregroundStyle(.white)
                 }
 
-                Button {
-                    // TODO: Show global settings
+                Menu {
+                    Button(action: {
+                        showingSettings = true
+                    }) {
+                        Label("Settings", systemImage: "gearshape")
+                    }
+
+                    Divider()
+
+                    Section("Journal Detail Options") {
+                        Toggle(isOn: $showCoverImage) {
+                            Label("Show Cover Image", systemImage: "photo")
+                        }
+
+                        Toggle(isOn: $useLargeListDates) {
+                            Label("Large List Dates", systemImage: "calendar")
+                        }
+
+                        Toggle(isOn: $useStandardController) {
+                            Label("Content Controller Standard", systemImage: "switch.2")
+                        }
+                    }
                 } label: {
                     Circle()
                         .fill(
@@ -662,6 +673,9 @@ struct JournalDetailPagedView: View {
         .toolbarColorScheme(showCoverImage ? .dark : nil, for: .navigationBar)
         .sheet(isPresented: $showingEditView) {
             PagedEditJournalView(journal: journal)
+        }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
         }
     }
 }

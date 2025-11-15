@@ -158,9 +158,6 @@ struct ListTabView: View {
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
-                // Small top padding since segmented control is now fixed
-                Color.clear.frame(height: 20)
-
                 // March 2025 Section
                 Section(header: MonthHeaderView(monthYear: "March 2025")) {
                     VStack(spacing: 0) {
@@ -174,8 +171,6 @@ struct ListTabView: View {
                         renderEntries(februaryEntries)
                     }
                 }
-                
-                Spacer(minLength: 100)
             }
         }
         .background(.white)

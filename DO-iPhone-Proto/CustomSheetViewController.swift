@@ -8,6 +8,7 @@ class CustomSheetViewController: UIViewController {
     private let contentView = UIView()
     private let grabberView = UIView()
     private let segmentedControlContainer = UIView()
+    private var segmentedBlurView: UIVisualEffectView?
     private let contentHostingController: UIHostingController<AnyView>
     private var segmentedHostingController: UIHostingController<AnyView>
     
@@ -105,8 +106,8 @@ class CustomSheetViewController: UIViewController {
         super.viewDidLoad()
         setupView()
         setupGrabber()
-        setupSegmentedControl()
-        setupScrollView()  // Must be after segmentedControl since it references it
+        setupScrollView()  // Add scroll view first (background layer)
+        setupSegmentedControl()  // Add segmented control on top with blur
         setupGestures()
         setupContent()
     }
@@ -149,13 +150,29 @@ class CustomSheetViewController: UIViewController {
     private func setupSegmentedControl() {
         segmentedControlContainer.backgroundColor = .clear
         segmentedControlContainer.translatesAutoresizingMaskIntoConstraints = false
-        
+
+        // Add blur effect background
+        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+        let blurView = UIVisualEffectView(effect: blurEffect)
+        blurView.translatesAutoresizingMaskIntoConstraints = false
+        segmentedBlurView = blurView
+        segmentedControlContainer.addSubview(blurView)
+
         view.addSubview(segmentedControlContainer)
-        
-        // Add the segmented control SwiftUI view
+
+        // Pin blur view to container edges
+        NSLayoutConstraint.activate([
+            blurView.topAnchor.constraint(equalTo: segmentedControlContainer.topAnchor),
+            blurView.leadingAnchor.constraint(equalTo: segmentedControlContainer.leadingAnchor),
+            blurView.trailingAnchor.constraint(equalTo: segmentedControlContainer.trailingAnchor),
+            blurView.bottomAnchor.constraint(equalTo: segmentedControlContainer.bottomAnchor)
+        ])
+
+        // Add the segmented control SwiftUI view to the blur's contentView
         addChild(segmentedHostingController)
         segmentedHostingController.view.translatesAutoresizingMaskIntoConstraints = false
-        segmentedControlContainer.addSubview(segmentedHostingController.view)
+        segmentedHostingController.view.backgroundColor = .clear
+        blurView.contentView.addSubview(segmentedHostingController.view)
         segmentedHostingController.didMove(toParent: self)
         
         NSLayoutConstraint.activate([
@@ -182,14 +199,28 @@ class CustomSheetViewController: UIViewController {
         scrollView.alwaysBounceVertical = true
         scrollView.delaysContentTouches = false
         scrollView.canCancelContentTouches = true
-        
+
+        // Add content insets to account for segmented control at top and tab bar at bottom
+        scrollView.contentInset = UIEdgeInsets(
+            top: 60,  // Height of segmented control container
+            left: 0,
+            bottom: 49,  // Standard tab bar height
+            right: 0
+        )
+        scrollView.scrollIndicatorInsets = UIEdgeInsets(
+            top: 60,
+            left: 0,
+            bottom: 49,
+            right: 0
+        )
+
         view.addSubview(scrollView)
-        
+
         NSLayoutConstraint.activate([
-            scrollView.topAnchor.constraint(equalTo: segmentedControlContainer.bottomAnchor), // Below segmented control
+            scrollView.topAnchor.constraint(equalTo: view.topAnchor), // Extend to top of view
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor) // Extend to bottom (underneath tab bar)
         ])
     }
     
@@ -420,32 +451,36 @@ class CustomSheetViewController: UIViewController {
 
 extension CustomSheetViewController: UIScrollViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        // Calculate the "at top" position accounting for content insets
+        let topInset = scrollView.contentInset.top
+        let topPosition = -topInset
+
         // If we're panning the sheet, keep scroll at top
         if isPanningSheet {
-            scrollView.contentOffset = CGPoint(x: 0, y: 0)
+            scrollView.contentOffset = CGPoint(x: 0, y: topPosition)
             return
         }
-        
+
         let offset = scrollView.contentOffset.y
         let velocity = scrollView.panGestureRecognizer.velocity(in: scrollView)
-        
-        // Only handle scroll-to-expand when at top of content
-        guard offset <= 0 else {
+
+        // Only handle scroll-to-expand when at top of content (accounting for inset)
+        guard offset <= topPosition else {
             scrollView.bounces = true
             return
         }
-        
+
         // At medium detent, we want the pan gesture to handle upward drags
-        if currentDetent == .medium && velocity.y < 0 && offset <= 0 {
+        if currentDetent == .medium && velocity.y < 0 && offset <= topPosition {
             // Let the pan gesture handle expansion
             scrollView.bounces = false
-            scrollView.contentOffset = CGPoint(x: 0, y: 0)
+            scrollView.contentOffset = CGPoint(x: 0, y: topPosition)
             return
         }
-        
+
         // Disable bounce at top to handle other cases
         scrollView.bounces = false
-        
+
         // Check for pull-to-collapse (scrolling down at top)
         if velocity.y > 300 && currentDetent == .large && !isAnimating {
             scrollView.isScrollEnabled = false
@@ -468,14 +503,18 @@ extension CustomSheetViewController: UIGestureRecognizerDelegate {
         if gestureRecognizer == panGestureRecognizer {
             let location = gestureRecognizer.location(in: view)
             let velocity = panGestureRecognizer.velocity(in: view)
-            
+
+            // Calculate the "at top" position accounting for content insets
+            let topInset = scrollView.contentInset.top
+            let topPosition = -topInset
+
             // Always allow dragging from grabber area
             if location.y < 40 {
                 return true
             }
-            
-            // When scroll view is at top
-            if scrollView.contentOffset.y <= 0 {
+
+            // When scroll view is at top (accounting for inset)
+            if scrollView.contentOffset.y <= topPosition {
                 // At large detent, only allow downward drags
                 if currentDetent == .large && velocity.y > 0 {
                     return true
@@ -486,14 +525,18 @@ extension CustomSheetViewController: UIGestureRecognizerDelegate {
                 }
             }
         }
-        
+
         return false
     }
-    
+
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        // Calculate the "at top" position accounting for content insets
+        let topInset = scrollView.contentInset.top
+        let topPosition = -topInset
+
         // Allow simultaneous recognition for smooth handoff between sheet drag and scroll
         if gestureRecognizer == panGestureRecognizer && otherGestureRecognizer == scrollView.panGestureRecognizer {
-            return scrollView.contentOffset.y <= 0
+            return scrollView.contentOffset.y <= topPosition
         }
         return false
     }

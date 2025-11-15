@@ -1093,7 +1093,7 @@ struct CompactJournalRow: View {
                 }
             }
             .padding(.vertical, 8)
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 0)
             .background(
                 RoundedRectangle(cornerRadius: 8)
                     .fill(isSelected ? .gray.opacity(0.1) : .clear)
@@ -1163,7 +1163,7 @@ struct CompactFolderRow: View {
             .buttonStyle(PlainButtonStyle())
         }
         .padding(.vertical, 8)
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 0)
     }
 }
 

@@ -13,7 +13,7 @@ struct TodayView: View {
     @State private var showingDatePicker = false
     @State private var showingDailySurvey = false
     @State private var showingTrackers = false
-    @State private var selectedDate = Date()
+    @State private var selectedDate = DateManager.shared.selectedDate
     @State private var surveyCompleted = false
 
     // Trackers state
@@ -1439,6 +1439,9 @@ struct TodayView: View {
             )
         }
         .onChange(of: selectedDate) { oldValue, newValue in
+            // Sync to shared DateManager
+            DateManager.shared.selectedDate = newValue
+
             // Post notification for date change
             NotificationCenter.default.post(name: NSNotification.Name("SelectedDateChanged"), object: newValue)
 
@@ -1526,11 +1529,23 @@ struct TodayView: View {
                         entryData = nil
                     }
             } else {
+                // New entry - check if selected date is today
+                let calendar = Calendar.current
+                let isToday = calendar.isDateInToday(selectedDate)
+                let entryDate = isToday ? Date() : calendar.startOfDay(for: selectedDate)
+                let isAllDay = !isToday
+
                 // New entry with prompt - Edit mode
-                EntryView(journal: nil, prompt: selectedPrompt, startInEditMode: true)
-                    .onDisappear {
-                        selectedPrompt = nil
-                    }
+                EntryView(
+                    journal: nil,
+                    prompt: selectedPrompt,
+                    initialDate: entryDate,
+                    isAllDay: isAllDay,
+                    startInEditMode: true
+                )
+                .onDisappear {
+                    selectedPrompt = nil
+                }
             }
         }
         .confirmationDialog(

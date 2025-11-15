@@ -7,7 +7,9 @@ struct EntryView: View {
     let journal: Journal?
     let entryData: EntryData?
     let prompt: String?
-    
+    let initialDate: Date?
+    let isAllDay: Bool
+
     // Entry data structure
     struct EntryData {
         let title: String
@@ -15,7 +17,7 @@ struct EntryView: View {
         let date: Date
         let time: String
     }
-    
+
     @State private var entryText: String
     @State private var showingJournalingTools = false
     @State private var showingDailyChat = false
@@ -63,10 +65,12 @@ Today was one of those rare days where everything seemed to align perfectly. I w
 The trail was quiet, with only a few other early risers making their way up the path. The air was crisp and cool, probably around 55 degrees, and I could see my breath forming small clouds as I walked. About halfway up, I stopped at a clearing that offered a stunning view of the valley below. The aspens were just beginning to turn golden, creating patches of warm color against the dark green of the pines. I sat on a large rock and just took it all in, feeling grateful for this moment of solitude in nature.
 """
     
-    init(journal: Journal?, entryData: EntryData? = nil, prompt: String? = nil, shouldShowAudioOnAppear: Bool = false, startInEditMode: Bool = false) {
+    init(journal: Journal?, entryData: EntryData? = nil, prompt: String? = nil, initialDate: Date? = nil, isAllDay: Bool = false, shouldShowAudioOnAppear: Bool = false, startInEditMode: Bool = false) {
         self.journal = journal
         self.entryData = entryData
         self.prompt = prompt
+        self.initialDate = initialDate
+        self.isAllDay = isAllDay
         self._shouldShowAudioOnAppear = State(initialValue: shouldShowAudioOnAppear)
         self._isEditMode = State(initialValue: startInEditMode)
 
@@ -104,7 +108,8 @@ The trail was quiet, with only a few other early risers making their way up the 
         } else if let prompt = prompt {
             // New entry with prompt
             self._entryText = State(initialValue: prompt + "\n\n")
-            self._entryDate = State(initialValue: Date())
+            // Use initialDate if provided, otherwise use current date/time
+            self._entryDate = State(initialValue: initialDate ?? Date())
         } else {
             // New entry - check if it should be blank (from FAB) or use sample content
             if startInEditMode {
@@ -114,7 +119,8 @@ The trail was quiet, with only a few other early risers making their way up the 
                 // Viewing mode or preview - use sample content
                 self._entryText = State(initialValue: defaultEntryContent)
             }
-            self._entryDate = State(initialValue: Date())
+            // Use initialDate if provided, otherwise use current date/time
+            self._entryDate = State(initialValue: initialDate ?? Date())
         }
     }
     
@@ -278,18 +284,22 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                                     Text(journalName)
                                         .foregroundStyle(journalColor)
                                         .fontWeight(.medium)
-                                    Text("•")
+
+                                    // Only show location and weather for non-all-day entries
+                                    if !isAllDay {
+                                        Text("•")
+                                            .foregroundStyle(.secondary)
+                                        Text(locationName)
+                                            .foregroundStyle(.secondary)
+                                        Text("•")
+                                            .foregroundStyle(.secondary)
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "cloud.rain")
+                                                .font(.system(size: 14))
+                                            Text("17°C")
+                                        }
                                         .foregroundStyle(.secondary)
-                                    Text(locationName)
-                                        .foregroundStyle(.secondary)
-                                    Text("•")
-                                        .foregroundStyle(.secondary)
-                                    HStack(spacing: 4) {
-                                        Image(systemName: "cloud.rain")
-                                            .font(.system(size: 14))
-                                        Text("17°C")
                                     }
-                                    .foregroundStyle(.secondary)
                                 }
                                 .font(.caption)
                                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -1073,7 +1083,11 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
     
     private func formatFullDate(_ date: Date) -> String {
         let formatter = DateFormatter()
-        formatter.dateFormat = "EEE, MMM d, yyyy · h:mm a"
+        if isAllDay {
+            formatter.dateFormat = "EEE, MMM d, yyyy"
+        } else {
+            formatter.dateFormat = "EEE, MMM d, yyyy · h:mm a"
+        }
         return formatter.string(from: date)
     }
 

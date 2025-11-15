@@ -6,8 +6,12 @@ struct MainTabView: View {
     @State private var searchQuery = ""
     @AppStorage("showChatFAB") private var showChatFAB = false
     @AppStorage("showEntryFAB") private var showEntryFAB = false
-    @State private var selectedDate = Date()
+    private var dateManager = DateManager.shared
     @State private var chatCompleted = false
+
+    private var selectedDate: Date {
+        dateManager.selectedDate
+    }
     @State private var showingEntry = false
     @State private var hasResumedChat = false
     @State private var messageCountAtResume = 0
@@ -133,7 +137,18 @@ struct MainTabView: View {
             }
         }
         .sheet(isPresented: $showingEntry) {
-            EntryView(journal: nil, startInEditMode: true)
+            // Check if selected date is today
+            let calendar = Calendar.current
+            let isToday = calendar.isDateInToday(selectedDate)
+            let entryDate = isToday ? Date() : calendar.startOfDay(for: selectedDate)
+            let isAllDay = !isToday
+
+            EntryView(
+                journal: nil,
+                initialDate: entryDate,
+                isAllDay: isAllDay,
+                startInEditMode: true
+            )
         }
         .onAppear {
             // Check for chat messages on appear
@@ -178,18 +193,14 @@ struct MainTabView: View {
                 }
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("SelectedDateChanged"))) { notification in
-            // Update selected date and check chat state
-            if let newDate = notification.object as? Date {
-                selectedDate = newDate
-                // Reset hasResumedChat and message count when date changes
-                hasResumedChat = false
-                messageCountAtResume = 0
-                showUpdateEntry = false
-                // Check for messages on the new date immediately
-                let messages = ChatSessionManager.shared.getMessages(for: newDate)
-                chatCompleted = !messages.isEmpty && messages.contains { $0.isUser }
-            }
+        .onChange(of: selectedDate) { oldValue, newValue in
+            // Reset state when date changes
+            hasResumedChat = false
+            messageCountAtResume = 0
+            showUpdateEntry = false
+            // Check for messages on the new date immediately
+            let messages = ChatSessionManager.shared.getMessages(for: newValue)
+            chatCompleted = !messages.isEmpty && messages.contains { $0.isUser }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("DailyEntryCreatedStatusChanged"))) { _ in
             // Force UI update when entry status changes

@@ -8,7 +8,7 @@ struct EntryView: View {
     let entryData: EntryData?
     let prompt: String?
     let initialDate: Date?
-    let isAllDay: Bool
+    @State private var isAllDay: Bool
 
     // Entry data structure
     struct EntryData {
@@ -48,6 +48,7 @@ struct EntryView: View {
     @State private var showingGoDeeperPrompts = false
     @State private var scrollProxy: ScrollViewProxy?
     @FocusState private var textEditorFocused: Bool
+    @State private var showingAllDayAlert = false
     @State private var showingTitleSuggestions = false
     @State private var showingImageGeneration = false
     @AppStorage("metadataPosition") private var isMetadataAnchored = true
@@ -70,7 +71,7 @@ The trail was quiet, with only a few other early risers making their way up the 
         self.entryData = entryData
         self.prompt = prompt
         self.initialDate = initialDate
-        self.isAllDay = isAllDay
+        self._isAllDay = State(initialValue: isAllDay)
         self._shouldShowAudioOnAppear = State(initialValue: shouldShowAudioOnAppear)
         self._isEditMode = State(initialValue: startInEditMode)
 
@@ -698,6 +699,19 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                     .buttonBorderShape(.capsule)
                     .tint(journalColor)
                     .controlSize(.regular)
+                    .confirmationDialog(
+                        "Entry back dated",
+                        isPresented: $showingAllDayAlert,
+                        titleVisibility: .visible
+                    ) {
+                        Button("Set to Current Date & Time") {
+                            entryDate = Date()
+                            isAllDay = false
+                        }
+                        Button("Cancel", role: .cancel) { }
+                    } message: {
+                        Text("This entry uses a past date.")
+                    }
                 }
                 
                 // Ellipsis menu on the right
@@ -910,6 +924,12 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         showingCompactAudioRecord = true
                         shouldShowAudioOnAppear = false
+                    }
+                }
+                // Show all-day alert if this is an all-day entry in edit mode
+                if isAllDay && isEditMode {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        showingAllDayAlert = true
                     }
                 }
                 // Focus text editor if starting in edit mode with slight delay for animation

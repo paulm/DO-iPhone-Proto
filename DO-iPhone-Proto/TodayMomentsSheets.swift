@@ -174,14 +174,14 @@ struct TrackerDetailView: View {
     let trackerName: String
     let trackerIcon: String
 
-    // Sample data for the past month
+    // Sample data for the past 21 days
     private var sampleData: [(date: Date, value: Int)] {
         let calendar = Calendar.current
         let today = Date()
         var data: [(Date, Int)] = []
 
-        // Generate 30 days of sample data
-        for day in (0..<30).reversed() {
+        // Generate 21 days of sample data
+        for day in (0..<21).reversed() {
             if let date = calendar.date(byAdding: .day, value: -day, to: today) {
                 // Random value between 1-5, with some days missing (nil values simulated as 0)
                 let hasData = Int.random(in: 0...10) > 2 // 80% chance of having data
@@ -197,27 +197,43 @@ struct TrackerDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 // Graph section
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Past 30 Days")
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Statistics")
                         .font(.headline)
-                        .padding(.horizontal, 20)
-
+                    Text("From the past 3 weeks")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.horizontal, 20)
+                VStack(alignment: .leading, spacing: 12) {
                     // Simple bar graph
                     TrackerGraphView(data: sampleData, trackerName: trackerName)
                         .frame(height: 60)
-                        .padding(.horizontal, 20)
+                        .padding(.horizontal, 30)
                 }
 
                 // Stats section
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Statistics")
-                        .font(.headline)
-                        .padding(.horizontal, 20)
 
                     HStack(spacing: 16) {
-                        StatCard(title: "Average", value: String(format: "%.1f", calculateAverage()))
-                        StatCard(title: "Highest", value: "\(calculateMax())")
-                        StatCard(title: "Lowest", value: "\(calculateMin())")
+                        StatCard(
+                            title: "Average",
+                            value: String(format: "%.1f", calculateAverage()),
+                            color: colorForValue(Int(calculateAverage().rounded())),
+                            trackerName: trackerName
+                        )
+                        StatCard(
+                            title: highStatLabel(),
+                            value: "\(calculateHighDays())",
+                            color: colorForValue(5), // High is always green/good
+                            trackerName: trackerName
+                        )
+                        StatCard(
+                            title: lowStatLabel(),
+                            value: "\(calculateLowDays())",
+                            color: colorForValue(1), // Low is always red/bad
+                            trackerName: trackerName
+                        )
                     }
                     .padding(.horizontal, 20)
                 }
@@ -236,13 +252,67 @@ struct TrackerDetailView: View {
         return validValues.reduce(0, +) / Double(validValues.count)
     }
 
-    private func calculateMax() -> Int {
-        return sampleData.map { $0.value }.max() ?? 0
+    private func calculateHighDays() -> Int {
+        // Count days with values 4-5 (high/good)
+        return sampleData.filter { $0.value >= 4 }.count
     }
 
-    private func calculateMin() -> Int {
-        let validValues = sampleData.filter { $0.value > 0 }.map { $0.value }
-        return validValues.min() ?? 0
+    private func calculateLowDays() -> Int {
+        // Count days with values 1-2 (low/bad)
+        return sampleData.filter { $0.value >= 1 && $0.value <= 2 }.count
+    }
+
+    private func colorForValue(_ value: Int) -> Color {
+        // Stress uses inverted colors (green=1, red=5)
+        // Mood and Energy use normal colors (red=1, green=5)
+        let isStress = trackerName == "Stress"
+
+        let normalColors: [Color] = [
+            Color.red,           // 1
+            Color.orange,        // 2
+            Color.yellow,        // 3
+            Color(hex: "A3D977"), // 4 - light green
+            Color.green          // 5
+        ]
+
+        let stressColors: [Color] = [
+            Color.green,         // 1
+            Color(hex: "A3D977"), // 2 - light green
+            Color.yellow,        // 3
+            Color.orange,        // 4
+            Color.red            // 5
+        ]
+
+        let colors = isStress ? stressColors : normalColors
+
+        guard value >= 1 && value <= 5 else { return Color.gray }
+        return colors[value - 1]
+    }
+
+    private func highStatLabel() -> String {
+        switch trackerName {
+        case "Mood":
+            return "Good Mood"
+        case "Energy":
+            return "High Energy"
+        case "Stress":
+            return "High Stress"
+        default:
+            return "Highest"
+        }
+    }
+
+    private func lowStatLabel() -> String {
+        switch trackerName {
+        case "Mood":
+            return "Bad Mood"
+        case "Energy":
+            return "Low Energy"
+        case "Stress":
+            return "Low Stress"
+        default:
+            return "Lowest"
+        }
     }
 }
 
@@ -285,54 +355,36 @@ struct TrackerGraphView: View {
             let height = geometry.size.height
             let validData = data.filter { $0.value > 0 }
 
-            VStack(spacing: 4) {
-                ZStack(alignment: .bottom) {
-                    // Grid lines - 5 lines for values 1-5
-                    VStack(spacing: 0) {
-                        ForEach(0..<5) { index in
-                            Divider()
-                                .opacity(0.2)
-                            if index < 4 {
-                                Spacer()
-                            }
-                        }
-                    }
-
-                    // Data points - only show for days with data
-                    if !validData.isEmpty {
-                        ForEach(Array(data.enumerated()), id: \.offset) { index, item in
-                            if item.value > 0 {
-                                let xStep = width / CGFloat(data.count - 1)
-                                let x = CGFloat(index) * xStep
-                                // Map value (1-5) to y position, aligning exactly with grid lines
-                                // Grid has 5 lines for values 1-5, evenly spaced
-                                let normalizedValue = CGFloat(item.value - 1) / 4.0
-                                let y = (height - 20) - ((height - 20) * normalizedValue)
-
-                                Circle()
-                                    .fill(colorForValue(item.value))
-                                    .frame(width: 8, height: 8)
-                                    .position(x: x, y: y)
-                            }
+            ZStack(alignment: .bottom) {
+                // Grid lines - 5 lines for values 1-5
+                VStack(spacing: 0) {
+                    ForEach(0..<5) { index in
+                        Divider()
+                            .opacity(0.2)
+                        if index < 4 {
+                            Spacer()
                         }
                     }
                 }
 
-                // Date labels at bottom aligned with graph
-                HStack(spacing: 0) {
+                // Data points - only show for days with data
+                if !validData.isEmpty {
                     ForEach(Array(data.enumerated()), id: \.offset) { index, item in
-                        if index % 5 == 0 { // Show every 5th date to avoid crowding
-                            let calendar = Calendar.current
-                            let day = calendar.component(.day, from: item.date)
+                        if item.value > 0 {
+                            let xStep = width / CGFloat(data.count - 1)
+                            let x = CGFloat(index) * xStep
+                            // Map value (1-5) to y position, aligning exactly with grid lines
+                            // Grid has 5 lines for values 1-5, evenly spaced
+                            let normalizedValue = CGFloat(item.value - 1) / 4.0
+                            let y = height - (height * normalizedValue)
 
-                            Text("\(day)")
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                                .frame(width: width / CGFloat(data.count - 1) * 5, alignment: .leading)
+                            Circle()
+                                .fill(colorForValue(item.value))
+                                .frame(width: 8, height: 8)
+                                .position(x: x, y: y)
                         }
                     }
                 }
-                .offset(x: 0, y: 0)
             }
         }
     }
@@ -342,6 +394,8 @@ struct TrackerGraphView: View {
 struct StatCard: View {
     let title: String
     let value: String
+    let color: Color
+    let trackerName: String
 
     var body: some View {
         VStack(spacing: 8) {
@@ -352,7 +406,7 @@ struct StatCard: View {
             Text(value)
                 .font(.title2)
                 .fontWeight(.semibold)
-                .foregroundStyle(Color(hex: "44C0FF"))
+                .foregroundStyle(color)
         }
         .frame(maxWidth: .infinity)
         .padding()

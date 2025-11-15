@@ -59,7 +59,7 @@ struct TodayView: View {
     @State private var showingMomentsEventsSheet = false
     @State private var showingMediaSheet = false
     @State private var showingMomentsMediaSheet = false
-    @State private var placesData: [(name: String, icon: DayOneIcon, time: String)] = []
+    @State private var placesData: [Visit] = []
     @State private var eventsData: [(name: String, icon: DayOneIcon, time: String, type: String)] = []
     @State private var selectedMomentsPlaces: Set<String> = []
     @State private var selectedMomentsEvents: Set<String> = []
@@ -1842,14 +1842,8 @@ struct TodayView: View {
     }
 
     private func addPlacesData() {
-        // Populate with sample places
-        placesData = [
-            (name: "Sundance Mountain Resort", icon: DayOneIcon.skiing, time: "7:44 AM · 3 hours"),
-            (name: "Whole Foods Market", icon: DayOneIcon.cart, time: "11:22 AM · 45 min"),
-            (name: "Park City Library", icon: DayOneIcon.books_filled, time: "1:15 PM · 1 hour"),
-            (name: "Starbucks Coffee", icon: DayOneIcon.food, time: "3:30 PM · 30 min"),
-            (name: "Silver Lake Trail", icon: DayOneIcon.hiking, time: "5:45 PM · 2 hours")
-        ]
+        // Generate random visits for the selected date
+        placesData = Visit.generateRandomVisits(for: selectedDate)
     }
 
     private func addEventsData() {
@@ -1866,14 +1860,8 @@ struct TodayView: View {
     private func updateMomentsDataForSelectedDate() {
         // Only show data for today, clear for all other dates
         if Calendar.current.isDateInToday(selectedDate) {
-            // Populate with sample data for today
-            placesData = [
-                (name: "Sundance Mountain Resort", icon: DayOneIcon.skiing, time: "7:44 AM · 3 hours"),
-                (name: "Whole Foods Market", icon: DayOneIcon.cart, time: "11:22 AM · 45 min"),
-                (name: "Park City Library", icon: DayOneIcon.books_filled, time: "1:15 PM · 1 hour"),
-                (name: "Starbucks Coffee", icon: DayOneIcon.food, time: "3:30 PM · 30 min"),
-                (name: "Silver Lake Trail", icon: DayOneIcon.hiking, time: "5:45 PM · 2 hours")
-            ]
+            // Generate random visits for the selected date
+            placesData = Visit.generateRandomVisits(for: selectedDate)
 
             eventsData = [
                 (name: "Morning Team Standup", icon: DayOneIcon.calendar, time: "9:00 AM - 9:30 AM", type: "Work"),

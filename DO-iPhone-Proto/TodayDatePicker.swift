@@ -486,6 +486,7 @@ struct DatePickerRow: View {
     @State private var isDragging = false
     @State private var lastSelectedDate: Date?
     @State private var dynamicSpacing: CGFloat = DatePickerConstants.spacing
+    @State private var scrollViewProxy: ScrollViewProxy? = nil
 
     // Check if a date has chat messages (completed)
     private func hasMessagesForDate(_ date: Date) -> Bool {
@@ -547,91 +548,66 @@ struct DatePickerRow: View {
         return result
     }
 
-    // Get only the last row (bottom row that contains Today) and adjust to show Today centered
-    private var bottomRow: [Date] {
+    // Generate scrollable date range: 30 days in the past + today + 5 days in the future
+    private var scrollableDates: [Date] {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
+        var allDates: [Date] = []
 
-        // Find today's index in the dates array
-        guard let todayIndex = dates.firstIndex(where: { calendar.isDate($0, inSameDayAs: today) }) else {
-            // If today not found, fall back to last row
-            let allRows = rows
-            return allRows.last ?? []
+        // Add 30 past days (from -30 to -1)
+        for i in stride(from: -30, to: 0, by: 1) {
+            if let date = calendar.date(byAdding: .day, value: i, to: today) {
+                allDates.append(date)
+            }
         }
 
-        // Calculate range: 5 dates before today and 5 dates after today (11 total with today)
-        let startIndex = max(0, todayIndex - 5)
-        let endIndex = min(dates.count - 1, todayIndex + 5)
+        // Add today
+        allDates.append(today)
 
-        // Extract the range of dates
-        return Array(dates[startIndex...endIndex])
+        // Add 5 future days (from +1 to +5)
+        for i in 1...5 {
+            if let date = calendar.date(byAdding: .day, value: i, to: today) {
+                allDates.append(date)
+            }
+        }
+
+        return allDates
+    }
+
+    // Index of today in scrollableDates
+    private var todayIndex: Int {
+        return 30 // Today is at index 30 (after 30 past days)
     }
 
     var body: some View {
-        HStack(spacing: dynamicSpacing) {
-            ForEach(Array(bottomRow.enumerated()), id: \.offset) { index, date in
-                DateCircle(
-                    date: date,
-                    isSelected: Calendar.current.isDate(date, inSameDayAs: selectedDate),
-                    isToday: Calendar.current.isDateInToday(date),
-                    isFuture: date > Date(),
-                    isCompleted: isDateCompleted(date),
-                    hasEntry: hasEntryForDate(date),
-                    showDate: false,
-                    onTap: {
-                        selectedDate = date
-                    }
-                )
-                .background(
-                    GeometryReader { geometry in
-                        Color.clear
-                            .onAppear {
-                                // Store the frame for hit testing during drag
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: dynamicSpacing) {
+                    ForEach(Array(scrollableDates.enumerated()), id: \.offset) { index, date in
+                        DateCircle(
+                            date: date,
+                            isSelected: Calendar.current.isDate(date, inSameDayAs: selectedDate),
+                            isToday: Calendar.current.isDateInToday(date),
+                            isFuture: date > Date(),
+                            isCompleted: isDateCompleted(date),
+                            hasEntry: hasEntryForDate(date),
+                            showDate: false,
+                            onTap: {
+                                selectedDate = date
                             }
-                    }
-                )
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .background(
-            GeometryReader { geometry in
-                Color.clear
-                    .preference(key: SizePreferenceKey.self, value: geometry.size.width)
-            }
-        )
-        .onPreferenceChange(SizePreferenceKey.self) { width in
-            if width > 0 && abs(availableWidth - width) > 1 { // Only update if there's a significant change
-                availableWidth = width
-            }
-        }
-        .gesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { value in
-                    isDragging = true
-                    dragLocation = value.location
-
-                    // Find which date circle contains the drag location
-                    let col = Int(value.location.x / (DatePickerConstants.circleSize + dynamicSpacing))
-
-                    if col >= 0 && col < bottomRow.count {
-                        let date = bottomRow[col]
-
-                        // Only provide haptic feedback if we're over a new date
-                        if lastSelectedDate == nil || !Calendar.current.isDate(lastSelectedDate!, inSameDayAs: date) {
-                            // Haptic feedback when selecting a new date
-                            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                            impactFeedback.impactOccurred()
-                            lastSelectedDate = date
-                        }
-
-                        // Always update the selected date
-                        selectedDate = date
+                        )
+                        .id(index)
                     }
                 }
-                .onEnded { _ in
-                    isDragging = false
-                    lastSelectedDate = nil
-                }
-        )
+                .padding(.horizontal, DatePickerConstants.horizontalPadding)
+                .padding(.vertical, 2) // Add vertical padding to prevent clipping
+            }
+            .onAppear {
+                // Scroll to center on today when view appears
+                // Calculate position to center today in the visible area
+                let targetIndex = todayIndex - 5 // Scroll back 5 positions to center today
+                proxy.scrollTo(max(0, targetIndex), anchor: .leading)
+            }
+        }
     }
 }

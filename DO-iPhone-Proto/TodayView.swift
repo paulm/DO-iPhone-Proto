@@ -951,18 +951,13 @@ struct TodayView: View {
 
                     // Date picker row (single row version)
                     if showDatePickerRow {
-                        VStack(spacing: 0) {
-                            // Add negative spacer to pull content up
-                            Color.clear.frame(height: 70)
-
-                            DatePickerRow(
-                                dates: dateRange,
-                                selectedDate: $selectedDate,
-                                showingChatCalendar: $showingChatCalendar
-                            )
-                            .padding(.horizontal, DatePickerConstants.horizontalPadding)
-                        }
-                        .padding(.top, -70) // Pull entire container up by 70pt
+                        DatePickerRow(
+                            dates: dateRange,
+                            selectedDate: $selectedDate,
+                            showingChatCalendar: $showingChatCalendar
+                        )
+                        .padding(.horizontal, DatePickerConstants.horizontalPadding)
+                        .padding(.vertical, 10) // Add 10pt to top and bottom
                         .id(chatUpdateTrigger) // Force refresh when data changes
                         .background(Color.clear)
                         .listRowBackground(showGuides ? Color.mint.opacity(0.2) : Color.clear)
@@ -1056,10 +1051,11 @@ struct TodayView: View {
                     .listRowInsets(EdgeInsets())
             }
             .listStyle(.plain)
-            .listSectionSpacing(0) // Remove section spacing
             .scrollContentBackground(.hidden)
             .background(backgroundColor)
             .ignoresSafeArea(edges: .bottom)
+            .environment(\.defaultMinListHeaderHeight, 0)
+            .environment(\.defaultMinListRowHeight, 0)
             .gesture(
                 DragGesture(minimumDistance: 50, coordinateSpace: .local)
                     .onEnded { value in

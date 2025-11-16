@@ -200,15 +200,16 @@ class CustomSheetViewController: UIViewController {
         scrollView.delaysContentTouches = false
         scrollView.canCancelContentTouches = true
 
-        // Add content insets to account for segmented control at top and tab bar at bottom
+        // Add content insets only for bottom (tab bar)
+        // Top inset is handled by SwiftUI content spacing
         scrollView.contentInset = UIEdgeInsets(
-            top: 60,  // Height of segmented control container
+            top: 0,
             left: 0,
             bottom: 49,  // Standard tab bar height
             right: 0
         )
         scrollView.scrollIndicatorInsets = UIEdgeInsets(
-            top: 60,
+            top: 60,  // Keep indicators below segmented control
             left: 0,
             bottom: 49,
             right: 0
@@ -261,15 +262,22 @@ class CustomSheetViewController: UIViewController {
     // MARK: - Animation Methods
     
     func animateIn() {
-        // Start from below the screen
-        heightConstraint.constant = 0
+        // Set final height immediately but start sheet positioned below screen with opacity
+        heightConstraint.constant = mediumDetentHeight
+        view.alpha = 0
         view.layoutIfNeeded()
-        
-        // Animate to medium detent
-        UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.85, initialSpringVelocity: 0, options: .curveEaseOut) {
-            self.heightConstraint.constant = self.mediumDetentHeight
-            self.view.superview?.layoutIfNeeded()
+
+        // Position sheet below screen using transform
+        let screenHeight = UIScreen.main.bounds.height
+        view.transform = CGAffineTransform(translationX: 0, y: screenHeight)
+
+        // Animate sliding up from bottom with fade in
+        UIView.animate(withDuration: 0.45, delay: 0, usingSpringWithDamping: 1.0, initialSpringVelocity: 0, options: .curveEaseOut) {
+            self.view.transform = .identity
+            self.view.alpha = 1.0
         } completion: { _ in
+            // Reset transform to ensure height-based animations work properly
+            self.view.transform = .identity
             self.currentDetent = .medium
             self.sheetState.isExpanded = false
         }
@@ -451,9 +459,8 @@ class CustomSheetViewController: UIViewController {
 
 extension CustomSheetViewController: UIScrollViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        // Calculate the "at top" position accounting for content insets
-        let topInset = scrollView.contentInset.top
-        let topPosition = -topInset
+        // Top position is now at 0 (no top content inset)
+        let topPosition: CGFloat = 0
 
         // If we're panning the sheet, keep scroll at top
         if isPanningSheet {
@@ -464,7 +471,7 @@ extension CustomSheetViewController: UIScrollViewDelegate {
         let offset = scrollView.contentOffset.y
         let velocity = scrollView.panGestureRecognizer.velocity(in: scrollView)
 
-        // Only handle scroll-to-expand when at top of content (accounting for inset)
+        // Only handle scroll-to-expand when at top of content
         guard offset <= topPosition else {
             scrollView.bounces = true
             return
@@ -504,16 +511,15 @@ extension CustomSheetViewController: UIGestureRecognizerDelegate {
             let location = gestureRecognizer.location(in: view)
             let velocity = panGestureRecognizer.velocity(in: view)
 
-            // Calculate the "at top" position accounting for content insets
-            let topInset = scrollView.contentInset.top
-            let topPosition = -topInset
+            // Top position is now at 0 (no top content inset)
+            let topPosition: CGFloat = 0
 
             // Always allow dragging from grabber area
             if location.y < 40 {
                 return true
             }
 
-            // When scroll view is at top (accounting for inset)
+            // When scroll view is at top
             if scrollView.contentOffset.y <= topPosition {
                 // At large detent, only allow downward drags
                 if currentDetent == .large && velocity.y > 0 {
@@ -530,9 +536,8 @@ extension CustomSheetViewController: UIGestureRecognizerDelegate {
     }
 
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        // Calculate the "at top" position accounting for content insets
-        let topInset = scrollView.contentInset.top
-        let topPosition = -topInset
+        // Top position is now at 0 (no top content inset)
+        let topPosition: CGFloat = 0
 
         // Allow simultaneous recognition for smooth handoff between sheet drag and scroll
         if gestureRecognizer == panGestureRecognizer && otherGestureRecognizer == scrollView.panGestureRecognizer {

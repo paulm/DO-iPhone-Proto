@@ -158,6 +158,9 @@ struct ListTabView: View {
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
+                // Top spacer to offset content below segmented control
+                Color.clear.frame(height: 60)
+
                 // March 2025 Section
                 Section(header: MonthHeaderView(monthYear: "March 2025")) {
                     VStack(spacing: 0) {
@@ -341,23 +344,16 @@ struct MonthHeaderView: View {
     let monthYear: String
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Top spacer to push header below segmented control when pinned
-            Color.clear
-                .frame(height: 60)
-
-            HStack {
-                Text(monthYear)
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal)
-                    .padding(.vertical, 12)
-                    .background(Color(UIColor.systemBackground))
-            }
+        HStack {
+            Text(monthYear)
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal)
+                .padding(.vertical, 12)
+                .background(Color(UIColor.systemBackground))
         }
-        .background(Color(UIColor.systemBackground))
     }
 }
 

@@ -479,7 +479,7 @@ struct TodayView: View {
             .buttonStyle(PlainButtonStyle())
         }
         .listRowInsets(EdgeInsets(top: momentsSectionSpacing, leading: 16, bottom: momentsSectionSpacing, trailing: 16))
-        .listRowBackground(cellBackgroundColor)
+        .listRowBackground(showGuides ? Color.purple.opacity(0.2) : cellBackgroundColor)
     }
 
     // Moments Section - Places
@@ -538,7 +538,7 @@ struct TodayView: View {
             .buttonStyle(PlainButtonStyle())
         }
         .listRowInsets(EdgeInsets(top: momentsSectionSpacing, leading: 16, bottom: momentsSectionSpacing, trailing: 16))
-        .listRowBackground(cellBackgroundColor)
+        .listRowBackground(showGuides ? Color.orange.opacity(0.2) : cellBackgroundColor)
     }
 
     // Moments Section - Events
@@ -597,7 +597,7 @@ struct TodayView: View {
             .buttonStyle(PlainButtonStyle())
         }
         .listRowInsets(EdgeInsets(top: momentsSectionSpacing, leading: 16, bottom: momentsSectionSpacing, trailing: 16))
-        .listRowBackground(cellBackgroundColor)
+        .listRowBackground(showGuides ? Color.pink.opacity(0.2) : cellBackgroundColor)
     }
 
     // Moments Section - Trackers
@@ -658,7 +658,7 @@ struct TodayView: View {
             .buttonStyle(PlainButtonStyle())
         }
         .listRowInsets(EdgeInsets(top: momentsSectionSpacing, leading: 16, bottom: momentsSectionSpacing, trailing: 16))
-        .listRowBackground(cellBackgroundColor)
+        .listRowBackground(showGuides ? Color.cyan.opacity(0.2) : cellBackgroundColor)
     }
 
     // Moments Section - Inputs
@@ -717,7 +717,7 @@ struct TodayView: View {
             .buttonStyle(PlainButtonStyle())
         }
         .listRowInsets(EdgeInsets(top: momentsSectionSpacing, leading: 16, bottom: momentsSectionSpacing, trailing: 16))
-        .listRowBackground(cellBackgroundColor)
+        .listRowBackground(showGuides ? Color.yellow.opacity(0.2) : cellBackgroundColor)
     }
 
     private var hasInputsData: Bool {
@@ -943,7 +943,7 @@ struct TodayView: View {
                         .padding(.horizontal, DatePickerConstants.horizontalPadding)
                         .id(chatUpdateTrigger) // Force refresh when data changes
                         .background(Color.clear)
-                        .listRowBackground(Color.clear)
+                        .listRowBackground(showGuides ? Color.indigo.opacity(0.2) : Color.clear)
                         .listRowSeparator(.hidden)
                         .listRowInsets(EdgeInsets()) // Remove default list insets
                         .padding(.bottom, 20)
@@ -951,18 +951,23 @@ struct TodayView: View {
 
                     // Date picker row (single row version)
                     if showDatePickerRow {
-                        DatePickerRow(
-                            dates: dateRange,
-                            selectedDate: $selectedDate,
-                            showingChatCalendar: $showingChatCalendar
-                        )
-                        .padding(.horizontal, DatePickerConstants.horizontalPadding)
+                        VStack(spacing: 0) {
+                            // Add negative spacer to pull content up
+                            Color.clear.frame(height: 70)
+
+                            DatePickerRow(
+                                dates: dateRange,
+                                selectedDate: $selectedDate,
+                                showingChatCalendar: $showingChatCalendar
+                            )
+                            .padding(.horizontal, DatePickerConstants.horizontalPadding)
+                        }
+                        .padding(.top, -70) // Pull entire container up by 70pt
                         .id(chatUpdateTrigger) // Force refresh when data changes
                         .background(Color.clear)
-                        .listRowBackground(Color.clear)
+                        .listRowBackground(showGuides ? Color.mint.opacity(0.2) : Color.clear)
                         .listRowSeparator(.hidden)
-                        .listRowInsets(EdgeInsets()) // Remove default list insets
-                        .padding(.bottom, 20)
+                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                     }
 
                     // Date Navigation section
@@ -1051,6 +1056,7 @@ struct TodayView: View {
                     .listRowInsets(EdgeInsets())
             }
             .listStyle(.plain)
+            .listSectionSpacing(0) // Remove section spacing
             .scrollContentBackground(.hidden)
             .background(backgroundColor)
             .ignoresSafeArea(edges: .bottom)

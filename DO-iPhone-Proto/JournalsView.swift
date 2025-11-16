@@ -341,16 +341,23 @@ struct MonthHeaderView: View {
     let monthYear: String
 
     var body: some View {
-        HStack {
-            Text(monthYear)
-                .font(.subheadline)
-                .fontWeight(.semibold)
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal)
-                .padding(.vertical, 12)
-                .background(Color(UIColor.systemBackground))
+        VStack(spacing: 0) {
+            // Top spacer to push header below segmented control when pinned
+            Color.clear
+                .frame(height: 60)
+
+            HStack {
+                Text(monthYear)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
+                    .padding(.vertical, 12)
+                    .background(Color(UIColor.systemBackground))
+            }
         }
+        .background(Color(UIColor.systemBackground))
     }
 }
 

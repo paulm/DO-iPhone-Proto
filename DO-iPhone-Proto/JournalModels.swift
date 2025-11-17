@@ -173,9 +173,9 @@ struct JournalFolder: Identifiable, Equatable, Hashable {
         journals.count
     }
 
-    // Combined color for folder (uses first journal's color)
+    // Combined color for folder (always Deep Blue for collections)
     var color: Color {
-        journals.first?.color ?? .gray
+        Color(hex: "333B40")
     }
 
     func hash(into hasher: inout Hasher) {
@@ -202,23 +202,23 @@ extension Journal {
             Journal(name: "Journal", color: Color(hex: "44C0FF"), entryCount: 87), // DayOne Blue
             Journal(name: "Notes", color: Color(hex: "FFC107"), entryCount: 142), // Honey
             Journal(name: "Daily", color: Color(hex: "2DCC71"), entryCount: 63), // Green
-            // Work folder journals - all use Blue
+            // Work folder journals - different colors
             Journal(name: "Meeting Notes", color: Color(hex: "3398DB"), entryCount: 45), // Blue
-            Journal(name: "Product Docs", color: Color(hex: "3398DB"), entryCount: 28), // Blue
-            Journal(name: "Work Notes", color: Color(hex: "3398DB"), entryCount: 91), // Blue
+            Journal(name: "Product Docs", color: Color(hex: "6A6DCD"), entryCount: 28), // Iris
+            Journal(name: "Work Notes", color: Color(hex: "607D8B"), entryCount: 91), // Slate
             // Standalone journals
             Journal(name: "Dreams", color: Color(hex: "C27BD2"), entryCount: 19, coverImage: "bike"), // Lavender
             Journal(name: "Fitness", color: Color(hex: "FF983B"), entryCount: 104), // Fire
-            // Personal folder journals - all use Hot Pink
+            // Personal folder journals - different colors
             Journal(name: "Reflections", color: Color(hex: "E91E63"), entryCount: 56), // Hot Pink
-            Journal(name: "Ideas", color: Color(hex: "E91E63"), entryCount: 73), // Hot Pink
-            Journal(name: "Gratitude Daily", color: Color(hex: "E91E63"), entryCount: 38), // Hot Pink
+            Journal(name: "Ideas", color: Color(hex: "FFC107"), entryCount: 73), // Honey
+            Journal(name: "Gratitude Daily", color: Color(hex: "2DCC71"), entryCount: 38), // Green
             // Standalone journal
             Journal(name: "Movie Log", color: Color(hex: "6A6DCD"), entryCount: 22), // Iris
-            // Travel folder journals - all use Aqua
+            // Travel folder journals - different colors
             Journal(name: "Park City, Utah 2025-09", color: Color(hex: "16D6D9"), entryCount: 12), // Aqua
-            Journal(name: "Maui, Hawaii 2025-07", color: Color(hex: "16D6D9"), entryCount: 9), // Aqua
-            Journal(name: "Barcelona, Spain 2025-11", color: Color(hex: "16D6D9"), entryCount: 7) // Aqua
+            Journal(name: "Maui, Hawaii 2025-07", color: Color(hex: "C27BD2"), entryCount: 9), // Lavender
+            Journal(name: "Barcelona, Spain 2025-11", color: Color(hex: "FF983B"), entryCount: 7) // Fire
         ]
     }
 

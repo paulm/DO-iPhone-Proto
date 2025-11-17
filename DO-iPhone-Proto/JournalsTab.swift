@@ -1262,7 +1262,7 @@ struct CompactFolderRow: View {
         HStack(spacing: 12) {
             // Folder icon - tappable to toggle expand/collapse
             Button(action: onToggle) {
-                Image(systemName: isExpanded ? "folder.fill" : "folder")
+                Image(systemName: isExpanded ? "folder" : "folder.fill")
                     .font(.body)
                     .foregroundStyle(folder.color)
                     .frame(width: 12)
@@ -1315,7 +1315,7 @@ struct FolderRow: View {
             HStack(spacing: 16) {
                 // Folder icon - tappable to toggle expand/collapse
                 Button(action: onToggle) {
-                    Image(systemName: isExpanded ? "folder.fill" : "folder")
+                    Image(systemName: isExpanded ? "folder" : "folder.fill")
                         .font(.title2)
                         .foregroundStyle(folder.color)
                         .frame(width: 32)

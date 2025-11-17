@@ -128,11 +128,11 @@ struct TodayView: View {
         let columnsPerRow = Int((approximateWidth + DatePickerConstants.spacing) / (DatePickerConstants.circleSize + DatePickerConstants.spacing))
         let totalDates = columnsPerRow * DatePickerConstants.numberOfRows
 
-        // Calculate the starting date to ensure we end at least 5 days in the future (for Date Picker Row)
-        let endDate = 5
+        // Calculate the starting date to ensure we end at least 2 days in the future (for Date Picker Row)
+        let endDate = 2
         let startDate = endDate - totalDates + 1
 
-        // Generate dates from calculated start to 5 days in the future
+        // Generate dates from calculated start to 2 days in the future
         for i in startDate...endDate {
             if let date = calendar.date(byAdding: .day, value: i, to: today) {
                 dates.append(date)

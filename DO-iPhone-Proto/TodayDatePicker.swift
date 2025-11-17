@@ -588,8 +588,8 @@ struct DatePickerRow: View {
         // Add today
         allDates.append(today)
 
-        // Add 5 future days (from +1 to +5)
-        for i in 1...5 {
+        // Add 5 future days (from +1 to +2)
+        for i in 1...2 {
             if let date = calendar.date(byAdding: .day, value: i, to: today) {
                 allDates.append(date)
             }

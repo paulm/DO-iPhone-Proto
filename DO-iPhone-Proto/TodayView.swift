@@ -10,6 +10,7 @@ enum TodayViewStyle: String, CaseIterable {
 /// Today tab view
 struct TodayView: View {
     @State private var showingSettings = false
+    @State private var showingSectionsOrder = false
     @State private var showingDatePicker = false
     @State private var showingDailySurvey = false
     @State private var showingTrackers = false
@@ -72,10 +73,11 @@ struct TodayView: View {
     @State private var showingChatCalendar = false
 
     // Show/hide toggles for Daily Activities
-    @State private var showDatePickerGrid = false
-    @State private var showDatePickerRow = true
-    @State private var showDateNavigation = true
-    @State private var showMoments = true
+    @AppStorage("showDatePickerGrid") private var showDatePickerGrid = false
+    @AppStorage("showDatePickerRow") private var showDatePickerRow = true
+    @AppStorage("showDateNavigation") private var showDateNavigation = true
+    @AppStorage("showEntries") private var showEntries = true
+    @AppStorage("showMoments") private var showMoments = true
     @State private var showGuides = false
     @State private var selectedPrompt: String? = nil
 
@@ -102,9 +104,14 @@ struct TodayView: View {
     @AppStorage("showBioSection") private var showBioSection = false
     @AppStorage("todayViewStyle") private var selectedStyle = TodayViewStyle.standard
     @AppStorage("showWelcomeToTodaySheet") private var showWelcomeToTodaySheet = false
+    @AppStorage("sectionOrder") private var sectionOrderData: Data = {
+        let encoder = JSONEncoder()
+        return (try? encoder.encode(SectionItem.allSections)) ?? Data()
+    }()
 
     // Sheet presentation state
     @State private var shouldPresentWelcomeSheet = false
+    @State private var sectionOrder: [SectionItem] = SectionItem.allSections
 
     private var hasMomentsSelected: Bool {
         !selectedMomentsPlaces.isEmpty || !selectedMomentsEvents.isEmpty || !selectedMomentsPhotos.isEmpty
@@ -914,6 +921,129 @@ struct TodayView: View {
         }
     }
 
+    // Extract Bio section as computed property
+    @ViewBuilder
+    private var bioSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 12) {
+                // Header content (title and subtitle outside the rounded rect)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Bio")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundStyle(Color(hex: "292F33"))
+                    Text("Personal information and health data")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+
+                // Bio button in rounded rectangle
+                VStack(alignment: .leading, spacing: 0) {
+                    Button(action: {
+                        showingBio = true
+                    }) {
+                        HStack {
+                            Image(systemName: "person.text.rectangle")
+                                .font(.system(size: 16))
+                                .foregroundStyle(.primary)
+                                .frame(width: 28)
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("View & Edit Bio")
+                                    .font(.system(size: 16))
+                                    .foregroundStyle(.primary)
+
+                                Text("Manage your personal profile")
+                                    .font(.system(size: 13))
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                            }
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(Color(.systemGray3))
+                        }
+                        .padding(.vertical, 16)
+                        .padding(.horizontal, 16)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+                .background(Color(.systemGray6))
+                .clipShape(RoundedRectangle(cornerRadius: 24))
+            }
+        }
+        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+        .listRowBackground(Color.clear)
+        .listRowSeparator(.hidden)
+    }
+
+    // Helper method to render sections in custom order
+    @ViewBuilder
+    private func sectionView(for sectionId: String) -> some View {
+        switch sectionId {
+        case "dateNavigation":
+            dateNavigationSection
+                .id("dateNavigation")
+        case "datePickerGrid":
+            if showDatePickerGrid {
+                DatePickerGrid(
+                    dates: dateRange,
+                    selectedDate: $selectedDate,
+                    showingChatCalendar: $showingChatCalendar,
+                    showDates: false,
+                    showStreak: false
+                )
+                .padding(.horizontal, DatePickerConstants.horizontalPadding)
+                .id(chatUpdateTrigger)
+                .background(Color.clear)
+                .listRowBackground(showGuides ? Color.indigo.opacity(0.2) : Color.clear)
+                .listRowSeparator(.hidden)
+                .listRowInsets(EdgeInsets())
+                .padding(.bottom, 20)
+            }
+        case "datePickerRow":
+            if showDatePickerRow {
+                DatePickerRow(
+                    dates: dateRange,
+                    selectedDate: $selectedDate,
+                    showingChatCalendar: $showingChatCalendar
+                )
+                .padding(.horizontal, DatePickerConstants.horizontalPadding)
+                .padding(.vertical, 10)
+                .id(chatUpdateTrigger)
+                .background(Color.clear)
+                .listRowBackground(showGuides ? Color.mint.opacity(0.2) : Color.clear)
+                .listRowSeparator(.hidden)
+                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+            }
+        case "entries":
+            if showEntries {
+                entryLinksSection
+            }
+        case "dailyEntryChat":
+            if showDailyEntryChat {
+                dailyEntryChatSection
+            }
+        case "moments":
+            if showMoments {
+                momentsEventsSection
+                momentsPlacesSection
+                momentsPhotosSection
+                momentsTrackersSection
+                momentsInputsSection
+            }
+        case "bio":
+            if showBioSection {
+                bioSection
+            }
+        default:
+            EmptyView()
+        }
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -928,118 +1058,10 @@ struct TodayView: View {
                         .listRowInsets(EdgeInsets())
                         .id("scrollAnchor")
 
-                    // Date picker grid at top of scrollable content (off by default for now)
-                    if showDatePickerGrid {
-                        DatePickerGrid(
-                            dates: dateRange,
-                            selectedDate: $selectedDate,
-                            showingChatCalendar: $showingChatCalendar,
-                            showDates: false,
-                            showStreak: false
-                        )
-                        .padding(.horizontal, DatePickerConstants.horizontalPadding)
-                        .id(chatUpdateTrigger) // Force refresh when data changes
-                        .background(Color.clear)
-                        .listRowBackground(showGuides ? Color.indigo.opacity(0.2) : Color.clear)
-                        .listRowSeparator(.hidden)
-                        .listRowInsets(EdgeInsets()) // Remove default list insets
-                        .padding(.bottom, 20)
+                    // Render sections in custom order
+                    ForEach(sectionOrder) { section in
+                        sectionView(for: section.id)
                     }
-
-                    // Date picker row (single row version)
-                    if showDatePickerRow {
-                        DatePickerRow(
-                            dates: dateRange,
-                            selectedDate: $selectedDate,
-                            showingChatCalendar: $showingChatCalendar
-                        )
-                        .padding(.horizontal, DatePickerConstants.horizontalPadding)
-                        .padding(.vertical, 10) // Add 10pt to top and bottom
-                        .id(chatUpdateTrigger) // Force refresh when data changes
-                        .background(Color.clear)
-                        .listRowBackground(showGuides ? Color.mint.opacity(0.2) : Color.clear)
-                        .listRowSeparator(.hidden)
-                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                    }
-
-                    // Date Navigation section
-                    dateNavigationSection
-                        .id("dateNavigation")
-
-                // Entries Section - Two buttons side by side (no title)
-                entryLinksSection
-
-                // Daily Chat Carousel Section
-                if showDailyEntryChat {
-                    dailyEntryChatSection
-                }
-
-                // Moments Section
-                if showMoments {
-                    momentsEventsSection
-                    momentsPlacesSection
-                    momentsPhotosSection
-                    momentsTrackersSection
-                    momentsInputsSection
-                }
-
-                // Bio Section
-                if showBioSection {
-                    Section {
-                        VStack(alignment: .leading, spacing: 12) {
-                            // Header content (title and subtitle outside the rounded rect)
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Bio")
-                                    .font(.title2)
-                                    .fontWeight(.bold)
-                                    .foregroundStyle(Color(hex: "292F33"))
-                                Text("Personal information and health data")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                            }
-
-                            // Bio button in rounded rectangle
-                            VStack(alignment: .leading, spacing: 0) {
-                                Button(action: {
-                                    showingBio = true
-                                }) {
-                                    HStack {
-                                        Image(systemName: "person.text.rectangle")
-                                            .font(.system(size: 16))
-                                            .foregroundStyle(.primary)
-                                            .frame(width: 28)
-
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text("View & Edit Bio")
-                                                .font(.system(size: 16))
-                                                .foregroundStyle(.primary)
-
-                                            Text("Manage your personal profile")
-                                                .font(.system(size: 13))
-                                                .foregroundStyle(.secondary)
-                                                .lineLimit(1)
-                                        }
-
-                                        Spacer()
-
-                                        Image(systemName: "chevron.right")
-                                            .font(.system(size: 13, weight: .medium))
-                                            .foregroundStyle(Color(.systemGray3))
-                                    }
-                                    .padding(.vertical, 16)
-                                    .padding(.horizontal, 16)
-                                    .contentShape(Rectangle())
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                            }
-                            .background(Color(.systemGray6))
-                            .clipShape(RoundedRectangle(cornerRadius: 24))
-                        }
-                    }
-                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-                }
 
                 // Extra space at bottom to allow scrolling content above bottom elements
                 Color.clear
@@ -1107,12 +1129,16 @@ struct TodayView: View {
                         showingChatSettings = true
                     }
                 } label: {
-                    Image(systemName: "ellipsis.circle")
+                    Image(systemName: "ellipsis")
                 }
 
                 Menu {
                     Button("Settings") {
                         showingSettings = true
+                    }
+
+                    Button("Sort Sections") {
+                        showingSectionsOrder = true
                     }
 
                     Section("Today Sections") {
@@ -1145,6 +1171,17 @@ struct TodayView: View {
                             HStack {
                                 Text("Date Navigation")
                                 if showDateNavigation {
+                                    Image(dayOneIcon: .checkmark)
+                                }
+                            }
+                        }
+
+                        Button {
+                            showEntries.toggle()
+                        } label: {
+                            HStack {
+                                Text("Entries")
+                                if showEntries {
                                     Image(dayOneIcon: .checkmark)
                                 }
                             }
@@ -1398,6 +1435,9 @@ struct TodayView: View {
                 peopleInput: $peopleInput
             )
         }
+        .sheet(isPresented: $showingSectionsOrder) {
+            SectionsOrderView()
+        }
         .sheet(isPresented: $showingTrackers) {
             TrackerView(
                 moodRating: $moodRating,
@@ -1595,6 +1635,9 @@ struct TodayView: View {
             // Update Moments data based on selected date
             updateMomentsDataForSelectedDate()
 
+            // Load section order
+            loadSectionOrder()
+
             // Show Welcome to Today sheet if enabled
             if showWelcomeToTodaySheet {
                 shouldPresentWelcomeSheet = true
@@ -1627,11 +1670,44 @@ struct TodayView: View {
                 chatUpdateTrigger.toggle()
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("SectionOrderChanged"))) { _ in
+            // Reload section order when it changes
+            DispatchQueue.main.async {
+                loadSectionOrder()
+            }
+        }
         .onChange(of: hasMomentsSelected) { oldValue, newValue in
             // Show Create Entry FAB when any moments are selected
             if newValue {
                 showEntryFAB = true
             }
+        }
+    }
+
+    private func loadSectionOrder() {
+        let decoder = JSONDecoder()
+        if let decodedSections = try? decoder.decode([SectionItem].self, from: sectionOrderData) {
+            // Merge with allSections to add any new sections that don't exist yet
+            var mergedSections = decodedSections
+
+            // Find sections in allSections that aren't in decodedSections
+            let existingIds = Set(decodedSections.map { $0.id })
+            let newSections = SectionItem.allSections.filter { !existingIds.contains($0.id) }
+
+            // Add new sections to the end
+            mergedSections.append(contentsOf: newSections)
+
+            sectionOrder = mergedSections
+
+            // If we added new sections, save the updated order
+            if !newSections.isEmpty {
+                let encoder = JSONEncoder()
+                if let encoded = try? encoder.encode(mergedSections) {
+                    sectionOrderData = encoded
+                }
+            }
+        } else {
+            sectionOrder = SectionItem.allSections
         }
     }
 

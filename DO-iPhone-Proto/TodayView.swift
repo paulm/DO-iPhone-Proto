@@ -100,7 +100,6 @@ struct TodayView: View {
     @AppStorage("showChatInputBox") private var showChatInputBox = false
     @AppStorage("showChatMessage") private var showChatMessage = false
     @AppStorage("showDailyEntryChat") private var showDailyEntryChat = true
-    @AppStorage("showLogVoiceModeButtons") private var showLogVoiceModeButtons = false
     @AppStorage("showBioSection") private var showBioSection = false
     @AppStorage("todayViewStyle") private var selectedStyle = TodayViewStyle.standard
     @AppStorage("showWelcomeToTodaySheet") private var showWelcomeToTodaySheet = false
@@ -401,8 +400,7 @@ struct TodayView: View {
                     showingEntry: $showingEntry,
                     entryData: $entryData,
                     showingPreviewEntry: $showingPreviewEntry,
-                    openDailyChatInLogMode: $openDailyChatInLogMode,
-                    showLogVoiceModeButtons: showLogVoiceModeButtons
+                    openDailyChatInLogMode: $openDailyChatInLogMode
                 )
                 .id(chatUpdateTrigger) // Force refresh when chat updates
             }
@@ -1106,6 +1104,7 @@ struct TodayView: View {
                     Image(dayOneIcon: .calendar)
                 }
 
+                // New ellipsis menu with Edit Bio and Daily Chat Settings
                 Menu {
                     Button("Edit Bio") {
                         showingBio = true
@@ -1114,16 +1113,13 @@ struct TodayView: View {
                     Button("Daily Chat Settings") {
                         showingChatSettings = true
                     }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                }
 
-                    Divider()
-
+                Menu {
                     Button("Settings") {
                         showingSettings = true
-                    }
-
-                    // DEBUG: Reset first-time journal alert
-                    Button("Reset Journal Selection (Debug)") {
-                        hasShownFirstTimeJournalAlert = false
                     }
 
                     Section("Show in Today") {
@@ -1200,17 +1196,6 @@ struct TodayView: View {
                             HStack {
                                 Text("Guides")
                                 if showGuides {
-                                    Image(dayOneIcon: .checkmark)
-                                }
-                            }
-                        }
-
-                        Button {
-                            showLogVoiceModeButtons.toggle()
-                        } label: {
-                            HStack {
-                                Text("Log and Voice Mode Buttons")
-                                if showLogVoiceModeButtons {
                                     Image(dayOneIcon: .checkmark)
                                 }
                             }

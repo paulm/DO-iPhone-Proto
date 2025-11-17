@@ -19,10 +19,7 @@ struct DailyEntryChatView: View {
     @Binding var entryData: EntryView.EntryData?  // Entry data to pass to EntryView
     @Binding var showingPreviewEntry: Bool  // Shows Chat Entry Preview (summary)
     @Binding var openDailyChatInLogMode: Bool  // Whether to open chat in log mode
-    
-    // UI configuration
-    let showLogVoiceModeButtons: Bool
-    
+
     // State for confirmation alert and update process
     @State private var showingUpdateConfirmation = false
     @State private var isUpdatingEntry = false

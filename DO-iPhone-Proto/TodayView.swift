@@ -98,7 +98,6 @@ struct TodayView: View {
     @AppStorage("showChatFAB") private var showChatFAB = false
     @AppStorage("showEntryFAB") private var showEntryFAB = false
     @AppStorage("showChatInputBox") private var showChatInputBox = false
-    @AppStorage("showChatMessage") private var showChatMessage = false
     @AppStorage("showDailyEntryChat") private var showDailyEntryChat = true
     @AppStorage("showBioSection") private var showBioSection = false
     @AppStorage("todayViewStyle") private var selectedStyle = TodayViewStyle.standard
@@ -1077,13 +1076,7 @@ struct TodayView: View {
                 // Chat elements at bottom
                 VStack {
                     Spacer()
-                    VStack(spacing: 12) {  // Increased spacing from 8pt to 18pt (10pt more)
-                        // Chat Message Bubble
-                        if showChatMessage && !chatCompleted {
-                            ChatMessageBubbleView(dayOfWeek: currentDayName)
-                                .id(selectedDate) // Force recreation when date changes
-                        }
-
+                    VStack(spacing: 12) {
                         // Chat Input Box
                         if showChatInputBox {
                             ChatInputBoxView {
@@ -1122,7 +1115,7 @@ struct TodayView: View {
                         showingSettings = true
                     }
 
-                    Section("Show in Today") {
+                    Section("Today Sections") {
 
                         Button {
                             showDatePickerGrid.toggle()
@@ -1190,17 +1183,9 @@ struct TodayView: View {
                             }
                         }
 
-                        Button {
-                            showGuides.toggle()
-                        } label: {
-                            HStack {
-                                Text("Guides")
-                                if showGuides {
-                                    Image(dayOneIcon: .checkmark)
-                                }
-                            }
-                        }
+                    }
 
+                    Section("Show") {
                         Button {
                             showWelcomeToTodaySheet.toggle()
                         } label: {
@@ -1212,9 +1197,6 @@ struct TodayView: View {
                             }
                         }
 
-                    }
-
-                    Section("Show HUD") {
                         Button {
                             showChatFAB.toggle()
                         } label: {
@@ -1247,17 +1229,6 @@ struct TodayView: View {
                                 }
                             }
                         }
-
-                        Button {
-                            showChatMessage.toggle()
-                        } label: {
-                            HStack {
-                                Text("Chat Message")
-                                if showChatMessage {
-                                    Image(dayOneIcon: .checkmark)
-                                }
-                            }
-                        }
                     }
 
                     Section("Populate Data") {
@@ -1279,6 +1250,19 @@ struct TodayView: View {
 
                         Button("Add Events") {
                             addEventsData()
+                        }
+                    }
+
+                    Section("UI Helpers") {
+                        Button {
+                            showGuides.toggle()
+                        } label: {
+                            HStack {
+                                Text("Show Section Guides")
+                                if showGuides {
+                                    Image(dayOneIcon: .checkmark)
+                                }
+                            }
                         }
                     }
                 } label: {

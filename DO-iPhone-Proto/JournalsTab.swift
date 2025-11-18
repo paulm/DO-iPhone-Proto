@@ -104,6 +104,11 @@ struct JournalsTabPagedView: View {
         }
     }
 
+    // Should show All Entries only when there are 2 or more journals
+    private var shouldShowAllEntries: Bool {
+        return filteredJournals.count > 1
+    }
+
     private var folders: [JournalFolder] {
         return filteredFolders
     }
@@ -289,8 +294,8 @@ struct JournalsTabPagedView: View {
                 .padding(.horizontal)
                 .padding(.bottom, 8)
 
-            // All Entries at the top
-            if let allEntries = Journal.allEntriesJournal {
+            // All Entries at the top (only show when there are 2+ journals)
+            if shouldShowAllEntries, let allEntries = Journal.allEntriesJournal {
                 CompactJournalRow(
                     journal: allEntries,
                     isSelected: allEntries.id == journalViewModel.selectedJournal.id,
@@ -479,8 +484,8 @@ struct JournalsTabPagedView: View {
                 .padding(.horizontal)
                 .padding(.bottom, 8)
 
-            // All Entries at the top
-            if let allEntries = Journal.allEntriesJournal {
+            // All Entries at the top (only show when there are 2+ journals)
+            if shouldShowAllEntries, let allEntries = Journal.allEntriesJournal {
                 JournalRow(
                     journal: allEntries,
                     isSelected: allEntries.id == journalViewModel.selectedJournal.id,
@@ -623,8 +628,8 @@ struct JournalsTabPagedView: View {
 
     private var gridJournalList: some View {
         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 3), spacing: 20) {
-            // All Entries at the top
-            if let allEntries = Journal.allEntriesJournal {
+            // All Entries at the top (only show when there are 2+ journals)
+            if shouldShowAllEntries, let allEntries = Journal.allEntriesJournal {
                 JournalBookView(
                     journal: allEntries,
                     isSelected: allEntries.id == journalViewModel.selectedJournal.id,

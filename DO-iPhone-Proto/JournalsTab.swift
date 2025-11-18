@@ -636,6 +636,10 @@ struct JournalsTabPagedView: View {
                     onSelect: {
                         journalViewModel.selectJournal(allEntries)
                         selectedJournal = allEntries
+                    },
+                    onNewEntry: {
+                        journalViewModel.selectJournal(allEntries)
+                        showingNewEntry = true
                     }
                 )
             }
@@ -652,6 +656,10 @@ struct JournalsTabPagedView: View {
                             onSelect: {
                                 journalViewModel.selectJournal(journal)
                                 selectedJournal = journal
+                            },
+                            onNewEntry: {
+                                journalViewModel.selectJournal(journal)
+                                showingNewEntry = true
                             }
                         )
                     }
@@ -662,6 +670,10 @@ struct JournalsTabPagedView: View {
                         onSelect: {
                             journalViewModel.selectJournal(journal)
                             selectedJournal = journal
+                        },
+                        onNewEntry: {
+                            journalViewModel.selectJournal(journal)
+                            showingNewEntry = true
                         }
                     )
                 }

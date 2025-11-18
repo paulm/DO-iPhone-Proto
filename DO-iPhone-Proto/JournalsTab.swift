@@ -9,6 +9,14 @@ enum ViewMode: Int, CaseIterable {
     case grid = 2
 }
 
+// MARK: - Journals Population Enum
+
+enum JournalsPopulation: String, CaseIterable {
+    case newUser = "New User"
+    case threeJournals = "3 Journals"
+    case lots = "Lots"
+}
+
 // MARK: - Journals Tab Paged Variant
 
 struct JournalEntry {
@@ -49,6 +57,7 @@ struct JournalsTabPagedView: View {
     @State private var isEditMode = false
     @State private var journalItems: [Journal.MixedJournalItem] = Journal.mixedJournalItems
     @State private var useSeparatedCollections = true
+    @State private var journalsPopulation: JournalsPopulation = .lots
 
     // Folder expansion state - expand all by default
     @State private var expandedFolders: Set<String> = Set(Journal.folders.map { $0.id })
@@ -56,9 +65,47 @@ struct JournalsTabPagedView: View {
     // Sheet regular position from top (in points)
     let sheetRegularPosition: CGFloat = 250
 
-    // Get visible journals and folders
+    // Get visible journals and folders based on population setting
+    private var filteredJournals: [Journal] {
+        let allJournals = Journal.sampleJournals
+        switch journalsPopulation {
+        case .newUser:
+            // Return only the first journal ("Journal")
+            return Array(allJournals.prefix(1))
+        case .threeJournals:
+            // Return Journal, Notes, Daily (first 3 journals)
+            return Array(allJournals.prefix(3))
+        case .lots:
+            // Return all journals
+            return allJournals
+        }
+    }
+
+    private var filteredFolders: [JournalFolder] {
+        switch journalsPopulation {
+        case .newUser, .threeJournals:
+            // No folders for simplified modes
+            return []
+        case .lots:
+            // Return all folders
+            return Journal.folders
+        }
+    }
+
+    private var filteredMixedJournalItems: [Journal.MixedJournalItem] {
+        // For newUser and threeJournals modes, only show standalone journals (no folders)
+        switch journalsPopulation {
+        case .newUser, .threeJournals:
+            // Create mixed items from filtered journals only
+            return filteredJournals.map { Journal.MixedJournalItem(journal: $0) }
+        case .lots:
+            // Return all mixed items (journals and folders)
+            return Journal.mixedJournalItems
+        }
+    }
+
     private var folders: [JournalFolder] {
-        return Journal.folders
+        return filteredFolders
     }
 
     private var unfolderedJournals: [Journal] {
@@ -145,6 +192,15 @@ struct JournalsTabPagedView: View {
                             Toggle(isOn: $useSeparatedCollections) {
                                 Label("Separated Collections", systemImage: "folder.badge.gearshape")
                             }
+                        }
+
+                        Section("Journals Population") {
+                            Picker("Population", selection: $journalsPopulation) {
+                                ForEach(JournalsPopulation.allCases, id: \.self) { option in
+                                    Text(option.rawValue).tag(option)
+                                }
+                            }
+                            .pickerStyle(.inline)
                         }
                     } label: {
                         Circle()
@@ -247,7 +303,7 @@ struct JournalsTabPagedView: View {
 
             if useSeparatedCollections {
                 // Show only journals (no folders mixed in)
-                ForEach(Journal.mixedJournalItems) { item in
+                ForEach(filteredMixedJournalItems) { item in
                     if let journal = item.journal {
                         CompactJournalRow(
                             journal: journal,
@@ -260,15 +316,17 @@ struct JournalsTabPagedView: View {
                     }
                 }
 
-                // Collections section header
-                Text("Collections")
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.primary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal)
-                    .padding(.top, 24)
-                    .padding(.bottom, 8)
+                // Collections section header (only show if there are folders)
+                if !filteredFolders.isEmpty {
+                    Text("Collections")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.primary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal)
+                        .padding(.top, 24)
+                        .padding(.bottom, 8)
+                }
 
                 // Show folders separately
                 ForEach(folders) { folder in
@@ -304,7 +362,7 @@ struct JournalsTabPagedView: View {
                 }
             } else {
                 // Mixed folders and journals (original behavior)
-                ForEach(Journal.mixedJournalItems) { item in
+                ForEach(filteredMixedJournalItems) { item in
                     if item.isFolder, let folder = item.folder {
                         CompactFolderRow(
                             folder: folder,
@@ -353,24 +411,23 @@ struct JournalsTabPagedView: View {
         .padding(.bottom, 100)
     }
     
-    // Recent journals for horizontal scroll - pick from actual journals, always including Journal, Work Notes, Daily
+    // Recent journals for horizontal scroll - pick from filtered journals, always including Journal, Work Notes, Daily (if available)
     private var recentJournals: [Journal] {
-        let allJournals = Journal.sampleJournals
         var recents: [Journal] = []
 
-        // Always include these three
-        if let journal = allJournals.first(where: { $0.name == "Journal" }) {
+        // Always include these three if available
+        if let journal = filteredJournals.first(where: { $0.name == "Journal" }) {
             recents.append(journal)
         }
-        if let workNotes = allJournals.first(where: { $0.name == "Work Notes" }) {
+        if let workNotes = filteredJournals.first(where: { $0.name == "Work Notes" }) {
             recents.append(workNotes)
         }
-        if let daily = allJournals.first(where: { $0.name == "Daily" }) {
+        if let daily = filteredJournals.first(where: { $0.name == "Daily" }) {
             recents.append(daily)
         }
 
         // Add a few more from the available journals
-        let remaining = allJournals.filter { journal in
+        let remaining = filteredJournals.filter { journal in
             !["Journal", "Work Notes", "Daily"].contains(journal.name)
         }
         recents.append(contentsOf: remaining.prefix(3))
@@ -437,7 +494,7 @@ struct JournalsTabPagedView: View {
 
             if useSeparatedCollections {
                 // Show only journals (no folders mixed in)
-                ForEach(journalItems) { item in
+                ForEach(filteredMixedJournalItems) { item in
                     if let journal = item.journal {
                         JournalRow(
                             journal: journal,
@@ -454,15 +511,17 @@ struct JournalsTabPagedView: View {
                     journalItems.move(fromOffsets: indices, toOffset: newOffset)
                 }
 
-                // Collections section header
-                Text("Collections")
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.primary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal)
-                    .padding(.top, 24)
-                    .padding(.bottom, 8)
+                // Collections section header (only show if there are folders)
+                if !filteredFolders.isEmpty {
+                    Text("Collections")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.primary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal)
+                        .padding(.top, 24)
+                        .padding(.bottom, 8)
+                }
 
                 // Show folders separately
                 ForEach(folders) { folder in
@@ -503,7 +562,7 @@ struct JournalsTabPagedView: View {
                 }
             } else {
                 // Mixed folders and journals (original behavior)
-                ForEach(journalItems) { item in
+                ForEach(filteredMixedJournalItems) { item in
                     if item.isFolder, let folder = item.folder {
                         FolderRow(
                             folder: folder,
@@ -578,7 +637,7 @@ struct JournalsTabPagedView: View {
 
             // Mixed folders and journals for Books view
             // Note: Books view doesn't support expand/collapse, just shows all journals flat
-            ForEach(Journal.mixedJournalItems) { item in
+            ForEach(filteredMixedJournalItems) { item in
                 if item.isFolder, let folder = item.folder {
                     // Show folder journals in Books view
                     ForEach(folder.journals) { journal in

@@ -1586,19 +1586,27 @@ struct FolderRow: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 16) {
-                // Folder icon - tappable to toggle expand/collapse
+            HStack(spacing: 12) {
+                // Disclosure toggle - rotates when expanded (like Files app)
                 Button(action: onToggle) {
-                    Image(systemName: isExpanded ? "folder" : "folder.fill")
-                        .font(.title2)
-                        .foregroundStyle(folder.color)
-                        .frame(width: 32)
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                        .animation(.easeInOut(duration: 0.2), value: isExpanded)
+                        .frame(width: 20, height: 20)
                 }
                 .buttonStyle(PlainButtonStyle())
 
-                // Folder content - tappable to select folder
+                // Folder icon and content - tappable to select folder
                 Button(action: onSelectFolder) {
-                    HStack(spacing: 16) {
+                    HStack(spacing: 12) {
+                        // Folder icon
+                        Image(systemName: "folder.fill")
+                            .font(.title2)
+                            .foregroundStyle(Color(hex: "44C0FF")) // Day One Blue
+                            .frame(width: 32)
+
                         // Folder info
                         VStack(alignment: .leading, spacing: 2) {
                             Text(folder.name)
@@ -1622,20 +1630,51 @@ struct FolderRow: View {
                         }
 
                         Spacer()
-
-                        // Show drag handle in edit mode, chevron otherwise
-                        if isEditMode {
-                            Image(systemName: "line.3.horizontal")
-                                .font(.system(size: 14, weight: .regular))
-                                .foregroundStyle(.secondary)
-                        } else {
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(.tertiary)
-                        }
                     }
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(PlainButtonStyle())
+
+                // Show drag handle in edit mode, ellipsis menu otherwise
+                if isEditMode {
+                    Image(systemName: "line.3.horizontal")
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundStyle(.secondary)
+                } else {
+                    Menu {
+                        Button(action: {
+                            onSelectFolder()
+                        }) {
+                            Label("Open Collection", systemImage: "folder")
+                        }
+
+                        Button(action: {
+                            // TODO: Edit folder action
+                        }) {
+                            Label("Edit Collection", systemImage: "pencil")
+                        }
+
+                        Divider()
+
+                        Button(action: {
+                            // TODO: Share action
+                        }) {
+                            Label("Share", systemImage: "square.and.arrow.up")
+                        }
+
+                        Button(role: .destructive, action: {
+                            // TODO: Delete action
+                        }) {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .font(.system(size: 14, weight: .regular))
+                            .foregroundStyle(.secondary)
+                            .frame(width: 30, height: 30)
+                            .contentShape(Rectangle())
+                    }
+                }
             }
             .padding(.vertical, 12)
             .padding(.horizontal, 16)
@@ -1657,76 +1696,109 @@ struct JournalRow: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Button(action: onSelect) {
-                HStack(spacing: 16) {
-                    // Color square
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(journal.color)
-                        .frame(width: 30, height: 40)
-                        .overlay(
-                            // Vertical line inset 2pt from left
-                            GeometryReader { geometry in
-                                Rectangle()
-                                    .fill(Color.black.opacity(0.1))
-                                    .frame(width: 1)
-                                    .offset(x: 3)
-                            }
-                        )
+            HStack(spacing: 16) {
+                // Main content - tappable to select
+                Button(action: onSelect) {
+                    HStack(spacing: 16) {
+                        // Color square
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(journal.color)
+                            .frame(width: 30, height: 40)
+                            .overlay(
+                                // Vertical line inset 2pt from left
+                                GeometryReader { geometry in
+                                    Rectangle()
+                                        .fill(Color.black.opacity(0.1))
+                                        .frame(width: 1)
+                                        .offset(x: 3)
+                                }
+                            )
 
-                    // Journal info
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(journal.name)
-                            .font(.headline)
-                            .fontWeight(.medium)
-                            .foregroundStyle(.primary)
+                        // Journal info
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(journal.name)
+                                .font(.headline)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.primary)
 
-                        // Show journal count for "All Entries"
-                        if let journalCount = journal.journalCount {
-                            HStack(spacing: 4) {
-                                Text("\(journalCount) journals")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-
-                                Text("•")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-
-                                if let entryCount = journal.entryCount {
-                                    Text("\(entryCount) entries")
+                            // Show journal count for "All Entries"
+                            if let journalCount = journal.journalCount {
+                                HStack(spacing: 4) {
+                                    Text("\(journalCount) journals")
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
+
+                                    Text("•")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+
+                                    if let entryCount = journal.entryCount {
+                                        Text("\(entryCount) entries")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
                                 }
+                            } else if let count = journal.entryCount {
+                                Text("\(count) entries")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
                             }
-                        } else if let count = journal.entryCount {
-                            Text("\(count) entries")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
                         }
+
+                        Spacer()
                     }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(PlainButtonStyle())
 
-                    Spacer()
+                // Show drag handle in edit mode, ellipsis menu otherwise
+                if isEditMode {
+                    Image(systemName: "line.3.horizontal")
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundStyle(.secondary)
+                } else {
+                    Menu {
+                        Button(action: {
+                            // TODO: Edit journal action
+                        }) {
+                            Label("Edit Journal", systemImage: "pencil")
+                        }
 
-                    // Show drag handle in edit mode, chevron otherwise
-                    if isEditMode {
-                        Image(systemName: "line.3.horizontal")
+                        Button(action: {
+                            // TODO: New entry action
+                        }) {
+                            Label("New Entry", systemImage: "plus")
+                        }
+
+                        Divider()
+
+                        Button(action: {
+                            // TODO: Share action
+                        }) {
+                            Label("Share", systemImage: "square.and.arrow.up")
+                        }
+
+                        Button(role: .destructive, action: {
+                            // TODO: Delete action
+                        }) {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
                             .font(.system(size: 14, weight: .regular))
                             .foregroundStyle(.secondary)
-                    } else {
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(.tertiary)
+                            .frame(width: 30, height: 30)
+                            .contentShape(Rectangle())
                     }
                 }
-                .padding(.vertical, 7)
-                .padding(.horizontal, 16)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(isSelected ? .gray.opacity(0.15) : .clear)
-                        .padding(.vertical, 0)
-                )
-                .contentShape(Rectangle())
             }
-            .buttonStyle(PlainButtonStyle())
+            .padding(.vertical, 7)
+            .padding(.horizontal, 16)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(isSelected ? .gray.opacity(0.15) : .clear)
+                    .padding(.vertical, 0)
+            )
             .padding(.bottom, 4)
 
             Divider()
@@ -1738,7 +1810,7 @@ struct JournalRow: View {
             }) {
                 Label("Edit Journal", systemImage: "pencil")
             }
-            
+
             Button(action: {
                 // TODO: New entry action
             }) {

@@ -167,7 +167,8 @@ struct DailyChatView: View {
     @State private var isUpdatingEntry = false
     @State private var showingVoiceMode = false
     @State private var showingChatInfo = false
-    
+    @State private var showTimestamps = false
+
     private let chatSessionManager = ChatSessionManager.shared
     
     private var dayOfWeek: String {
@@ -428,7 +429,7 @@ struct DailyChatView: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(spacing: 12) {
-                        ForEach(messages) { message in
+                        ForEach(Array(messages.enumerated()), id: \.element.id) { index, message in
                             DailyChatBubbleView(
                                 message: message,
                                 selectedDate: selectedDate,
@@ -440,7 +441,8 @@ struct DailyChatView: View {
                                 onToggleIgnore: {
                                     ChatSessionManager.shared.toggleIgnoreStatus(withId: message.id, for: selectedDate)
                                     messages = ChatSessionManager.shared.getMessages(for: selectedDate)
-                                }
+                                },
+                                showTimestamp: showTimestamps && (index + 1) % 3 == 0
                             )
                             .id(message.id)
                         }
@@ -668,6 +670,14 @@ struct DailyChatView: View {
                         }) {
                             Label("Clear Chat", dayOneIcon: .trash)
                                 .foregroundStyle(.red)
+                        }
+
+                        Divider()
+
+                        Section("Daily Chat Options") {
+                            Toggle(isOn: $showTimestamps) {
+                                Label("Show Timestamps", systemImage: "clock")
+                            }
                         }
                     } label: {
                         Image(systemName: "ellipsis")
@@ -1011,6 +1021,23 @@ struct DailyChatBubbleView: View {
     let selectedDate: Date
     let onRemove: () -> Void
     let onToggleIgnore: () -> Void
+    var showTimestamp: Bool = false
+
+    private var formattedTimestamp: String {
+        let formatter = DateFormatter()
+        let calendar = Calendar.current
+
+        // Check if message timestamp is on a different day than selectedDate
+        if !calendar.isDate(message.timestamp, inSameDayAs: selectedDate) {
+            // Show short date with time for different days
+            formatter.dateStyle = .short
+            formatter.timeStyle = .short
+        } else {
+            // Show just time for same day
+            formatter.dateFormat = "h:mm a"
+        }
+        return formatter.string(from: message.timestamp)
+    }
     
     private func getBubbleColor(for message: DailyChatMessage) -> Color {
         // Use the same blue color for both chat and log modes
@@ -1028,56 +1055,66 @@ struct DailyChatBubbleView: View {
                 description: message.content
             )
         } else {
-            HStack {
-                if message.isUser {
-                    Spacer(minLength: 50)
-                    
-                    Text(message.content)
-                        .font(.body)
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
-                        .background(
-                            getBubbleColor(for: message).opacity(message.isIgnoredInEntry ? 0.5 : 1.0),
-                            in: RoundedRectangle(cornerRadius: 18)
-                        )
-                        .contextMenu {
-                            Button(action: copyToClipboard) {
-                                Label("Copy", systemImage: "doc.on.doc")
+            VStack(spacing: 4) {
+                HStack {
+                    if message.isUser {
+                        Spacer(minLength: 50)
+
+                        Text(message.content)
+                            .font(.body)
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
+                            .background(
+                                getBubbleColor(for: message).opacity(message.isIgnoredInEntry ? 0.5 : 1.0),
+                                in: RoundedRectangle(cornerRadius: 18)
+                            )
+                            .contextMenu {
+                                Button(action: copyToClipboard) {
+                                    Label("Copy", systemImage: "doc.on.doc")
+                                }
+
+                                Button(action: onToggleIgnore) {
+                                    Label(message.isIgnoredInEntry ? "Include in Entry" : "Ignore in Entry",
+                                          systemImage: message.isIgnoredInEntry ? "checkmark.circle" : "xmark.circle")
+                                }
+
+                                Button(role: .destructive, action: onRemove) {
+                                    Label("Remove", systemImage: "trash")
+                                }
                             }
-                            
-                            Button(action: onToggleIgnore) {
-                                Label(message.isIgnoredInEntry ? "Include in Entry" : "Ignore in Entry", 
-                                      systemImage: message.isIgnoredInEntry ? "checkmark.circle" : "xmark.circle")
+                    } else {
+                        Text(message.content)
+                            .font(.body)
+                            .foregroundStyle(.primary)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
+                            .background(Color(.systemGray5).opacity(message.isIgnoredInEntry ? 0.5 : 1.0), in: RoundedRectangle(cornerRadius: 18))
+                            .contextMenu {
+                                Button(action: copyToClipboard) {
+                                    Label("Copy", systemImage: "doc.on.doc")
+                                }
+
+                                Button(action: onToggleIgnore) {
+                                    Label(message.isIgnoredInEntry ? "Include in Entry" : "Ignore in Entry",
+                                          systemImage: message.isIgnoredInEntry ? "checkmark.circle" : "xmark.circle")
+                                }
+
+                                Button(role: .destructive, action: onRemove) {
+                                    Label("Remove", systemImage: "trash")
+                                }
                             }
-                            
-                            Button(role: .destructive, action: onRemove) {
-                                Label("Remove", systemImage: "trash")
-                            }
-                        }
-                } else {
-                    Text(message.content)
-                        .font(.body)
-                        .foregroundStyle(.primary)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
-                        .background(Color(.systemGray5).opacity(message.isIgnoredInEntry ? 0.5 : 1.0), in: RoundedRectangle(cornerRadius: 18))
-                        .contextMenu {
-                            Button(action: copyToClipboard) {
-                                Label("Copy", systemImage: "doc.on.doc")
-                            }
-                            
-                            Button(action: onToggleIgnore) {
-                                Label(message.isIgnoredInEntry ? "Include in Entry" : "Ignore in Entry", 
-                                      systemImage: message.isIgnoredInEntry ? "checkmark.circle" : "xmark.circle")
-                            }
-                            
-                            Button(role: .destructive, action: onRemove) {
-                                Label("Remove", systemImage: "trash")
-                            }
-                        }
-                    
-                    Spacer(minLength: 50)
+
+                        Spacer(minLength: 50)
+                    }
+                }
+
+                // Timestamp below the bubble
+                if showTimestamp {
+                    Text(formattedTimestamp)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .center)
                 }
             }
             .padding(.horizontal, 16)

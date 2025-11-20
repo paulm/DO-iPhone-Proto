@@ -683,42 +683,20 @@ struct PagedJournalSheetContentWithoutSegmented: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            // FAB buttons that animate based on sheet position
+            // FAB button that animates based on sheet position
+            // Same style as Today tab FAB but with journal color
             if showFAB && showingFABState {
-                HStack(spacing: 12) {
-                    // Create Entry button
-                    Button(action: {
-                        showingEntryView = true
-                    }) {
-                        HStack(spacing: 8) {
-                            Image(systemName: "plus")
-                                .font(.system(size: 18, weight: .semibold))
-                            Text("Create Entry")
-                                .font(.system(size: 16, weight: .semibold))
-                        }
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 14)
-                        .background(journal.color)
-                        .clipShape(Capsule())
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
-
-                    // Record Audio button
-                    Button(action: {
-                        showingAudioRecord = true
-                    }) {
-                        Image(systemName: "mic.fill")
-                            .font(.system(size: 20, weight: .medium))
-                            .foregroundStyle(.white)
-                            .frame(width: 56, height: 56)
-                            .background(journal.color)
-                            .clipShape(Circle())
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
+                Button(action: {
+                    showingEntryView = true
+                }) {
+                    Text(DayOneIcon.plus.rawValue)
+                        .dayOneIconFont(size: 24)
+                        .foregroundColor(.white)
+                        .frame(width: 56, height: 56)
                 }
+                .background(journal.color)
+                .clipShape(Circle())
+                .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
                 .padding(.trailing, 18)
                 .padding(.top, sheetState.isExpanded ? fabExpandedPosition : fabRegularPosition)
                 .animation(.spring(response: 0.4, dampingFraction: 0.8), value: sheetState.isExpanded)

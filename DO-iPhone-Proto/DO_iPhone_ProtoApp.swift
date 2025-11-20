@@ -14,13 +14,16 @@ struct DayOnePrototypeApp: App {
     init() {
         // Register Day One Icons font (now using local implementation)
         DayOneIconFont.register()
-        
+
+        // Always reset tips on launch for development/testing
+        try? Tips.resetDatastore()
+
         // Configure TipKit
         try? Tips.configure([
             .displayFrequency(.immediate),
             .datastoreLocation(.applicationDefault)
         ])
-        
+
         // Initialize daily data from JSON
         _ = DailyDataManager.shared
     }

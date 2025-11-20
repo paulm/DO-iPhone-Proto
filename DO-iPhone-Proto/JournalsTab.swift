@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import TipKit
 
 // MARK: - View Mode Enum
 
@@ -58,6 +59,9 @@ struct JournalsTabPagedView: View {
     @State private var journalItems: [Journal.MixedJournalItem] = Journal.mixedJournalItems
     @State private var useSeparatedCollections = true
     @State private var journalsPopulation: JournalsPopulation = .lots
+    @State private var showAddNotesJournalTip = false
+    @State private var addNotesJournalTip = AddNotesJournalTip()
+    @State private var manuallyAddedJournalNames: Set<String> = []
 
     // Folder expansion state - expand all by default
     @State private var expandedFolders: Set<String> = Set(Journal.folders.map { $0.id })
@@ -68,17 +72,27 @@ struct JournalsTabPagedView: View {
     // Get visible journals and folders based on population setting
     private var filteredJournals: [Journal] {
         let allJournals = Journal.sampleJournals
+        var baseJournals: [Journal]
+
         switch journalsPopulation {
         case .newUser:
             // Return only the first journal ("Journal")
-            return Array(allJournals.prefix(1))
+            baseJournals = Array(allJournals.prefix(1))
         case .threeJournals:
             // Return Journal, Notes, Daily (first 3 journals)
-            return Array(allJournals.prefix(3))
+            baseJournals = Array(allJournals.prefix(3))
         case .lots:
             // Return all journals
-            return allJournals
+            baseJournals = allJournals
         }
+
+        // Add manually added journals that aren't already in the base list
+        let baseJournalNames = Set(baseJournals.map { $0.name })
+        let manuallyAddedJournals = allJournals.filter { journal in
+            manuallyAddedJournalNames.contains(journal.name) && !baseJournalNames.contains(journal.name)
+        }
+
+        return baseJournals + manuallyAddedJournals
     }
 
     private var filteredFolders: [JournalFolder] {
@@ -109,6 +123,11 @@ struct JournalsTabPagedView: View {
         return filteredJournals.count > 1
     }
 
+    // Check if Notes journal already exists in filtered journals
+    private var hasNotesJournal: Bool {
+        return filteredJournals.contains(where: { $0.name == "Notes" })
+    }
+
     private var folders: [JournalFolder] {
         return filteredFolders
     }
@@ -116,7 +135,18 @@ struct JournalsTabPagedView: View {
     private var unfolderedJournals: [Journal] {
         return Journal.unfolderedJournals
     }
-    
+
+    // Method to add Notes journal
+    private func addNotesJournal() {
+        // Add "Notes" to manually added journals
+        manuallyAddedJournalNames.insert("Notes")
+
+        // Select the Notes journal
+        if let notesJournal = Journal.sampleJournals.first(where: { $0.name == "Notes" }) {
+            journalViewModel.selectJournal(notesJournal)
+        }
+    }
+
     var body: some View {
         navigationContent
         .sheet(isPresented: $showingNewEntry) {
@@ -196,6 +226,10 @@ struct JournalsTabPagedView: View {
                         Section("Journal Manager Options") {
                             Toggle(isOn: $useSeparatedCollections) {
                                 Label("Separated Collections", systemImage: "folder.badge.gearshape")
+                            }
+
+                            Toggle(isOn: $showAddNotesJournalTip) {
+                                Label("Show Add \"Notes\" Journal Tip", systemImage: "lightbulb")
                             }
                         }
 
@@ -410,12 +444,25 @@ struct JournalsTabPagedView: View {
                     }
                 }
             }
+
+            // TipKit tip for adding Notes journal
+            if showAddNotesJournalTip && !hasNotesJournal {
+                TipView(addNotesJournalTip) { action in
+                    if action.id == "add" {
+                        addNotesJournal()
+                        addNotesJournalTip.invalidate(reason: .actionPerformed)
+                    } else if action.id == "dismiss" {
+                        addNotesJournalTip.invalidate(reason: .tipClosed)
+                    }
+                }
+                .padding(.top, 16)
+            }
         }
         .padding(.horizontal)
         .padding(.top, 8)
         .padding(.bottom, 100)
     }
-    
+
     // Recent journals for horizontal scroll - pick from filtered journals, always including Journal, Work Notes, Daily (if available)
     private var recentJournals: [Journal] {
         var recents: [Journal] = []
@@ -619,6 +666,19 @@ struct JournalsTabPagedView: View {
                     journalItems.move(fromOffsets: indices, toOffset: newOffset)
                 }
             }
+
+            // TipKit tip for adding Notes journal
+            if showAddNotesJournalTip && !hasNotesJournal {
+                TipView(addNotesJournalTip) { action in
+                    if action.id == "add" {
+                        addNotesJournal()
+                        addNotesJournalTip.invalidate(reason: .actionPerformed)
+                    } else if action.id == "dismiss" {
+                        addNotesJournalTip.invalidate(reason: .tipClosed)
+                    }
+                }
+                .padding(.top, 16)
+            }
         }
         .padding(.horizontal)
         .padding(.top, 12)
@@ -677,6 +737,20 @@ struct JournalsTabPagedView: View {
                         }
                     )
                 }
+            }
+
+            // TipKit tip for adding Notes journal
+            if showAddNotesJournalTip && !hasNotesJournal {
+                TipView(addNotesJournalTip) { action in
+                    if action.id == "add" {
+                        addNotesJournal()
+                        addNotesJournalTip.invalidate(reason: .actionPerformed)
+                    } else if action.id == "dismiss" {
+                        addNotesJournalTip.invalidate(reason: .tipClosed)
+                    }
+                }
+                .padding(.top, 16)
+                .gridCellColumns(3) // Span across all 3 columns
             }
         }
         .padding(.horizontal)

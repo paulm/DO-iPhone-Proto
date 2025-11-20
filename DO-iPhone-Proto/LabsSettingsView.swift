@@ -1,4 +1,5 @@
 import SwiftUI
+import TipKit
 
 enum LabsAvailability {
     case open
@@ -477,7 +478,7 @@ struct LabsSettingsView: View {
                                     }
                                 }
                             }
-                            
+
                             Button {
                                 aiFeatureAvailability = .full
                             } label: {
@@ -487,6 +488,14 @@ struct LabsSettingsView: View {
                                         Image(systemName: "checkmark")
                                     }
                                 }
+                            }
+                        }
+
+                        Section("Debug") {
+                            Button {
+                                UserDefaults.standard.set(true, forKey: "ResetTipKitOnLaunch")
+                            } label: {
+                                Label("Reset All Tips (on relaunch)", systemImage: "arrow.counterclockwise")
                             }
                         }
                     } label: {

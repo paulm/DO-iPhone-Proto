@@ -5,13 +5,34 @@ struct JournalingMadeEasyTip: Tip {
     var title: Text {
         Text("Journaling, Made Easy")
     }
-    
+
     var message: Text? {
         Text("Chat about your day and we'll turn it into a journal entry that reflects your words and mood for you.")
     }
-    
+
     var image: Image? {
         Image("daily-chat-new")
+    }
+}
+
+struct AddNotesJournalTip: Tip {
+    var title: Text {
+        Text("Add a \"Notes\" Journal")
+    }
+
+    var message: Text? {
+        Text("Create a dedicated journal for quick notes, thoughts, and ideas that you can capture on the go.")
+    }
+
+    var image: Image? {
+        Image(systemName: "note.text.badge.plus")
+    }
+
+    var actions: [Action] {
+        [
+            Action(id: "add", title: "Add Notes Journal"),
+            Action(id: "dismiss", title: "Not Now")
+        ]
     }
 }
 

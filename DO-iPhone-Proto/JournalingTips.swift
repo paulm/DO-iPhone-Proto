@@ -36,6 +36,48 @@ struct AddNotesJournalTip: Tip {
     }
 }
 
+struct AddWorkJournalTip: Tip {
+    var title: Text {
+        Text("Add a \"Work\" Journal")
+    }
+
+    var message: Text? {
+        Text("Keep your professional life organized with a dedicated journal for work notes, meetings, and projects.")
+    }
+
+    var image: Image? {
+        Image(systemName: "briefcase.fill")
+    }
+
+    var actions: [Action] {
+        [
+            Action(id: "add", title: "Add Work Journal"),
+            Action(id: "dismiss", title: "Not Now")
+        ]
+    }
+}
+
+struct AddTravelJournalTip: Tip {
+    var title: Text {
+        Text("Add a \"Travel\" Journal")
+    }
+
+    var message: Text? {
+        Text("Document your adventures and explorations with a dedicated journal for travel memories and experiences.")
+    }
+
+    var image: Image? {
+        Image(systemName: "airplane")
+    }
+
+    var actions: [Action] {
+        [
+            Action(id: "add", title: "Add Travel Journal"),
+            Action(id: "dismiss", title: "Not Now")
+        ]
+    }
+}
+
 // Custom TipViewStyle with left-aligned image at top and drop shadow
 struct CustomJournalingTipViewStyle: TipViewStyle {
     func makeBody(configuration: Configuration) -> some View {

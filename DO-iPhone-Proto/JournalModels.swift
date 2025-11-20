@@ -215,6 +215,8 @@ extension Journal {
             Journal(name: "Gratitude Daily", color: Color(hex: "2DCC71"), entryCount: 38), // Green
             // Standalone journal
             Journal(name: "Movie Log", color: Color(hex: "6A6DCD"), entryCount: 22), // Iris
+            // Travel journal
+            Journal(name: "Travel", color: Color(hex: "16D6D9"), entryCount: 0), // Aqua
             // Travel folder journals - different colors
             Journal(name: "Park City, Utah 2025-09", color: Color(hex: "16D6D9"), entryCount: 12), // Aqua
             Journal(name: "Maui, Hawaii 2025-07", color: Color(hex: "C27BD2"), entryCount: 9), // Lavender

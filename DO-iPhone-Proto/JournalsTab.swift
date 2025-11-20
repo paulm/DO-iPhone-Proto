@@ -58,10 +58,13 @@ struct JournalsTabPagedView: View {
     @State private var isEditMode = false
     @State private var journalItems: [Journal.MixedJournalItem] = Journal.mixedJournalItems
     @State private var useSeparatedCollections = true
-    @State private var journalsPopulation: JournalsPopulation = .lots
-    @State private var showAddNotesJournalTip = false
+    @State private var journalsPopulation: JournalsPopulation = .newUser
+    @State private var showAddJournalTips = false
     @State private var addNotesJournalTip = AddNotesJournalTip()
+    @State private var addWorkJournalTip = AddWorkJournalTip()
+    @State private var addTravelJournalTip = AddTravelJournalTip()
     @State private var manuallyAddedJournalNames: Set<String> = []
+    @State private var dismissedJournalTips: Set<String> = [] // Track dismissed tips by journal name
 
     // Folder expansion state - expand all by default
     @State private var expandedFolders: Set<String> = Set(Journal.folders.map { $0.id })
@@ -123,9 +126,56 @@ struct JournalsTabPagedView: View {
         return filteredJournals.count > 1
     }
 
-    // Check if Notes journal already exists in filtered journals
+    // Check if specific journals exist in filtered journals
     private var hasNotesJournal: Bool {
         return filteredJournals.contains(where: { $0.name == "Notes" })
+    }
+
+    private var hasWorkJournal: Bool {
+        return filteredJournals.contains(where: { $0.name == "Work Notes" })
+    }
+
+    private var hasTravelJournal: Bool {
+        return filteredJournals.contains(where: { $0.name == "Travel" })
+    }
+
+    // Determine which tip to show based on progression
+    // Order: Notes -> Work -> Travel
+    private enum CurrentJournalTip {
+        case notes
+        case work
+        case travel
+        case none
+    }
+
+    private var currentJournalTip: CurrentJournalTip {
+        // Check Notes first
+        if !hasNotesJournal && !dismissedJournalTips.contains("Notes") {
+            return .notes
+        }
+        // Then Work
+        if !hasWorkJournal && !dismissedJournalTips.contains("Work Notes") {
+            return .work
+        }
+        // Then Travel
+        if !hasTravelJournal && !dismissedJournalTips.contains("Travel") {
+            return .travel
+        }
+        return .none
+    }
+
+    // Colors for each journal tip
+    private var currentTipColor: Color {
+        switch currentJournalTip {
+        case .notes:
+            return Color(hex: "FFC107") // Honey
+        case .work:
+            return Color(hex: "2DCC71") // Green
+        case .travel:
+            return Color(hex: "16D6D9") // Aqua
+        case .none:
+            return .blue
+        }
     }
 
     private var folders: [JournalFolder] {
@@ -136,15 +186,20 @@ struct JournalsTabPagedView: View {
         return Journal.unfolderedJournals
     }
 
-    // Method to add Notes journal
-    private func addNotesJournal() {
-        // Add "Notes" to manually added journals
-        manuallyAddedJournalNames.insert("Notes")
+    // Method to add a journal by name
+    private func addJournal(named name: String) {
+        // Add to manually added journals
+        manuallyAddedJournalNames.insert(name)
 
-        // Select the Notes journal
-        if let notesJournal = Journal.sampleJournals.first(where: { $0.name == "Notes" }) {
-            journalViewModel.selectJournal(notesJournal)
+        // Select the journal
+        if let journal = Journal.sampleJournals.first(where: { $0.name == name }) {
+            journalViewModel.selectJournal(journal)
         }
+    }
+
+    // Method to dismiss a journal tip
+    private func dismissJournalTip(named name: String) {
+        dismissedJournalTips.insert(name)
     }
 
     var body: some View {
@@ -228,8 +283,8 @@ struct JournalsTabPagedView: View {
                                 Label("Separated Collections", systemImage: "folder.badge.gearshape")
                             }
 
-                            Toggle(isOn: $showAddNotesJournalTip) {
-                                Label("Show Add \"Notes\" Journal Tip", systemImage: "lightbulb")
+                            Toggle(isOn: $showAddJournalTips) {
+                                Label("Show Add Journal Tips", systemImage: "lightbulb")
                             }
                         }
 
@@ -445,16 +500,39 @@ struct JournalsTabPagedView: View {
                 }
             }
 
-            // TipKit tip for adding Notes journal
-            if showAddNotesJournalTip && !hasNotesJournal {
-                TipView(addNotesJournalTip) { action in
-                    if action.id == "add" {
-                        addNotesJournal()
-                        addNotesJournalTip.invalidate(reason: .actionPerformed)
-                    } else if action.id == "dismiss" {
-                        addNotesJournalTip.invalidate(reason: .tipClosed)
+            // TipKit tip for adding journals (progression: Notes -> Work -> Travel)
+            if showAddJournalTips && currentJournalTip != .none {
+                Group {
+                    switch currentJournalTip {
+                    case .notes:
+                        TipView(addNotesJournalTip) { action in
+                            if action.id == "add" {
+                                addJournal(named: "Notes")
+                            } else if action.id == "dismiss" {
+                                dismissJournalTip(named: "Notes")
+                            }
+                        }
+                    case .work:
+                        TipView(addWorkJournalTip) { action in
+                            if action.id == "add" {
+                                addJournal(named: "Work Notes")
+                            } else if action.id == "dismiss" {
+                                dismissJournalTip(named: "Work Notes")
+                            }
+                        }
+                    case .travel:
+                        TipView(addTravelJournalTip) { action in
+                            if action.id == "add" {
+                                addJournal(named: "Travel")
+                            } else if action.id == "dismiss" {
+                                dismissJournalTip(named: "Travel")
+                            }
+                        }
+                    case .none:
+                        EmptyView()
                     }
                 }
+                .tint(currentTipColor)
                 .padding(.top, 16)
             }
         }
@@ -667,16 +745,39 @@ struct JournalsTabPagedView: View {
                 }
             }
 
-            // TipKit tip for adding Notes journal
-            if showAddNotesJournalTip && !hasNotesJournal {
-                TipView(addNotesJournalTip) { action in
-                    if action.id == "add" {
-                        addNotesJournal()
-                        addNotesJournalTip.invalidate(reason: .actionPerformed)
-                    } else if action.id == "dismiss" {
-                        addNotesJournalTip.invalidate(reason: .tipClosed)
+            // TipKit tip for adding journals (progression: Notes -> Work -> Travel)
+            if showAddJournalTips && currentJournalTip != .none {
+                Group {
+                    switch currentJournalTip {
+                    case .notes:
+                        TipView(addNotesJournalTip) { action in
+                            if action.id == "add" {
+                                addJournal(named: "Notes")
+                            } else if action.id == "dismiss" {
+                                dismissJournalTip(named: "Notes")
+                            }
+                        }
+                    case .work:
+                        TipView(addWorkJournalTip) { action in
+                            if action.id == "add" {
+                                addJournal(named: "Work Notes")
+                            } else if action.id == "dismiss" {
+                                dismissJournalTip(named: "Work Notes")
+                            }
+                        }
+                    case .travel:
+                        TipView(addTravelJournalTip) { action in
+                            if action.id == "add" {
+                                addJournal(named: "Travel")
+                            } else if action.id == "dismiss" {
+                                dismissJournalTip(named: "Travel")
+                            }
+                        }
+                    case .none:
+                        EmptyView()
                     }
                 }
+                .tint(currentTipColor)
                 .padding(.top, 16)
             }
         }
@@ -739,16 +840,39 @@ struct JournalsTabPagedView: View {
                 }
             }
 
-            // TipKit tip for adding Notes journal
-            if showAddNotesJournalTip && !hasNotesJournal {
-                TipView(addNotesJournalTip) { action in
-                    if action.id == "add" {
-                        addNotesJournal()
-                        addNotesJournalTip.invalidate(reason: .actionPerformed)
-                    } else if action.id == "dismiss" {
-                        addNotesJournalTip.invalidate(reason: .tipClosed)
+            // TipKit tip for adding journals (progression: Notes -> Work -> Travel)
+            if showAddJournalTips && currentJournalTip != .none {
+                Group {
+                    switch currentJournalTip {
+                    case .notes:
+                        TipView(addNotesJournalTip) { action in
+                            if action.id == "add" {
+                                addJournal(named: "Notes")
+                            } else if action.id == "dismiss" {
+                                dismissJournalTip(named: "Notes")
+                            }
+                        }
+                    case .work:
+                        TipView(addWorkJournalTip) { action in
+                            if action.id == "add" {
+                                addJournal(named: "Work Notes")
+                            } else if action.id == "dismiss" {
+                                dismissJournalTip(named: "Work Notes")
+                            }
+                        }
+                    case .travel:
+                        TipView(addTravelJournalTip) { action in
+                            if action.id == "add" {
+                                addJournal(named: "Travel")
+                            } else if action.id == "dismiss" {
+                                dismissJournalTip(named: "Travel")
+                            }
+                        }
+                    case .none:
+                        EmptyView()
                     }
                 }
+                .tint(currentTipColor)
                 .padding(.top, 16)
                 .gridCellColumns(3) // Span across all 3 columns
             }

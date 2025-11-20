@@ -8,6 +8,7 @@ struct CustomSheetView: View {
     @ObservedObject var sheetState: SheetState
     let useStandardController: Bool
     let useLargeListDates: Bool
+    let showFAB: Bool
     @State private var isSheetPresented = false
 
     init(journal: Journal?,
@@ -16,7 +17,8 @@ struct CustomSheetView: View {
          largeDetentHeight: CGFloat? = nil,
          sheetState: SheetState? = nil,
          useStandardController: Bool = true,
-         useLargeListDates: Bool = false) {
+         useLargeListDates: Bool = false,
+         showFAB: Bool = true) {
         self.journal = journal
         self.sheetRegularPosition = sheetRegularPosition
         self.mediumDetentHeight = mediumDetentHeight
@@ -24,6 +26,7 @@ struct CustomSheetView: View {
         self.sheetState = sheetState ?? SheetState()
         self.useStandardController = useStandardController
         self.useLargeListDates = useLargeListDates
+        self.showFAB = showFAB
     }
     
     var body: some View {
@@ -35,7 +38,8 @@ struct CustomSheetView: View {
             mediumDetentHeight: mediumDetentHeight,
             largeDetentHeight: largeDetentHeight,
             useStandardController: useStandardController,
-            useLargeListDates: useLargeListDates
+            useLargeListDates: useLargeListDates,
+            showFAB: showFAB
         )
         .ignoresSafeArea()
         .onAppear {
@@ -56,6 +60,7 @@ struct CustomSheetHostingController: UIViewControllerRepresentable {
     let largeDetentHeight: CGFloat?
     let useStandardController: Bool
     let useLargeListDates: Bool
+    let showFAB: Bool
 
     func makeUIViewController(context: Context) -> CustomSheetParentViewController {
         return CustomSheetParentViewController(
@@ -66,7 +71,8 @@ struct CustomSheetHostingController: UIViewControllerRepresentable {
             mediumDetentHeight: mediumDetentHeight,
             largeDetentHeight: largeDetentHeight,
             useStandardController: useStandardController,
-            useLargeListDates: useLargeListDates
+            useLargeListDates: useLargeListDates,
+            showFAB: showFAB
         )
     }
     
@@ -86,6 +92,7 @@ class CustomSheetParentViewController: UIViewController {
     private let largeDetentHeight: CGFloat?
     private let useStandardController: Bool
     private let useLargeListDates: Bool
+    private let showFAB: Bool
 
     init(journal: Journal?,
          sheetRegularPosition: CGFloat,
@@ -94,7 +101,8 @@ class CustomSheetParentViewController: UIViewController {
          mediumDetentHeight: CGFloat? = nil,
          largeDetentHeight: CGFloat? = nil,
          useStandardController: Bool = true,
-         useLargeListDates: Bool = false) {
+         useLargeListDates: Bool = false,
+         showFAB: Bool = true) {
         self.journal = journal
         self.sheetRegularPosition = sheetRegularPosition
         self.sheetState = sheetState
@@ -103,6 +111,7 @@ class CustomSheetParentViewController: UIViewController {
         self.largeDetentHeight = largeDetentHeight
         self.useStandardController = useStandardController
         self.useLargeListDates = useLargeListDates
+        self.showFAB = showFAB
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -135,7 +144,8 @@ class CustomSheetParentViewController: UIViewController {
             mediumDetentHeight: mediumDetentHeight,
             largeDetentHeight: largeDetentHeight,
             useStandardController: useStandardController,
-            useLargeListDates: useLargeListDates
+            useLargeListDates: useLargeListDates,
+            showFAB: showFAB
         )
         
         sheetViewController = sheet

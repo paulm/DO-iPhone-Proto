@@ -48,6 +48,7 @@ class CustomSheetViewController: UIViewController {
     private let tabSelection = TabSelection()
     private let useStandardController: Bool
     private let useLargeListDates: Bool
+    private let showFAB: Bool
 
     enum Detent {
         case medium
@@ -62,12 +63,14 @@ class CustomSheetViewController: UIViewController {
          mediumDetentHeight: CGFloat? = nil,
          largeDetentHeight: CGFloat? = nil,
          useStandardController: Bool = true,
-         useLargeListDates: Bool = false) {
+         useLargeListDates: Bool = false,
+         showFAB: Bool = true) {
         self.journal = journal
         self.sheetRegularPosition = sheetRegularPosition
         self.sheetState = sheetState
         self.useStandardController = useStandardController
         self.useLargeListDates = useLargeListDates
+        self.showFAB = showFAB
 
         // Use custom heights if provided, otherwise calculate from defaults
         self.mediumDetentHeight = mediumDetentHeight ?? (UIScreen.main.bounds.height * Self.defaultMediumDetentRatio)
@@ -80,19 +83,19 @@ class CustomSheetViewController: UIViewController {
             AnyView(CustomSheetSegmentedControl(tabSelection: tabSelection)) :
             AnyView(TextBasedSegmentedControl(tabSelection: tabSelection))
         self.segmentedHostingController = UIHostingController(rootView: segmentedControl)
-        
+
         // Create the SwiftUI content without the segmented control
         let sheetContent = PagedJournalSheetContentWithoutSegmented(
             journal: journal ?? Journal(name: "Default", color: .blue, entryCount: 0),
             sheetState: sheetState,
             sheetRegularPosition: sheetRegularPosition,
-            showFAB: false, // Disable FAB in sheet content
+            showFAB: showFAB, // Use passed showFAB parameter
             tabSelection: tabSelection,
             useLargeListDates: useLargeListDates
         )
-        
+
         self.contentHostingController = UIHostingController(rootView: AnyView(sheetContent))
-        
+
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -644,26 +647,98 @@ struct PagedJournalSheetContentWithoutSegmented: View {
     let useLargeListDates: Bool
     @State private var showingEntryView = false
     @State private var showingAudioRecord = false
+    @State private var showingFABState = false
+
+    // Calculate FAB positions to maintain 80pt from bottom of device
+    private var fabRegularPosition: CGFloat {
+        // When sheet is at regular position, calculate distance from sheet top
+        // Screen height - sheetRegularPosition - 80 (from bottom) - 56 (FAB height) - 50 (adjustment)
+        UIScreen.main.bounds.height - sheetRegularPosition - 80 - 56 - 50
+    }
+
+    private var fabExpandedPosition: CGFloat {
+        // When expanded, sheet is roughly at status bar height (~50pt)
+        // So we need: Screen height - 50 (expanded position) - 80 (from bottom) - 56 (FAB height)
+        UIScreen.main.bounds.height - 50 - 80 - 56
+    }
 
     var body: some View {
-        // Content based on selected tab
-        Group {
-            switch tabSelection.selectedTab {
-            case 0:
-                PagedCoverTabView(journal: journal)
-            case 1:
-                ListTabView(journal: journal, useLargeListDates: useLargeListDates)
-            case 2:
-                CalendarTabView(journal: journal)
-            case 3:
-                MediaTabView()
-            case 4:
-                MapTabView()
-            default:
-                ListTabView(journal: journal, useLargeListDates: useLargeListDates)
+        ZStack(alignment: .topTrailing) {
+            // Content based on selected tab
+            Group {
+                switch tabSelection.selectedTab {
+                case 0:
+                    PagedCoverTabView(journal: journal)
+                case 1:
+                    ListTabView(journal: journal, useLargeListDates: useLargeListDates)
+                case 2:
+                    CalendarTabView(journal: journal)
+                case 3:
+                    MediaTabView()
+                case 4:
+                    MapTabView()
+                default:
+                    ListTabView(journal: journal, useLargeListDates: useLargeListDates)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            // FAB buttons that animate based on sheet position
+            if showFAB && showingFABState {
+                HStack(spacing: 12) {
+                    // Create Entry button
+                    Button(action: {
+                        showingEntryView = true
+                    }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "plus")
+                                .font(.system(size: 18, weight: .semibold))
+                            Text("Create Entry")
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 14)
+                        .background(journal.color)
+                        .clipShape(Capsule())
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
+
+                    // Record Audio button
+                    Button(action: {
+                        showingAudioRecord = true
+                    }) {
+                        Image(systemName: "mic.fill")
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundStyle(.white)
+                            .frame(width: 56, height: 56)
+                            .background(journal.color)
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
+                }
+                .padding(.trailing, 18)
+                .padding(.top, sheetState.isExpanded ? fabExpandedPosition : fabRegularPosition)
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: sheetState.isExpanded)
+                .transition(.asymmetric(
+                    insertion: .scale(scale: 0.8).combined(with: .opacity),
+                    removal: .scale(scale: 0.8).combined(with: .opacity)
+                ))
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onAppear {
+            // Only show FAB if enabled
+            if showFAB {
+                // Animate FAB in after a short delay with bounce effect
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    withAnimation(.interpolatingSpring(stiffness: 180, damping: 12)) {
+                        showingFABState = true
+                    }
+                }
+            }
+        }
         .sheet(isPresented: $showingEntryView) {
             EntryView(journal: journal)
         }

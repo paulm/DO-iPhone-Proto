@@ -2128,7 +2128,8 @@ struct FolderDetailView: View {
                 largeDetentHeight: largeDetentHeight,
                 sheetState: sheetState,
                 useStandardController: useStandardController,
-                useLargeListDates: useLargeListDates
+                useLargeListDates: useLargeListDates,
+                showFAB: false // Don't show FAB in collection detail views
             )
             .id("\(useStandardController)-\(useLargeListDates)") // Recreate when toggles change
             .zIndex(2)

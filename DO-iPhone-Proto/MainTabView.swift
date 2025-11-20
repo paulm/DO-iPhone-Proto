@@ -18,7 +18,8 @@ struct MainTabView: View {
     @State private var updateTrigger = false
     @State private var showUpdateEntry = false
     @State private var journalViewModel = JournalSelectionViewModel()
-    
+    @State private var selectedTab: Int = 0  // Track selected tab: 0=Today, 1=Journals, 2=Prompts, 3=More
+
     private var dayOfWeek: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "EEEE"
@@ -45,7 +46,7 @@ struct MainTabView: View {
         print("DEBUG: hasEntry=\(hasEntry), hasResumedChat=\(hasResumedChat), messageCountAtResume=\(messageCountAtResume), currentCount=\(currentUserMessageCount), hasNew=\(hasNew)")
         return hasNew
     }
-    
+
     var body: some View {
         // Use split view for iPad, tab view for iPhone
         if horizontalSizeClass == .regular {
@@ -61,48 +62,41 @@ struct MainTabView: View {
     @ViewBuilder
     private var iPhoneTabView: some View {
         ZStack {
-            TabView {
+            TabView(selection: $selectedTab) {
                 // Regular tabs using Day One Icons converted to images
-                Tab {
-                    TimelineView()
-                } label: {
-                    Label("Today", dayOneIcon: .sunrise_filled)
-                }
-
-                Tab {
-                    JournalsView()
-                        .environment(journalViewModel)
-                } label: {
-                    Label("Journals", dayOneIcon: .books_filled)
-                }
-
-                Tab {
-                    PromptsView()
-                } label: {
-                    Label("Prompts", dayOneIcon: .prompt_filled)
-                }
-
-                Tab {
-                    MoreView()
-                } label: {
-                    Label("More", dayOneIcon: .dots_horizontal)
-                }
-                
-                // iOS 26 system-provided Search tab (separated pill in tab bar)
-                Tab(role: .search) {
-                    NavigationStack {
-                        SearchResultsView(searchText: $searchQuery)
-                            .navigationTitle("Search")
+                TimelineView()
+                    .tabItem {
+                        Label("Today", dayOneIcon: .sunrise_filled)
                     }
-                }
+                    .tag(0)
+
+                JournalsView()
+                    .environment(journalViewModel)
+                    .tabItem {
+                        Label("Journals", dayOneIcon: .books_filled)
+                    }
+                    .tag(1)
+
+                PromptsView()
+                    .tabItem {
+                        Label("Prompts", dayOneIcon: .prompt_filled)
+                    }
+                    .tag(2)
+
+                MoreView()
+                    .tabItem {
+                        Label("More", dayOneIcon: .dots_horizontal)
+                    }
+                    .tag(3)
             }
             .tint(.black)
             // Attach the search field to the container so the Search tab can expand it
             .searchable(text: $searchQuery, prompt: "Search everything")
             
             // Floating Action Button - simplified for iOS 26
-            // Note: FABs should ideally be within individual tab views for proper state management
-            if showChatFAB || showEntryFAB {
+            // Only show FAB on Today tab (selectedTab == 0)
+            // Use Deep Blue color
+            if (showChatFAB || showEntryFAB) && selectedTab == 0 {
                 VStack {
                     Spacer()
                     VStack(alignment: .leading, spacing: 8) {
@@ -125,9 +119,10 @@ struct MainTabView: View {
                                 }
                             }
                             if showEntryFAB {
+                                // Use Deep Blue on Today tab
                                 FloatingActionButton(action: {
                                     showingEntry = true
-                                }, backgroundColor: journalViewModel.selectedJournal.color)
+                                }, backgroundColor: Color(hex: "333B40"))
                             }
                         }
                     }

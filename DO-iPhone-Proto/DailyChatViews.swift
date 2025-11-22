@@ -678,6 +678,12 @@ struct DailyChatView: View {
                             Toggle(isOn: $showTimestamps) {
                                 Label("Show Timestamps", systemImage: "clock")
                             }
+
+                            Button(action: {
+                                addMessageStatesSamples()
+                            }) {
+                                Label("Add Message States", systemImage: "bubble.left.and.bubble.right")
+                            }
                         }
                     } label: {
                         Image(systemName: "ellipsis")
@@ -852,6 +858,30 @@ struct DailyChatView: View {
         }
     }
     
+    private func addMessageStatesSamples() {
+        // Add offline message sample
+        let offlineMessage = DailyChatMessage(
+            content: "This message was sent while I was offline, waiting to be resubmitted",
+            isUser: true,
+            isLogMode: false,
+            mode: .chat,
+            isOffline: true
+        )
+        messages.append(offlineMessage)
+
+        // Add log mode message sample
+        let logModeMessage = DailyChatMessage(
+            content: "Quick note to self about the meeting this afternoon with the team",
+            isUser: true,
+            isLogMode: true,
+            mode: .log
+        )
+        messages.append(logModeMessage)
+
+        // Save messages
+        chatSessionManager.saveMessages(messages, for: selectedDate)
+    }
+
     private func clearChat() {
         messages.removeAll()
         chatSessionManager.clearSession(for: selectedDate)
@@ -983,14 +1013,16 @@ struct DailyChatMessage: Identifiable, Equatable, Codable {
     let mode: ChatMode?
     let isSystemNotification: Bool
     let notificationTitle: String?
-    
-    init(content: String, isUser: Bool, isLogMode: Bool, mode: ChatMode? = nil, isSystemNotification: Bool = false, notificationTitle: String? = nil) {
+    var isOffline: Bool = false
+
+    init(content: String, isUser: Bool, isLogMode: Bool, mode: ChatMode? = nil, isSystemNotification: Bool = false, notificationTitle: String? = nil, isOffline: Bool = false) {
         self.content = content
         self.isUser = isUser
         self.isLogMode = isLogMode
         self.mode = mode
         self.isSystemNotification = isSystemNotification
         self.notificationTitle = notificationTitle
+        self.isOffline = isOffline
     }
 }
 
@@ -1043,6 +1075,16 @@ struct DailyChatBubbleView: View {
         // Use the same blue color for both chat and log modes
         return Color(hex: "44C0FF")
     }
+
+    private var userBubbleColor: Color {
+        if message.isLogMode {
+            // Darker gray for log mode messages
+            return Color(.darkGray)
+        } else {
+            // Default blue for chat and offline messages
+            return Color(hex: "44C0FF")
+        }
+    }
     
     private func copyToClipboard() {
         UIPasteboard.general.string = message.content
@@ -1060,29 +1102,42 @@ struct DailyChatBubbleView: View {
                     if message.isUser {
                         Spacer(minLength: 50)
 
-                        Text(message.content)
-                            .font(.body)
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 12)
-                            .background(
-                                getBubbleColor(for: message).opacity(message.isIgnoredInEntry ? 0.5 : 1.0),
-                                in: RoundedRectangle(cornerRadius: 18)
-                            )
-                            .contextMenu {
-                                Button(action: copyToClipboard) {
-                                    Label("Copy", systemImage: "doc.on.doc")
+                        VStack(alignment: .trailing, spacing: 4) {
+                            Text(message.content)
+                                .font(.body)
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 12)
+                                .background(
+                                    userBubbleColor.opacity(message.isIgnoredInEntry ? 0.5 : 1.0),
+                                    in: RoundedRectangle(cornerRadius: 18)
+                                )
+                                .contextMenu {
+                                    Button(action: copyToClipboard) {
+                                        Label("Copy", systemImage: "doc.on.doc")
+                                    }
+
+                                    Button(action: onToggleIgnore) {
+                                        Label(message.isIgnoredInEntry ? "Include in Entry" : "Ignore in Entry",
+                                              systemImage: message.isIgnoredInEntry ? "checkmark.circle" : "xmark.circle")
+                                    }
+
+                                    Button(role: .destructive, action: onRemove) {
+                                        Label("Remove", systemImage: "trash")
+                                    }
                                 }
 
-                                Button(action: onToggleIgnore) {
-                                    Label(message.isIgnoredInEntry ? "Include in Entry" : "Ignore in Entry",
-                                          systemImage: message.isIgnoredInEntry ? "checkmark.circle" : "xmark.circle")
-                                }
-
-                                Button(role: .destructive, action: onRemove) {
-                                    Label("Remove", systemImage: "trash")
-                                }
+                            // State indicator
+                            if message.isOffline {
+                                Text("Saved while offline · Resubmit?")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            } else if message.isLogMode {
+                                Text("Saved in Log Mode")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
                             }
+                        }
                     } else {
                         Text(message.content)
                             .font(.body)

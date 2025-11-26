@@ -431,6 +431,29 @@ struct JournalsTabPagedView: View {
             }
             .padding(.bottom, 16)
 
+            // All Entries navigation row
+            if let allEntries = Journal.allEntriesJournal {
+                Button(action: {
+                    journalViewModel.selectJournal(allEntries)
+                    selectedJournal = allEntries
+                }) {
+                    HStack {
+                        Text("All Entries")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundStyle(.primary)
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .buttonStyle(PlainButtonStyle())
+                .padding(.bottom, 16)
+            }
+
             // Journals section header
             Text("Journals")
                 .font(.title2)
@@ -760,6 +783,29 @@ struct JournalsTabPagedView: View {
                 }
             }
             .padding(.bottom, 16)
+
+            // All Entries navigation row
+            if let allEntries = Journal.allEntriesJournal {
+                Button(action: {
+                    journalViewModel.selectJournal(allEntries)
+                    selectedJournal = allEntries
+                }) {
+                    HStack {
+                        Text("All Entries")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundStyle(.primary)
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .buttonStyle(PlainButtonStyle())
+                .padding(.bottom, 16)
+            }
 
             // Journals section header
             Text("Journals")

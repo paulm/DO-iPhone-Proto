@@ -20,12 +20,14 @@ enum JournalsPopulation: String, CaseIterable {
 
 // MARK: - Journals Tab Paged Variant
 
-struct JournalEntry {
+struct JournalEntry: Identifiable {
     let id: String
     let title: String
     let preview: String
     let date: String
     let time: String
+    let journalName: String
+    let journalColor: Color
 }
 
 // MARK: - Preference Keys for Journal Row Tracking
@@ -55,6 +57,7 @@ struct JournalsTabPagedView: View {
     @State private var showingNewEntry = false
     @State private var shouldShowAudioAfterEntry = false
     @State private var showRecentJournals = true
+    @State private var showRecentEntries = true
     @State private var isEditMode = false
     @State private var journalItems: [Journal.MixedJournalItem] = Journal.mixedJournalItems
     @State private var useSeparatedCollections = false
@@ -226,8 +229,8 @@ struct JournalsTabPagedView: View {
                         .padding(.top, 12)
                 }
             }
-            .navigationTitle("")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationTitle("Journals")
+            .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     Menu {
@@ -342,14 +345,30 @@ struct JournalsTabPagedView: View {
     private var compactJournalList: some View {
         LazyVStack(spacing: 4) {
             // Recent Journals horizontal scroll section
-            if showRecentJournals {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Recent Journals")
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.primary)
-                        .padding(.horizontal)
+            VStack(alignment: .leading, spacing: 12) {
+                // Toggleable header with disclosure arrow
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        showRecentJournals.toggle()
+                    }
+                }) {
+                    HStack {
+                        Text("Recent Journals")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundStyle(.primary)
 
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                            .rotationEffect(.degrees(showRecentJournals ? 90 : 0))
+                    }
+                }
+                .buttonStyle(PlainButtonStyle())
+
+                if showRecentJournals {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 16) {
                             ForEach(recentJournals) { journal in
@@ -371,16 +390,53 @@ struct JournalsTabPagedView: View {
                         .padding(.leading, 0)
                     }
                 }
-                .padding(.bottom, 16)
             }
+            .padding(.bottom, 16)
+
+            // Recent Entries horizontal scroll section
+            VStack(alignment: .leading, spacing: 12) {
+                // Toggleable header with disclosure arrow
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        showRecentEntries.toggle()
+                    }
+                }) {
+                    HStack {
+                        Text("Recent Entries")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundStyle(.primary)
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                            .rotationEffect(.degrees(showRecentEntries ? 90 : 0))
+                    }
+                }
+                .buttonStyle(PlainButtonStyle())
+
+                if showRecentEntries {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 12) {
+                            ForEach(recentEntries) { entry in
+                                RecentEntryCard(entry: entry)
+                                    .frame(width: 240)
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                }
+            }
+            .padding(.bottom, 16)
 
             // Journals section header
             Text("Journals")
-                .font(.headline)
-                .fontWeight(.semibold)
+                .font(.title2)
+                .fontWeight(.bold)
                 .foregroundStyle(.primary)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal)
                 .padding(.bottom, 8)
 
             // All Entries at the top (only show when there are 2+ journals)
@@ -565,17 +621,84 @@ struct JournalsTabPagedView: View {
         return recents
     }
 
+    private var recentEntries: [JournalEntry] {
+        // Sample recent entries from various journals
+        return [
+            JournalEntry(
+                id: UUID().uuidString,
+                title: "Morning Coffee Thoughts",
+                preview: "Started the day with a perfect cup of coffee and some reflection on the week ahead...",
+                date: "Today",
+                time: "8:30 AM",
+                journalName: "Journal",
+                journalColor: Color(hex: "44C0FF")
+            ),
+            JournalEntry(
+                id: UUID().uuidString,
+                title: "Project Planning Session",
+                preview: "Met with the team to discuss Q4 goals. We're aligned on the key deliverables...",
+                date: "Yesterday",
+                time: "2:15 PM",
+                journalName: "Work Notes",
+                journalColor: Color(hex: "FF6B6B")
+            ),
+            JournalEntry(
+                id: UUID().uuidString,
+                title: "Evening Walk",
+                preview: "Beautiful sunset walk through the neighborhood. The weather was perfect...",
+                date: "Yesterday",
+                time: "6:45 PM",
+                journalName: "Daily",
+                journalColor: Color(hex: "4ECDC4")
+            ),
+            JournalEntry(
+                id: UUID().uuidString,
+                title: "Weekend Plans",
+                preview: "Looking forward to hiking this weekend. Need to check the weather forecast...",
+                date: "2 days ago",
+                time: "9:20 AM",
+                journalName: "Journal",
+                journalColor: Color(hex: "44C0FF")
+            ),
+            JournalEntry(
+                id: UUID().uuidString,
+                title: "Design Review Notes",
+                preview: "Reviewed the new UI mockups. The color scheme looks great but we need to adjust...",
+                date: "3 days ago",
+                time: "3:00 PM",
+                journalName: "Work Notes",
+                journalColor: Color(hex: "FF6B6B")
+            )
+        ]
+    }
+
     private var listJournalList: some View {
         LazyVStack(spacing: 4) {
             // Recent Journals horizontal scroll section
-            if showRecentJournals {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Recent Journals")
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.primary)
-                        .padding(.horizontal)
+            VStack(alignment: .leading, spacing: 12) {
+                // Toggleable header with disclosure arrow
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        showRecentJournals.toggle()
+                    }
+                }) {
+                    HStack {
+                        Text("Recent Journals")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundStyle(.primary)
 
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                            .rotationEffect(.degrees(showRecentJournals ? 90 : 0))
+                    }
+                }
+                .buttonStyle(PlainButtonStyle())
+
+                if showRecentJournals {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 16) {
                             ForEach(recentJournals) { journal in
@@ -597,16 +720,53 @@ struct JournalsTabPagedView: View {
                         .padding(.leading, 0)
                     }
                 }
-                .padding(.bottom, 16)
             }
+            .padding(.bottom, 16)
+
+            // Recent Entries horizontal scroll section
+            VStack(alignment: .leading, spacing: 12) {
+                // Toggleable header with disclosure arrow
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        showRecentEntries.toggle()
+                    }
+                }) {
+                    HStack {
+                        Text("Recent Entries")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundStyle(.primary)
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                            .rotationEffect(.degrees(showRecentEntries ? 90 : 0))
+                    }
+                }
+                .buttonStyle(PlainButtonStyle())
+
+                if showRecentEntries {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 12) {
+                            ForEach(recentEntries) { entry in
+                                RecentEntryCard(entry: entry)
+                                    .frame(width: 240)
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                }
+            }
+            .padding(.bottom, 16)
 
             // Journals section header
             Text("Journals")
-                .font(.headline)
-                .fontWeight(.semibold)
+                .font(.title2)
+                .fontWeight(.bold)
                 .foregroundStyle(.primary)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal)
                 .padding(.bottom, 8)
 
             // All Entries at the top (only show when there are 2+ journals)
@@ -2209,6 +2369,75 @@ struct FolderDetailView: View {
         .sheet(isPresented: $showingEditView) {
             PagedEditJournalView(journal: folder.journals.first ?? Journal(name: folder.name, color: folder.color, entryCount: folder.entryCount))
         }
+    }
+}
+
+// MARK: - Recent Entry Card Component
+
+struct RecentEntryCard: View {
+    let entry: JournalEntry
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Entry content
+            VStack(alignment: .leading, spacing: 8) {
+                // Title
+                Text(entry.title)
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.primary)
+                    .lineLimit(2)
+
+                // Preview text
+                Text(entry.preview)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(3)
+
+                Spacer()
+
+                // Date and time
+                HStack(spacing: 4) {
+                    Text(entry.date)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    Text("•")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    Text(entry.time)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(12)
+            .frame(height: 140)
+
+            // Journal indicator at bottom
+            HStack(spacing: 8) {
+                Circle()
+                    .fill(entry.journalColor)
+                    .frame(width: 8, height: 8)
+
+                Text(entry.journalName)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.secondary)
+
+                Spacer()
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(Color(.systemGray6))
+        }
+        .background(Color(.systemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color(.systemGray4), lineWidth: 0.5)
+        )
+        .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
     }
 }
 

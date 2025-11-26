@@ -18,7 +18,11 @@ struct MainTabView: View {
     @State private var updateTrigger = false
     @State private var showUpdateEntry = false
     @State private var journalViewModel = JournalSelectionViewModel()
-    @State private var selectedTab: Int = 0  // Track selected tab: 0=Today, 1=Journals, 2=Prompts, 3=More
+
+    enum AppTab: Hashable {
+        case today, journals, prompts, more
+    }
+    @State private var selectedTab: AppTab = .today
 
     private var dayOfWeek: String {
         let formatter = DateFormatter()
@@ -62,74 +66,8 @@ struct MainTabView: View {
     @ViewBuilder
     private var iPhoneTabView: some View {
         ZStack {
-            TabView(selection: $selectedTab) {
-                // Regular tabs using Day One Icons converted to images
-                TimelineView()
-                    .tabItem {
-                        Label("Today", dayOneIcon: .sunrise_filled)
-                    }
-                    .tag(0)
-
-                JournalsView()
-                    .environment(journalViewModel)
-                    .tabItem {
-                        Label("Journals", dayOneIcon: .books_filled)
-                    }
-                    .tag(1)
-
-                PromptsView()
-                    .tabItem {
-                        Label("Prompts", dayOneIcon: .prompt_filled)
-                    }
-                    .tag(2)
-
-                MoreView()
-                    .tabItem {
-                        Label("More", dayOneIcon: .dots_horizontal)
-                    }
-                    .tag(3)
-            }
-            .tint(.black)
-            // Attach the search field to the container so the Search tab can expand it
-            .searchable(text: $searchQuery, prompt: "Search everything")
-            
-            // Floating Action Button - simplified for iOS 26
-            // Only show FAB on Today tab (selectedTab == 0)
-            // Use Deep Blue color
-            if (showChatFAB || showEntryFAB) && selectedTab == 0 {
-                VStack {
-                    Spacer()
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack(spacing: 12) {
-                            Spacer()
-                            if showChatFAB {
-                                DailyChatFAB(
-                                    text: chatCompleted ? "Resume Chat" : "Start Daily Chat",
-                                    backgroundColor: chatCompleted ? .white : Color(hex: "44C0FF")
-                                ) {
-                                    // Set hasResumedChat to true when Resume Chat is tapped on a day with an entry
-                                    if chatCompleted && hasEntry {
-                                        hasResumedChat = true
-                                        // Track current message count when resuming
-                                        let messages = ChatSessionManager.shared.getMessages(for: selectedDate)
-                                        messageCountAtResume = messages.filter { $0.isUser }.count
-                                    }
-                                    // Send notification to trigger Daily Chat
-                                    NotificationCenter.default.post(name: NSNotification.Name("TriggerDailyChat"), object: nil)
-                                }
-                            }
-                            if showEntryFAB {
-                                // Use Deep Blue on Today tab
-                                FloatingActionButton(action: {
-                                    showingEntry = true
-                                }, backgroundColor: Color(hex: "333B40"))
-                            }
-                        }
-                    }
-                    .padding(.trailing, 16)
-                    .padding(.bottom, 90) // Position above tab bar
-                }
-            }
+            mainTabView
+            floatingActionButtons
         }
         .sheet(isPresented: $showingEntry) {
             // Check if selected date is today
@@ -209,6 +147,87 @@ struct MainTabView: View {
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("OpenEntryView"))) { _ in
             // Open Entry view when notification is received
             showingEntry = true
+        }
+    }
+
+    @MainActor
+    private var mainTabView: some View {
+        @Bindable var dateManager = DateManager.shared
+
+        return TabView {
+            // Regular tabs using iOS 26 Tab API with SF Symbols
+            Tab("Today", systemImage: "sunrise.fill") {
+                TimelineView()
+                    .onAppear { selectedTab = .today }
+            }
+
+            Tab("Journals", systemImage: "books.vertical.fill") {
+                JournalsView()
+                    .environment(journalViewModel)
+                    .onAppear { selectedTab = .journals }
+            }
+
+            Tab("Prompts", systemImage: "bubble.left.and.bubble.right.fill") {
+                PromptsView()
+                    .onAppear { selectedTab = .prompts }
+            }
+
+            Tab("More", systemImage: "ellipsis") {
+                MoreView()
+                    .onAppear { selectedTab = .more }
+            }
+
+            // iOS 26 system-provided Search tab (separated pill in tab bar)
+            Tab(role: .search) {
+                NavigationStack {
+                    SearchResultsView(searchText: $searchQuery)
+                        .navigationTitle("Search")
+                }
+            }
+        }
+        .tint(.black)
+        // Attach the search field to the container so the Search tab can expand it
+        .searchable(text: $searchQuery, prompt: "Search everything")
+    }
+
+    @ViewBuilder
+    private var floatingActionButtons: some View {
+        // Floating Action Button - simplified for iOS 26
+        // Only show FAB on Today tab
+        // Use Deep Blue color
+        if (showChatFAB || showEntryFAB) && selectedTab == .today {
+            VStack {
+                Spacer()
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 12) {
+                        Spacer()
+                        if showChatFAB {
+                            DailyChatFAB(
+                                text: chatCompleted ? "Resume Chat" : "Start Daily Chat",
+                                backgroundColor: chatCompleted ? .white : Color(hex: "44C0FF")
+                            ) {
+                                // Set hasResumedChat to true when Resume Chat is tapped on a day with an entry
+                                if chatCompleted && hasEntry {
+                                    hasResumedChat = true
+                                    // Track current message count when resuming
+                                    let messages = ChatSessionManager.shared.getMessages(for: selectedDate)
+                                    messageCountAtResume = messages.filter { $0.isUser }.count
+                                }
+                                // Send notification to trigger Daily Chat
+                                NotificationCenter.default.post(name: NSNotification.Name("TriggerDailyChat"), object: nil)
+                            }
+                        }
+                        if showEntryFAB {
+                            // Use Deep Blue on Today tab
+                            FloatingActionButton(action: {
+                                showingEntry = true
+                            }, backgroundColor: Color(hex: "333B40"))
+                        }
+                    }
+                }
+                .padding(.trailing, 16)
+                .padding(.bottom, 90) // Position above tab bar
+            }
         }
     }
 }

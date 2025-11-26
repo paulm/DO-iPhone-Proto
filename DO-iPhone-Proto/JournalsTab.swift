@@ -57,8 +57,8 @@ struct JournalsTabPagedView: View {
     @State private var showRecentJournals = true
     @State private var isEditMode = false
     @State private var journalItems: [Journal.MixedJournalItem] = Journal.mixedJournalItems
-    @State private var useSeparatedCollections = true
-    @State private var journalsPopulation: JournalsPopulation = .newUser
+    @State private var useSeparatedCollections = false
+    @State private var journalsPopulation: JournalsPopulation = .lots
     @State private var showAddJournalTips = false
     @State private var addNotesJournalTip = AddNotesJournalTip()
     @State private var addWorkJournalTip = AddWorkJournalTip()

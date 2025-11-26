@@ -422,10 +422,10 @@ struct JournalsTabPagedView: View {
                         HStack(spacing: 12) {
                             ForEach(recentEntries) { entry in
                                 RecentEntryCard(entry: entry)
-                                    .frame(width: 240)
+                                    .frame(width: 108)
                             }
                         }
-                        .padding(.horizontal)
+                        .padding(.trailing)
                     }
                 }
             }
@@ -752,10 +752,10 @@ struct JournalsTabPagedView: View {
                         HStack(spacing: 12) {
                             ForEach(recentEntries) { entry in
                                 RecentEntryCard(entry: entry)
-                                    .frame(width: 240)
+                                    .frame(width: 108)
                             }
                         }
-                        .padding(.horizontal)
+                        .padding(.trailing)
                     }
                 }
             }
@@ -2380,39 +2380,16 @@ struct RecentEntryCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Entry content
-            VStack(alignment: .leading, spacing: 8) {
-                // Title
-                Text(entry.title)
-                    .font(.headline)
-                    .fontWeight(.semibold)
+            VStack(alignment: .leading, spacing: 0) {
+                // Combined title and content
+                Text("\(entry.title) \(entry.preview)")
+                    .font(.caption)
                     .foregroundStyle(.primary)
-                    .lineLimit(2)
-
-                // Preview text
-                Text(entry.preview)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(3)
-
-                Spacer()
-
-                // Date and time
-                HStack(spacing: 4) {
-                    Text(entry.date)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-
-                    Text("•")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-
-                    Text(entry.time)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                    .lineLimit(4)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .padding(12)
-            .frame(height: 140)
+            .frame(minHeight: 80)
 
             // Journal indicator at bottom
             HStack(spacing: 8) {
@@ -2424,6 +2401,8 @@ struct RecentEntryCard: View {
                     .font(.caption)
                     .fontWeight(.medium)
                     .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
 
                 Spacer()
             }

@@ -1713,10 +1713,9 @@ struct CompactFolderRow: View {
         HStack(spacing: 12) {
             // Folder icon - tappable to toggle expand/collapse
             Button(action: onToggle) {
-                Image(systemName: isExpanded ? "folder" : "folder.fill")
-                    .font(.body)
-                    .foregroundStyle(folder.color)
-                    .frame(width: 12)
+                Text(dayOneIcon: .folder)
+                    .font(.dayOneIcons(size: 20))
+                    .foregroundStyle(Color(hex: "333B40"))
             }
             .buttonStyle(PlainButtonStyle())
 
@@ -1779,10 +1778,9 @@ struct FolderRow: View {
                 Button(action: onSelectFolder) {
                     HStack(spacing: 12) {
                         // Folder icon
-                        Image(systemName: "folder.fill")
-                            .font(.title2)
-                            .foregroundStyle(Color(hex: "44C0FF")) // Day One Blue
-                            .frame(width: 32)
+                        Text(dayOneIcon: .folder)
+                            .font(.dayOneIcons(size: 30))
+                            .foregroundStyle(Color(hex: "333B40")) // Deep Blue
 
                         // Folder info
                         VStack(alignment: .leading, spacing: 2) {

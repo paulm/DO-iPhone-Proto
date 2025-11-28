@@ -607,6 +607,40 @@ struct JournalsTabPagedView: View {
             }
             .padding(.top, 16)
 
+            // Trash row
+            Button(action: {
+                // TODO: Show trash
+            }) {
+                HStack(spacing: 12) {
+                    // Book shape with trash icon
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(Color(.systemGray4))
+                            .frame(width: 32, height: 46)
+
+                        Text(dayOneIcon: .trash)
+                            .font(.dayOneIcons(size: 16))
+                            .foregroundStyle(.white)
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Trash")
+                            .font(.body)
+                            .fontWeight(.regular)
+                            .foregroundStyle(.primary)
+
+                        Text("12 entries")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+                }
+                .padding(.vertical, 8)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .padding(.top, 16)
+
             // TipKit tip for adding journals (progression: Notes -> Work -> Travel)
             if showAddJournalTips && currentJournalTip != .none {
                 Group {
@@ -1004,6 +1038,40 @@ struct JournalsTabPagedView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
             }
+            .padding(.top, 16)
+
+            // Trash row
+            Button(action: {
+                // TODO: Show trash
+            }) {
+                HStack(spacing: 12) {
+                    // Book shape with trash icon
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(Color(.systemGray4))
+                            .frame(width: 32, height: 46)
+
+                        Text(dayOneIcon: .trash)
+                            .font(.dayOneIcons(size: 16))
+                            .foregroundStyle(.white)
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Trash")
+                            .font(.body)
+                            .fontWeight(.regular)
+                            .foregroundStyle(.primary)
+
+                        Text("12 entries")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+                }
+                .padding(.vertical, 8)
+            }
+            .buttonStyle(PlainButtonStyle())
             .padding(.top, 16)
 
             // TipKit tip for adding journals (progression: Notes -> Work -> Travel)

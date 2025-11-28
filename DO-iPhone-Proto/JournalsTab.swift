@@ -57,7 +57,7 @@ struct JournalsTabPagedView: View {
     @State private var showingNewEntry = false
     @State private var shouldShowAudioAfterEntry = false
     @State private var showRecentJournals = true
-    @State private var showRecentEntries = true
+    @State private var showRecentEntries = false
     @State private var isEditMode = false
     @State private var journalItems: [Journal.MixedJournalItem] = Journal.mixedJournalItems
     @State private var useSeparatedCollections = false
@@ -1711,17 +1711,25 @@ struct CompactFolderRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            // Folder icon - tappable to toggle expand/collapse
+            // Disclosure toggle - rotates when expanded
             Button(action: onToggle) {
-                Text(dayOneIcon: .folder)
-                    .font(.dayOneIcons(size: 20))
-                    .foregroundStyle(Color(hex: "333B40"))
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                    .animation(.easeInOut(duration: 0.2), value: isExpanded)
+                    .frame(width: 20, height: 20)
             }
             .buttonStyle(PlainButtonStyle())
 
-            // Folder content - tappable to select folder
+            // Folder icon and content - tappable to select folder
             Button(action: onSelectFolder) {
                 HStack(spacing: 12) {
+                    // Folder icon
+                    Text(dayOneIcon: .folder)
+                        .font(.dayOneIcons(size: 20))
+                        .foregroundStyle(Color(hex: "333B40"))
+
                     // Folder name
                     Text(folder.name)
                         .font(.body)

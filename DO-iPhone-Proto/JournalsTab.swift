@@ -1854,12 +1854,12 @@ struct FolderRow: View {
                 }
             }
             .padding(.vertical, 12)
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 0)
 
             // Only show divider when folder is collapsed
             if !isExpanded {
                 Divider()
-                    .padding(.leading, 16)
+                    .padding(.leading, 0)
             }
         }
     }

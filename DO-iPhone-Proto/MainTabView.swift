@@ -155,26 +155,54 @@ struct MainTabView: View {
         @Bindable var dateManager = DateManager.shared
 
         return TabView {
-            // Regular tabs using iOS 26 Tab API with SF Symbols
-            Tab("Today", systemImage: "sunrise.fill") {
+            // Regular tabs using iOS 26 Tab API with Day One Icons
+            Tab {
                 TimelineView()
                     .onAppear { selectedTab = .today }
+            } label: {
+                Label {
+                    Text("Today")
+                } icon: {
+                    Image(dayOneIcon: .sunrise_filled)
+                        .renderingMode(.template)
+                }
             }
 
-            Tab("Journals", systemImage: "books.vertical.fill") {
+            Tab {
                 JournalsView()
                     .environment(journalViewModel)
                     .onAppear { selectedTab = .journals }
+            } label: {
+                Label {
+                    Text("Journals")
+                } icon: {
+                    Image(dayOneIcon: .books_filled)
+                        .renderingMode(.template)
+                }
             }
 
-            Tab("Prompts", systemImage: "bubble.left.and.bubble.right.fill") {
+            Tab {
                 PromptsView()
                     .onAppear { selectedTab = .prompts }
+            } label: {
+                Label {
+                    Text("Prompts")
+                } icon: {
+                    Image(dayOneIcon: .prompt_filled)
+                        .renderingMode(.template)
+                }
             }
 
-            Tab("More", systemImage: "ellipsis") {
+            Tab {
                 MoreView()
                     .onAppear { selectedTab = .more }
+            } label: {
+                Label {
+                    Text("More")
+                } icon: {
+                    Image(dayOneIcon: .dots_horizontal)
+                        .renderingMode(.template)
+                }
             }
 
             // iOS 26 system-provided Search tab (separated pill in tab bar)

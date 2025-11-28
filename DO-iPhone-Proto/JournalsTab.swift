@@ -462,18 +462,6 @@ struct JournalsTabPagedView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, 8)
 
-            // All Entries at the top (only show when there are 2+ journals)
-            if shouldShowAllEntries, let allEntries = Journal.allEntriesJournal {
-                CompactJournalRow(
-                    journal: allEntries,
-                    isSelected: allEntries.id == journalViewModel.selectedJournal.id,
-                    onSelect: {
-                        journalViewModel.selectJournal(allEntries)
-                        selectedJournal = allEntries
-                    }
-                )
-            }
-
             if useSeparatedCollections {
                 // Show only journals (no folders mixed in)
                 ForEach(filteredMixedJournalItems) { item in
@@ -814,19 +802,6 @@ struct JournalsTabPagedView: View {
                 .foregroundStyle(.primary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, 8)
-
-            // All Entries at the top (only show when there are 2+ journals)
-            if shouldShowAllEntries, let allEntries = Journal.allEntriesJournal {
-                JournalRow(
-                    journal: allEntries,
-                    isSelected: allEntries.id == journalViewModel.selectedJournal.id,
-                    isEditMode: false, // All Entries cannot be reordered
-                    onSelect: {
-                        journalViewModel.selectJournal(allEntries)
-                        selectedJournal = allEntries
-                    }
-                )
-            }
 
             if useSeparatedCollections {
                 // Show only journals (no folders mixed in)

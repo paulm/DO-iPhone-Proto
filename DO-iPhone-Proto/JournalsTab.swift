@@ -1653,9 +1653,9 @@ struct CompactJournalRow: View {
                 // Journal name
                 Text(journal.name)
                     .font(.body)
-                    .fontWeight(isSelected ? .medium : .regular)
+                    .fontWeight(.regular)
                     .foregroundStyle(.primary)
-                
+
                 Spacer()
 
                 // Journal count and entry count
@@ -1685,10 +1685,6 @@ struct CompactJournalRow: View {
             }
             .padding(.vertical, 8)
             .padding(.horizontal, 0)
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(isSelected ? .gray.opacity(0.1) : .clear)
-            )
         }
         .buttonStyle(PlainButtonStyle())
         .contextMenu {
@@ -1974,16 +1970,11 @@ struct JournalRow: View {
                 }
             }
             .padding(.vertical, 7)
-            .padding(.horizontal, 16)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? .gray.opacity(0.15) : .clear)
-                    .padding(.vertical, 0)
-            )
+            .padding(.horizontal, 0)
             .padding(.bottom, 4)
 
             Divider()
-                .padding(.leading, 16)
+                .padding(.leading, 0)
         }
         .contextMenu {
             Button(action: {

@@ -567,6 +567,46 @@ struct JournalsTabPagedView: View {
                 }
             }
 
+            // New Collection and New Journal buttons
+            HStack(spacing: 12) {
+                // New Collection button
+                Button(action: {
+                    // TODO: Add new collection action
+                }) {
+                    HStack(spacing: 8) {
+                        Text(dayOneIcon: .folder_add)
+                            .font(.dayOneIcons(size: 18))
+                        Text("New Collection")
+                            .font(.body)
+                            .fontWeight(.medium)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(Color(.systemGray6))
+                    .foregroundStyle(.primary)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+
+                // New Journal button
+                Button(action: {
+                    // TODO: Add new journal action
+                }) {
+                    HStack(spacing: 8) {
+                        Text(dayOneIcon: .plus_circle)
+                            .font(.dayOneIcons(size: 18))
+                        Text("New Journal")
+                            .font(.body)
+                            .fontWeight(.medium)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(Color(.systemGray6))
+                    .foregroundStyle(.primary)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+            }
+            .padding(.top, 16)
+
             // TipKit tip for adding journals (progression: Notes -> Work -> Travel)
             if showAddJournalTips && currentJournalTip != .none {
                 Group {
@@ -925,6 +965,46 @@ struct JournalsTabPagedView: View {
                     journalItems.move(fromOffsets: indices, toOffset: newOffset)
                 }
             }
+
+            // New Collection and New Journal buttons
+            HStack(spacing: 12) {
+                // New Collection button
+                Button(action: {
+                    // TODO: Add new collection action
+                }) {
+                    HStack(spacing: 8) {
+                        Text(dayOneIcon: .folder_add)
+                            .font(.dayOneIcons(size: 18))
+                        Text("New Collection")
+                            .font(.body)
+                            .fontWeight(.medium)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(Color(.systemGray6))
+                    .foregroundStyle(.primary)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+
+                // New Journal button
+                Button(action: {
+                    // TODO: Add new journal action
+                }) {
+                    HStack(spacing: 8) {
+                        Text(dayOneIcon: .plus_circle)
+                            .font(.dayOneIcons(size: 18))
+                        Text("New Journal")
+                            .font(.body)
+                            .fontWeight(.medium)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(Color(.systemGray6))
+                    .foregroundStyle(.primary)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+            }
+            .padding(.top, 16)
 
             // TipKit tip for adding journals (progression: Notes -> Work -> Travel)
             if showAddJournalTips && currentJournalTip != .none {

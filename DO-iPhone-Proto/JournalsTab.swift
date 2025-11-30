@@ -334,15 +334,15 @@ struct JournalsTabPagedView: View {
     private var journalListContent: some View {
         switch viewMode {
         case .compact:
-            compactJournalList
+            listModeView
         case .list:
-            listJournalList
+            iconsModeView
         case .grid:
             gridJournalList
         }
     }
     
-    private var compactJournalList: some View {
+    private var listModeView: some View {
         LazyVStack(spacing: 4) {
             // Recent Journals horizontal scroll section
             VStack(alignment: .leading, spacing: 12) {
@@ -431,8 +431,8 @@ struct JournalsTabPagedView: View {
             }
             .padding(.bottom, 16)
 
-            // All Entries navigation row
-            if let allEntries = Journal.allEntriesJournal {
+            // All Entries navigation row (only show if more than one journal)
+            if let allEntries = Journal.allEntriesJournal, Journal.visibleJournals.count > 1 {
                 Button(action: {
                     journalViewModel.selectJournal(allEntries)
                     selectedJournal = allEntries
@@ -607,38 +607,40 @@ struct JournalsTabPagedView: View {
             }
             .padding(.top, 16)
 
-            // Trash row
+            // Trash row (Icons mode - simple style)
             Button(action: {
                 // TODO: Show trash
             }) {
                 HStack(spacing: 12) {
-                    // Book shape with trash icon
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(Color(.systemGray4))
-                            .frame(width: 32, height: 46)
+                    // Trash icon (instead of colored circle)
+                    Text(dayOneIcon: .trash)
+                        .font(.dayOneIcons(size: 12))
+                        .foregroundStyle(.secondary)
 
-                        Text(dayOneIcon: .trash)
-                            .font(.dayOneIcons(size: 16))
-                            .foregroundStyle(.white)
-                    }
-
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Trash")
-                            .font(.body)
-                            .fontWeight(.regular)
-                            .foregroundStyle(.primary)
-
-                        Text("12 entries")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
+                    // Trash label
+                    Text("Trash")
+                        .font(.body)
+                        .fontWeight(.regular)
+                        .foregroundStyle(.primary)
 
                     Spacer()
+
+                    // Entry count (just the number)
+                    Text("12")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                 }
                 .padding(.vertical, 8)
+                .padding(.horizontal, 0)
             }
             .buttonStyle(PlainButtonStyle())
+            .contextMenu {
+                Button(action: {
+                    // TODO: Empty trash action
+                }) {
+                    Label("Empty Trash", systemImage: "trash")
+                }
+            }
             .padding(.top, 16)
 
             // TipKit tip for adding journals (progression: Notes -> Work -> Travel)
@@ -757,7 +759,7 @@ struct JournalsTabPagedView: View {
         ]
     }
 
-    private var listJournalList: some View {
+    private var iconsModeView: some View {
         LazyVStack(spacing: 4) {
             // Recent Journals horizontal scroll section
             VStack(alignment: .leading, spacing: 12) {
@@ -846,8 +848,8 @@ struct JournalsTabPagedView: View {
             }
             .padding(.bottom, 16)
 
-            // All Entries navigation row
-            if let allEntries = Journal.allEntriesJournal {
+            // All Entries navigation row (only show if more than one journal)
+            if let allEntries = Journal.allEntriesJournal, Journal.visibleJournals.count > 1 {
                 Button(action: {
                     journalViewModel.selectJournal(allEntries)
                     selectedJournal = allEntries
@@ -1040,38 +1042,71 @@ struct JournalsTabPagedView: View {
             }
             .padding(.top, 16)
 
-            // Trash row
-            Button(action: {
-                // TODO: Show trash
-            }) {
-                HStack(spacing: 12) {
-                    // Book shape with trash icon
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(Color(.systemGray4))
-                            .frame(width: 32, height: 46)
+            // Trash row (List mode - book shape style)
+            VStack(spacing: 0) {
+                HStack(spacing: 16) {
+                    Button(action: {
+                        // TODO: Show trash
+                    }) {
+                        HStack(spacing: 16) {
+                            // Book shape with trash icon
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(Color(.systemGray4))
+                                    .frame(width: 30, height: 40)
+                                    .overlay(
+                                        // Vertical line inset 2pt from left
+                                        GeometryReader { geometry in
+                                            Rectangle()
+                                                .fill(Color.black.opacity(0.1))
+                                                .frame(width: 1)
+                                                .offset(x: 3)
+                                        }
+                                    )
 
-                        Text(dayOneIcon: .trash)
-                            .font(.dayOneIcons(size: 16))
-                            .foregroundStyle(.white)
+                                Text(dayOneIcon: .trash)
+                                    .font(.dayOneIcons(size: 14))
+                                    .foregroundStyle(.white)
+                            }
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Trash")
+                                    .font(.headline)
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(.primary)
+
+                                Text("12 entries")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            Spacer()
+                        }
+                        .contentShape(Rectangle())
                     }
+                    .buttonStyle(PlainButtonStyle())
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Trash")
-                            .font(.body)
-                            .fontWeight(.regular)
-                            .foregroundStyle(.primary)
-
-                        Text("12 entries")
-                            .font(.caption)
+                    Menu {
+                        Button(action: {
+                            // TODO: Empty trash action
+                        }) {
+                            Label("Empty Trash", systemImage: "trash")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .font(.system(size: 14, weight: .regular))
                             .foregroundStyle(.secondary)
+                            .frame(width: 30, height: 30)
+                            .contentShape(Rectangle())
                     }
-
-                    Spacer()
                 }
-                .padding(.vertical, 8)
+                .padding(.vertical, 7)
+                .padding(.horizontal, 0)
+                .padding(.bottom, 4)
+
+                Divider()
+                    .padding(.leading, 0)
             }
-            .buttonStyle(PlainButtonStyle())
             .padding(.top, 16)
 
             // TipKit tip for adding journals (progression: Notes -> Work -> Travel)

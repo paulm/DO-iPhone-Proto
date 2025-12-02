@@ -58,6 +58,8 @@ struct JournalsTabPagedView: View {
     @State private var shouldShowAudioAfterEntry = false
     @State private var showRecentJournals = true
     @State private var showRecentEntries = false
+    @State private var recentJournalsExpanded = true
+    @State private var recentEntriesExpanded = true
     @State private var isEditMode = false
     @State private var journalItems: [Journal.MixedJournalItem] = Journal.mixedJournalItems
     @State private var useSeparatedCollections = false
@@ -268,6 +270,10 @@ struct JournalsTabPagedView: View {
                         Toggle(isOn: $showRecentJournals) {
                             Label("Show Recent Journals", systemImage: "clock")
                         }
+
+                        Toggle(isOn: $showRecentEntries) {
+                            Label("Show Recent Entries", systemImage: "doc.text")
+                        }
                     } label: {
                         Image(systemName: "ellipsis")
                     }
@@ -345,91 +351,95 @@ struct JournalsTabPagedView: View {
     private var listModeView: some View {
         LazyVStack(spacing: 4) {
             // Recent Journals horizontal scroll section
-            VStack(alignment: .leading, spacing: 12) {
-                // Toggleable header with disclosure arrow
-                Button(action: {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        showRecentJournals.toggle()
-                    }
-                }) {
-                    HStack {
-                        Text("Recent Journals")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundStyle(.primary)
-
-                        Spacer()
-
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(.secondary)
-                            .rotationEffect(.degrees(showRecentJournals ? 90 : 0))
-                    }
-                }
-                .buttonStyle(PlainButtonStyle())
-
-                if showRecentJournals {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 16) {
-                            ForEach(recentJournals) { journal in
-                                RecentJournalBookView(
-                                    journal: journal,
-                                    isSelected: false,
-                                    onSelect: {
-                                        journalViewModel.selectJournal(journal)
-                                        selectedJournal = journal
-                                    },
-                                    onNewEntry: {
-                                        journalViewModel.selectJournal(journal)
-                                        showingNewEntry = true
-                                    }
-                                )
-                                .frame(width: 70)
-                            }
+            if showRecentJournals {
+                VStack(alignment: .leading, spacing: 12) {
+                    // Toggleable header with disclosure arrow
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            recentJournalsExpanded.toggle()
                         }
-                        .padding(.leading, 0)
+                    }) {
+                        HStack {
+                            Text("Recent Journals")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundStyle(.primary)
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                                .rotationEffect(.degrees(recentJournalsExpanded ? 90 : 0))
+                        }
+                    }
+                    .buttonStyle(PlainButtonStyle())
+
+                    if recentJournalsExpanded {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 16) {
+                                ForEach(recentJournals) { journal in
+                                    RecentJournalBookView(
+                                        journal: journal,
+                                        isSelected: false,
+                                        onSelect: {
+                                            journalViewModel.selectJournal(journal)
+                                            selectedJournal = journal
+                                        },
+                                        onNewEntry: {
+                                            journalViewModel.selectJournal(journal)
+                                            showingNewEntry = true
+                                        }
+                                    )
+                                    .frame(width: 70)
+                                }
+                            }
+                            .padding(.leading, 0)
+                        }
                     }
                 }
+                .padding(.bottom, 16)
             }
-            .padding(.bottom, 16)
 
             // Recent Entries horizontal scroll section
-            VStack(alignment: .leading, spacing: 12) {
-                // Toggleable header with disclosure arrow
-                Button(action: {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        showRecentEntries.toggle()
-                    }
-                }) {
-                    HStack {
-                        Text("Recent Entries")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundStyle(.primary)
-
-                        Spacer()
-
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(.secondary)
-                            .rotationEffect(.degrees(showRecentEntries ? 90 : 0))
-                    }
-                }
-                .buttonStyle(PlainButtonStyle())
-
-                if showRecentEntries {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 12) {
-                            ForEach(recentEntries) { entry in
-                                RecentEntryCard(entry: entry)
-                                    .frame(width: 108)
-                            }
+            if showRecentEntries {
+                VStack(alignment: .leading, spacing: 12) {
+                    // Toggleable header with disclosure arrow
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            recentEntriesExpanded.toggle()
                         }
-                        .padding(.trailing)
+                    }) {
+                        HStack {
+                            Text("Recent Entries")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundStyle(.primary)
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                                .rotationEffect(.degrees(recentEntriesExpanded ? 90 : 0))
+                        }
+                    }
+                    .buttonStyle(PlainButtonStyle())
+
+                    if recentEntriesExpanded {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 12) {
+                                ForEach(recentEntries) { entry in
+                                    RecentEntryCard(entry: entry)
+                                        .frame(width: 108)
+                                }
+                            }
+                            .padding(.trailing)
+                        }
                     }
                 }
+                .padding(.bottom, 16)
             }
-            .padding(.bottom, 16)
 
             // All Entries navigation row (only show if more than one journal)
             if let allEntries = Journal.allEntriesJournal, Journal.visibleJournals.count > 1 {
@@ -762,91 +772,95 @@ struct JournalsTabPagedView: View {
     private var iconsModeView: some View {
         LazyVStack(spacing: 4) {
             // Recent Journals horizontal scroll section
-            VStack(alignment: .leading, spacing: 12) {
-                // Toggleable header with disclosure arrow
-                Button(action: {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        showRecentJournals.toggle()
-                    }
-                }) {
-                    HStack {
-                        Text("Recent Journals")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundStyle(.primary)
-
-                        Spacer()
-
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(.secondary)
-                            .rotationEffect(.degrees(showRecentJournals ? 90 : 0))
-                    }
-                }
-                .buttonStyle(PlainButtonStyle())
-
-                if showRecentJournals {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 16) {
-                            ForEach(recentJournals) { journal in
-                                RecentJournalBookView(
-                                    journal: journal,
-                                    isSelected: false,
-                                    onSelect: {
-                                        journalViewModel.selectJournal(journal)
-                                        selectedJournal = journal
-                                    },
-                                    onNewEntry: {
-                                        journalViewModel.selectJournal(journal)
-                                        showingNewEntry = true
-                                    }
-                                )
-                                .frame(width: 70)
-                            }
+            if showRecentJournals {
+                VStack(alignment: .leading, spacing: 12) {
+                    // Toggleable header with disclosure arrow
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            recentJournalsExpanded.toggle()
                         }
-                        .padding(.leading, 0)
+                    }) {
+                        HStack {
+                            Text("Recent Journals")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundStyle(.primary)
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                                .rotationEffect(.degrees(recentJournalsExpanded ? 90 : 0))
+                        }
+                    }
+                    .buttonStyle(PlainButtonStyle())
+
+                    if recentJournalsExpanded {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 16) {
+                                ForEach(recentJournals) { journal in
+                                    RecentJournalBookView(
+                                        journal: journal,
+                                        isSelected: false,
+                                        onSelect: {
+                                            journalViewModel.selectJournal(journal)
+                                            selectedJournal = journal
+                                        },
+                                        onNewEntry: {
+                                            journalViewModel.selectJournal(journal)
+                                            showingNewEntry = true
+                                        }
+                                    )
+                                    .frame(width: 70)
+                                }
+                            }
+                            .padding(.leading, 0)
+                        }
                     }
                 }
+                .padding(.bottom, 16)
             }
-            .padding(.bottom, 16)
 
             // Recent Entries horizontal scroll section
-            VStack(alignment: .leading, spacing: 12) {
-                // Toggleable header with disclosure arrow
-                Button(action: {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        showRecentEntries.toggle()
-                    }
-                }) {
-                    HStack {
-                        Text("Recent Entries")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundStyle(.primary)
-
-                        Spacer()
-
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(.secondary)
-                            .rotationEffect(.degrees(showRecentEntries ? 90 : 0))
-                    }
-                }
-                .buttonStyle(PlainButtonStyle())
-
-                if showRecentEntries {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 12) {
-                            ForEach(recentEntries) { entry in
-                                RecentEntryCard(entry: entry)
-                                    .frame(width: 108)
-                            }
+            if showRecentEntries {
+                VStack(alignment: .leading, spacing: 12) {
+                    // Toggleable header with disclosure arrow
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            recentEntriesExpanded.toggle()
                         }
-                        .padding(.trailing)
+                    }) {
+                        HStack {
+                            Text("Recent Entries")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundStyle(.primary)
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                                .rotationEffect(.degrees(recentEntriesExpanded ? 90 : 0))
+                        }
+                    }
+                    .buttonStyle(PlainButtonStyle())
+
+                    if recentEntriesExpanded {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 12) {
+                                ForEach(recentEntries) { entry in
+                                    RecentEntryCard(entry: entry)
+                                        .frame(width: 108)
+                                }
+                            }
+                            .padding(.trailing)
+                        }
                     }
                 }
+                .padding(.bottom, 16)
             }
-            .padding(.bottom, 16)
 
             // All Entries navigation row (only show if more than one journal)
             if let allEntries = Journal.allEntriesJournal, Journal.visibleJournals.count > 1 {
@@ -1893,52 +1907,48 @@ struct CompactFolderRow: View {
     let onSelectFolder: () -> Void
 
     var body: some View {
-        HStack(spacing: 12) {
-            // Disclosure toggle - rotates when expanded
-            Button(action: onToggle) {
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(.secondary)
-                    .rotationEffect(.degrees(isExpanded ? 90 : 0))
-                    .animation(.easeInOut(duration: 0.2), value: isExpanded)
-                    .frame(width: 20, height: 20)
-            }
-            .buttonStyle(PlainButtonStyle())
+        Button(action: onSelectFolder) {
+            HStack(spacing: 12) {
+                // Folder icon
+                Text(dayOneIcon: .folder)
+                    .font(.dayOneIcons(size: 20))
+                    .foregroundStyle(Color(hex: "333B40"))
 
-            // Folder icon and content - tappable to select folder
-            Button(action: onSelectFolder) {
-                HStack(spacing: 12) {
-                    // Folder icon
-                    Text(dayOneIcon: .folder)
-                        .font(.dayOneIcons(size: 20))
-                        .foregroundStyle(Color(hex: "333B40"))
+                // Folder name
+                Text(folder.name)
+                    .font(.body)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.primary)
 
-                    // Folder name
-                    Text(folder.name)
-                        .font(.body)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.primary)
+                Spacer()
 
-                    Spacer()
+                // Folder info: journal count and entry count
+                HStack(spacing: 8) {
+                    Text("\(folder.journalCount) journals")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
 
-                    // Folder info: journal count and entry count
-                    HStack(spacing: 8) {
-                        Text("\(folder.journalCount) journals")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                    Text("•")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
 
-                        Text("•")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-
-                        Text("\(folder.entryCount)")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
+                    Text("\(folder.entryCount)")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                 }
+
+                // Disclosure toggle - rotates when expanded (on right side)
+                Button(action: onToggle) {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                        .animation(.easeInOut(duration: 0.2), value: isExpanded)
+                }
+                .buttonStyle(PlainButtonStyle())
             }
-            .buttonStyle(PlainButtonStyle())
         }
+        .buttonStyle(PlainButtonStyle())
         .padding(.vertical, 8)
         .padding(.horizontal, 0)
     }
@@ -1953,21 +1963,10 @@ struct FolderRow: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 12) {
-                // Disclosure toggle - rotates when expanded (like Files app)
-                Button(action: onToggle) {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                        .rotationEffect(.degrees(isExpanded ? 90 : 0))
-                        .animation(.easeInOut(duration: 0.2), value: isExpanded)
-                        .frame(width: 20, height: 20)
-                }
-                .buttonStyle(PlainButtonStyle())
-
+            HStack(spacing: 16) {
                 // Folder icon and content - tappable to select folder
                 Button(action: onSelectFolder) {
-                    HStack(spacing: 12) {
+                    HStack(spacing: 16) {
                         // Folder icon
                         Text(dayOneIcon: .folder)
                             .font(.dayOneIcons(size: 30))
@@ -2041,6 +2040,16 @@ struct FolderRow: View {
                             .contentShape(Rectangle())
                     }
                 }
+
+                // Disclosure toggle - rotates when expanded (far right)
+                Button(action: onToggle) {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                        .animation(.easeInOut(duration: 0.2), value: isExpanded)
+                }
+                .buttonStyle(PlainButtonStyle())
             }
             .padding(.vertical, 12)
             .padding(.horizontal, 0)

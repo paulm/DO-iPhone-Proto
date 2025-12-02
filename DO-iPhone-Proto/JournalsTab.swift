@@ -56,14 +56,14 @@ struct JournalsTabPagedView: View {
     @State private var selectedFolder: JournalFolder?
     @State private var showingNewEntry = false
     @State private var shouldShowAudioAfterEntry = false
-    @State private var showRecentJournals = true
+    @State private var showRecentJournals = false
     @State private var showRecentEntries = false
     @State private var recentJournalsExpanded = true
     @State private var recentEntriesExpanded = true
     @State private var isEditMode = false
     @State private var journalItems: [Journal.MixedJournalItem] = Journal.mixedJournalItems
     @State private var useSeparatedCollections = false
-    @State private var journalsPopulation: JournalsPopulation = .lots
+    @State private var journalsPopulation: JournalsPopulation = .newUser
     @State private var showAddJournalTips = false
     @State private var addNotesJournalTip = AddNotesJournalTip()
     @State private var addWorkJournalTip = AddWorkJournalTip()
@@ -442,7 +442,7 @@ struct JournalsTabPagedView: View {
             }
 
             // All Entries navigation row (only show if more than one journal)
-            if let allEntries = Journal.allEntriesJournal, Journal.visibleJournals.count > 1 {
+            if let allEntries = Journal.allEntriesJournal, filteredJournals.count > 1 {
                 Button(action: {
                     journalViewModel.selectJournal(allEntries)
                     selectedJournal = allEntries
@@ -464,13 +464,15 @@ struct JournalsTabPagedView: View {
                 .padding(.bottom, 16)
             }
 
-            // Journals section header
-            Text("Journals")
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundStyle(.primary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.bottom, 8)
+            // Journals section header (hide when both Recent sections are off AND only 1 journal)
+            if showRecentJournals || showRecentEntries || filteredJournals.count > 1 {
+                Text("Journals")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.primary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.bottom, 8)
+            }
 
             if useSeparatedCollections {
                 // Show only journals (no folders mixed in)
@@ -863,7 +865,7 @@ struct JournalsTabPagedView: View {
             }
 
             // All Entries navigation row (only show if more than one journal)
-            if let allEntries = Journal.allEntriesJournal, Journal.visibleJournals.count > 1 {
+            if let allEntries = Journal.allEntriesJournal, filteredJournals.count > 1 {
                 Button(action: {
                     journalViewModel.selectJournal(allEntries)
                     selectedJournal = allEntries
@@ -885,13 +887,15 @@ struct JournalsTabPagedView: View {
                 .padding(.bottom, 16)
             }
 
-            // Journals section header
-            Text("Journals")
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundStyle(.primary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.bottom, 8)
+            // Journals section header (hide when both Recent sections are off AND only 1 journal)
+            if showRecentJournals || showRecentEntries || filteredJournals.count > 1 {
+                Text("Journals")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.primary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.bottom, 8)
+            }
 
             if useSeparatedCollections {
                 // Show only journals (no folders mixed in)

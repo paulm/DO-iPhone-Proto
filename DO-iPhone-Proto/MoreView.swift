@@ -12,126 +12,162 @@ struct MoreView: View {
 /// Original More tab layout
 struct MoreTabOriginalView: View {
     @Binding var showingSettings: Bool
-    
+    @State private var quickStartExpanded = true
+    @State private var onThisDayExpanded = true
+    @State private var dailyPromptExpanded = true
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 32) {
                     // Quick Start Section
                     VStack(alignment: .leading, spacing: 16) {
-                        HStack {
-                            Text("Quick Start")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                            
-                            Spacer()
-                            
-                            Button("See more") {
-                                // TODO: Show more quick start options
+                        // Toggleable header with disclosure arrow
+                        Button(action: {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                quickStartExpanded.toggle()
                             }
-                            .foregroundStyle(Color(hex: "44C0FF"))
+                        }) {
+                            HStack {
+                                Text("Quick Start")
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(.primary)
+
+                                Spacer()
+
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundStyle(.secondary)
+                                    .rotationEffect(.degrees(quickStartExpanded ? 90 : 0))
+                            }
                         }
+                        .buttonStyle(PlainButtonStyle())
                         .padding(.horizontal)
-                        
-                        Text("Instantly create an entry with one of the following:")
-                            .font(.body)
-                            .foregroundStyle(.secondary)
+
+                        if quickStartExpanded {
+                            Text("Instantly create an entry with one of the following:")
+                                .font(.body)
+                                .foregroundStyle(.secondary)
+                                .padding(.horizontal)
+
+                            // Quick start options
+                            HStack(spacing: 0) {
+                                QuickStartOption(icon: "photo.on.rectangle", title: "Photos")
+                                QuickStartOption(icon: "mic", title: "Audio")
+                                QuickStartOption(icon: "sun.max", title: "Today")
+                                QuickStartOption(icon: "doc.text", title: "Templates")
+                            }
+                            .background(.gray.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
                             .padding(.horizontal)
-                        
-                        // Quick start options
-                        HStack(spacing: 0) {
-                            QuickStartOption(icon: "photo.on.rectangle", title: "Photos")
-                            QuickStartOption(icon: "mic", title: "Audio")
-                            QuickStartOption(icon: "sun.max", title: "Today")
-                            QuickStartOption(icon: "doc.text", title: "Templates")
                         }
-                        .background(.gray.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
-                        .padding(.horizontal)
                     }
                     
                     // On This Day Section
                     VStack(alignment: .leading, spacing: 16) {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("On This Day")
-                                    .font(.title2)
-                                    .fontWeight(.bold)
-                                
-                                Text("Jun 12")
-                                    .font(.title3)
+                        // Toggleable header with disclosure arrow
+                        Button(action: {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                onThisDayExpanded.toggle()
+                            }
+                        }) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("On This Day")
+                                        .font(.title2)
+                                        .fontWeight(.bold)
+                                        .foregroundStyle(.primary)
+
+                                    Text("Jun 12")
+                                        .font(.title3)
+                                        .foregroundStyle(.secondary)
+                                }
+
+                                Spacer()
+
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 13, weight: .semibold))
                                     .foregroundStyle(.secondary)
+                                    .rotationEffect(.degrees(onThisDayExpanded ? 90 : 0))
                             }
-                            
-                            Spacer()
-                            
-                            Button("See more") {
-                                // TODO: Show more memories
-                            }
-                            .foregroundStyle(Color(hex: "44C0FF"))
                         }
+                        .buttonStyle(PlainButtonStyle())
                         .padding(.horizontal)
-                        
-                        Text("No past memories yet! Create an entry now, and you'll see it here next year.")
-                            .font(.body)
-                            .foregroundStyle(.secondary)
+
+                        if onThisDayExpanded {
+                            Text("No past memories yet! Create an entry now, and you'll see it here next year.")
+                                .font(.body)
+                                .foregroundStyle(.secondary)
+                                .padding(.horizontal)
+
+                            // Year buttons
+                            HStack(spacing: 16) {
+                                YearButton(year: "2024", isSelected: true)
+                                YearButton(year: "2023", isSelected: false)
+                                YearButton(year: "2022", isSelected: false)
+                            }
                             .padding(.horizontal)
-                        
-                        // Year buttons
-                        HStack(spacing: 16) {
-                            YearButton(year: "2024", isSelected: true)
-                            YearButton(year: "2023", isSelected: false)
-                            YearButton(year: "2022", isSelected: false)
                         }
-                        .padding(.horizontal)
                     }
                     
                     // Daily Prompt Section
                     VStack(alignment: .leading, spacing: 16) {
-                        HStack {
-                            Text("Daily Prompt")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                            
-                            Spacer()
-                            
-                            Button("See more") {
-                                // TODO: Show more prompts
+                        // Toggleable header with disclosure arrow
+                        Button(action: {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                dailyPromptExpanded.toggle()
                             }
-                            .foregroundStyle(Color(hex: "44C0FF"))
-                        }
-                        .padding(.horizontal)
-                        
-                        // Prompt card
-                        VStack(spacing: 20) {
-                            Text("What makes me feel most alive?")
-                                .font(.title3)
-                                .foregroundStyle(.primary)
-                                .multilineTextAlignment(.center)
-                                .padding(.top, 24)
-                            
+                        }) {
                             HStack {
-                                Button(action: {
-                                    // TODO: Answer prompt
-                                }) {
-                                    Text("Answer prompt")
-                                        .font(.headline)
-                                        .foregroundStyle(.primary)
-                                }
-                                
+                                Text("Daily Prompt")
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(.primary)
+
                                 Spacer()
-                                
-                                Button(action: {
-                                    // TODO: Shuffle prompt
-                                }) {
-                                    Image(systemName: "shuffle")
-                                        .font(.title2)
-                                        .foregroundStyle(.primary)
-                                }
+
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundStyle(.secondary)
+                                    .rotationEffect(.degrees(dailyPromptExpanded ? 90 : 0))
                             }
-                            .padding(.bottom, 24)
                         }
-                        .background(.gray.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
+                        .buttonStyle(PlainButtonStyle())
                         .padding(.horizontal)
+
+                        if dailyPromptExpanded {
+                            // Prompt card
+                            VStack(spacing: 20) {
+                                Text("What makes me feel most alive?")
+                                    .font(.title3)
+                                    .foregroundStyle(.primary)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.top, 24)
+
+                                HStack {
+                                    Button(action: {
+                                        // TODO: Answer prompt
+                                    }) {
+                                        Text("Answer prompt")
+                                            .font(.headline)
+                                            .foregroundStyle(.primary)
+                                    }
+
+                                    Spacer()
+
+                                    Button(action: {
+                                        // TODO: Shuffle prompt
+                                    }) {
+                                        Image(systemName: "shuffle")
+                                            .font(.title2)
+                                            .foregroundStyle(.primary)
+                                    }
+                                }
+                                .padding(.bottom, 24)
+                            }
+                            .background(.gray.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
+                            .padding(.horizontal)
+                        }
                     }
                     
                     Spacer(minLength: 40)

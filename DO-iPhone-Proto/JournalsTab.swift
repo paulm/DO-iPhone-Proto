@@ -224,11 +224,18 @@ struct JournalsTabPagedView: View {
     // MARK: - Navigation Content
     private var navigationContent: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 0) {
-                    // Journal content based on view mode
+            Group {
+                // List mode (iconsModeView) uses List which has built-in scrolling
+                // Other modes use ScrollView with LazyVStack
+                if viewMode == .list {
                     journalListContent
-                        .padding(.top, 12)
+                } else {
+                    ScrollView {
+                        VStack(spacing: 0) {
+                            journalListContent
+                                .padding(.top, 12)
+                        }
+                    }
                 }
             }
             .navigationTitle("Journals")
@@ -399,6 +406,8 @@ struct JournalsTabPagedView: View {
                     }
                 }
                 .padding(.bottom, 16)
+                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 0))
+                .listRowSeparator(.hidden)
             }
 
             // Recent Entries horizontal scroll section
@@ -439,6 +448,8 @@ struct JournalsTabPagedView: View {
                     }
                 }
                 .padding(.bottom, 16)
+                .listRowInsets(EdgeInsets())
+                .listRowSeparator(.hidden)
             }
 
             // All Entries navigation row (only show if more than one journal)
@@ -462,6 +473,8 @@ struct JournalsTabPagedView: View {
                 }
                 .buttonStyle(PlainButtonStyle())
                 .padding(.bottom, 16)
+                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 0))
+                .listRowSeparator(.hidden)
             }
 
             // Journals section header (hide when both Recent sections are off AND only 1 journal)
@@ -472,6 +485,8 @@ struct JournalsTabPagedView: View {
                     .foregroundStyle(.primary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.bottom, 8)
+                    .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 0))
+                    .listRowSeparator(.hidden)
             }
 
             if useSeparatedCollections {
@@ -772,7 +787,7 @@ struct JournalsTabPagedView: View {
     }
 
     private var iconsModeView: some View {
-        LazyVStack(spacing: 4) {
+        List {
             // Recent Journals horizontal scroll section
             if showRecentJournals {
                 VStack(alignment: .leading, spacing: 12) {
@@ -822,6 +837,8 @@ struct JournalsTabPagedView: View {
                     }
                 }
                 .padding(.bottom, 16)
+                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 0))
+                .listRowSeparator(.hidden)
             }
 
             // Recent Entries horizontal scroll section
@@ -862,6 +879,8 @@ struct JournalsTabPagedView: View {
                     }
                 }
                 .padding(.bottom, 16)
+                .listRowInsets(EdgeInsets())
+                .listRowSeparator(.hidden)
             }
 
             // All Entries navigation row (only show if more than one journal)
@@ -885,6 +904,8 @@ struct JournalsTabPagedView: View {
                 }
                 .buttonStyle(PlainButtonStyle())
                 .padding(.bottom, 16)
+                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 0))
+                .listRowSeparator(.hidden)
             }
 
             // Journals section header (hide when both Recent sections are off AND only 1 journal)
@@ -895,6 +916,8 @@ struct JournalsTabPagedView: View {
                     .foregroundStyle(.primary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.bottom, 8)
+                    .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 0))
+                    .listRowSeparator(.hidden)
             }
 
             if useSeparatedCollections {
@@ -959,6 +982,10 @@ struct JournalsTabPagedView: View {
                                 onSelect: {
                                     journalViewModel.selectJournal(journal)
                                     selectedJournal = journal
+                                },
+                                onNewEntry: {
+                                    journalViewModel.selectJournal(journal)
+                                    showingNewEntry = true
                                 }
                             )
                             .padding(.leading, 20) // Indent journals inside folders
@@ -998,6 +1025,10 @@ struct JournalsTabPagedView: View {
                                     onSelect: {
                                         journalViewModel.selectJournal(journal)
                                         selectedJournal = journal
+                                    },
+                                    onNewEntry: {
+                                        journalViewModel.selectJournal(journal)
+                                        showingNewEntry = true
                                     }
                                 )
                                 .padding(.leading, 20) // Indent journals inside folders
@@ -1011,6 +1042,10 @@ struct JournalsTabPagedView: View {
                             onSelect: {
                                 journalViewModel.selectJournal(journal)
                                 selectedJournal = journal
+                            },
+                            onNewEntry: {
+                                journalViewModel.selectJournal(journal)
+                                showingNewEntry = true
                             }
                         )
                     }
@@ -1163,9 +1198,8 @@ struct JournalsTabPagedView: View {
                 .padding(.top, 16)
             }
         }
-        .padding(.horizontal)
-        .padding(.top, 12)
-        .padding(.bottom, 100)
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
         .environment(\.editMode, .constant(isEditMode ? .active : .inactive))
     }
 
@@ -2064,6 +2098,8 @@ struct FolderRow: View {
                     .padding(.leading, 0)
             }
         }
+        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 0))
+        .listRowSeparator(.hidden)
     }
 }
 
@@ -2072,6 +2108,8 @@ struct JournalRow: View {
     let isSelected: Bool
     let isEditMode: Bool
     let onSelect: () -> Void
+    var onNewEntry: (() -> Void)? = nil
+    @State private var showingEditJournal = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -2191,6 +2229,31 @@ struct JournalRow: View {
                 Label("New Entry", systemImage: "plus")
             }
         }
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            // New Entry (journal color)
+            if let newEntry = onNewEntry {
+                Button(action: newEntry) {
+                    Label("New", systemImage: "plus")
+                }
+                .tint(journal.color)
+            }
+
+            // Select Journal (blue)
+            Button(action: onSelect) {
+                Label("Select", systemImage: "checkmark.circle")
+            }
+            .tint(.blue)
+
+            // Edit Journal (gray)
+            Button(action: {
+                showingEditJournal = true
+            }) {
+                Label("Edit", systemImage: "pencil")
+            }
+            .tint(.gray)
+        }
+        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 0))
+        .listRowSeparator(.hidden)
     }
 }
 

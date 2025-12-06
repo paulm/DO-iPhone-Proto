@@ -51,12 +51,19 @@ struct MoreTabOriginalView: View {
                                 .foregroundStyle(.secondary)
                                 .padding(.horizontal)
 
-                            // Quick start options
-                            HStack(spacing: 0) {
-                                QuickStartOption(icon: "photo.on.rectangle", title: "Photos")
-                                QuickStartOption(icon: "mic", title: "Audio")
-                                QuickStartOption(icon: "sun.max", title: "Today")
-                                QuickStartOption(icon: "doc.text", title: "Templates")
+                            // Quick start options - horizontally scrollable
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 8) {
+                                    QuickStartOption(icon: "photo.on.rectangle", title: "Photos")
+                                        .padding(.leading, 20)
+                                    QuickStartOption(icon: "mic", title: "Audio")
+                                    QuickStartOption(icon: "sun.max", title: "Today")
+                                    QuickStartOption(icon: "doc.text", title: "Templates")
+                                    QuickStartOption(icon: "bubble.left", title: "Chat")
+                                    QuickStartOption(icon: "video", title: "Video")
+                                    QuickStartOption(icon: "pencil.tip", title: "Draw")
+                                    QuickStartOption(icon: "text.viewfinder", title: "Scan Text")
+                                }
                             }
                             .background(.gray.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
                             .padding(.horizontal)
@@ -209,7 +216,7 @@ struct MoreTabOriginalView: View {
 struct QuickStartOption: View {
     let icon: String
     let title: String
-    
+
     var body: some View {
         Button(action: {
             // TODO: Handle quick start action
@@ -218,12 +225,12 @@ struct QuickStartOption: View {
                 Image(systemName: icon)
                     .font(.title2)
                     .foregroundStyle(.primary)
-                
+
                 Text(title)
                     .font(.caption)
                     .foregroundStyle(.primary)
             }
-            .frame(maxWidth: .infinity)
+            .frame(width: 80)
             .padding(.vertical, 20)
         }
         .buttonStyle(PlainButtonStyle())

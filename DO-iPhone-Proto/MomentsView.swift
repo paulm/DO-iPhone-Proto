@@ -62,9 +62,7 @@ struct MomentsView: View {
         self._selectedHealth = selectedHealth
         self.initialSection = initialSection
     }
-    
-    private var experimentsManager: ExperimentsManager { ExperimentsManager.shared }
-    
+
     internal static let allMomentsData: [(String, MomentType, String)] = [
         // Visits (chronological order)
         ("Home", .visit, "6:00 AM"),

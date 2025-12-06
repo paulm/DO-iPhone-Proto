@@ -42,12 +42,6 @@ struct SettingsView: View {
                         LabsSettingsView()
                     }
                 }
-                
-                Section {
-                    NavigationLink("Experiments") {
-                        ExperimentsView()
-                    }
-                }
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.large)

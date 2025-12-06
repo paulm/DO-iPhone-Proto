@@ -3,19 +3,9 @@ import SwiftUI
 /// More tab view with Quick Start, On This Day, and Daily Prompt
 struct MoreView: View {
     @State private var showingSettings = false
-    private var experimentsManager = ExperimentsManager.shared
-    
+
     var body: some View {
-        Group {
-            switch experimentsManager.variant(for: .moreTab) {
-            case .original:
-                MoreTabOriginalView(showingSettings: $showingSettings)
-            case .appleSettings:
-                MoreTabSettingsStyleView()
-            default:
-                MoreTabOriginalView(showingSettings: $showingSettings)
-            }
-        }
+        MoreTabOriginalView(showingSettings: $showingSettings)
     }
 }
 

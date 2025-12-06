@@ -14,17 +14,9 @@ struct PromptPack: Identifiable {
 struct PromptsView: View {
     @State private var selectedTab = 0
     @State private var showingSettings = false
-    private var experimentsManager = ExperimentsManager.shared
-    
+
     var body: some View {
-        Group {
-            switch experimentsManager.variant(for: .promptsTab) {
-            case .original:
-                PromptsTabOriginalView(selectedTab: $selectedTab, showingSettings: $showingSettings)
-            default:
-                PromptsTabOriginalView(selectedTab: $selectedTab, showingSettings: $showingSettings)
-            }
-        }
+        PromptsTabOriginalView(selectedTab: $selectedTab, showingSettings: $showingSettings)
     }
 }
 

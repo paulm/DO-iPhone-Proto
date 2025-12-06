@@ -16,8 +16,7 @@ struct MainTabView: View {
     @State private var messageCountAtResume = 0
     @State private var updateTrigger = false
     @State private var showUpdateEntry = false
-    private var experimentsManager = ExperimentsManager.shared
-    
+
     var body: some View {
         ZStack {
             TabView {

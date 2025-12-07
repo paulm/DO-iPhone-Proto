@@ -617,30 +617,27 @@ struct JournalsTabPagedView: View {
 
             // New Collection and New Journal buttons
             HStack(spacing: 12) {
-                // New Collection button
+                // New Collection button (icon only)
                 Button(action: {
                     // TODO: Add new collection action
                 }) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "folder.badge.plus")
-                            .font(.system(size: 18))
-                        Text("New Collection")
-                            .font(.body)
-                            .fontWeight(.medium)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(Color(.systemGray6))
-                    .foregroundStyle(.primary)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    Image("media-library-folder-add")
+                        .renderingMode(.template)
+                        .font(.system(size: 18))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(Color(.systemGray6))
+                        .foregroundStyle(.primary)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
+                .frame(width: 48)
 
-                // New Journal button
+                // New Journal button (80% width)
                 Button(action: {
                     // TODO: Add new journal action
                 }) {
                     HStack(spacing: 8) {
-                        Image(systemName: "plus.circle")
+                        Image(systemName: "plus")
                             .font(.system(size: 18))
                         Text("New Journal")
                             .font(.body)
@@ -652,6 +649,7 @@ struct JournalsTabPagedView: View {
                     .foregroundStyle(.primary)
                     .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
+                .frame(maxWidth: .infinity)
             }
             .padding(.top, 16)
             .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
@@ -1084,31 +1082,28 @@ struct JournalsTabPagedView: View {
 
             // New Collection and New Journal buttons
             HStack(spacing: 12) {
-                // New Collection button
+                // New Collection button (icon only)
                 Button(action: {
                     // TODO: Add new collection action
                 }) {
-                    HStack(spacing: 8) {
-                        Text(dayOneIcon: .folder_add)
-                            .font(.dayOneIcons(size: 18))
-                        Text("New Collection")
-                            .font(.body)
-                            .fontWeight(.medium)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(Color(.systemGray6))
-                    .foregroundStyle(.primary)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    Image("media-library-folder-add")
+                        .renderingMode(.template)
+                        .font(.system(size: 18))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(Color(.systemGray6))
+                        .foregroundStyle(.primary)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
+                .frame(width: 48)
 
-                // New Journal button
+                // New Journal button (80% width)
                 Button(action: {
                     // TODO: Add new journal action
                 }) {
                     HStack(spacing: 8) {
-                        Text(dayOneIcon: .plus_circle)
-                            .font(.dayOneIcons(size: 18))
+                        Image(systemName: "plus")
+                            .font(.system(size: 18))
                         Text("New Journal")
                             .font(.body)
                             .fontWeight(.medium)
@@ -1119,6 +1114,7 @@ struct JournalsTabPagedView: View {
                     .foregroundStyle(.primary)
                     .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
+                .frame(maxWidth: .infinity)
             }
             .padding(.top, 16)
 

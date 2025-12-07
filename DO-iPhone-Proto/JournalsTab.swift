@@ -241,6 +241,23 @@ struct JournalsTabPagedView: View {
             .navigationTitle("Journals")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
+                ToolbarItemGroup(placement: .navigationBarLeading) {
+                    // New Collection button
+                    Button(action: {
+                        // TODO: Add new collection action
+                    }) {
+                        Image("media-library-folder-add")
+                            .renderingMode(.template)
+                    }
+
+                    // New Journal button
+                    Button(action: {
+                        // TODO: Add new journal action
+                    }) {
+                        Image(systemName: "plus")
+                    }
+                }
+
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     Menu {
                         Button(action: {

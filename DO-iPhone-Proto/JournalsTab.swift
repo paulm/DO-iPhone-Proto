@@ -1930,7 +1930,7 @@ struct CompactJournalRow: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            .padding(.vertical, 8)
+            .padding(.vertical, 0)
             .padding(.horizontal, 0)
         }
         .buttonStyle(PlainButtonStyle())
@@ -1940,7 +1940,7 @@ struct CompactJournalRow: View {
             }) {
                 Label("Edit Journal", systemImage: "pencil")
             }
-            
+
             Button(action: {
                 // TODO: New entry action
             }) {
@@ -2000,7 +2000,7 @@ struct CompactFolderRow: View {
             }
         }
         .buttonStyle(PlainButtonStyle())
-        .padding(.vertical, 8)
+        .padding(.vertical, 0)
         .padding(.horizontal, 0)
     }
 }

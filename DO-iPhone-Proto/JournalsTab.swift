@@ -1954,8 +1954,9 @@ struct CompactFolderRow: View {
         Button(action: onSelectFolder) {
             HStack(spacing: 12) {
                 // Folder icon
-                Text(dayOneIcon: .folder)
-                    .font(.dayOneIcons(size: 20))
+                Image("media-library-folder")
+                    .resizable()
+                    .frame(width: 20, height: 20)
                     .foregroundStyle(Color(hex: "333B40"))
 
                 // Folder name
@@ -2012,8 +2013,9 @@ struct FolderRow: View {
                 Button(action: onSelectFolder) {
                     HStack(spacing: 16) {
                         // Folder icon
-                        Text(dayOneIcon: .folder)
-                            .font(.dayOneIcons(size: 30))
+                        Image("media-library-folder")
+                            .resizable()
+                            .frame(width: 30, height: 30)
                             .foregroundStyle(Color(hex: "333B40")) // Deep Blue
 
                         // Folder info

@@ -379,6 +379,7 @@ struct JournalsTabPagedView: View {
                                 .foregroundStyle(.secondary)
                                 .rotationEffect(.degrees(recentJournalsExpanded ? 90 : 0))
                         }
+                        .padding(.horizontal, 16)
                     }
                     .buttonStyle(PlainButtonStyle())
 
@@ -401,12 +402,12 @@ struct JournalsTabPagedView: View {
                                     .frame(width: 70)
                                 }
                             }
-                            .padding(.leading, 0)
+                            .padding(.leading, 16)
                         }
                     }
                 }
                 .padding(.bottom, 16)
-                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 0))
+                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                 .listRowSeparator(.hidden)
             }
 
@@ -432,6 +433,7 @@ struct JournalsTabPagedView: View {
                                 .foregroundStyle(.secondary)
                                 .rotationEffect(.degrees(recentEntriesExpanded ? 90 : 0))
                         }
+                        .padding(.horizontal, 16)
                     }
                     .buttonStyle(PlainButtonStyle())
 
@@ -443,6 +445,7 @@ struct JournalsTabPagedView: View {
                                         .frame(width: 108)
                                 }
                             }
+                            .padding(.leading, 16)
                             .padding(.trailing)
                         }
                     }
@@ -473,7 +476,7 @@ struct JournalsTabPagedView: View {
                 }
                 .buttonStyle(PlainButtonStyle())
                 .padding(.bottom, 16)
-                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 0))
+                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
                 .listRowSeparator(.hidden)
             }
 
@@ -485,7 +488,7 @@ struct JournalsTabPagedView: View {
                     .foregroundStyle(.primary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.bottom, 8)
-                    .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 0))
+                    .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
                     .listRowSeparator(.hidden)
             }
 
@@ -810,6 +813,7 @@ struct JournalsTabPagedView: View {
                                 .foregroundStyle(.secondary)
                                 .rotationEffect(.degrees(recentJournalsExpanded ? 90 : 0))
                         }
+                        .padding(.horizontal, 16)
                     }
                     .buttonStyle(PlainButtonStyle())
 
@@ -832,12 +836,12 @@ struct JournalsTabPagedView: View {
                                     .frame(width: 70)
                                 }
                             }
-                            .padding(.leading, 0)
+                            .padding(.leading, 16)
                         }
                     }
                 }
                 .padding(.bottom, 16)
-                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 0))
+                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                 .listRowSeparator(.hidden)
             }
 
@@ -863,6 +867,7 @@ struct JournalsTabPagedView: View {
                                 .foregroundStyle(.secondary)
                                 .rotationEffect(.degrees(recentEntriesExpanded ? 90 : 0))
                         }
+                        .padding(.horizontal, 16)
                     }
                     .buttonStyle(PlainButtonStyle())
 
@@ -874,6 +879,7 @@ struct JournalsTabPagedView: View {
                                         .frame(width: 108)
                                 }
                             }
+                            .padding(.leading, 16)
                             .padding(.trailing)
                         }
                     }
@@ -904,7 +910,7 @@ struct JournalsTabPagedView: View {
                 }
                 .buttonStyle(PlainButtonStyle())
                 .padding(.bottom, 16)
-                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 0))
+                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
                 .listRowSeparator(.hidden)
             }
 
@@ -916,7 +922,7 @@ struct JournalsTabPagedView: View {
                     .foregroundStyle(.primary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.bottom, 8)
-                    .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 0))
+                    .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
                     .listRowSeparator(.hidden)
             }
 
@@ -2098,7 +2104,7 @@ struct FolderRow: View {
                     .padding(.leading, 0)
             }
         }
-        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 0))
+        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
         .listRowSeparator(.hidden)
     }
 }
@@ -2252,7 +2258,7 @@ struct JournalRow: View {
             }
             .tint(.gray)
         }
-        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 0))
+        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
         .listRowSeparator(.hidden)
     }
 }

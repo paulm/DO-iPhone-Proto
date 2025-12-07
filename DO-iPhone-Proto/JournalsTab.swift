@@ -56,8 +56,8 @@ struct JournalsTabPagedView: View {
     @State private var selectedFolder: JournalFolder?
     @State private var showingNewEntry = false
     @State private var shouldShowAudioAfterEntry = false
-    @State private var showRecentJournals = false
-    @State private var showRecentEntries = false
+    @State private var showRecentJournals = true
+    @State private var showRecentEntries = true
     @State private var recentJournalsExpanded = true
     @State private var recentEntriesExpanded = true
     @State private var isEditMode = false
@@ -225,9 +225,9 @@ struct JournalsTabPagedView: View {
     private var navigationContent: some View {
         NavigationStack {
             Group {
-                // List mode (iconsModeView) uses List which has built-in scrolling
-                // Other modes use ScrollView with LazyVStack
-                if viewMode == .list {
+                // List-based views (compact and list modes) use List which has built-in scrolling
+                // Grid mode uses ScrollView with LazyVStack
+                if viewMode == .list || viewMode == .compact {
                     journalListContent
                 } else {
                     ScrollView {
@@ -264,7 +264,7 @@ struct JournalsTabPagedView: View {
                         Divider()
 
                         Picker("View Style", selection: $viewMode) {
-                            Label("List", systemImage: "list.bullet")
+                            Label("Compact", systemImage: "list.bullet")
                                 .tag(ViewMode.compact)
                             Label("Icons", systemImage: "square.grid.3x3")
                                 .tag(ViewMode.list)
@@ -356,7 +356,7 @@ struct JournalsTabPagedView: View {
     }
     
     private var listModeView: some View {
-        LazyVStack(spacing: 4) {
+        List {
             // Recent Journals horizontal scroll section
             if showRecentJournals {
                 VStack(alignment: .leading, spacing: 12) {
@@ -510,13 +510,14 @@ struct JournalsTabPagedView: View {
                 // Collections section header (only show if there are folders)
                 if !filteredFolders.isEmpty {
                     Text("Collections")
-                        .font(.headline)
-                        .fontWeight(.semibold)
+                        .font(.title2)
+                        .fontWeight(.bold)
                         .foregroundStyle(.primary)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal)
                         .padding(.top, 24)
                         .padding(.bottom, 8)
+                        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+                        .listRowSeparator(.hidden)
                 }
 
                 // Show folders separately
@@ -604,8 +605,8 @@ struct JournalsTabPagedView: View {
                     // TODO: Add new collection action
                 }) {
                     HStack(spacing: 8) {
-                        Text(dayOneIcon: .folder_add)
-                            .font(.dayOneIcons(size: 18))
+                        Image(systemName: "folder.badge.plus")
+                            .font(.system(size: 18))
                         Text("New Collection")
                             .font(.body)
                             .fontWeight(.medium)
@@ -622,8 +623,8 @@ struct JournalsTabPagedView: View {
                     // TODO: Add new journal action
                 }) {
                     HStack(spacing: 8) {
-                        Text(dayOneIcon: .plus_circle)
-                            .font(.dayOneIcons(size: 18))
+                        Image(systemName: "plus.circle")
+                            .font(.system(size: 18))
                         Text("New Journal")
                             .font(.body)
                             .fontWeight(.medium)
@@ -636,15 +637,17 @@ struct JournalsTabPagedView: View {
                 }
             }
             .padding(.top, 16)
+            .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+            .listRowSeparator(.hidden)
 
-            // Trash row (Icons mode - simple style)
+            // Trash row
             Button(action: {
                 // TODO: Show trash
             }) {
                 HStack(spacing: 12) {
-                    // Trash icon (instead of colored circle)
-                    Text(dayOneIcon: .trash)
-                        .font(.dayOneIcons(size: 12))
+                    // Trash icon
+                    Image(systemName: "trash")
+                        .font(.system(size: 14))
                         .foregroundStyle(.secondary)
 
                     // Trash label
@@ -655,13 +658,11 @@ struct JournalsTabPagedView: View {
 
                     Spacer()
 
-                    // Entry count (just the number)
+                    // Entry count
                     Text("12")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
-                .padding(.vertical, 8)
-                .padding(.horizontal, 0)
             }
             .buttonStyle(PlainButtonStyle())
             .contextMenu {
@@ -672,6 +673,8 @@ struct JournalsTabPagedView: View {
                 }
             }
             .padding(.top, 16)
+            .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+            .listRowSeparator(.hidden)
 
             // TipKit tip for adding journals (progression: Notes -> Work -> Travel)
             if showAddJournalTips && currentJournalTip != .none {
@@ -707,11 +710,12 @@ struct JournalsTabPagedView: View {
                 }
                 .tint(currentTipColor)
                 .padding(.top, 16)
+                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+                .listRowSeparator(.hidden)
             }
         }
-        .padding(.horizontal)
-        .padding(.top, 8)
-        .padding(.bottom, 100)
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
     }
 
     // Recent journals for horizontal scroll - pick from filtered journals, always including Journal, Work Notes, Daily (if available)
@@ -1202,6 +1206,8 @@ struct JournalsTabPagedView: View {
                 }
                 .tint(currentTipColor)
                 .padding(.top, 16)
+                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+                .listRowSeparator(.hidden)
             }
         }
         .listStyle(.plain)
@@ -2046,47 +2052,6 @@ struct FolderRow: View {
                 }
                 .buttonStyle(PlainButtonStyle())
 
-                // Show drag handle in edit mode, ellipsis menu otherwise
-                if isEditMode {
-                    Image(systemName: "line.3.horizontal")
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundStyle(.secondary)
-                } else {
-                    Menu {
-                        Button(action: {
-                            onSelectFolder()
-                        }) {
-                            Label("Open Collection", systemImage: "folder")
-                        }
-
-                        Button(action: {
-                            // TODO: Edit folder action
-                        }) {
-                            Label("Edit Collection", systemImage: "pencil")
-                        }
-
-                        Divider()
-
-                        Button(action: {
-                            // TODO: Share action
-                        }) {
-                            Label("Share", systemImage: "square.and.arrow.up")
-                        }
-
-                        Button(role: .destructive, action: {
-                            // TODO: Delete action
-                        }) {
-                            Label("Delete", systemImage: "trash")
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis")
-                            .font(.system(size: 14, weight: .regular))
-                            .foregroundStyle(.secondary)
-                            .frame(width: 30, height: 30)
-                            .contentShape(Rectangle())
-                    }
-                }
-
                 // Disclosure toggle - rotates when expanded (far right)
                 Button(action: onToggle) {
                     Image(systemName: "chevron.right")
@@ -2175,47 +2140,6 @@ struct JournalRow: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(PlainButtonStyle())
-
-                // Show drag handle in edit mode, ellipsis menu otherwise
-                if isEditMode {
-                    Image(systemName: "line.3.horizontal")
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundStyle(.secondary)
-                } else {
-                    Menu {
-                        Button(action: {
-                            // TODO: Edit journal action
-                        }) {
-                            Label("Edit Journal", systemImage: "pencil")
-                        }
-
-                        Button(action: {
-                            // TODO: New entry action
-                        }) {
-                            Label("New Entry", systemImage: "plus")
-                        }
-
-                        Divider()
-
-                        Button(action: {
-                            // TODO: Share action
-                        }) {
-                            Label("Share", systemImage: "square.and.arrow.up")
-                        }
-
-                        Button(role: .destructive, action: {
-                            // TODO: Delete action
-                        }) {
-                            Label("Delete", systemImage: "trash")
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis")
-                            .font(.system(size: 14, weight: .regular))
-                            .foregroundStyle(.secondary)
-                            .frame(width: 30, height: 30)
-                            .contentShape(Rectangle())
-                    }
-                }
             }
             .padding(.vertical, 7)
             .padding(.horizontal, 0)
@@ -2223,19 +2147,6 @@ struct JournalRow: View {
 
             Divider()
                 .padding(.leading, 0)
-        }
-        .contextMenu {
-            Button(action: {
-                // TODO: Edit journal action
-            }) {
-                Label("Edit Journal", systemImage: "pencil")
-            }
-
-            Button(action: {
-                // TODO: New entry action
-            }) {
-                Label("New Entry", systemImage: "plus")
-            }
         }
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
             // New Entry (journal color)

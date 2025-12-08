@@ -65,6 +65,11 @@ struct JournalsTabPagedView: View {
     @State private var useSeparatedCollections = false
     @State private var journalsPopulation: JournalsPopulation = .newUser
     @State private var showAddJournalTips = false
+    @State private var showTrashRow = false
+    @State private var showNewJournalButtons = true
+    @State private var showingSectionsOrder = false
+    @State private var journalsSectionExpanded = true
+    @State private var sectionOrder: [JournalSectionType] = [.recentJournals, .recentEntries, .journals, .newJournalButtons, .trash]
     @State private var addNotesJournalTip = AddNotesJournalTip()
     @State private var addWorkJournalTip = AddWorkJournalTip()
     @State private var addTravelJournalTip = AddTravelJournalTip()
@@ -277,7 +282,13 @@ struct JournalsTabPagedView: View {
                         }) {
                             Label("New Journal", systemImage: "plus")
                         }
-                        
+
+                        Button(action: {
+                            showingSectionsOrder = true
+                        }) {
+                            Label("Sort", systemImage: "arrow.up.arrow.down")
+                        }
+
                         Divider()
 
                         Picker("View Style", selection: $viewMode) {
@@ -319,6 +330,10 @@ struct JournalsTabPagedView: View {
                             Toggle(isOn: $showAddJournalTips) {
                                 Label("Show Add Journal Tips", systemImage: "lightbulb")
                             }
+
+                            Toggle(isOn: $showTrashRow) {
+                                Label("Show Trash Row", systemImage: "trash")
+                            }
                         }
 
                         Section("Journals Population") {
@@ -357,8 +372,18 @@ struct JournalsTabPagedView: View {
         .sheet(isPresented: $showingSettings) {
             SettingsView()
         }
+        .sheet(isPresented: $showingSectionsOrder) {
+            JournalsSectionsOrderView(
+                sectionOrder: $sectionOrder,
+                showRecentJournals: $showRecentJournals,
+                showRecentEntries: $showRecentEntries,
+                showJournalsSection: $journalsSectionExpanded,
+                showNewJournalButtons: $showNewJournalButtons,
+                showTrashRow: $showTrashRow
+            )
+        }
     }
-    
+
     // MARK: - Journal List Content
     @ViewBuilder
     private var journalListContent: some View {
@@ -499,19 +524,36 @@ struct JournalsTabPagedView: View {
 
             // Journals section header (hide when both Recent sections are off AND only 1 journal)
             if showRecentJournals || showRecentEntries || filteredJournals.count > 1 {
-                Text("Journals")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundStyle(.primary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.bottom, 8)
-                    .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
-                    .listRowSeparator(.hidden)
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        journalsSectionExpanded.toggle()
+                    }
+                }) {
+                    HStack {
+                        Text("Journals")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundStyle(.primary)
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                            .rotationEffect(.degrees(journalsSectionExpanded ? 90 : 0))
+                    }
+                    .padding(.horizontal, 16)
+                }
+                .buttonStyle(PlainButtonStyle())
+                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                .listRowSeparator(.hidden)
+                .padding(.bottom, 8)
             }
 
-            if useSeparatedCollections {
-                // Show only journals (no folders mixed in)
-                ForEach(filteredMixedJournalItems) { item in
+            if journalsSectionExpanded {
+                if useSeparatedCollections {
+                    // Show only journals (no folders mixed in)
+                    ForEach(filteredMixedJournalItems) { item in
                     if let journal = item.journal {
                         CompactJournalRow(
                             journal: journal,
@@ -614,82 +656,101 @@ struct JournalsTabPagedView: View {
                     }
                 }
             }
+            }
 
-            // New Collection and New Journal buttons
-            HStack(spacing: 12) {
-                // New Collection button (icon only)
-                Button(action: {
-                    // TODO: Add new collection action
-                }) {
-                    Image("media-library-folder-add")
-                        .renderingMode(.template)
-                        .font(.system(size: 18))
+            // Trash, New Collection and New Journal buttons
+            if showNewJournalButtons {
+                HStack(spacing: 12) {
+    //                // Trash button (icon only)
+    //                Button(action: {
+    //                    // TODO: Show trash
+    //                }) {
+    //                    Image(systemName: "trash")
+    //                        .font(.system(size: 18))
+    //                        .frame(maxWidth: .infinity)
+    //                        .padding(.vertical, 12)
+    //                        .background(Color(.systemGray6))
+    //                        .foregroundStyle(.primary)
+    //                        .clipShape(RoundedRectangle(cornerRadius: 10))
+    //                }
+    //                .frame(width: 48)
+
+                    // New Collection button (icon only)
+                    Button(action: {
+                        // TODO: Add new collection action
+                    }) {
+                        Image("media-library-folder-add")
+                            .renderingMode(.template)
+                            .font(.system(size: 18))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(Color(.systemGray6))
+                            .foregroundStyle(.primary)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                    }
+                    .frame(width: 48)
+
+                    // New Journal button (remaining width)
+                    Button(action: {
+                        // TODO: Add new journal action
+                    }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "plus")
+                                .font(.system(size: 18))
+                            Text("New Journal")
+                                .font(.body)
+                                .fontWeight(.medium)
+                        }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
                         .background(Color(.systemGray6))
                         .foregroundStyle(.primary)
                         .clipShape(RoundedRectangle(cornerRadius: 10))
-                }
-                .frame(width: 48)
-
-                // New Journal button (80% width)
-                Button(action: {
-                    // TODO: Add new journal action
-                }) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "plus")
-                            .font(.system(size: 18))
-                        Text("New Journal")
-                            .font(.body)
-                            .fontWeight(.medium)
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(Color(.systemGray6))
-                    .foregroundStyle(.primary)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
-                .frame(maxWidth: .infinity)
+                .padding(.top, 16)
+                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+                .listRowSeparator(.hidden)
             }
-            .padding(.top, 16)
-            .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
-            .listRowSeparator(.hidden)
 
             // Trash row
-            Button(action: {
-                // TODO: Show trash
-            }) {
-                HStack(spacing: 12) {
-                    // Trash icon
-                    Image(systemName: "trash")
-                        .font(.system(size: 14))
-                        .foregroundStyle(.secondary)
-
-                    // Trash label
-                    Text("Trash")
-                        .font(.body)
-                        .fontWeight(.regular)
-                        .foregroundStyle(.primary)
-
-                    Spacer()
-
-                    // Entry count
-                    Text("12")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .buttonStyle(PlainButtonStyle())
-            .contextMenu {
+            if showTrashRow {
                 Button(action: {
-                    // TODO: Empty trash action
+                    // TODO: Show trash
                 }) {
-                    Label("Empty Trash", systemImage: "trash")
+                    HStack(spacing: 12) {
+                        // Trash icon
+                        Image(systemName: "trash")
+                            .font(.system(size: 14))
+                            .foregroundStyle(.secondary)
+
+                        // Trash label
+                        Text("Trash")
+                            .font(.body)
+                            .fontWeight(.regular)
+                            .foregroundStyle(.primary)
+
+                        Spacer()
+
+                        // Entry count
+                        Text("12")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
                 }
+                .buttonStyle(PlainButtonStyle())
+                .contextMenu {
+                    Button(action: {
+                        // TODO: Empty trash action
+                    }) {
+                        Label("Empty Trash", systemImage: "trash")
+                    }
+                }
+                .padding(.top, 16)
+                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+                .listRowSeparator(.hidden)
             }
-            .padding(.top, 16)
-            .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
-            .listRowSeparator(.hidden)
 
             // TipKit tip for adding journals (progression: Notes -> Work -> Travel)
             if showAddJournalTips && currentJournalTip != .none {
@@ -935,19 +996,36 @@ struct JournalsTabPagedView: View {
 
             // Journals section header (hide when both Recent sections are off AND only 1 journal)
             if showRecentJournals || showRecentEntries || filteredJournals.count > 1 {
-                Text("Journals")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundStyle(.primary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.bottom, 8)
-                    .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
-                    .listRowSeparator(.hidden)
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        journalsSectionExpanded.toggle()
+                    }
+                }) {
+                    HStack {
+                        Text("Journals")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundStyle(.primary)
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                            .rotationEffect(.degrees(journalsSectionExpanded ? 90 : 0))
+                    }
+                    .padding(.horizontal, 16)
+                }
+                .buttonStyle(PlainButtonStyle())
+                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                .listRowSeparator(.hidden)
+                .padding(.bottom, 8)
             }
 
-            if useSeparatedCollections {
-                // Show only journals (no folders mixed in)
-                ForEach(filteredMixedJournalItems) { item in
+            if journalsSectionExpanded {
+                if useSeparatedCollections {
+                    // Show only journals (no folders mixed in)
+                    ForEach(filteredMixedJournalItems) { item in
                     if let journal = item.journal {
                         JournalRow(
                             journal: journal,
@@ -1079,9 +1157,24 @@ struct JournalsTabPagedView: View {
                     journalItems.move(fromOffsets: indices, toOffset: newOffset)
                 }
             }
+            }
 
-            // New Collection and New Journal buttons
+            // Trash, New Collection and New Journal buttons
             HStack(spacing: 12) {
+//                // Trash button (icon only)
+//                Button(action: {
+//                    // TODO: Show trash
+//                }) {
+//                    Image(systemName: "trash")
+//                        .font(.system(size: 18))
+//                        .frame(maxWidth: .infinity)
+//                        .padding(.vertical, 12)
+//                        .background(Color(.systemGray6))
+//                        .foregroundStyle(.primary)
+//                        .clipShape(RoundedRectangle(cornerRadius: 10))
+//                }
+//                .frame(width: 48)
+
                 // New Collection button (icon only)
                 Button(action: {
                     // TODO: Add new collection action
@@ -1097,7 +1190,7 @@ struct JournalsTabPagedView: View {
                 }
                 .frame(width: 48)
 
-                // New Journal button (80% width)
+                // New Journal button (remaining width)
                 Button(action: {
                     // TODO: Add new journal action
                 }) {
@@ -1119,71 +1212,73 @@ struct JournalsTabPagedView: View {
             .padding(.top, 16)
 
             // Trash row (List mode - book shape style)
-            VStack(spacing: 0) {
-                HStack(spacing: 16) {
-                    Button(action: {
-                        // TODO: Show trash
-                    }) {
-                        HStack(spacing: 16) {
-                            // Book shape with trash icon
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 4)
-                                    .fill(Color(.systemGray4))
-                                    .frame(width: 30, height: 40)
-                                    .overlay(
-                                        // Vertical line inset 2pt from left
-                                        GeometryReader { geometry in
-                                            Rectangle()
-                                                .fill(Color.black.opacity(0.1))
-                                                .frame(width: 1)
-                                                .offset(x: 3)
-                                        }
-                                    )
-
-                                Text(dayOneIcon: .trash)
-                                    .font(.dayOneIcons(size: 14))
-                                    .foregroundStyle(.white)
-                            }
-
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Trash")
-                                    .font(.headline)
-                                    .fontWeight(.medium)
-                                    .foregroundStyle(.primary)
-
-                                Text("12 entries")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-
-                            Spacer()
-                        }
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(PlainButtonStyle())
-
-                    Menu {
+            if showTrashRow {
+                VStack(spacing: 0) {
+                    HStack(spacing: 16) {
                         Button(action: {
-                            // TODO: Empty trash action
+                            // TODO: Show trash
                         }) {
-                            Label("Empty Trash", systemImage: "trash")
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis")
-                            .font(.system(size: 14, weight: .regular))
-                            .foregroundStyle(.secondary)
-                            .frame(width: 30, height: 30)
-                            .contentShape(Rectangle())
-                    }
-                }
-                .padding(.vertical, 7)
-                .padding(.horizontal, 0)
-                .padding(.bottom, 4)
+                            HStack(spacing: 16) {
+                                // Book shape with trash icon
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(Color(.systemGray4))
+                                        .frame(width: 30, height: 40)
+                                        .overlay(
+                                            // Vertical line inset 2pt from left
+                                            GeometryReader { geometry in
+                                                Rectangle()
+                                                    .fill(Color.black.opacity(0.1))
+                                                    .frame(width: 1)
+                                                    .offset(x: 3)
+                                            }
+                                        )
 
-                Divider()
-                    .padding(.leading, 0)
+                                    Text(dayOneIcon: .trash)
+                                        .font(.dayOneIcons(size: 14))
+                                        .foregroundStyle(.white)
+                                }
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Trash")
+                                        .font(.headline)
+                                        .fontWeight(.medium)
+                                        .foregroundStyle(.primary)
+
+                                    Text("12 entries")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+
+                                Spacer()
+                            }
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(PlainButtonStyle())
+
+                        Menu {
+                            Button(action: {
+                                // TODO: Empty trash action
+                            }) {
+                                Label("Empty Trash", systemImage: "trash")
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis")
+                                .font(.system(size: 14, weight: .regular))
+                                .foregroundStyle(.secondary)
+                                .frame(width: 30, height: 30)
+                                .contentShape(Rectangle())
+                        }
+                    }
+                    .padding(.vertical, 7)
+                    .padding(.horizontal, 0)
+                    .padding(.bottom, 4)
+
+                    Divider()
+                        .padding(.leading, 0)
+                }
+                .padding(.top, 16)
             }
-            .padding(.top, 16)
 
             // TipKit tip for adding journals (progression: Notes -> Work -> Travel)
             if showAddJournalTips && currentJournalTip != .none {
@@ -2626,6 +2721,95 @@ struct RecentEntryCard: View {
                 .stroke(Color(.systemGray4), lineWidth: 0.5)
         )
         .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+    }
+}
+
+// MARK: - Journals Sections Order View
+struct JournalsSectionsOrderView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var sectionOrder: [JournalSectionType]
+    @Binding var showRecentJournals: Bool
+    @Binding var showRecentEntries: Bool
+    @Binding var showJournalsSection: Bool
+    @Binding var showNewJournalButtons: Bool
+    @Binding var showTrashRow: Bool
+
+    var body: some View {
+        NavigationStack {
+            List {
+                ForEach(sectionOrder, id: \.self) { section in
+                    HStack {
+                        Image(systemName: section.icon)
+                            .foregroundStyle(.secondary)
+                            .frame(width: 24)
+
+                        Text(section.displayName)
+                            .font(.body)
+
+                        Spacer()
+
+                        Toggle("", isOn: bindingForSection(section))
+                    }
+                }
+                .onMove { from, to in
+                    sectionOrder.move(fromOffsets: from, toOffset: to)
+                }
+            }
+            .environment(\.editMode, .constant(.active))
+            .navigationTitle("Sort Sections")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+
+    private func bindingForSection(_ section: JournalSectionType) -> Binding<Bool> {
+        switch section {
+        case .recentJournals:
+            return $showRecentJournals
+        case .recentEntries:
+            return $showRecentEntries
+        case .journals:
+            return $showJournalsSection
+        case .newJournalButtons:
+            return $showNewJournalButtons
+        case .trash:
+            return $showTrashRow
+        }
+    }
+}
+
+// MARK: - Journal Section Type
+enum JournalSectionType: String, CaseIterable, Hashable {
+    case recentJournals
+    case recentEntries
+    case journals
+    case newJournalButtons
+    case trash
+
+    var displayName: String {
+        switch self {
+        case .recentJournals: return "Recent Journals"
+        case .recentEntries: return "Recent Entries"
+        case .journals: return "Journals"
+        case .newJournalButtons: return "New Journal Button Row"
+        case .trash: return "Trash"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .recentJournals: return "clock"
+        case .recentEntries: return "doc.text"
+        case .journals: return "book"
+        case .newJournalButtons: return "plus.circle"
+        case .trash: return "trash"
+        }
     }
 }
 

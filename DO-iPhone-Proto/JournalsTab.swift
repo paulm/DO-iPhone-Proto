@@ -448,10 +448,13 @@ struct JournalsTabPagedView: View {
 
                         Spacer()
 
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 13, weight: .semibold))
+                        Image("arrow-right-circle")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 18, height: 18)
                             .foregroundStyle(.secondary)
                             .rotationEffect(.degrees(recentJournalsExpanded ? 90 : 0))
+                            .animation(.easeInOut(duration: 0.2), value: recentJournalsExpanded)
                     }
                     .padding(.horizontal, 16)
                 }
@@ -504,10 +507,13 @@ struct JournalsTabPagedView: View {
 
                         Spacer()
 
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 13, weight: .semibold))
+                        Image("arrow-right-circle")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 18, height: 18)
                             .foregroundStyle(.secondary)
                             .rotationEffect(.degrees(recentEntriesExpanded ? 90 : 0))
+                            .animation(.easeInOut(duration: 0.2), value: recentEntriesExpanded)
                     }
                     .padding(.horizontal, 16)
                 }
@@ -658,10 +664,13 @@ struct JournalsTabPagedView: View {
 
                         Spacer()
 
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 13, weight: .semibold))
+                        Image("arrow-right-circle")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 18, height: 18)
                             .foregroundStyle(.secondary)
                             .rotationEffect(.degrees(recentJournalsExpanded ? 90 : 0))
+                            .animation(.easeInOut(duration: 0.2), value: recentJournalsExpanded)
                     }
                     .padding(.horizontal, 16)
                 }
@@ -713,10 +722,13 @@ struct JournalsTabPagedView: View {
 
                         Spacer()
 
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 13, weight: .semibold))
+                        Image("arrow-right-circle")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 18, height: 18)
                             .foregroundStyle(.secondary)
                             .rotationEffect(.degrees(recentEntriesExpanded ? 90 : 0))
+                            .animation(.easeInOut(duration: 0.2), value: recentEntriesExpanded)
                     }
                     .padding(.horizontal, 16)
                 }
@@ -757,10 +769,13 @@ struct JournalsTabPagedView: View {
 
                     Spacer()
 
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 13, weight: .semibold))
+                    Image("arrow-right-circle")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 18, height: 18)
                         .foregroundStyle(.secondary)
                         .rotationEffect(.degrees(journalsSectionExpanded ? 90 : 0))
+                        .animation(.easeInOut(duration: 0.2), value: journalsSectionExpanded)
                 }
                 .padding(.horizontal, 16)
             }
@@ -1011,10 +1026,13 @@ struct JournalsTabPagedView: View {
 
                     Spacer()
 
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 13, weight: .semibold))
+                    Image("arrow-right-circle")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 18, height: 18)
                         .foregroundStyle(.secondary)
                         .rotationEffect(.degrees(journalsSectionExpanded ? 90 : 0))
+                        .animation(.easeInOut(duration: 0.2), value: journalsSectionExpanded)
                 }
                 .padding(.horizontal, 16)
             }
@@ -1938,10 +1956,13 @@ struct CompactFolderRow: View {
 
                 // Disclosure toggle - rotates when expanded (on right side)
                 Button(action: onToggle) {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 13, weight: .semibold))
+                    Image("arrow-right-circle")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 18, height: 18)
                         .foregroundStyle(.secondary)
                         .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                        .animation(.easeInOut(duration: 0.2), value: isExpanded)
                         .animation(.easeInOut(duration: 0.2), value: isExpanded)
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -2002,10 +2023,13 @@ struct FolderRow: View {
 
                 // Disclosure toggle - rotates when expanded (far right)
                 Button(action: onToggle) {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 13, weight: .semibold))
+                    Image("arrow-right-circle")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 18, height: 18)
                         .foregroundStyle(.secondary)
                         .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                        .animation(.easeInOut(duration: 0.2), value: isExpanded)
                         .animation(.easeInOut(duration: 0.2), value: isExpanded)
                 }
                 .buttonStyle(PlainButtonStyle())

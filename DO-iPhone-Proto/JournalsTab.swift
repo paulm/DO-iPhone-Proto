@@ -67,9 +67,10 @@ struct JournalsTabPagedView: View {
     @State private var showAddJournalTips = false
     @State private var showTrashRow = false
     @State private var showNewJournalButtons = true
+    @State private var showAllEntries = true
     @State private var showingSectionsOrder = false
     @State private var journalsSectionExpanded = true
-    @State private var sectionOrder: [JournalSectionType] = [.recentJournals, .recentEntries, .journals, .newJournalButtons, .trash]
+    @State private var sectionOrder: [JournalSectionType] = [.recentJournals, .recentEntries, .allEntries, .journals, .newJournalButtons, .trash]
     @State private var addNotesJournalTip = AddNotesJournalTip()
     @State private var addWorkJournalTip = AddWorkJournalTip()
     @State private var addTravelJournalTip = AddTravelJournalTip()
@@ -377,6 +378,7 @@ struct JournalsTabPagedView: View {
                 sectionOrder: $sectionOrder,
                 showRecentJournals: $showRecentJournals,
                 showRecentEntries: $showRecentEntries,
+                showAllEntries: $showAllEntries,
                 showJournalsSection: $journalsSectionExpanded,
                 showNewJournalButtons: $showNewJournalButtons,
                 showTrashRow: $showTrashRow
@@ -399,138 +401,47 @@ struct JournalsTabPagedView: View {
     
     private var listModeView: some View {
         List {
-            // Recent Journals horizontal scroll section
-            if showRecentJournals {
-                VStack(alignment: .leading, spacing: 12) {
-                    // Toggleable header with disclosure arrow
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            recentJournalsExpanded.toggle()
-                        }
-                    }) {
-                        HStack {
-                            Text("Recent Journals")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .foregroundStyle(.primary)
-
-                            Spacer()
-
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(.secondary)
-                                .rotationEffect(.degrees(recentJournalsExpanded ? 90 : 0))
-                        }
-                        .padding(.horizontal, 16)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-
-                    if recentJournalsExpanded {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 16) {
-                                ForEach(recentJournals) { journal in
-                                    RecentJournalBookView(
-                                        journal: journal,
-                                        isSelected: false,
-                                        onSelect: {
-                                            journalViewModel.selectJournal(journal)
-                                            selectedJournal = journal
-                                        },
-                                        onNewEntry: {
-                                            journalViewModel.selectJournal(journal)
-                                            showingNewEntry = true
-                                        }
-                                    )
-                                    .frame(width: 70)
-                                }
-                            }
-                            .padding(.leading, 16)
-                        }
-                    }
-                }
-                .padding(.bottom, 16)
-                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                .listRowSeparator(.hidden)
+            // Render sections in custom order
+            ForEach(sectionOrder, id: \.self) { sectionType in
+                sectionView(for: sectionType)
             }
 
-            // Recent Entries horizontal scroll section
-            if showRecentEntries {
-                VStack(alignment: .leading, spacing: 12) {
-                    // Toggleable header with disclosure arrow
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            recentEntriesExpanded.toggle()
-                        }
-                    }) {
-                        HStack {
-                            Text("Recent Entries")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .foregroundStyle(.primary)
+            // Fixed items that don't reorder
+            tipKitSection
+        }
+    }
 
-                            Spacer()
+    // MARK: - Section Views
+    @ViewBuilder
+    private func sectionView(for type: JournalSectionType) -> some View {
+        switch type {
+        case .recentJournals:
+            recentJournalsSection
+        case .recentEntries:
+            recentEntriesSection
+        case .allEntries:
+            allEntriesRow
+        case .journals:
+            journalsSection
+        case .newJournalButtons:
+            newJournalButtonsSection
+        case .trash:
+            trashSection
+        }
+    }
 
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(.secondary)
-                                .rotationEffect(.degrees(recentEntriesExpanded ? 90 : 0))
-                        }
-                        .padding(.horizontal, 16)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-
-                    if recentEntriesExpanded {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 12) {
-                                ForEach(recentEntries) { entry in
-                                    RecentEntryCard(entry: entry)
-                                        .frame(width: 108)
-                                }
-                            }
-                            .padding(.leading, 16)
-                            .padding(.trailing)
-                        }
-                    }
-                }
-                .padding(.bottom, 16)
-                .listRowInsets(EdgeInsets())
-                .listRowSeparator(.hidden)
-            }
-
-            // All Entries navigation row (only show if more than one journal)
-            if let allEntries = Journal.allEntriesJournal, filteredJournals.count > 1 {
-                Button(action: {
-                    journalViewModel.selectJournal(allEntries)
-                    selectedJournal = allEntries
-                }) {
-                    HStack {
-                        Text("All Entries")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundStyle(.primary)
-
-                        Spacer()
-
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .buttonStyle(PlainButtonStyle())
-                .padding(.bottom, 16)
-                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
-                .listRowSeparator(.hidden)
-            }
-
-            // Journals section header (hide when both Recent sections are off AND only 1 journal)
-            if showRecentJournals || showRecentEntries || filteredJournals.count > 1 {
+    @ViewBuilder
+    private var recentJournalsSection: some View {
+        if showRecentJournals {
+            VStack(alignment: .leading, spacing: 12) {
+                // Toggleable header with disclosure arrow
                 Button(action: {
                     withAnimation(.easeInOut(duration: 0.2)) {
-                        journalsSectionExpanded.toggle()
+                        recentJournalsExpanded.toggle()
                     }
                 }) {
                     HStack {
-                        Text("Journals")
+                        Text("Recent Journals")
                             .font(.title2)
                             .fontWeight(.bold)
                             .foregroundStyle(.primary)
@@ -540,259 +451,87 @@ struct JournalsTabPagedView: View {
                         Image(systemName: "chevron.right")
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundStyle(.secondary)
-                            .rotationEffect(.degrees(journalsSectionExpanded ? 90 : 0))
+                            .rotationEffect(.degrees(recentJournalsExpanded ? 90 : 0))
                     }
                     .padding(.horizontal, 16)
                 }
                 .buttonStyle(PlainButtonStyle())
-                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                .listRowSeparator(.hidden)
-                .padding(.bottom, 8)
-            }
 
-            if journalsSectionExpanded {
-                if useSeparatedCollections {
-                    // Show only journals (no folders mixed in)
-                    ForEach(filteredMixedJournalItems) { item in
-                    if let journal = item.journal {
-                        CompactJournalRow(
-                            journal: journal,
-                            isSelected: journal.id == journalViewModel.selectedJournal.id,
-                            onSelect: {
-                                journalViewModel.selectJournal(journal)
-                                selectedJournal = journal
-                            }
-                        )
-                    }
-                }
-
-                // Collections section header (only show if there are folders)
-                if !filteredFolders.isEmpty {
-                    Text("Collections")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundStyle(.primary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.top, 24)
-                        .padding(.bottom, 8)
-                        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
-                        .listRowSeparator(.hidden)
-                }
-
-                // Show folders separately
-                ForEach(folders) { folder in
-                    CompactFolderRow(
-                        folder: folder,
-                        isExpanded: expandedFolders.contains(folder.id),
-                        onToggle: {
-                            if expandedFolders.contains(folder.id) {
-                                expandedFolders.remove(folder.id)
-                            } else {
-                                expandedFolders.insert(folder.id)
-                            }
-                        },
-                        onSelectFolder: {
-                            selectedFolder = folder
-                        }
-                    )
-
-                    // Show journals inside expanded folder
-                    if expandedFolders.contains(folder.id) {
-                        ForEach(folder.journals) { journal in
-                            CompactJournalRow(
-                                journal: journal,
-                                isSelected: journal.id == journalViewModel.selectedJournal.id,
-                                onSelect: {
-                                    journalViewModel.selectJournal(journal)
-                                    selectedJournal = journal
-                                }
-                            )
-                            .padding(.leading, 20) // Indent journals inside folders
-                        }
-                    }
-                }
-            } else {
-                // Mixed folders and journals (original behavior)
-                ForEach(filteredMixedJournalItems) { item in
-                    if item.isFolder, let folder = item.folder {
-                        CompactFolderRow(
-                            folder: folder,
-                            isExpanded: expandedFolders.contains(folder.id),
-                            onToggle: {
-                                if expandedFolders.contains(folder.id) {
-                                    expandedFolders.remove(folder.id)
-                                } else {
-                                    expandedFolders.insert(folder.id)
-                                }
-                            },
-                            onSelectFolder: {
-                                selectedFolder = folder
-                            }
-                        )
-
-                        // Show journals inside expanded folder
-                        if expandedFolders.contains(folder.id) {
-                            ForEach(folder.journals) { journal in
-                                CompactJournalRow(
+                if recentJournalsExpanded {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 16) {
+                            ForEach(recentJournals) { journal in
+                                RecentJournalBookView(
                                     journal: journal,
-                                    isSelected: journal.id == journalViewModel.selectedJournal.id,
+                                    isSelected: false,
                                     onSelect: {
                                         journalViewModel.selectJournal(journal)
                                         selectedJournal = journal
+                                    },
+                                    onNewEntry: {
+                                        journalViewModel.selectJournal(journal)
+                                        showingNewEntry = true
                                     }
                                 )
-                                .padding(.leading, 20) // Indent journals inside folders
+                                .frame(width: 70)
                             }
                         }
-                    } else if let journal = item.journal {
-                        CompactJournalRow(
-                            journal: journal,
-                            isSelected: journal.id == journalViewModel.selectedJournal.id,
-                            onSelect: {
-                                journalViewModel.selectJournal(journal)
-                                selectedJournal = journal
-                            }
-                        )
+                        .padding(.leading, 16)
                     }
                 }
             }
-            }
+            .padding(.bottom, 16)
+            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+            .listRowSeparator(.hidden)
+        }
+    }
 
-            // Trash, New Collection and New Journal buttons
-            if showNewJournalButtons {
-                HStack(spacing: 12) {
-    //                // Trash button (icon only)
-    //                Button(action: {
-    //                    // TODO: Show trash
-    //                }) {
-    //                    Image(systemName: "trash")
-    //                        .font(.system(size: 18))
-    //                        .frame(maxWidth: .infinity)
-    //                        .padding(.vertical, 12)
-    //                        .background(Color(.systemGray6))
-    //                        .foregroundStyle(.primary)
-    //                        .clipShape(RoundedRectangle(cornerRadius: 10))
-    //                }
-    //                .frame(width: 48)
-
-                    // New Collection button (icon only)
-                    Button(action: {
-                        // TODO: Add new collection action
-                    }) {
-                        Image("media-library-folder-add")
-                            .renderingMode(.template)
-                            .font(.system(size: 18))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
-                            .background(Color(.systemGray6))
-                            .foregroundStyle(.primary)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                    }
-                    .frame(width: 48)
-
-                    // New Journal button (remaining width)
-                    Button(action: {
-                        // TODO: Add new journal action
-                    }) {
-                        HStack(spacing: 8) {
-                            Image(systemName: "plus")
-                                .font(.system(size: 18))
-                            Text("New Journal")
-                                .font(.body)
-                                .fontWeight(.medium)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(Color(.systemGray6))
-                        .foregroundStyle(.primary)
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-                .padding(.top, 16)
-                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
-                .listRowSeparator(.hidden)
-            }
-
-            // Trash row
-            if showTrashRow {
+    @ViewBuilder
+    private var recentEntriesSection: some View {
+        if showRecentEntries {
+            VStack(alignment: .leading, spacing: 12) {
+                // Toggleable header with disclosure arrow
                 Button(action: {
-                    // TODO: Show trash
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        recentEntriesExpanded.toggle()
+                    }
                 }) {
-                    HStack(spacing: 12) {
-                        // Trash icon
-                        Image(systemName: "trash")
-                            .font(.system(size: 14))
-                            .foregroundStyle(.secondary)
-
-                        // Trash label
-                        Text("Trash")
-                            .font(.body)
-                            .fontWeight(.regular)
+                    HStack {
+                        Text("Recent Entries")
+                            .font(.title2)
+                            .fontWeight(.bold)
                             .foregroundStyle(.primary)
 
                         Spacer()
 
-                        // Entry count
-                        Text("12")
-                            .font(.subheadline)
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 13, weight: .semibold))
                             .foregroundStyle(.secondary)
+                            .rotationEffect(.degrees(recentEntriesExpanded ? 90 : 0))
                     }
+                    .padding(.horizontal, 16)
                 }
                 .buttonStyle(PlainButtonStyle())
-                .contextMenu {
-                    Button(action: {
-                        // TODO: Empty trash action
-                    }) {
-                        Label("Empty Trash", systemImage: "trash")
-                    }
-                }
-                .padding(.top, 16)
-                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
-                .listRowSeparator(.hidden)
-            }
 
-            // TipKit tip for adding journals (progression: Notes -> Work -> Travel)
-            if showAddJournalTips && currentJournalTip != .none {
-                Group {
-                    switch currentJournalTip {
-                    case .notes:
-                        TipView(addNotesJournalTip) { action in
-                            if action.id == "add" {
-                                addJournal(named: "Notes")
-                            } else if action.id == "dismiss" {
-                                dismissJournalTip(named: "Notes")
+                if recentEntriesExpanded {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 12) {
+                            ForEach(recentEntries) { entry in
+                                RecentEntryCard(entry: entry)
+                                    .frame(width: 108)
                             }
                         }
-                    case .work:
-                        TipView(addWorkJournalTip) { action in
-                            if action.id == "add" {
-                                addJournal(named: "Work Notes")
-                            } else if action.id == "dismiss" {
-                                dismissJournalTip(named: "Work Notes")
-                            }
-                        }
-                    case .travel:
-                        TipView(addTravelJournalTip) { action in
-                            if action.id == "add" {
-                                addJournal(named: "Travel")
-                            } else if action.id == "dismiss" {
-                                dismissJournalTip(named: "Travel")
-                            }
-                        }
-                    case .none:
-                        EmptyView()
+                        .padding(.leading, 16)
+                        .padding(.trailing)
                     }
                 }
-                .tint(currentTipColor)
-                .padding(.top, 16)
-                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
-                .listRowSeparator(.hidden)
             }
+            .padding(.bottom, 16)
+            .listRowInsets(EdgeInsets())
+            .listRowSeparator(.hidden)
         }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
     }
+
 
     // Recent journals for horizontal scroll - pick from filtered journals, always including Journal, Work Notes, Daily (if available)
     private var recentJournals: [Journal] {
@@ -871,138 +610,48 @@ struct JournalsTabPagedView: View {
 
     private var iconsModeView: some View {
         List {
-            // Recent Journals horizontal scroll section
-            if showRecentJournals {
-                VStack(alignment: .leading, spacing: 12) {
-                    // Toggleable header with disclosure arrow
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            recentJournalsExpanded.toggle()
-                        }
-                    }) {
-                        HStack {
-                            Text("Recent Journals")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .foregroundStyle(.primary)
-
-                            Spacer()
-
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(.secondary)
-                                .rotationEffect(.degrees(recentJournalsExpanded ? 90 : 0))
-                        }
-                        .padding(.horizontal, 16)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-
-                    if recentJournalsExpanded {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 16) {
-                                ForEach(recentJournals) { journal in
-                                    RecentJournalBookView(
-                                        journal: journal,
-                                        isSelected: false,
-                                        onSelect: {
-                                            journalViewModel.selectJournal(journal)
-                                            selectedJournal = journal
-                                        },
-                                        onNewEntry: {
-                                            journalViewModel.selectJournal(journal)
-                                            showingNewEntry = true
-                                        }
-                                    )
-                                    .frame(width: 70)
-                                }
-                            }
-                            .padding(.leading, 16)
-                        }
-                    }
-                }
-                .padding(.bottom, 16)
-                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                .listRowSeparator(.hidden)
+            // Render sections in custom order
+            ForEach(sectionOrder, id: \.self) { sectionType in
+                iconsSectionView(for: sectionType)
             }
 
-            // Recent Entries horizontal scroll section
-            if showRecentEntries {
-                VStack(alignment: .leading, spacing: 12) {
-                    // Toggleable header with disclosure arrow
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            recentEntriesExpanded.toggle()
-                        }
-                    }) {
-                        HStack {
-                            Text("Recent Entries")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .foregroundStyle(.primary)
+            // Fixed items that don't reorder
+            tipKitSection
+        }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .environment(\.editMode, .constant(isEditMode ? .active : .inactive))
+    }
 
-                            Spacer()
-
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(.secondary)
-                                .rotationEffect(.degrees(recentEntriesExpanded ? 90 : 0))
-                        }
-                        .padding(.horizontal, 16)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-
-                    if recentEntriesExpanded {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 12) {
-                                ForEach(recentEntries) { entry in
-                                    RecentEntryCard(entry: entry)
-                                        .frame(width: 108)
-                                }
-                            }
-                            .padding(.leading, 16)
-                            .padding(.trailing)
-                        }
-                    }
-                }
-                .padding(.bottom, 16)
-                .listRowInsets(EdgeInsets())
-                .listRowSeparator(.hidden)
-            }
-
-            // All Entries navigation row (only show if more than one journal)
-            if let allEntries = Journal.allEntriesJournal, filteredJournals.count > 1 {
-                Button(action: {
-                    journalViewModel.selectJournal(allEntries)
-                    selectedJournal = allEntries
-                }) {
-                    HStack {
-                        Text("All Entries")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundStyle(.primary)
-
-                        Spacer()
-
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .buttonStyle(PlainButtonStyle())
-                .padding(.bottom, 16)
-                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
-                .listRowSeparator(.hidden)
-            }
-
-            // Journals section header (hide when both Recent sections are off AND only 1 journal)
-            if showRecentJournals || showRecentEntries || filteredJournals.count > 1 {
+    // MARK: - Icons Mode Section Views
+    @ViewBuilder
+    private func iconsSectionView(for type: JournalSectionType) -> some View {
+        switch type {
+        case .recentJournals:
+            iconsRecentJournalsSection
+        case .recentEntries:
+            iconsRecentEntriesSection
+        case .allEntries:
+            allEntriesRow
+        case .journals:
+            iconsJournalsSection
+        case .newJournalButtons:
+            iconsNewJournalButtonsSection
+        case .trash:
+            iconsTrashSection
+        }
+    }
+    @ViewBuilder
+    private var iconsRecentJournalsSection: some View {
+        if showRecentJournals {
+            VStack(alignment: .leading, spacing: 12) {
                 Button(action: {
                     withAnimation(.easeInOut(duration: 0.2)) {
-                        journalsSectionExpanded.toggle()
+                        recentJournalsExpanded.toggle()
                     }
                 }) {
                     HStack {
-                        Text("Journals")
+                        Text("Recent Journals")
                             .font(.title2)
                             .fontWeight(.bold)
                             .foregroundStyle(.primary)
@@ -1012,50 +661,118 @@ struct JournalsTabPagedView: View {
                         Image(systemName: "chevron.right")
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundStyle(.secondary)
-                            .rotationEffect(.degrees(journalsSectionExpanded ? 90 : 0))
+                            .rotationEffect(.degrees(recentJournalsExpanded ? 90 : 0))
                     }
                     .padding(.horizontal, 16)
                 }
                 .buttonStyle(PlainButtonStyle())
-                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                .listRowSeparator(.hidden)
-                .padding(.bottom, 8)
-            }
 
-            if journalsSectionExpanded {
-                if useSeparatedCollections {
-                    // Show only journals (no folders mixed in)
-                    ForEach(filteredMixedJournalItems) { item in
-                    if let journal = item.journal {
-                        JournalRow(
-                            journal: journal,
-                            isSelected: journal.id == journalViewModel.selectedJournal.id,
-                            isEditMode: isEditMode,
-                            onSelect: {
-                                journalViewModel.selectJournal(journal)
-                                selectedJournal = journal
+                if recentJournalsExpanded {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 16) {
+                            ForEach(recentJournals) { journal in
+                                RecentJournalBookView(
+                                    journal: journal,
+                                    isSelected: false,
+                                    onSelect: {
+                                        journalViewModel.selectJournal(journal)
+                                        selectedJournal = journal
+                                    },
+                                    onNewEntry: {
+                                        journalViewModel.selectJournal(journal)
+                                        showingNewEntry = true
+                                    }
+                                )
+                                .frame(width: 70)
                             }
-                        )
+                        }
+                        .padding(.leading, 16)
                     }
                 }
-                .onMove { indices, newOffset in
-                    journalItems.move(fromOffsets: indices, toOffset: newOffset)
-                }
+            }
+            .padding(.bottom, 16)
+            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+            .listRowSeparator(.hidden)
+        }
+    }
 
-                // Collections section header (only show if there are folders)
-                if !filteredFolders.isEmpty {
-                    Text("Collections")
-                        .font(.headline)
-                        .fontWeight(.semibold)
+    @ViewBuilder
+    private var iconsRecentEntriesSection: some View {
+        if showRecentEntries {
+            VStack(alignment: .leading, spacing: 12) {
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        recentEntriesExpanded.toggle()
+                    }
+                }) {
+                    HStack {
+                        Text("Recent Entries")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundStyle(.primary)
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                            .rotationEffect(.degrees(recentEntriesExpanded ? 90 : 0))
+                    }
+                    .padding(.horizontal, 16)
+                }
+                .buttonStyle(PlainButtonStyle())
+
+                if recentEntriesExpanded {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 12) {
+                            ForEach(recentEntries) { entry in
+                                RecentEntryCard(entry: entry)
+                                    .frame(width: 108)
+                            }
+                        }
+                        .padding(.leading, 16)
+                        .padding(.trailing)
+                    }
+                }
+            }
+            .padding(.bottom, 16)
+            .listRowInsets(EdgeInsets())
+            .listRowSeparator(.hidden)
+        }
+    }
+
+    @ViewBuilder
+    private var iconsJournalsSection: some View {
+        if showRecentJournals || showRecentEntries || filteredJournals.count > 1 {
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    journalsSectionExpanded.toggle()
+                }
+            }) {
+                HStack {
+                    Text("Journals")
+                        .font(.title2)
+                        .fontWeight(.bold)
                         .foregroundStyle(.primary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal)
-                        .padding(.top, 24)
-                        .padding(.bottom, 8)
-                }
 
-                // Show folders separately
-                ForEach(folders) { folder in
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .rotationEffect(.degrees(journalsSectionExpanded ? 90 : 0))
+                }
+                .padding(.horizontal, 16)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+            .listRowSeparator(.hidden)
+            .padding(.bottom, 8)
+        }
+
+        if journalsSectionExpanded {
+            ForEach(filteredMixedJournalItems) { item in
+                if item.isFolder, let folder = item.folder {
                     FolderRow(
                         folder: folder,
                         isExpanded: expandedFolders.contains(folder.id),
@@ -1075,7 +792,6 @@ struct JournalsTabPagedView: View {
                     )
                     .id(folder.id)
 
-                    // Show journals inside expanded folder
                     if expandedFolders.contains(folder.id) {
                         ForEach(folder.journals) { journal in
                             JournalRow(
@@ -1091,94 +807,36 @@ struct JournalsTabPagedView: View {
                                     showingNewEntry = true
                                 }
                             )
-                            .padding(.leading, 20) // Indent journals inside folders
+                            .padding(.leading, 20)
                         }
                     }
-                }
-            } else {
-                // Mixed folders and journals (original behavior)
-                ForEach(filteredMixedJournalItems) { item in
-                    if item.isFolder, let folder = item.folder {
-                        FolderRow(
-                            folder: folder,
-                            isExpanded: expandedFolders.contains(folder.id),
-                            isEditMode: isEditMode,
-                            onToggle: {
-                                withAnimation {
-                                    if expandedFolders.contains(folder.id) {
-                                        expandedFolders.remove(folder.id)
-                                    } else {
-                                        expandedFolders.insert(folder.id)
-                                    }
-                                }
-                            },
-                            onSelectFolder: {
-                                selectedFolder = folder
-                            }
-                        )
-                        .id(folder.id)
-
-                        // Show journals inside expanded folder
-                        if expandedFolders.contains(folder.id) {
-                            ForEach(folder.journals) { journal in
-                                JournalRow(
-                                    journal: journal,
-                                    isSelected: journal.id == journalViewModel.selectedJournal.id,
-                                    isEditMode: isEditMode,
-                                    onSelect: {
-                                        journalViewModel.selectJournal(journal)
-                                        selectedJournal = journal
-                                    },
-                                    onNewEntry: {
-                                        journalViewModel.selectJournal(journal)
-                                        showingNewEntry = true
-                                    }
-                                )
-                                .padding(.leading, 20) // Indent journals inside folders
-                            }
+                } else if let journal = item.journal {
+                    JournalRow(
+                        journal: journal,
+                        isSelected: journal.id == journalViewModel.selectedJournal.id,
+                        isEditMode: isEditMode,
+                        onSelect: {
+                            journalViewModel.selectJournal(journal)
+                            selectedJournal = journal
+                        },
+                        onNewEntry: {
+                            journalViewModel.selectJournal(journal)
+                            showingNewEntry = true
                         }
-                    } else if let journal = item.journal {
-                        JournalRow(
-                            journal: journal,
-                            isSelected: journal.id == journalViewModel.selectedJournal.id,
-                            isEditMode: isEditMode,
-                            onSelect: {
-                                journalViewModel.selectJournal(journal)
-                                selectedJournal = journal
-                            },
-                            onNewEntry: {
-                                journalViewModel.selectJournal(journal)
-                                showingNewEntry = true
-                            }
-                        )
-                    }
-                }
-                .onMove { indices, newOffset in
-                    journalItems.move(fromOffsets: indices, toOffset: newOffset)
+                    )
                 }
             }
+            .onMove { indices, newOffset in
+                journalItems.move(fromOffsets: indices, toOffset: newOffset)
             }
+        }
+    }
 
-            // Trash, New Collection and New Journal buttons
+    @ViewBuilder
+    private var iconsNewJournalButtonsSection: some View {
+        if showNewJournalButtons {
             HStack(spacing: 12) {
-//                // Trash button (icon only)
-//                Button(action: {
-//                    // TODO: Show trash
-//                }) {
-//                    Image(systemName: "trash")
-//                        .font(.system(size: 18))
-//                        .frame(maxWidth: .infinity)
-//                        .padding(.vertical, 12)
-//                        .background(Color(.systemGray6))
-//                        .foregroundStyle(.primary)
-//                        .clipShape(RoundedRectangle(cornerRadius: 10))
-//                }
-//                .frame(width: 48)
-
-                // New Collection button (icon only)
-                Button(action: {
-                    // TODO: Add new collection action
-                }) {
+                Button(action: {}) {
                     Image("media-library-folder-add")
                         .renderingMode(.template)
                         .font(.system(size: 18))
@@ -1190,10 +848,7 @@ struct JournalsTabPagedView: View {
                 }
                 .frame(width: 48)
 
-                // New Journal button (remaining width)
-                Button(action: {
-                    // TODO: Add new journal action
-                }) {
+                Button(action: {}) {
                     HStack(spacing: 8) {
                         Image(systemName: "plus")
                             .font(.system(size: 18))
@@ -1210,117 +865,39 @@ struct JournalsTabPagedView: View {
                 .frame(maxWidth: .infinity)
             }
             .padding(.top, 16)
-
-            // Trash row (List mode - book shape style)
-            if showTrashRow {
-                VStack(spacing: 0) {
-                    HStack(spacing: 16) {
-                        Button(action: {
-                            // TODO: Show trash
-                        }) {
-                            HStack(spacing: 16) {
-                                // Book shape with trash icon
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .fill(Color(.systemGray4))
-                                        .frame(width: 30, height: 40)
-                                        .overlay(
-                                            // Vertical line inset 2pt from left
-                                            GeometryReader { geometry in
-                                                Rectangle()
-                                                    .fill(Color.black.opacity(0.1))
-                                                    .frame(width: 1)
-                                                    .offset(x: 3)
-                                            }
-                                        )
-
-                                    Text(dayOneIcon: .trash)
-                                        .font(.dayOneIcons(size: 14))
-                                        .foregroundStyle(.white)
-                                }
-
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("Trash")
-                                        .font(.headline)
-                                        .fontWeight(.medium)
-                                        .foregroundStyle(.primary)
-
-                                    Text("12 entries")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-
-                                Spacer()
-                            }
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(PlainButtonStyle())
-
-                        Menu {
-                            Button(action: {
-                                // TODO: Empty trash action
-                            }) {
-                                Label("Empty Trash", systemImage: "trash")
-                            }
-                        } label: {
-                            Image(systemName: "ellipsis")
-                                .font(.system(size: 14, weight: .regular))
-                                .foregroundStyle(.secondary)
-                                .frame(width: 30, height: 30)
-                                .contentShape(Rectangle())
-                        }
-                    }
-                    .padding(.vertical, 7)
-                    .padding(.horizontal, 0)
-                    .padding(.bottom, 4)
-
-                    Divider()
-                        .padding(.leading, 0)
-                }
-                .padding(.top, 16)
-            }
-
-            // TipKit tip for adding journals (progression: Notes -> Work -> Travel)
-            if showAddJournalTips && currentJournalTip != .none {
-                Group {
-                    switch currentJournalTip {
-                    case .notes:
-                        TipView(addNotesJournalTip) { action in
-                            if action.id == "add" {
-                                addJournal(named: "Notes")
-                            } else if action.id == "dismiss" {
-                                dismissJournalTip(named: "Notes")
-                            }
-                        }
-                    case .work:
-                        TipView(addWorkJournalTip) { action in
-                            if action.id == "add" {
-                                addJournal(named: "Work Notes")
-                            } else if action.id == "dismiss" {
-                                dismissJournalTip(named: "Work Notes")
-                            }
-                        }
-                    case .travel:
-                        TipView(addTravelJournalTip) { action in
-                            if action.id == "add" {
-                                addJournal(named: "Travel")
-                            } else if action.id == "dismiss" {
-                                dismissJournalTip(named: "Travel")
-                            }
-                        }
-                    case .none:
-                        EmptyView()
-                    }
-                }
-                .tint(currentTipColor)
-                .padding(.top, 16)
-                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
-                .listRowSeparator(.hidden)
-            }
+            .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+            .listRowSeparator(.hidden)
         }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
-        .environment(\.editMode, .constant(isEditMode ? .active : .inactive))
+    }
+
+    @ViewBuilder
+    private var iconsTrashSection: some View {
+        if showTrashRow {
+            Button(action: {}) {
+                HStack(spacing: 12) {
+                    Image(systemName: "trash")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.secondary)
+                    Text("Trash")
+                        .font(.body)
+                        .fontWeight(.regular)
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    Text("12")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .buttonStyle(PlainButtonStyle())
+            .contextMenu {
+                Button(action: {}) {
+                    Label("Empty Trash", systemImage: "trash")
+                }
+            }
+            .padding(.top, 16)
+            .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+            .listRowSeparator(.hidden)
+        }
     }
 
     private var gridJournalList: some View {
@@ -1416,6 +993,269 @@ struct JournalsTabPagedView: View {
         .padding(.horizontal)
         .padding(.top, 12)
         .padding(.bottom, 100)
+    }
+
+    @ViewBuilder
+    private var journalsSection: some View {
+        if showRecentJournals || showRecentEntries || filteredJournals.count > 1 {
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    journalsSectionExpanded.toggle()
+                }
+            }) {
+                HStack {
+                    Text("Journals")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundStyle(.primary)
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .rotationEffect(.degrees(journalsSectionExpanded ? 90 : 0))
+                }
+                .padding(.horizontal, 16)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+            .listRowSeparator(.hidden)
+            .padding(.bottom, 8)
+        }
+
+        if journalsSectionExpanded {
+            if useSeparatedCollections {
+                ForEach(filteredMixedJournalItems) { item in
+                    if let journal = item.journal {
+                        CompactJournalRow(
+                            journal: journal,
+                            isSelected: journal.id == journalViewModel.selectedJournal.id,
+                            onSelect: {
+                                journalViewModel.selectJournal(journal)
+                                selectedJournal = journal
+                            }
+                        )
+                    }
+                }
+
+                if !filteredFolders.isEmpty {
+                    Text("Collections")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundStyle(.primary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.top, 24)
+                        .padding(.bottom, 8)
+                        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+                        .listRowSeparator(.hidden)
+                }
+
+                ForEach(folders) { folder in
+                    CompactFolderRow(
+                        folder: folder,
+                        isExpanded: expandedFolders.contains(folder.id),
+                        onToggle: {
+                            if expandedFolders.contains(folder.id) {
+                                expandedFolders.remove(folder.id)
+                            } else {
+                                expandedFolders.insert(folder.id)
+                            }
+                        },
+                        onSelectFolder: {
+                            selectedFolder = folder
+                        }
+                    )
+
+                    if expandedFolders.contains(folder.id) {
+                        ForEach(folder.journals) { journal in
+                            CompactJournalRow(
+                                journal: journal,
+                                isSelected: journal.id == journalViewModel.selectedJournal.id,
+                                onSelect: {
+                                    journalViewModel.selectJournal(journal)
+                                    selectedJournal = journal
+                                }
+                            )
+                            .padding(.leading, 20)
+                        }
+                    }
+                }
+            } else {
+                ForEach(filteredMixedJournalItems) { item in
+                    if item.isFolder, let folder = item.folder {
+                        CompactFolderRow(
+                            folder: folder,
+                            isExpanded: expandedFolders.contains(folder.id),
+                            onToggle: {
+                                if expandedFolders.contains(folder.id) {
+                                    expandedFolders.remove(folder.id)
+                                } else {
+                                    expandedFolders.insert(folder.id)
+                                }
+                            },
+                            onSelectFolder: {
+                                selectedFolder = folder
+                            }
+                        )
+
+                        if expandedFolders.contains(folder.id) {
+                            ForEach(folder.journals) { journal in
+                                CompactJournalRow(
+                                    journal: journal,
+                                    isSelected: journal.id == journalViewModel.selectedJournal.id,
+                                    onSelect: {
+                                        journalViewModel.selectJournal(journal)
+                                        selectedJournal = journal
+                                    }
+                                )
+                                .padding(.leading, 20)
+                            }
+                        }
+                    } else if let journal = item.journal {
+                        CompactJournalRow(
+                            journal: journal,
+                            isSelected: journal.id == journalViewModel.selectedJournal.id,
+                            onSelect: {
+                                journalViewModel.selectJournal(journal)
+                                selectedJournal = journal
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var newJournalButtonsSection: some View {
+        if showNewJournalButtons {
+            HStack(spacing: 12) {
+                Button(action: {}) {
+                    Image("media-library-folder-add")
+                        .renderingMode(.template)
+                        .font(.system(size: 18))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(Color(.systemGray6))
+                        .foregroundStyle(.primary)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+                .frame(width: 48)
+
+                Button(action: {}) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 18))
+                        Text("New Journal")
+                            .font(.body)
+                            .fontWeight(.medium)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(Color(.systemGray6))
+                    .foregroundStyle(.primary)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .padding(.top, 16)
+            .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+            .listRowSeparator(.hidden)
+        }
+    }
+
+    @ViewBuilder
+    private var trashSection: some View {
+        if showTrashRow {
+            Button(action: {}) {
+                HStack(spacing: 12) {
+                    Image(systemName: "trash")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.secondary)
+                    Text("Trash")
+                        .font(.body)
+                        .fontWeight(.regular)
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    Text("12")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .buttonStyle(PlainButtonStyle())
+            .contextMenu {
+                Button(action: {}) {
+                    Label("Empty Trash", systemImage: "trash")
+                }
+            }
+            .padding(.top, 16)
+            .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+            .listRowSeparator(.hidden)
+        }
+    }
+
+    @ViewBuilder
+    private var allEntriesRow: some View {
+        if showAllEntries, let allEntries = Journal.allEntriesJournal, filteredJournals.count > 1 {
+            Button(action: {
+                journalViewModel.selectJournal(allEntries)
+                selectedJournal = allEntries
+            }) {
+                HStack {
+                    Text("All Entries")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .buttonStyle(PlainButtonStyle())
+            .padding(.bottom, 16)
+            .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+            .listRowSeparator(.hidden)
+        }
+    }
+
+    @ViewBuilder
+    private var tipKitSection: some View {
+        if showAddJournalTips && currentJournalTip != .none {
+            Group {
+                switch currentJournalTip {
+                case .notes:
+                    TipView(addNotesJournalTip) { action in
+                        if action.id == "add" {
+                            addJournal(named: "Notes")
+                        } else if action.id == "dismiss" {
+                            dismissJournalTip(named: "Notes")
+                        }
+                    }
+                case .work:
+                    TipView(addWorkJournalTip) { action in
+                        if action.id == "add" {
+                            addJournal(named: "Work")
+                        } else if action.id == "dismiss" {
+                            dismissJournalTip(named: "Work")
+                        }
+                    }
+                case .travel:
+                    TipView(addTravelJournalTip) { action in
+                        if action.id == "add" {
+                            addJournal(named: "Travel")
+                        } else if action.id == "dismiss" {
+                            dismissJournalTip(named: "Travel")
+                        }
+                    }
+                case .none:
+                    EmptyView()
+                }
+            }
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
+        }
     }
 }
 
@@ -2730,6 +2570,7 @@ struct JournalsSectionsOrderView: View {
     @Binding var sectionOrder: [JournalSectionType]
     @Binding var showRecentJournals: Bool
     @Binding var showRecentEntries: Bool
+    @Binding var showAllEntries: Bool
     @Binding var showJournalsSection: Bool
     @Binding var showNewJournalButtons: Bool
     @Binding var showTrashRow: Bool
@@ -2774,6 +2615,8 @@ struct JournalsSectionsOrderView: View {
             return $showRecentJournals
         case .recentEntries:
             return $showRecentEntries
+        case .allEntries:
+            return $showAllEntries
         case .journals:
             return $showJournalsSection
         case .newJournalButtons:
@@ -2788,6 +2631,7 @@ struct JournalsSectionsOrderView: View {
 enum JournalSectionType: String, CaseIterable, Hashable {
     case recentJournals
     case recentEntries
+    case allEntries
     case journals
     case newJournalButtons
     case trash
@@ -2796,6 +2640,7 @@ enum JournalSectionType: String, CaseIterable, Hashable {
         switch self {
         case .recentJournals: return "Recent Journals"
         case .recentEntries: return "Recent Entries"
+        case .allEntries: return "All Entries"
         case .journals: return "Journals"
         case .newJournalButtons: return "New Journal Button Row"
         case .trash: return "Trash"
@@ -2805,6 +2650,7 @@ enum JournalSectionType: String, CaseIterable, Hashable {
     var icon: String {
         switch self {
         case .recentJournals: return "clock"
+        case .allEntries: return "tray.full"
         case .recentEntries: return "doc.text"
         case .journals: return "book"
         case .newJournalButtons: return "plus.circle"

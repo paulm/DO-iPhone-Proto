@@ -433,55 +433,53 @@ struct JournalsTabPagedView: View {
     @ViewBuilder
     private var recentJournalsSection: some View {
         if showRecentJournals {
-            VStack(alignment: .leading, spacing: 12) {
-                // Toggleable header with disclosure arrow
-                Button(action: {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        recentJournalsExpanded.toggle()
-                    }
-                }) {
-                    HStack {
-                        Text("Recent Journals")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundStyle(.primary)
-
-                        Spacer()
-
-                        Image("arrow-right-circle")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 18, height: 18)
-                            .foregroundStyle(.secondary)
-                            .rotationEffect(.degrees(recentJournalsExpanded ? 90 : 0))
-                            .animation(.easeInOut(duration: 0.2), value: recentJournalsExpanded)
-                    }
-                    .padding(.horizontal, 16)
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    recentJournalsExpanded.toggle()
                 }
-                .buttonStyle(PlainButtonStyle())
+            }) {
+                HStack {
+                    Text("Recent Journals")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundStyle(.primary)
 
-                if recentJournalsExpanded {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 16) {
-                            ForEach(recentJournals) { journal in
-                                RecentJournalBookView(
-                                    journal: journal,
-                                    isSelected: false,
-                                    onSelect: {
-                                        journalViewModel.selectJournal(journal)
-                                        selectedJournal = journal
-                                    },
-                                    onNewEntry: {
-                                        journalViewModel.selectJournal(journal)
-                                        showingNewEntry = true
-                                    }
-                                )
-                                .frame(width: 70)
+                    Spacer()
+
+                    Image("arrow-right-circle")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 18, height: 18)
+                        .foregroundStyle(.secondary)
+                        .rotationEffect(.degrees(recentJournalsExpanded ? 90 : 0))
+                }
+                .padding(.horizontal, 16)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+            .listRowSeparator(.hidden)
+        }
+
+        if showRecentJournals && recentJournalsExpanded {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 16) {
+                    ForEach(recentJournals) { journal in
+                        RecentJournalBookView(
+                            journal: journal,
+                            isSelected: false,
+                            onSelect: {
+                                journalViewModel.selectJournal(journal)
+                                selectedJournal = journal
+                            },
+                            onNewEntry: {
+                                journalViewModel.selectJournal(journal)
+                                showingNewEntry = true
                             }
-                        }
-                        .padding(.leading, 16)
+                        )
+                        .frame(width: 70)
                     }
                 }
+                .padding(.leading, 16)
             }
             .padding(.bottom, 16)
             .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
@@ -492,48 +490,46 @@ struct JournalsTabPagedView: View {
     @ViewBuilder
     private var recentEntriesSection: some View {
         if showRecentEntries {
-            VStack(alignment: .leading, spacing: 12) {
-                // Toggleable header with disclosure arrow
-                Button(action: {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        recentEntriesExpanded.toggle()
-                    }
-                }) {
-                    HStack {
-                        Text("Recent Entries")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundStyle(.primary)
-
-                        Spacer()
-
-                        Image("arrow-right-circle")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 18, height: 18)
-                            .foregroundStyle(.secondary)
-                            .rotationEffect(.degrees(recentEntriesExpanded ? 90 : 0))
-                            .animation(.easeInOut(duration: 0.2), value: recentEntriesExpanded)
-                    }
-                    .padding(.horizontal, 16)
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    recentEntriesExpanded.toggle()
                 }
-                .buttonStyle(PlainButtonStyle())
+            }) {
+                HStack {
+                    Text("Recent Entries")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundStyle(.primary)
 
-                if recentEntriesExpanded {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 12) {
-                            ForEach(recentEntries) { entry in
-                                RecentEntryCard(entry: entry)
-                                    .frame(width: 108)
-                            }
-                        }
-                        .padding(.leading, 16)
-                        .padding(.trailing)
+                    Spacer()
+
+                    Image("arrow-right-circle")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 18, height: 18)
+                        .foregroundStyle(.secondary)
+                        .rotationEffect(.degrees(recentEntriesExpanded ? 90 : 0))
+                }
+                .padding(.horizontal, 16)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+            .listRowSeparator(.hidden)
+        }
+
+        if showRecentEntries && recentEntriesExpanded {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(recentEntries) { entry in
+                        RecentEntryCard(entry: entry)
+                            .frame(width: 108)
                     }
                 }
+                .padding(.leading, 16)
+                .padding(.trailing)
             }
             .padding(.bottom, 16)
-            .listRowInsets(EdgeInsets())
+            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
             .listRowSeparator(.hidden)
         }
     }
@@ -650,54 +646,53 @@ struct JournalsTabPagedView: View {
     @ViewBuilder
     private var iconsRecentJournalsSection: some View {
         if showRecentJournals {
-            VStack(alignment: .leading, spacing: 12) {
-                Button(action: {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        recentJournalsExpanded.toggle()
-                    }
-                }) {
-                    HStack {
-                        Text("Recent Journals")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundStyle(.primary)
-
-                        Spacer()
-
-                        Image("arrow-right-circle")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 18, height: 18)
-                            .foregroundStyle(.secondary)
-                            .rotationEffect(.degrees(recentJournalsExpanded ? 90 : 0))
-                            .animation(.easeInOut(duration: 0.2), value: recentJournalsExpanded)
-                    }
-                    .padding(.horizontal, 16)
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    recentJournalsExpanded.toggle()
                 }
-                .buttonStyle(PlainButtonStyle())
+            }) {
+                HStack {
+                    Text("Recent Journals")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundStyle(.primary)
 
-                if recentJournalsExpanded {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 16) {
-                            ForEach(recentJournals) { journal in
-                                RecentJournalBookView(
-                                    journal: journal,
-                                    isSelected: false,
-                                    onSelect: {
-                                        journalViewModel.selectJournal(journal)
-                                        selectedJournal = journal
-                                    },
-                                    onNewEntry: {
-                                        journalViewModel.selectJournal(journal)
-                                        showingNewEntry = true
-                                    }
-                                )
-                                .frame(width: 70)
+                    Spacer()
+
+                    Image("arrow-right-circle")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 18, height: 18)
+                        .foregroundStyle(.secondary)
+                        .rotationEffect(.degrees(recentJournalsExpanded ? 90 : 0))
+                }
+                .padding(.horizontal, 16)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+            .listRowSeparator(.hidden)
+        }
+
+        if showRecentJournals && recentJournalsExpanded {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 16) {
+                    ForEach(recentJournals) { journal in
+                        RecentJournalBookView(
+                            journal: journal,
+                            isSelected: false,
+                            onSelect: {
+                                journalViewModel.selectJournal(journal)
+                                selectedJournal = journal
+                            },
+                            onNewEntry: {
+                                journalViewModel.selectJournal(journal)
+                                showingNewEntry = true
                             }
-                        }
-                        .padding(.leading, 16)
+                        )
+                        .frame(width: 70)
                     }
                 }
+                .padding(.leading, 16)
             }
             .padding(.bottom, 16)
             .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
@@ -708,47 +703,46 @@ struct JournalsTabPagedView: View {
     @ViewBuilder
     private var iconsRecentEntriesSection: some View {
         if showRecentEntries {
-            VStack(alignment: .leading, spacing: 12) {
-                Button(action: {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        recentEntriesExpanded.toggle()
-                    }
-                }) {
-                    HStack {
-                        Text("Recent Entries")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundStyle(.primary)
-
-                        Spacer()
-
-                        Image("arrow-right-circle")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 18, height: 18)
-                            .foregroundStyle(.secondary)
-                            .rotationEffect(.degrees(recentEntriesExpanded ? 90 : 0))
-                            .animation(.easeInOut(duration: 0.2), value: recentEntriesExpanded)
-                    }
-                    .padding(.horizontal, 16)
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    recentEntriesExpanded.toggle()
                 }
-                .buttonStyle(PlainButtonStyle())
+            }) {
+                HStack {
+                    Text("Recent Entries")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundStyle(.primary)
 
-                if recentEntriesExpanded {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 12) {
-                            ForEach(recentEntries) { entry in
-                                RecentEntryCard(entry: entry)
-                                    .frame(width: 108)
-                            }
-                        }
-                        .padding(.leading, 16)
-                        .padding(.trailing)
+                    Spacer()
+
+                    Image("arrow-right-circle")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 18, height: 18)
+                        .foregroundStyle(.secondary)
+                        .rotationEffect(.degrees(recentEntriesExpanded ? 90 : 0))
+                }
+                .padding(.horizontal, 16)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+            .listRowSeparator(.hidden)
+        }
+
+        if showRecentEntries && recentEntriesExpanded {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(recentEntries) { entry in
+                        RecentEntryCard(entry: entry)
+                            .frame(width: 108)
                     }
                 }
+                .padding(.leading, 16)
+                .padding(.trailing)
             }
             .padding(.bottom, 16)
-            .listRowInsets(EdgeInsets())
+            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
             .listRowSeparator(.hidden)
         }
     }
@@ -775,7 +769,6 @@ struct JournalsTabPagedView: View {
                         .frame(width: 18, height: 18)
                         .foregroundStyle(.secondary)
                         .rotationEffect(.degrees(journalsSectionExpanded ? 90 : 0))
-                        .animation(.easeInOut(duration: 0.2), value: journalsSectionExpanded)
                 }
                 .padding(.horizontal, 16)
             }
@@ -1032,7 +1025,6 @@ struct JournalsTabPagedView: View {
                         .frame(width: 18, height: 18)
                         .foregroundStyle(.secondary)
                         .rotationEffect(.degrees(journalsSectionExpanded ? 90 : 0))
-                        .animation(.easeInOut(duration: 0.2), value: journalsSectionExpanded)
                 }
                 .padding(.horizontal, 16)
             }
@@ -1963,7 +1955,6 @@ struct CompactFolderRow: View {
                         .foregroundStyle(.secondary)
                         .rotationEffect(.degrees(isExpanded ? 90 : 0))
                         .animation(.easeInOut(duration: 0.2), value: isExpanded)
-                        .animation(.easeInOut(duration: 0.2), value: isExpanded)
                 }
                 .buttonStyle(PlainButtonStyle())
             }
@@ -2029,7 +2020,6 @@ struct FolderRow: View {
                         .frame(width: 18, height: 18)
                         .foregroundStyle(.secondary)
                         .rotationEffect(.degrees(isExpanded ? 90 : 0))
-                        .animation(.easeInOut(duration: 0.2), value: isExpanded)
                         .animation(.easeInOut(duration: 0.2), value: isExpanded)
                 }
                 .buttonStyle(PlainButtonStyle())

@@ -2,6 +2,11 @@ import SwiftUI
 import UIKit
 import TipKit
 
+// MARK: - Constants
+
+/// Size for toggle disclosure icons (arrow-right-circle)
+let toggleIconSize: CGFloat = 22
+
 // MARK: - View Mode Enum
 
 enum ViewMode: Int, CaseIterable {
@@ -452,7 +457,7 @@ struct JournalsTabPagedView: View {
                     Image("arrow-right-circle")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(width: 18, height: 18)
+                        .frame(width: toggleIconSize, height: toggleIconSize)
                         .foregroundStyle(.secondary)
                         .rotationEffect(.degrees(recentJournalsExpanded ? 90 : 0))
                 }
@@ -509,7 +514,7 @@ struct JournalsTabPagedView: View {
                     Image("arrow-right-circle")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(width: 18, height: 18)
+                        .frame(width: toggleIconSize, height: toggleIconSize)
                         .foregroundStyle(.secondary)
                         .rotationEffect(.degrees(recentEntriesExpanded ? 90 : 0))
                 }
@@ -665,7 +670,7 @@ struct JournalsTabPagedView: View {
                     Image("arrow-right-circle")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(width: 18, height: 18)
+                        .frame(width: toggleIconSize, height: toggleIconSize)
                         .foregroundStyle(.secondary)
                         .rotationEffect(.degrees(recentJournalsExpanded ? 90 : 0))
                 }
@@ -722,7 +727,7 @@ struct JournalsTabPagedView: View {
                     Image("arrow-right-circle")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(width: 18, height: 18)
+                        .frame(width: toggleIconSize, height: toggleIconSize)
                         .foregroundStyle(.secondary)
                         .rotationEffect(.degrees(recentEntriesExpanded ? 90 : 0))
                 }
@@ -769,7 +774,7 @@ struct JournalsTabPagedView: View {
                     Image("arrow-right-circle")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(width: 18, height: 18)
+                        .frame(width: toggleIconSize, height: toggleIconSize)
                         .foregroundStyle(.secondary)
                         .rotationEffect(.degrees(journalsSectionExpanded ? 90 : 0))
                 }
@@ -1025,7 +1030,7 @@ struct JournalsTabPagedView: View {
                     Image("arrow-right-circle")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(width: 18, height: 18)
+                        .frame(width: toggleIconSize, height: toggleIconSize)
                         .foregroundStyle(.secondary)
                         .rotationEffect(.degrees(journalsSectionExpanded ? 90 : 0))
                 }
@@ -1955,7 +1960,7 @@ struct CompactFolderRow: View {
                     Image("arrow-right-circle")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(width: 18, height: 18)
+                        .frame(width: toggleIconSize, height: toggleIconSize)
                         .foregroundStyle(.secondary)
                         .rotationEffect(.degrees(isExpanded ? 90 : 0))
                         .animation(.easeInOut(duration: 0.2), value: isExpanded)
@@ -2021,7 +2026,7 @@ struct FolderRow: View {
                     Image("arrow-right-circle")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(width: 18, height: 18)
+                        .frame(width: toggleIconSize, height: toggleIconSize)
                         .foregroundStyle(.secondary)
                         .rotationEffect(.degrees(isExpanded ? 90 : 0))
                         .animation(.easeInOut(duration: 0.2), value: isExpanded)

@@ -409,6 +409,9 @@ struct JournalsTabPagedView: View {
             // Fixed items that don't reorder
             tipKitSection
         }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .environment(\.editMode, .constant(isEditMode ? .active : .inactive))
     }
 
     // MARK: - Section Views
@@ -1225,6 +1228,7 @@ struct JournalsTabPagedView: View {
             }
             .buttonStyle(PlainButtonStyle())
             .padding(.bottom, 16)
+            .padding(.top, 16)
             .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
             .listRowSeparator(.hidden)
         }

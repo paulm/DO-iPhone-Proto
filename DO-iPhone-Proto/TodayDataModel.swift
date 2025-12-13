@@ -1,7 +1,7 @@
 import Foundation
 
-// MARK: - Daily Data Model
-struct DailyDataModel: Codable {
+// MARK: - Today Data Model
+struct TodayDataModel: Codable {
     let dailyData: [DayData]
 }
 
@@ -13,10 +13,10 @@ struct DayData: Codable {
     let onThisDayCount: Int
 }
 
-// MARK: - Daily Data Manager
-class DailyDataManager {
-    static let shared = DailyDataManager()
-    private var loadedData: DailyDataModel?
+// MARK: - Today Data Manager
+class TodayDataManager {
+    static let shared = TodayDataManager()
+    private var loadedData: TodayDataModel?
     private var dataByDate: [String: DayData] = [:]
     
     private init() {
@@ -32,7 +32,7 @@ class DailyDataManager {
         do {
             let data = try Data(contentsOf: url)
             let decoder = JSONDecoder()
-            loadedData = try decoder.decode(DailyDataModel.self, from: data)
+            loadedData = try decoder.decode(TodayDataModel.self, from: data)
             
             // Build date lookup dictionary
             let calendar = Calendar.current

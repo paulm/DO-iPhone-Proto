@@ -1013,8 +1013,8 @@ Later, I went for a walk in the park and noticed how the leaves are just beginni
 
     @ViewBuilder
     private var entryLinksSection: some View {
-        let entryCount = DailyDataManager.shared.getEntryCount(for: selectedDate)
-        let onThisDayCount = DailyDataManager.shared.getOnThisDayCount(for: selectedDate)
+        let entryCount = TodayDataManager.shared.getEntryCount(for: selectedDate)
+        let onThisDayCount = TodayDataManager.shared.getOnThisDayCount(for: selectedDate)
 
         Group {
             if onThisDayCount > 0 {

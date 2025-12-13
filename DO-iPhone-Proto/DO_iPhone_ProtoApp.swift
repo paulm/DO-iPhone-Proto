@@ -25,7 +25,7 @@ struct DayOnePrototypeApp: App {
         ])
 
         // Initialize daily data from JSON
-        _ = DailyDataManager.shared
+        _ = TodayDataManager.shared
     }
     
     var body: some Scene {

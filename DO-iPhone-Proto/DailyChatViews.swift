@@ -13,7 +13,7 @@ class DailyContentManager {
     private var entryUpdateDates: [String: Date] = [:] // Track when entries were last updated
     
     private init() {
-        // Data will be loaded from JSON via DailyDataManager
+        // Data will be loaded from JSON via TodayDataManager
     }
     
     private func dateKey(for date: Date) -> String {
@@ -78,7 +78,7 @@ class ChatSessionManager {
     private var summariesGenerated: [String: Bool] = [:]
     
     private init() {
-        // Data will be loaded from JSON via DailyDataManager
+        // Data will be loaded from JSON via TodayDataManager
     }
     
     private func dateKey(for date: Date = Date()) -> String {

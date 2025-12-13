@@ -394,19 +394,37 @@ struct TodayView: View {
     private var dailyChatSection: some View {
         // Header
         Section {
-            Button(action: {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    dailyChatExpanded.toggle()
+            HStack(spacing: 12) {
+                // Title
+                Text("Daily Chat")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundStyle(Color(hex: "292F33"))
+
+                Spacer()
+
+                // Primary action button when collapsed
+                if !dailyChatExpanded {
+                    Button(action: {
+                        showingDailyChat = true
+                    }) {
+                        Text(chatCompleted ? "Resume Chat" : (Calendar.current.isDateInToday(selectedDate) ? "Chat About Today" : "Start Chat"))
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(chatCompleted ? Color.primary : Color.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(chatCompleted ? Color(hex: "E0DEE5") : Color(hex: "44C0FF"))
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                    }
+                    .buttonStyle(PlainButtonStyle())
                 }
-            }) {
-                HStack {
-                    Text("Daily Chat")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundStyle(Color(hex: "292F33"))
 
-                    Spacer()
-
+                // Toggle arrow - always on the far right
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        dailyChatExpanded.toggle()
+                    }
+                }) {
                     Image("arrow-right-circle")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
@@ -414,9 +432,9 @@ struct TodayView: View {
                         .foregroundStyle(.secondary)
                         .rotationEffect(.degrees(dailyChatExpanded ? 90 : 0))
                 }
-                .padding(.horizontal, 16)
+                .buttonStyle(PlainButtonStyle())
             }
-            .buttonStyle(PlainButtonStyle())
+            .padding(.horizontal, 16)
             .listRowInsets(EdgeInsets(top: todayInterSectionSpacing, leading: 0, bottom: 0, trailing: 0))
             .listRowSeparator(.hidden)
         }

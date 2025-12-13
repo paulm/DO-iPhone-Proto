@@ -100,8 +100,13 @@ struct TodayView: View {
     @AppStorage("showChatFAB") private var showChatFAB = false
     @AppStorage("showEntryFAB") private var showEntryFAB = false
     @AppStorage("showChatInputBox") private var showChatInputBox = false
-    @AppStorage("showDailyEntryChat") private var showDailyEntryChat = true
+    @AppStorage("showDailyEntry") private var showDailyEntry = true
+    @AppStorage("showDailyChat") private var showDailyChat = true
     @AppStorage("showBioSection") private var showBioSection = false
+
+    // Section expansion states
+    @State private var dailyEntryExpanded = true
+    @State private var dailyChatExpanded = true
     @AppStorage("todayViewStyle") private var selectedStyle = TodayViewStyle.standard
     @AppStorage("showWelcomeToTodaySheet") private var showWelcomeToTodaySheet = false
     @AppStorage("sectionOrder") private var sectionOrderData: Data = {
@@ -373,48 +378,279 @@ struct TodayView: View {
         }
     }
 
-    // Extract Daily Chat section as computed property
+    // Daily Chat section - collapsible
     @ViewBuilder
-    private var dailyEntryChatSection: some View {
+    private var dailyChatSection: some View {
         Section {
             VStack(alignment: .leading, spacing: 12) {
-                // TipKit tip
-                TipView(journalingTip)
-                    .tipViewStyle(CustomJournalingTipViewStyle())
-                    .padding(.bottom, 8)
+                // Collapsible header
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        dailyChatExpanded.toggle()
+                    }
+                }) {
+                    HStack {
+                        Text("Daily Chat")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundStyle(Color(hex: "292F33"))
 
-                // Header content (now part of the section body so it scrolls)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Daily Chat")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundStyle(Color(hex: "292F33"))
-                    // Only show welcome prompt when no chat has taken place
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                            .rotationEffect(.degrees(dailyChatExpanded ? 90 : 0))
+                    }
+                }
+                .buttonStyle(PlainButtonStyle())
+
+                if dailyChatExpanded {
+                    // TipKit tip
+                    TipView(journalingTip)
+                        .tipViewStyle(CustomJournalingTipViewStyle())
+                        .padding(.bottom, 8)
+
+                    // Welcome prompt - only show when no chat has taken place
                     if !chatCompleted && !DailyContentManager.shared.hasEntry(for: selectedDate) {
                         Text(dailyEntryChatPromptText)
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
+                            .padding(.bottom, 4)
                     }
-                }
-                .padding(.bottom, chatCompleted || DailyContentManager.shared.hasEntry(for: selectedDate) ? 4 : 8)
 
-                DailyEntryChatView(
-                    selectedDate: selectedDate,
-                    chatCompleted: chatCompleted,
-                    isGeneratingEntry: isGeneratingEntry,
-                    showingDailyChat: $showingDailyChat,
-                    showingEntry: $showingEntry,
-                    entryData: $entryData,
-                    showingPreviewEntry: $showingPreviewEntry,
-                    openDailyChatInLogMode: $openDailyChatInLogMode
-                )
-                .id(chatUpdateTrigger) // Force refresh when chat updates
+                    // Chat interface wrapped in gray rounded rectangle
+                    VStack(spacing: 12) {
+                        // Last AI message preview
+                        if chatCompleted {
+                            let messages = ChatSessionManager.shared.getMessages(for: selectedDate)
+                            let lastAIMessage = messages.last(where: { !$0.isUser })
+
+                            if let lastMessage = lastAIMessage {
+                                VStack(alignment: .leading, spacing: 12) {
+                                    Text(lastMessage.content)
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(3)
+                                        .multilineTextAlignment(.leading)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                                .id("\(selectedDate)-\(messages.count)")
+                            }
+                        }
+
+                        // Resume Chat or Start Chat button
+                        Button(action: {
+                            showingDailyChat = true
+                        }) {
+                            HStack(spacing: 8) {
+                                Image(dayOneIcon: chatCompleted ? .message : .comment)
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundStyle(chatCompleted ? Color.primary : Color.white)
+
+                                Text(chatCompleted ? "Resume Chat" : (Calendar.current.isDateInToday(selectedDate) ? "Chat About Today" : "Start Chat"))
+                                    .font(.system(size: 17, weight: .semibold))
+                                    .foregroundStyle(chatCompleted ? Color.primary : Color.white)
+                            }
+                            .frame(height: 48)
+                            .frame(maxWidth: .infinity)
+                            .background(chatCompleted ? Color(hex: "E0DEE5") : Color(hex: "44C0FF"))
+                            .clipShape(RoundedRectangle(cornerRadius: 24))
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                    .padding(16)
+                    .background(Color(.systemGray6))
+                    .clipShape(RoundedRectangle(cornerRadius: 24))
+                }
             }
         }
         .animation(nil, value: selectedDate)
         .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
         .listRowBackground(showGuides ? Color.green.opacity(0.2) : cellBackgroundColor)
         .listRowSeparator(.hidden)
+    }
+
+    // Daily Entry section - collapsible
+    @ViewBuilder
+    private var dailyEntrySection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 12) {
+                // Collapsible header
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        dailyEntryExpanded.toggle()
+                    }
+                }) {
+                    HStack {
+                        Text("Daily Entry")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundStyle(Color(hex: "292F33"))
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                            .rotationEffect(.degrees(dailyEntryExpanded ? 90 : 0))
+                    }
+                }
+                .buttonStyle(PlainButtonStyle())
+
+                if dailyEntryExpanded {
+                    // Entry display or generate button (no gray wrapper)
+                    if DailyContentManager.shared.hasEntry(for: selectedDate) {
+                        // Entry exists - show preview
+                        Button(action: {
+                            let data = EntryView.EntryData(
+                                title: "Morning Reflections",
+                                content: """
+Morning Reflections
+
+Today I started with my usual morning routine, feeling energized and ready for the day ahead. The weather was perfect, with clear blue skies and a gentle breeze. I took some extra time to enjoy my coffee on the balcony, watching the city slowly wake up around me.
+
+I've been thinking a lot about balance lately—how to find more moments of peace in the midst of busy days. This morning felt like a small step in the right direction. Sometimes the best days are the ones where we don't try to do too much, but instead focus on being fully present in each moment.
+
+Later, I went for a walk in the park and noticed how the leaves are just beginning to change colors. Fall has always been my favorite season, and I'm looking forward to the cooler weather ahead. There's something about this time of year that makes me feel reflective and grateful.
+""",
+                                date: selectedDate,
+                                time: formatTime(selectedDate)
+                            )
+                            entryData = data
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                                showingEntry = true
+                            }
+                        }) {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Morning Reflections")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(.primary)
+                                    .multilineTextAlignment(.leading)
+
+                                Text("Today I started with my usual morning routine, feeling energized and ready for the day ahead. The weather was perfect...")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(3)
+                                    .multilineTextAlignment(.leading)
+
+                                HStack(spacing: 4) {
+                                    Text("Daily")
+                                        .font(.footnote)
+                                        .fontWeight(.medium)
+                                        .foregroundStyle(Color(hex: "44C0FF"))
+
+                                    Text("•")
+                                        .font(.footnote)
+                                        .foregroundStyle(.secondary)
+
+                                    Text("Salt Lake City, Utah")
+                                        .font(.footnote)
+                                        .foregroundStyle(.secondary)
+
+                                    Text("•")
+                                        .font(.footnote)
+                                        .foregroundStyle(.secondary)
+
+                                    Text("Partly Cloudy 63° - 82°")
+                                        .font(.footnote)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+
+                        // Update Entry button if there are new messages
+                        if DailyContentManager.shared.hasNewMessagesSinceEntry(for: selectedDate) && !isGeneratingEntry {
+                            Button(action: {
+                                // Post notification to trigger entry generation
+                                NotificationCenter.default.post(
+                                    name: NSNotification.Name("TriggerEntryGeneration"),
+                                    object: selectedDate
+                                )
+                            }) {
+                                HStack(spacing: 8) {
+                                    Image(dayOneIcon: .loop)
+                                        .font(.system(size: 16, weight: .semibold))
+                                        .foregroundStyle(.white)
+
+                                    Text("Update Entry")
+                                        .font(.system(size: 17, weight: .semibold))
+                                        .foregroundStyle(.white)
+                                }
+                                .frame(height: 48)
+                                .frame(maxWidth: .infinity)
+                                .background(Color(hex: "44C0FF"))
+                                .clipShape(RoundedRectangle(cornerRadius: 24))
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                    } else if chatCompleted {
+                        // Chat exists but no entry - show Generate Entry button
+                        Button(action: {
+                            if !isGeneratingEntry {
+                                NotificationCenter.default.post(
+                                    name: NSNotification.Name("TriggerEntryGeneration"),
+                                    object: selectedDate
+                                )
+                            }
+                        }) {
+                            if isGeneratingEntry {
+                                HStack(spacing: 8) {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle())
+                                        .scaleEffect(0.8)
+
+                                    Text("Generating...")
+                                        .font(.system(size: 17, weight: .semibold))
+                                        .foregroundStyle(.secondary)
+                                }
+                                .frame(height: 48)
+                                .frame(maxWidth: .infinity)
+                                .background(Color(.systemGray6))
+                                .clipShape(RoundedRectangle(cornerRadius: 24))
+                            } else {
+                                HStack(spacing: 8) {
+                                    Image(dayOneIcon: .document)
+                                        .font(.system(size: 16, weight: .semibold))
+                                        .foregroundStyle(.white)
+
+                                    Text("Generate Entry")
+                                        .font(.system(size: 17, weight: .semibold))
+                                        .foregroundStyle(.white)
+                                }
+                                .frame(height: 48)
+                                .frame(maxWidth: .infinity)
+                                .background(Color(hex: "44C0FF"))
+                                .clipShape(RoundedRectangle(cornerRadius: 24))
+                            }
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .disabled(isGeneratingEntry)
+                    } else {
+                        // No chat and no entry - show placeholder
+                        Text("Start a chat to generate an entry")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding(.vertical, 24)
+                    }
+                }
+            }
+        }
+        .animation(nil, value: selectedDate)
+        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+        .listRowBackground(showGuides ? Color.blue.opacity(0.2) : cellBackgroundColor)
+        .listRowSeparator(.hidden)
+    }
+
+    // Helper method for formatting time
+    private func formatTime(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm a"
+        return formatter.string(from: date)
     }
 
     // Moments Section - Photos
@@ -1023,9 +1259,13 @@ struct TodayView: View {
             if showEntries {
                 entryLinksSection
             }
-        case "dailyEntryChat":
-            if showDailyEntryChat {
-                dailyEntryChatSection
+        case "dailyEntry":
+            if showDailyEntry {
+                dailyEntrySection
+            }
+        case "dailyChat":
+            if showDailyChat {
+                dailyChatSection
             }
         case "moments":
             if showMoments {
@@ -1188,11 +1428,22 @@ struct TodayView: View {
                         }
 
                         Button {
-                            showDailyEntryChat.toggle()
+                            showDailyEntry.toggle()
                         } label: {
                             HStack {
-                                Text("Daily Entry Chat")
-                                if showDailyEntryChat {
+                                Text("Daily Entry")
+                                if showDailyEntry {
+                                    Image(dayOneIcon: .checkmark)
+                                }
+                            }
+                        }
+
+                        Button {
+                            showDailyChat.toggle()
+                        } label: {
+                            HStack {
+                                Text("Daily Chat")
+                                if showDailyChat {
                                     Image(dayOneIcon: .checkmark)
                                 }
                             }

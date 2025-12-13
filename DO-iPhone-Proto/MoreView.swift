@@ -21,7 +21,7 @@ struct MoreTabOriginalView: View {
     @State private var showQuickStart = true
     @State private var showOnThisDay = true
     @State private var showDailyPrompt = true
-    @State private var showRecentEntries = true
+    @State private var showRecentEntries = false
 
     // Section ordering
     @State private var showingSectionsOrder = false

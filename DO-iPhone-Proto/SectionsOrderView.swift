@@ -10,9 +10,10 @@ struct SectionItem: Identifiable, Codable, Equatable {
         SectionItem(id: "datePickerGrid", name: "Date Picker Grid"),
         SectionItem(id: "datePickerRow", name: "Date Picker Row"),
         SectionItem(id: "entries", name: "Entries"),
-        SectionItem(id: "dailyEntryChat", name: "Daily Entry Chat"),
-        SectionItem(id: "moments", name: "Moments"),
-        SectionItem(id: "bio", name: "Bio")
+        SectionItem(id: "dailyEntry", name: "Daily Entry"),
+        SectionItem(id: "dailyChat", name: "Daily Chat"),
+        SectionItem(id: "bio", name: "Bio"),
+        SectionItem(id: "moments", name: "Moments")
     ]
 }
 
@@ -29,7 +30,8 @@ struct SectionsOrderView: View {
     @AppStorage("showDatePickerRow") private var showDatePickerRow = true
     @AppStorage("showDateNavigation") private var showDateNavigation = true
     @AppStorage("showEntries") private var showEntries = true
-    @AppStorage("showDailyEntryChat") private var showDailyEntryChat = true
+    @AppStorage("showDailyEntry") private var showDailyEntry = true
+    @AppStorage("showDailyChat") private var showDailyChat = true
     @AppStorage("showMoments") private var showMoments = true
     @AppStorage("showBioSection") private var showBioSection = false
 
@@ -96,7 +98,8 @@ struct SectionsOrderView: View {
         case "datePickerGrid": return showDatePickerGrid
         case "datePickerRow": return showDatePickerRow
         case "entries": return showEntries
-        case "dailyEntryChat": return showDailyEntryChat
+        case "dailyEntry": return showDailyEntry
+        case "dailyChat": return showDailyChat
         case "moments": return showMoments
         case "bio": return showBioSection
         default: return false
@@ -109,7 +112,8 @@ struct SectionsOrderView: View {
         case "datePickerGrid": showDatePickerGrid.toggle()
         case "datePickerRow": showDatePickerRow.toggle()
         case "entries": showEntries.toggle()
-        case "dailyEntryChat": showDailyEntryChat.toggle()
+        case "dailyEntry": showDailyEntry.toggle()
+        case "dailyChat": showDailyChat.toggle()
         case "moments": showMoments.toggle()
         case "bio": showBioSection.toggle()
         default: break

@@ -376,7 +376,7 @@ struct JournalsTabPagedView: View {
             }
         }
         .sheet(isPresented: $showingSettings) {
-            SettingsView()
+            AppSettingsView()
         }
         .sheet(isPresented: $showingSectionsOrder) {
             JournalsSectionsOrderView(
@@ -1480,7 +1480,7 @@ struct JournalDetailPagedView: View {
             PagedEditJournalView(journal: journal)
         }
         .sheet(isPresented: $showingSettings) {
-            SettingsView()
+            AppSettingsView()
         }
     }
 }

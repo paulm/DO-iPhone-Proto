@@ -53,7 +53,7 @@ struct MainSplitView: View {
         }
         .navigationSplitViewStyle(.balanced)
         .sheet(isPresented: $showingSettings) {
-            SettingsView()
+            AppSettingsView()
         }
     }
     

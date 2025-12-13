@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct SettingsView: View {
+struct AppSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showingIntegrations = false
     @State private var showingChatSettings = false
@@ -62,5 +62,5 @@ struct SettingsView: View {
 }
 
 #Preview {
-    SettingsView()
+    AppSettingsView()
 }

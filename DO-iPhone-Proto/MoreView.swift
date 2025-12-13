@@ -74,7 +74,7 @@ struct MoreTabOriginalView: View {
             }
         }
         .sheet(isPresented: $showingSettings) {
-            SettingsView()
+            AppSettingsView()
         }
         .sheet(isPresented: $showingSectionsOrder) {
             MoreSectionsOrderView(

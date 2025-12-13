@@ -244,7 +244,7 @@ struct PromptsTabOriginalView: View {
             }
         }
         .sheet(isPresented: $showingSettings) {
-            SettingsView()
+            AppSettingsView()
         }
         .sheet(item: $selectedPromptPack) { pack in
             PromptPackDetailView(

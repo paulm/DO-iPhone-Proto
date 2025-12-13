@@ -495,19 +495,99 @@ struct TodayView: View {
     private var dailyEntrySection: some View {
         // Header
         Section {
-            Button(action: {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    dailyEntryExpanded.toggle()
+            HStack(spacing: 12) {
+                // Title
+                Text("Daily Entry")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundStyle(Color(hex: "292F33"))
+
+                Spacer()
+
+                // Contextual buttons when collapsed
+                if !dailyEntryExpanded {
+                    let hasEntry = DailyContentManager.shared.hasEntry(for: selectedDate)
+                    let hasNewMessages = DailyContentManager.shared.hasNewMessagesSinceEntry(for: selectedDate)
+
+                    // Show only ONE button based on priority: Update Entry > View Entry > Generate Entry
+                    if hasEntry && hasNewMessages && !isGeneratingEntry {
+                        // Priority 1: Update Entry (when entry exists and there are new messages)
+                        Button(action: {
+                            NotificationCenter.default.post(
+                                name: NSNotification.Name("TriggerEntryGeneration"),
+                                object: selectedDate
+                            )
+                        }) {
+                            Text("Update Entry")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color(hex: "44C0FF"))
+                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    } else if hasEntry {
+                        // Priority 2: View Entry (when entry exists but no new messages)
+                        Button(action: {
+                            let data = EntryView.EntryData(
+                                title: "Morning Reflections",
+                                content: """
+Morning Reflections
+
+Today I started with my usual morning routine, feeling energized and ready for the day ahead. The weather was perfect, with clear blue skies and a gentle breeze. I took some extra time to enjoy my coffee on the balcony, watching the city slowly wake up around me.
+
+I've been thinking a lot about balance lately—how to find more moments of peace in the midst of busy days. This morning felt like a small step in the right direction. Sometimes the best days are the ones where we don't try to do too much, but instead focus on being fully present in each moment.
+
+Later, I went for a walk in the park and noticed how the leaves are just beginning to change colors. Fall has always been my favorite season, and I'm looking forward to the cooler weather ahead. There's something about this time of year that makes me feel reflective and grateful.
+""",
+                                date: selectedDate,
+                                time: formatTime(selectedDate)
+                            )
+                            entryData = data
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                                showingEntry = true
+                            }
+                        }) {
+                            Text("View Entry")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(Color(hex: "44C0FF"))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color(hex: "44C0FF").opacity(0.1))
+                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    } else if chatCompleted {
+                        // Priority 3: Generate Entry (when chat exists but no entry)
+                        Button(action: {
+                            if !isGeneratingEntry {
+                                NotificationCenter.default.post(
+                                    name: NSNotification.Name("TriggerEntryGeneration"),
+                                    object: selectedDate
+                                )
+                            }
+                        }) {
+                            Text("Generate Entry")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color(hex: "44C0FF"))
+                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .disabled(isGeneratingEntry)
+                    }
+                    // else: No buttons shown when no chat and no entry
                 }
-            }) {
-                HStack {
-                    Text("Daily Entry")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundStyle(Color(hex: "292F33"))
 
-                    Spacer()
-
+                // Toggle arrow - always on the far right
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        dailyEntryExpanded.toggle()
+                    }
+                }) {
                     Image("arrow-right-circle")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
@@ -515,9 +595,9 @@ struct TodayView: View {
                         .foregroundStyle(.secondary)
                         .rotationEffect(.degrees(dailyEntryExpanded ? 90 : 0))
                 }
-                .padding(.horizontal, 16)
+                .buttonStyle(PlainButtonStyle())
             }
-            .buttonStyle(PlainButtonStyle())
+            .padding(.horizontal, 16)
             .listRowInsets(EdgeInsets(top: todayInterSectionSpacing, leading: 0, bottom: 0, trailing: 0))
             .listRowSeparator(.hidden)
         }

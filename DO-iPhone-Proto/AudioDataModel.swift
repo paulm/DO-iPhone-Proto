@@ -1,6 +1,6 @@
 import Foundation
 
-struct AudioData {
+struct AudioDataModel {
     let title: String
     let duration: TimeInterval
     let recordingDate: Date

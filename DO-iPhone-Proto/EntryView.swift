@@ -43,7 +43,7 @@ struct EntryView: View {
     @State private var isEditMode = false
     @State private var shouldShowAudioOnAppear: Bool
     @State private var showingCompactAudioRecord = false
-    @State private var insertedAudioData: AudioData?
+    @State private var insertedAudioDataModel: AudioDataModel?
     @State private var useLatoFont = false
     @State private var showingGoDeeperPrompts = false
     @State private var scrollProxy: ScrollViewProxy?
@@ -575,7 +575,7 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                                     // Show embeds after text with proper spacing
                                     // First audio recording embed (can have transcription or not)
                                     if showAudioEmbedWithTranscription {
-                                        if let audioData = insertedAudioData {
+                                        if let audioData = insertedAudioDataModel {
                                             // Use inserted audio data
                                             audioRecordingEmbed(
                                                 hasTranscription: audioData.hasTranscription,
@@ -956,7 +956,7 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
             }
             .compactAudioSheet(
                 isPresented: $showingAudioPage,
-                existingAudio: insertedAudioData ?? AudioData(
+                existingAudio: insertedAudioDataModel ?? AudioDataModel(
                     title: "Morning Reflections at Stewart Falls",
                     duration: audioDuration,
                     recordingDate: entryDate,
@@ -966,7 +966,7 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
             )
             .compactAudioSheet(
                 isPresented: $showingAudioPage2,
-                existingAudio: AudioData(
+                existingAudio: AudioDataModel(
                     title: "Sounds of the Mountain Stream",
                     duration: audioDuration2,
                     recordingDate: entryDate,
@@ -993,7 +993,7 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                     entryText += transcriptionText
 
                     // Store the audio data and show the embed
-                    insertedAudioData = audioData
+                    insertedAudioDataModel = audioData
                     showAudioEmbedWithTranscription = true
                 }
             )

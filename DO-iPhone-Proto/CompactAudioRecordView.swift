@@ -3,9 +3,9 @@ import SwiftUI
 struct CompactAudioRecordView: View {
     @Environment(\.dismiss) private var dismiss
     let journal: Journal?
-    let existingAudio: AudioData?
+    let existingAudio: AudioDataModel?
     @Binding var currentDetent: PresentationDetent
-    let onInsertTranscription: ((String, AudioData) -> Void)?
+    let onInsertTranscription: ((String, AudioDataModel) -> Void)?
     
     @State private var editableTitle: String = ""
     @State private var isRecording = false
@@ -67,7 +67,7 @@ struct CompactAudioRecordView: View {
         "Rainbows at Stewart Falls"
     }
     
-    init(journal: Journal? = nil, existingAudio: AudioData? = nil, currentDetent: Binding<PresentationDetent>, onInsertTranscription: ((String, AudioData) -> Void)? = nil) {
+    init(journal: Journal? = nil, existingAudio: AudioDataModel? = nil, currentDetent: Binding<PresentationDetent>, onInsertTranscription: ((String, AudioDataModel) -> Void)? = nil) {
         self.journal = journal
         self.existingAudio = existingAudio
         self._currentDetent = currentDetent
@@ -303,7 +303,7 @@ struct CompactAudioRecordView: View {
                                     }
                                     
                                     // Create audio data for the embed
-                                    let audioData = AudioData(
+                                    let audioData = AudioDataModel(
                                         title: editableTitle,
                                         duration: recordingTime,
                                         recordingDate: Date(),
@@ -544,11 +544,11 @@ struct CompactSheetModifier: ViewModifier {
     @Binding var isPresented: Bool
     let height: CGFloat
     let journal: Journal?
-    let existingAudio: AudioData?
-    let onInsertTranscription: ((String, AudioData) -> Void)?
+    let existingAudio: AudioDataModel?
+    let onInsertTranscription: ((String, AudioDataModel) -> Void)?
     @State private var currentDetent: PresentationDetent
     
-    init(isPresented: Binding<Bool>, height: CGFloat, journal: Journal?, existingAudio: AudioData?, onInsertTranscription: ((String, AudioData) -> Void)? = nil) {
+    init(isPresented: Binding<Bool>, height: CGFloat, journal: Journal?, existingAudio: AudioDataModel?, onInsertTranscription: ((String, AudioDataModel) -> Void)? = nil) {
         self._isPresented = isPresented
         self.height = height
         self.journal = journal
@@ -581,8 +581,8 @@ extension View {
         isPresented: Binding<Bool>,
         height: CGFloat = 300,
         journal: Journal? = nil,
-        existingAudio: AudioData? = nil,
-        onInsertTranscription: ((String, AudioData) -> Void)? = nil
+        existingAudio: AudioDataModel? = nil,
+        onInsertTranscription: ((String, AudioDataModel) -> Void)? = nil
     ) -> some View {
         modifier(CompactSheetModifier(
             isPresented: isPresented,
@@ -625,7 +625,7 @@ extension View {
                 .ignoresSafeArea()
                 .sheet(isPresented: .constant(true)) {
                     CompactAudioRecordView(
-                        existingAudio: AudioData(
+                        existingAudio: AudioDataModel(
                             title: "Morning Thoughts",
                             duration: 125,
                             recordingDate: Date(),

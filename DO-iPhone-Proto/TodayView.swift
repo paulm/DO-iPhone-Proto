@@ -2,6 +2,10 @@ import SwiftUI
 import TipKit
 import UIKit
 
+// MARK: - Constants
+/// Size for toggle disclosure icons (arrow-right-circle)
+private let todayToggleIconSize: CGFloat = 24
+
 // MARK: - Style Options
 enum TodayViewStyle: String, CaseIterable {
     case standard = "Standard"
@@ -77,7 +81,6 @@ struct TodayView: View {
     @AppStorage("showDatePickerRow") private var showDatePickerRow = true
     @AppStorage("showDateNavigation") private var showDateNavigation = true
     @AppStorage("showEntries") private var showEntries = true
-    @AppStorage("showMoments") private var showMoments = true
     @State private var showGuides = false
     @State private var selectedPrompt: String? = nil
 
@@ -96,17 +99,25 @@ struct TodayView: View {
 
     // Layout Constants
     private let momentsSectionSpacing: CGFloat = 8
+    private let todaySectionSpacing: CGFloat = 16
+    private let todayInterSectionSpacing: CGFloat = 24 // Spacing between major sections
 
     @AppStorage("showChatFAB") private var showChatFAB = false
     @AppStorage("showEntryFAB") private var showEntryFAB = false
     @AppStorage("showChatInputBox") private var showChatInputBox = false
     @AppStorage("showDailyEntry") private var showDailyEntry = true
     @AppStorage("showDailyChat") private var showDailyChat = true
+    @AppStorage("showMoments") private var showMoments = true
+    @AppStorage("showTrackers") private var showTrackers = true
+    @AppStorage("showInputs") private var showInputs = true
     @AppStorage("showBioSection") private var showBioSection = false
 
     // Section expansion states
     @State private var dailyEntryExpanded = true
     @State private var dailyChatExpanded = true
+    @State private var momentsExpanded = true
+    @State private var trackersExpanded = true
+    @State private var inputsExpanded = true
     @AppStorage("todayViewStyle") private var selectedStyle = TodayViewStyle.standard
     @AppStorage("showWelcomeToTodaySheet") private var showWelcomeToTodaySheet = false
     @AppStorage("sectionOrder") private var sectionOrderData: Data = {
@@ -381,31 +392,39 @@ struct TodayView: View {
     // Daily Chat section - collapsible
     @ViewBuilder
     private var dailyChatSection: some View {
+        // Header
         Section {
-            VStack(alignment: .leading, spacing: 12) {
-                // Collapsible header
-                Button(action: {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        dailyChatExpanded.toggle()
-                    }
-                }) {
-                    HStack {
-                        Text("Daily Chat")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundStyle(Color(hex: "292F33"))
-
-                        Spacer()
-
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(.secondary)
-                            .rotationEffect(.degrees(dailyChatExpanded ? 90 : 0))
-                    }
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    dailyChatExpanded.toggle()
                 }
-                .buttonStyle(PlainButtonStyle())
+            }) {
+                HStack {
+                    Text("Daily Chat")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundStyle(Color(hex: "292F33"))
 
-                if dailyChatExpanded {
+                    Spacer()
+
+                    Image("arrow-right-circle")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: todayToggleIconSize, height: todayToggleIconSize)
+                        .foregroundStyle(.secondary)
+                        .rotationEffect(.degrees(dailyChatExpanded ? 90 : 0))
+                }
+                .padding(.horizontal, 16)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .listRowInsets(EdgeInsets(top: todayInterSectionSpacing, leading: 0, bottom: 0, trailing: 0))
+            .listRowSeparator(.hidden)
+        }
+
+        // Content
+        if dailyChatExpanded {
+            Section {
+                VStack(alignment: .leading, spacing: 12) {
                     // TipKit tip
                     TipView(journalingTip)
                         .tipViewStyle(CustomJournalingTipViewStyle())
@@ -464,41 +483,49 @@ struct TodayView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 24))
                 }
             }
+            .animation(nil, value: selectedDate)
+            .listRowInsets(EdgeInsets(top: todaySectionSpacing, leading: 16, bottom: todaySectionSpacing, trailing: 16))
+            .listRowBackground(showGuides ? Color.green.opacity(0.2) : cellBackgroundColor)
+            .listRowSeparator(.hidden)
         }
-        .animation(nil, value: selectedDate)
-        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-        .listRowBackground(showGuides ? Color.green.opacity(0.2) : cellBackgroundColor)
-        .listRowSeparator(.hidden)
     }
 
     // Daily Entry section - collapsible
     @ViewBuilder
     private var dailyEntrySection: some View {
+        // Header
         Section {
-            VStack(alignment: .leading, spacing: 12) {
-                // Collapsible header
-                Button(action: {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        dailyEntryExpanded.toggle()
-                    }
-                }) {
-                    HStack {
-                        Text("Daily Entry")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundStyle(Color(hex: "292F33"))
-
-                        Spacer()
-
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(.secondary)
-                            .rotationEffect(.degrees(dailyEntryExpanded ? 90 : 0))
-                    }
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    dailyEntryExpanded.toggle()
                 }
-                .buttonStyle(PlainButtonStyle())
+            }) {
+                HStack {
+                    Text("Daily Entry")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundStyle(Color(hex: "292F33"))
 
-                if dailyEntryExpanded {
+                    Spacer()
+
+                    Image("arrow-right-circle")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: todayToggleIconSize, height: todayToggleIconSize)
+                        .foregroundStyle(.secondary)
+                        .rotationEffect(.degrees(dailyEntryExpanded ? 90 : 0))
+                }
+                .padding(.horizontal, 16)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .listRowInsets(EdgeInsets(top: todayInterSectionSpacing, leading: 0, bottom: 0, trailing: 0))
+            .listRowSeparator(.hidden)
+        }
+
+        // Content
+        if dailyEntryExpanded {
+            Section {
+                VStack(alignment: .leading, spacing: 12) {
                     // Entry display or generate button (no gray wrapper)
                     if DailyContentManager.shared.hasEntry(for: selectedDate) {
                         // Entry exists - show preview
@@ -639,11 +666,11 @@ Later, I went for a walk in the park and noticed how the leaves are just beginni
                     }
                 }
             }
+            .animation(nil, value: selectedDate)
+            .listRowInsets(EdgeInsets(top: todaySectionSpacing, leading: 16, bottom: todaySectionSpacing, trailing: 16))
+            .listRowBackground(showGuides ? Color.blue.opacity(0.2) : cellBackgroundColor)
+            .listRowSeparator(.hidden)
         }
-        .animation(nil, value: selectedDate)
-        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-        .listRowBackground(showGuides ? Color.blue.opacity(0.2) : cellBackgroundColor)
-        .listRowSeparator(.hidden)
     }
 
     // Helper method for formatting time
@@ -1076,8 +1103,8 @@ Later, I went for a walk in the park and noticed how the leaves are just beginni
                 .buttonStyle(PlainButtonStyle())
             }
         }
-        .padding(.vertical, 12)
-        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+        .padding(.vertical, 0)
+        .listRowInsets(EdgeInsets(top: todaySectionSpacing, leading: 16, bottom: todaySectionSpacing, trailing: 16))
         .listRowBackground(showGuides ? Color.blue.opacity(0.2) : Color.clear)
         .listRowSeparator(.hidden)
     }
@@ -1151,7 +1178,7 @@ Later, I went for a walk in the park and noticed how the leaves are just beginni
                 }
                 .padding(.vertical, 0)
             }
-            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+            .listRowInsets(EdgeInsets(top: todaySectionSpacing, leading: 16, bottom: todaySectionSpacing, trailing: 16))
             .listRowBackground(showGuides ? Color.red.opacity(0.2) : cellBackgroundColor)
             .listRowSeparator(.hidden)
         }
@@ -1211,9 +1238,125 @@ Later, I went for a walk in the park and noticed how the leaves are just beginni
                 .clipShape(RoundedRectangle(cornerRadius: 24))
             }
         }
-        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+        .listRowInsets(EdgeInsets(top: todayInterSectionSpacing, leading: 16, bottom: todaySectionSpacing, trailing: 16))
         .listRowBackground(Color.clear)
         .listRowSeparator(.hidden)
+    }
+
+    // Moments section - collapsible (Events, Places, Photos only)
+    @ViewBuilder
+    private var momentsCollapsibleSection: some View {
+        // Header
+        Section {
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    momentsExpanded.toggle()
+                }
+            }) {
+                HStack {
+                    Text("Moments")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundStyle(Color(hex: "292F33"))
+
+                    Spacer()
+
+                    Image("arrow-right-circle")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: todayToggleIconSize, height: todayToggleIconSize)
+                        .foregroundStyle(.secondary)
+                        .rotationEffect(.degrees(momentsExpanded ? 90 : 0))
+                }
+                .padding(.horizontal, 16)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .listRowInsets(EdgeInsets(top: todayInterSectionSpacing, leading: 0, bottom: 0, trailing: 0))
+            .listRowSeparator(.hidden)
+        }
+
+        // Content
+        if momentsExpanded {
+            momentsEventsSection
+            momentsPlacesSection
+            momentsPhotosSection
+        }
+    }
+
+    // Trackers section - collapsible
+    @ViewBuilder
+    private var trackersCollapsibleSection: some View {
+        // Header
+        Section {
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    trackersExpanded.toggle()
+                }
+            }) {
+                HStack {
+                    Text("Trackers")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundStyle(Color(hex: "292F33"))
+
+                    Spacer()
+
+                    Image("arrow-right-circle")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: todayToggleIconSize, height: todayToggleIconSize)
+                        .foregroundStyle(.secondary)
+                        .rotationEffect(.degrees(trackersExpanded ? 90 : 0))
+                }
+                .padding(.horizontal, 16)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .listRowInsets(EdgeInsets(top: todayInterSectionSpacing, leading: 0, bottom: 0, trailing: 0))
+            .listRowSeparator(.hidden)
+        }
+
+        // Content
+        if trackersExpanded {
+            momentsTrackersSection
+        }
+    }
+
+    // Inputs section - collapsible
+    @ViewBuilder
+    private var inputsCollapsibleSection: some View {
+        // Header
+        Section {
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    inputsExpanded.toggle()
+                }
+            }) {
+                HStack {
+                    Text("Inputs")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundStyle(Color(hex: "292F33"))
+
+                    Spacer()
+
+                    Image("arrow-right-circle")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: todayToggleIconSize, height: todayToggleIconSize)
+                        .foregroundStyle(.secondary)
+                        .rotationEffect(.degrees(inputsExpanded ? 90 : 0))
+                }
+                .padding(.horizontal, 16)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .listRowInsets(EdgeInsets(top: todayInterSectionSpacing, leading: 0, bottom: 0, trailing: 0))
+            .listRowSeparator(.hidden)
+        }
+
+        // Content
+        if inputsExpanded {
+            momentsInputsSection
+        }
     }
 
     // Helper method to render sections in custom order
@@ -1247,7 +1390,6 @@ Later, I went for a walk in the park and noticed how the leaves are just beginni
                     selectedDate: $selectedDate,
                     showingChatCalendar: $showingChatCalendar
                 )
-                .padding(.horizontal, DatePickerConstants.horizontalPadding)
                 .padding(.vertical, 10)
                 .id(chatUpdateTrigger)
                 .background(Color.clear)
@@ -1269,11 +1411,15 @@ Later, I went for a walk in the park and noticed how the leaves are just beginni
             }
         case "moments":
             if showMoments {
-                momentsEventsSection
-                momentsPlacesSection
-                momentsPhotosSection
-                momentsTrackersSection
-                momentsInputsSection
+                momentsCollapsibleSection
+            }
+        case "trackers":
+            if showTrackers {
+                trackersCollapsibleSection
+            }
+        case "inputs":
+            if showInputs {
+                inputsCollapsibleSection
             }
         case "bio":
             if showBioSection {
@@ -1455,6 +1601,28 @@ Later, I went for a walk in the park and noticed how the leaves are just beginni
                             HStack {
                                 Text("Moments")
                                 if showMoments {
+                                    Image(dayOneIcon: .checkmark)
+                                }
+                            }
+                        }
+
+                        Button {
+                            showTrackers.toggle()
+                        } label: {
+                            HStack {
+                                Text("Trackers")
+                                if showTrackers {
+                                    Image(dayOneIcon: .checkmark)
+                                }
+                            }
+                        }
+
+                        Button {
+                            showInputs.toggle()
+                        } label: {
+                            HStack {
+                                Text("Inputs")
+                                if showInputs {
                                     Image(dayOneIcon: .checkmark)
                                 }
                             }

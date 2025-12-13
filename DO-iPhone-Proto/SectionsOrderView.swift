@@ -13,7 +13,9 @@ struct SectionItem: Identifiable, Codable, Equatable {
         SectionItem(id: "dailyEntry", name: "Daily Entry"),
         SectionItem(id: "dailyChat", name: "Daily Chat"),
         SectionItem(id: "bio", name: "Bio"),
-        SectionItem(id: "moments", name: "Moments")
+        SectionItem(id: "moments", name: "Moments"),
+        SectionItem(id: "trackers", name: "Trackers"),
+        SectionItem(id: "inputs", name: "Inputs")
     ]
 }
 
@@ -33,6 +35,8 @@ struct SectionsOrderView: View {
     @AppStorage("showDailyEntry") private var showDailyEntry = true
     @AppStorage("showDailyChat") private var showDailyChat = true
     @AppStorage("showMoments") private var showMoments = true
+    @AppStorage("showTrackers") private var showTrackers = true
+    @AppStorage("showInputs") private var showInputs = true
     @AppStorage("showBioSection") private var showBioSection = false
 
     @State private var sections: [SectionItem] = []
@@ -101,6 +105,8 @@ struct SectionsOrderView: View {
         case "dailyEntry": return showDailyEntry
         case "dailyChat": return showDailyChat
         case "moments": return showMoments
+        case "trackers": return showTrackers
+        case "inputs": return showInputs
         case "bio": return showBioSection
         default: return false
         }
@@ -115,6 +121,8 @@ struct SectionsOrderView: View {
         case "dailyEntry": showDailyEntry.toggle()
         case "dailyChat": showDailyChat.toggle()
         case "moments": showMoments.toggle()
+        case "trackers": showTrackers.toggle()
+        case "inputs": showInputs.toggle()
         case "bio": showBioSection.toggle()
         default: break
         }

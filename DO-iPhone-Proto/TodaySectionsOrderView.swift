@@ -19,8 +19,8 @@ struct SectionItem: Identifiable, Codable, Equatable {
     ]
 }
 
-// MARK: - Sections Order View
-struct SectionsOrderView: View {
+// MARK: - Today Sections Order View
+struct TodaySectionsOrderView: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage("sectionOrder") private var sectionOrderData: Data = {
         let encoder = JSONEncoder()
@@ -166,5 +166,5 @@ struct SectionsOrderView: View {
 }
 
 #Preview {
-    SectionsOrderView()
+    TodaySectionsOrderView()
 }

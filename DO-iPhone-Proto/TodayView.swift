@@ -1855,7 +1855,7 @@ Later, I went for a walk in the park and noticed how the leaves are just beginni
             )
         }
         .sheet(isPresented: $showingSectionsOrder) {
-            SectionsOrderView()
+            TodaySectionsOrderView()
         }
         .sheet(isPresented: $showingTrackers) {
             TrackerView(

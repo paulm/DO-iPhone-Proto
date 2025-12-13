@@ -5,7 +5,7 @@ import TipKit
 // MARK: - Constants
 
 /// Size for toggle disclosure icons (arrow-right-circle)
-let toggleIconSize: CGFloat = 22
+let toggleIconSize: CGFloat = 24
 
 // MARK: - View Mode Enum
 
@@ -1897,7 +1897,7 @@ struct CompactJournalRow: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            .padding(.vertical, 0)
+            .padding(.vertical, -3)
             .padding(.horizontal, 0)
         }
         .buttonStyle(PlainButtonStyle())

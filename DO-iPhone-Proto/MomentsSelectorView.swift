@@ -49,8 +49,10 @@ struct MomentsSelectorView: View {
                     VStack(alignment: .leading, spacing: 0) {
                         // Collapsible header
                         Button(action: {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                photosExpanded.toggle()
+                            if photosCount > 0 {
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    photosExpanded.toggle()
+                                }
                             }
                         }) {
                             HStack(spacing: 12) {
@@ -61,17 +63,24 @@ struct MomentsSelectorView: View {
 
                                 Spacer()
 
-                                // Selection counter
-                                Text("\(selectedPhotoIDs.count) / \(photosCount)")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
+                                // Selection counter or empty state
+                                if photosCount == 0 {
+                                    Text("No photos for this day")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                } else {
+                                    Text("\(selectedPhotoIDs.count) / \(photosCount)")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                }
 
                                 Image("arrow-right-circle")
                                     .resizable()
                                     .aspectRatio(contentMode: .fit)
                                     .frame(width: toggleIconSize, height: toggleIconSize)
                                     .foregroundStyle(.secondary)
-                                    .rotationEffect(.degrees(photosExpanded ? 90 : 0))
+                                    .opacity(photosCount == 0 ? 0.3 : 1.0)
+                                    .rotationEffect(.degrees(photosExpanded && photosCount > 0 ? 90 : 0))
                                     .animation(.easeInOut(duration: 0.2), value: photosExpanded)
                             }
                             .padding(.horizontal, 20)
@@ -82,7 +91,7 @@ struct MomentsSelectorView: View {
                         .buttonStyle(PlainButtonStyle())
                         .animation(nil, value: photosExpanded)
 
-                        if photosExpanded {
+                        if photosExpanded && photosCount > 0 {
                             VStack(alignment: .leading, spacing: 0) {
                                 Text("Select notable photos from this day...")
                                     .font(.subheadline)
@@ -136,130 +145,141 @@ struct MomentsSelectorView: View {
                     }
 
                     // Places Section
-                    if !places.isEmpty {
-                        VStack(alignment: .leading, spacing: 0) {
-                            // Collapsible header
-                            Button(action: {
+                    VStack(alignment: .leading, spacing: 0) {
+                        // Collapsible header
+                        Button(action: {
+                            if !places.isEmpty {
                                 withAnimation(.easeInOut(duration: 0.2)) {
                                     placesExpanded.toggle()
                                 }
-                            }) {
-                                HStack(spacing: 12) {
-                                    Text("Places")
-                                        .font(.title2)
-                                        .fontWeight(.bold)
-                                        .foregroundStyle(Color(hex: "292F33"))
+                            }
+                        }) {
+                            HStack(spacing: 12) {
+                                Text("Places")
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(Color(hex: "292F33"))
 
-                                    Spacer()
+                                Spacer()
 
-                                    // Selection counter
+                                // Selection counter or empty state
+                                if places.isEmpty {
+                                    Text("No places for this day")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                } else {
                                     Text("\(selectedPlaceIDs.count) / \(places.count)")
                                         .font(.subheadline)
                                         .foregroundStyle(.secondary)
-
-                                    Image("arrow-right-circle")
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .frame(width: toggleIconSize, height: toggleIconSize)
-                                        .foregroundStyle(.secondary)
-                                        .rotationEffect(.degrees(placesExpanded ? 90 : 0))
-                                        .animation(.easeInOut(duration: 0.2), value: placesExpanded)
                                 }
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 12)
-                                .contentShape(Rectangle())
+
+                                Image("arrow-right-circle")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: toggleIconSize, height: toggleIconSize)
+                                    .foregroundStyle(.secondary)
+                                    .opacity(places.isEmpty ? 0.3 : 1.0)
+                                    .rotationEffect(.degrees(placesExpanded && !places.isEmpty ? 90 : 0))
+                                    .animation(.easeInOut(duration: 0.2), value: placesExpanded)
                             }
-                            .buttonStyle(PlainButtonStyle())
-                            .animation(nil, value: placesExpanded)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 12)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .animation(nil, value: placesExpanded)
 
-                            if placesExpanded {
-                                VStack(alignment: .leading, spacing: 0) {
-                                    Text("Select notable visits from this day...")
-                                        .font(.subheadline)
-                                        .foregroundStyle(.secondary)
-                                        .padding(.horizontal, 20)
-                                        .padding(.bottom, 16)
+                        if placesExpanded && !places.isEmpty {
+                            VStack(alignment: .leading, spacing: 0) {
+                                Text("Select notable visits from this day...")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                    .padding(.horizontal, 20)
+                                    .padding(.bottom, 16)
 
-                                    VStack(spacing: 0) {
-                                        ForEach(places) { visit in
-                                            VStack(spacing: 0) {
-                                                placeRow(for: visit)
+                                VStack(spacing: 0) {
+                                    ForEach(places) { visit in
+                                        VStack(spacing: 0) {
+                                            placeRow(for: visit)
 
-                                                if visit.id != places.last?.id {
-                                                    Divider()
-                                                        .padding(.leading, 20)
-                                                }
+                                            if visit.id != places.last?.id {
+                                                Divider()
+                                                    .padding(.leading, 20)
                                             }
                                         }
                                     }
                                 }
                             }
-
-
                         }
                     }
 
                     // Events Section
-                    if !events.isEmpty {
-                        VStack(alignment: .leading, spacing: 0) {
-                            // Collapsible header
-                            Button(action: {
+                    VStack(alignment: .leading, spacing: 0) {
+                        // Collapsible header
+                        Button(action: {
+                            if !events.isEmpty {
                                 withAnimation(.easeInOut(duration: 0.2)) {
                                     eventsExpanded.toggle()
                                 }
-                            }) {
-                                HStack(spacing: 12) {
-                                    Text("Events")
-                                        .font(.title2)
-                                        .fontWeight(.bold)
-                                        .foregroundStyle(Color(hex: "292F33"))
+                            }
+                        }) {
+                            HStack(spacing: 12) {
+                                Text("Events")
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(Color(hex: "292F33"))
 
-                                    Spacer()
+                                Spacer()
 
-                                    // Selection counter
+                                // Selection counter or empty state
+                                if events.isEmpty {
+                                    Text("No events for this day")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                } else {
                                     Text("\(selectedEventNames.count) / \(events.count)")
                                         .font(.subheadline)
                                         .foregroundStyle(.secondary)
-
-                                    Image("arrow-right-circle")
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .frame(width: toggleIconSize, height: toggleIconSize)
-                                        .foregroundStyle(.secondary)
-                                        .rotationEffect(.degrees(eventsExpanded ? 90 : 0))
-                                        .animation(.easeInOut(duration: 0.2), value: eventsExpanded)
                                 }
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 12)
-                                .contentShape(Rectangle())
+
+                                Image("arrow-right-circle")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: toggleIconSize, height: toggleIconSize)
+                                    .foregroundStyle(.secondary)
+                                    .opacity(events.isEmpty ? 0.3 : 1.0)
+                                    .rotationEffect(.degrees(eventsExpanded && !events.isEmpty ? 90 : 0))
+                                    .animation(.easeInOut(duration: 0.2), value: eventsExpanded)
                             }
-                            .buttonStyle(PlainButtonStyle())
-                            .animation(nil, value: eventsExpanded)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 12)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .animation(nil, value: eventsExpanded)
 
-                            if eventsExpanded {
-                                VStack(alignment: .leading, spacing: 0) {
-                                    Text("Select notable events from this day...")
-                                        .font(.subheadline)
-                                        .foregroundStyle(.secondary)
-                                        .padding(.horizontal, 20)
-                                        .padding(.bottom, 16)
+                        if eventsExpanded && !events.isEmpty {
+                            VStack(alignment: .leading, spacing: 0) {
+                                Text("Select notable events from this day...")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                    .padding(.horizontal, 20)
+                                    .padding(.bottom, 16)
 
-                                    VStack(spacing: 0) {
-                                        ForEach(events.indices, id: \.self) { index in
-                                            let event = events[index]
-                                            VStack(spacing: 0) {
-                                                eventRow(for: event)
+                                VStack(spacing: 0) {
+                                    ForEach(events.indices, id: \.self) { index in
+                                        let event = events[index]
+                                        VStack(spacing: 0) {
+                                            eventRow(for: event)
 
-                                                if index != events.count - 1 {
-                                                    Divider()
-                                                        .padding(.leading, 20)
-                                                }
+                                            if index != events.count - 1 {
+                                                Divider()
+                                                    .padding(.leading, 20)
                                             }
                                         }
                                     }
                                 }
                             }
-
                         }
                     }
                 }

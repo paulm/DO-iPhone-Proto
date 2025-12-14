@@ -157,6 +157,7 @@ struct TodayView: View {
     @State private var showingMomentsEventsSheet = false
     @State private var showingMediaSheet = false
     @State private var showingMomentsMediaSheet = false
+    @State private var showingMomentsSelector = false
     @State private var placesData: [Visit] = []
     @State private var eventsData: [(name: String, icon: DayOneIcon, time: String, type: String)] = []
     @State private var selectedMomentsPlaces: Set<String> = []
@@ -330,7 +331,21 @@ struct TodayView: View {
     // MARK: - Moments Collapsed State Helpers
 
     private var availablePhotosCount: Int {
-        return 12 // photoColors.count
+        // Vary photo count based on day of month (3-12 photos)
+        let day = Calendar.current.component(.day, from: selectedDate)
+        return 3 + (day % 10)
+    }
+
+    private var dynamicPlacesCount: Int {
+        // Vary places count based on day of month (2-6 places)
+        let day = Calendar.current.component(.day, from: selectedDate)
+        return 2 + (day % 5)
+    }
+
+    private var dynamicEventsCount: Int {
+        // Vary events count based on day of month (1-5 events)
+        let day = Calendar.current.component(.day, from: selectedDate)
+        return 1 + (day % 5)
     }
 
     private var momentsCollapsedSummary: String {
@@ -1525,17 +1540,32 @@ struct TodayView: View {
         // Content
         if momentsExpanded {
             Section {
-                HStack(spacing: 0) {
-                    MomentOption(icon: "photo.on.rectangle", count: availablePhotosCount, title: "Photos")
+                HStack(spacing: 4) {
+                    MomentOption(
+                        icon: .photo,
+                        count: availablePhotosCount,
+                        title: "Photos",
+                        position: .left,
+                        onTap: { showingMomentsSelector = true }
+                    )
 
-                    MomentOption(icon: "mappin.and.ellipse", count: placesData.count, title: "Places")
+                    MomentOption(
+                        icon: .map_pin_filled,
+                        count: dynamicPlacesCount,
+                        title: "Places",
+                        position: .center,
+                        onTap: { showingMomentsSelector = true }
+                    )
 
-                    MomentOption(icon: "calendar", count: eventsData.count, title: "Events")
+                    MomentOption(
+                        icon: .calendar,
+                        count: dynamicEventsCount,
+                        title: "Events",
+                        position: .right,
+                        onTap: { showingMomentsSelector = true }
+                    )
                 }
-                .frame(height: 120)
                 .padding(.vertical, 16)
-                .background(Color(.systemGray6))
-                .clipShape(RoundedRectangle(cornerRadius: 24))
             }
             .listRowInsets(EdgeInsets(top: todaySectionSpacing, leading: 16, bottom: todaySectionSpacing, trailing: 16))
             .listRowBackground(Color.clear)
@@ -2133,6 +2163,15 @@ struct TodayView: View {
         .sheet(isPresented: $showingMomentsMediaSheet) {
             MediaSheetView(isForChat: true, selectedPhotosForChat: $selectedMomentsPhotos)
         }
+        .sheet(isPresented: $showingMomentsSelector) {
+            MomentsSelectorView(
+                selectedDate: selectedDate,
+                photosCount: availablePhotosCount,
+                places: placesData,
+                events: eventsData
+            )
+            .presentationDetents([.large])
+        }
         .sheet(isPresented: $showingMomentsTrackersSheet) {
             MomentsTrackersSheetView(selectedTrackers: $selectedMomentsTrackers)
                 .presentationDetents([.medium, .large])
@@ -2712,25 +2751,46 @@ struct TodayView: View {
 // MARK: - Supporting Views
 
 struct MomentOption: View {
-    let icon: String
+    let icon: DayOneIcon
     let count: Int
     let title: String
+    let position: MomentPosition
+    let onTap: () -> Void
+
+    enum MomentPosition {
+        case left, center, right
+
+        var cornerRadii: RectangleCornerRadii {
+            switch self {
+            case .left:
+                return RectangleCornerRadii(topLeading: 26, bottomLeading: 26, bottomTrailing: 8, topTrailing: 8)
+            case .center:
+                return RectangleCornerRadii(topLeading: 8, bottomLeading: 8, bottomTrailing: 8, topTrailing: 8)
+            case .right:
+                return RectangleCornerRadii(topLeading: 8, bottomLeading: 8, bottomTrailing: 26, topTrailing: 26)
+            }
+        }
+    }
 
     var body: some View {
-        Button(action: {
-            // TODO: Handle moment selection
-        }) {
-            VStack(spacing: 12) {
-                Image(systemName: icon)
-                    .font(.largeTitle)
+        Button(action: onTap) {
+            VStack(spacing: 8) {
+                Image(dayOneIcon: icon)
+                    .font(.system(size: 28)) // ~70% of largeTitle size
                     .foregroundStyle(.primary)
 
-                Text("\(count) \(title)")
-                    .font(.headline)
+                Text("\(count)")
+                    .font(.body) // One size smaller than headline
+                    .foregroundStyle(.primary)
+
+                Text(title)
+                    .font(.body)
                     .foregroundStyle(.primary)
             }
-            .frame(width: 120)
-            .frame(maxHeight: .infinity)
+            .frame(maxWidth: .infinity)
+            .frame(height: 120)
+            .background(Color(.systemGray6))
+            .clipShape(UnevenRoundedRectangle(cornerRadii: position.cornerRadii))
         }
         .buttonStyle(PlainButtonStyle())
     }

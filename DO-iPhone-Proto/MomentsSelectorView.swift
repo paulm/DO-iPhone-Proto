@@ -15,6 +15,7 @@ struct MomentsSelectorView: View {
     @State private var selectedEventNames: Set<String> = []
     @State private var showingEntryView = false
     @State private var selectedItemName: String = ""
+    @State private var photosExpanded = true
     @State private var placesExpanded = true
     @State private var eventsExpanded = true
 
@@ -46,54 +47,94 @@ struct MomentsSelectorView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     // Photos Section
                     VStack(alignment: .leading, spacing: 0) {
-                        Text("Select notable photos from this day...")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                        // Collapsible header
+                        Button(action: {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                photosExpanded.toggle()
+                            }
+                        }) {
+                            HStack(spacing: 12) {
+                                Text("Photos")
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(Color(hex: "292F33"))
+
+                                Spacer()
+
+                                // Selection counter
+                                Text("\(selectedPhotoIDs.count) / \(photosCount)")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+
+                                Image("arrow-right-circle")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: toggleIconSize, height: toggleIconSize)
+                                    .foregroundStyle(.secondary)
+                                    .rotationEffect(.degrees(photosExpanded ? 90 : 0))
+                                    .animation(.easeInOut(duration: 0.2), value: photosExpanded)
+                            }
                             .padding(.horizontal, 20)
                             .padding(.top, 20)
-                            .padding(.bottom, 16)
+                            .padding(.bottom, 12)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .animation(nil, value: photosExpanded)
 
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
-                            ForEach(0..<photosCount, id: \.self) { index in
-                                let photoId = "photo_\(index)"
-                                let isSelected = selectedPhotoIDs.contains(photoId)
+                        if photosExpanded {
+                            VStack(alignment: .leading, spacing: 0) {
+                                Text("Select notable photos from this day...")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                    .padding(.horizontal, 20)
+                                    .padding(.bottom, 16)
 
-                                Button(action: {
-                                    if selectedPhotoIDs.contains(photoId) {
-                                        selectedPhotoIDs.remove(photoId)
-                                    } else {
-                                        selectedPhotoIDs.insert(photoId)
-                                    }
-                                }) {
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(photoColors[index % photoColors.count])
-                                        .aspectRatio(1, contentMode: .fit)
-                                        .opacity(isSelected ? 1.0 : 0.5)
-                                        .overlay(
-                                            ZStack {
-                                                // Radio button indicator
-                                                VStack {
-                                                    HStack {
-                                                        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                                                            .font(.system(size: 20))
-                                                            .foregroundStyle(isSelected ? Color(hex: "44C0FF") : .white.opacity(0.8))
-                                                            .padding(8)
-                                                        Spacer()
-                                                    }
-                                                    Spacer()
-                                                }
+                                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
+                                    ForEach(0..<photosCount, id: \.self) { index in
+                                        let photoId = "photo_\(index)"
+                                        let isSelected = selectedPhotoIDs.contains(photoId)
+
+                                        Button(action: {
+                                            if selectedPhotoIDs.contains(photoId) {
+                                                selectedPhotoIDs.remove(photoId)
+                                            } else {
+                                                selectedPhotoIDs.insert(photoId)
                                             }
-                                        )
-                                        .overlay(
+                                        }) {
                                             RoundedRectangle(cornerRadius: 8)
-                                                .stroke(isSelected ? Color(hex: "44C0FF") : Color.clear, lineWidth: 2)
-                                        )
+                                                .fill(photoColors[index % photoColors.count])
+                                                .aspectRatio(1, contentMode: .fit)
+                                                .opacity(isSelected ? 1.0 : 0.5)
+                                                .overlay(
+                                                    ZStack {
+                                                        // Radio button indicator
+                                                        VStack {
+                                                            HStack {
+                                                                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                                                                    .font(.system(size: 20))
+                                                                    .foregroundStyle(isSelected ? Color(hex: "44C0FF") : .white.opacity(0.8))
+                                                                    .padding(8)
+                                                                Spacer()
+                                                            }
+                                                            Spacer()
+                                                        }
+                                                    }
+                                                )
+                                                .overlay(
+                                                    RoundedRectangle(cornerRadius: 8)
+                                                        .stroke(isSelected ? Color(hex: "44C0FF") : Color.clear, lineWidth: 2)
+                                                )
+                                        }
+                                        .buttonStyle(PlainButtonStyle())
+                                    }
                                 }
-                                .buttonStyle(PlainButtonStyle())
+                                .padding(.horizontal, 20)
                             }
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 32)
+
+                        Spacer()
+                            .frame(height: 16)
                     }
 
                     // Places Section
@@ -112,6 +153,11 @@ struct MomentsSelectorView: View {
                                         .foregroundStyle(Color(hex: "292F33"))
 
                                     Spacer()
+
+                                    // Selection counter
+                                    Text("\(selectedPlaceIDs.count) / \(places.count)")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
 
                                     Image("arrow-right-circle")
                                         .resizable()
@@ -152,7 +198,7 @@ struct MomentsSelectorView: View {
                             }
 
                             Spacer()
-                                .frame(height: 32)
+                                .frame(height: 16)
                         }
                     }
 
@@ -172,6 +218,11 @@ struct MomentsSelectorView: View {
                                         .foregroundStyle(Color(hex: "292F33"))
 
                                     Spacer()
+
+                                    // Selection counter
+                                    Text("\(selectedEventNames.count) / \(events.count)")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
 
                                     Image("arrow-right-circle")
                                         .resizable()
@@ -213,7 +264,7 @@ struct MomentsSelectorView: View {
                             }
 
                             Spacer()
-                                .frame(height: 32)
+                                .frame(height: 16)
                         }
                     }
                 }

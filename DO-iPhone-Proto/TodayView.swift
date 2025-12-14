@@ -207,11 +207,11 @@ struct TodayView: View {
     @AppStorage("showBioSection") private var showBioSection = false
 
     // Section expansion states
-    @State private var dailyEntryExpanded = true
-    @State private var dailyChatExpanded = true
-    @State private var momentsExpanded = true
-    @State private var trackersExpanded = true
-    @State private var inputsExpanded = true
+    @State private var dailyEntryExpanded = false
+    @State private var dailyChatExpanded = false
+    @State private var momentsExpanded = false
+    @State private var trackersExpanded = false
+    @State private var inputsExpanded = false
     @AppStorage("todayViewStyle") private var selectedStyle = TodayViewStyle.standard
     @AppStorage("showWelcomeToTodaySheet") private var showWelcomeToTodaySheet = false
     @AppStorage("sectionOrder") private var sectionOrderData: Data = {
@@ -349,11 +349,17 @@ struct TodayView: View {
     }
 
     private var momentsCollapsedSummary: String {
-        var components: [String] = []
-        components.append("\(availablePhotosCount) Photo\(availablePhotosCount == 1 ? "" : "s")")
-        components.append("\(placesData.count) Place\(placesData.count == 1 ? "" : "s")")
-        components.append("\(eventsData.count) Event\(eventsData.count == 1 ? "" : "s")")
-        return components.joined(separator: ", ")
+        let totalSelected = selectedMomentsPhotos.count + selectedMomentsPlaces.count + selectedMomentsEvents.count
+        if totalSelected == 0 {
+            return "Select..."
+        } else {
+            return "\(totalSelected) Selected"
+        }
+    }
+
+    private var momentsButtonColor: Color {
+        let totalSelected = selectedMomentsPhotos.count + selectedMomentsPlaces.count + selectedMomentsEvents.count
+        return totalSelected == 0 ? Color(hex: "44C0FF") : Color(hex: "34C759")
     }
 
     private var hasTrackersData: Bool {
@@ -1505,13 +1511,13 @@ struct TodayView: View {
 
                 // Collapsed state indicator
                 if !momentsExpanded {
-                    Button(action: { }) {  // No action - visual only
+                    Button(action: { showingMomentsSelector = true }) {
                         Text(momentsCollapsedSummary)
                             .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(Color(hex: "44C0FF"))
+                            .foregroundStyle(momentsButtonColor)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)
-                            .background(Color(hex: "44C0FF").opacity(0.1))
+                            .background(momentsButtonColor.opacity(0.1))
                             .clipShape(RoundedRectangle(cornerRadius: 16))
                     }
                     .buttonStyle(PlainButtonStyle())
@@ -1565,9 +1571,9 @@ struct TodayView: View {
                         onTap: { showingMomentsSelector = true }
                     )
                 }
-                .padding(.vertical, 16)
+                //.padding(.vertical, 16)
             }
-            .listRowInsets(EdgeInsets(top: todaySectionSpacing, leading: 16, bottom: todaySectionSpacing, trailing: 16))
+            //.listRowInsets(EdgeInsets(top: todaySectionSpacing, leading: 16, bottom: todaySectionSpacing, trailing: 16))
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
         }
@@ -2168,7 +2174,10 @@ struct TodayView: View {
                 selectedDate: selectedDate,
                 photosCount: availablePhotosCount,
                 places: placesData,
-                events: eventsData
+                events: eventsData,
+                selectedPhotoIDs: $selectedMomentsPhotos,
+                selectedPlaceIDs: $selectedMomentsPlaces,
+                selectedEventNames: $selectedMomentsEvents
             )
             .presentationDetents([.large])
         }
@@ -2779,16 +2788,12 @@ struct MomentOption: View {
                     .font(.system(size: 28)) // ~70% of largeTitle size
                     .foregroundStyle(.primary)
 
-                Text("\(count)")
-                    .font(.body) // One size smaller than headline
-                    .foregroundStyle(.primary)
-
-                Text(title)
-                    .font(.body)
+                Text("\(count) \(title)")
+                    .font(.footnote)
                     .foregroundStyle(.primary)
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 120)
+            .frame(height: 100)
             .background(Color(.systemGray6))
             .clipShape(UnevenRoundedRectangle(cornerRadii: position.cornerRadii))
         }

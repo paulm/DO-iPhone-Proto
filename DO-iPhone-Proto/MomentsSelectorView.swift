@@ -10,9 +10,9 @@ struct MomentsSelectorView: View {
     let places: [Visit]
     let events: [(name: String, icon: DayOneIcon, time: String, type: String)]
 
-    @State private var selectedPhotoIDs: Set<String> = []
-    @State private var selectedPlaceIDs: Set<UUID> = []
-    @State private var selectedEventNames: Set<String> = []
+    @Binding var selectedPhotoIDs: Set<String>
+    @Binding var selectedPlaceIDs: Set<String>
+    @Binding var selectedEventNames: Set<String>
     @State private var showingEntryView = false
     @State private var selectedItemName: String = ""
     @State private var photosExpanded = true
@@ -133,8 +133,6 @@ struct MomentsSelectorView: View {
                             }
                         }
 
-                        Spacer()
-                            .frame(height: 16)
                     }
 
                     // Places Section
@@ -197,8 +195,7 @@ struct MomentsSelectorView: View {
                                 }
                             }
 
-                            Spacer()
-                                .frame(height: 16)
+
                         }
                     }
 
@@ -263,8 +260,6 @@ struct MomentsSelectorView: View {
                                 }
                             }
 
-                            Spacer()
-                                .frame(height: 16)
                         }
                     }
                 }
@@ -300,17 +295,18 @@ struct MomentsSelectorView: View {
 
     @ViewBuilder
     private func placeRow(for visit: Visit) -> some View {
+        let visitIDString = visit.id.uuidString
         Button(action: {
-            if selectedPlaceIDs.contains(visit.id) {
-                selectedPlaceIDs.remove(visit.id)
+            if selectedPlaceIDs.contains(visitIDString) {
+                selectedPlaceIDs.remove(visitIDString)
             } else {
-                selectedPlaceIDs.insert(visit.id)
+                selectedPlaceIDs.insert(visitIDString)
             }
         }) {
             HStack(spacing: 12) {
                 // Checkmark circle on left
-                Image(systemName: selectedPlaceIDs.contains(visit.id) ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(selectedPlaceIDs.contains(visit.id) ? Color(hex: "44C0FF") : .secondary)
+                Image(systemName: selectedPlaceIDs.contains(visitIDString) ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(selectedPlaceIDs.contains(visitIDString) ? Color(hex: "44C0FF") : .secondary)
                     .font(.title3)
 
                 // Visit details
@@ -367,7 +363,7 @@ struct MomentsSelectorView: View {
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 8)
-            .opacity(selectedPlaceIDs.contains(visit.id) ? 1.0 : 0.5)
+            .opacity(selectedPlaceIDs.contains(visitIDString) ? 1.0 : 0.5)
             .contentShape(Rectangle())
         }
         .buttonStyle(PlainButtonStyle())
@@ -451,14 +447,27 @@ struct MomentsSelectorView: View {
 }
 
 #Preview {
-    MomentsSelectorView(
-        selectedDate: Date(),
-        photosCount: 12,
-        places: Visit.generateRandomVisits(for: Date()),
-        events: [
-            (name: "Morning Team Standup", icon: .calendar, time: "9:00 AM - 9:30 AM", type: "Work"),
-            (name: "Lunch with Sarah", icon: .calendar, time: "12:30 PM - 1:30 PM", type: "Personal"),
-            (name: "Dentist Appointment", icon: .calendar, time: "3:00 PM - 4:00 PM", type: "Personal")
-        ]
-    )
+    struct PreviewWrapper: View {
+        @State private var selectedPhotos: Set<String> = []
+        @State private var selectedPlaces: Set<String> = []
+        @State private var selectedEvents: Set<String> = []
+
+        var body: some View {
+            MomentsSelectorView(
+                selectedDate: Date(),
+                photosCount: 12,
+                places: Visit.generateRandomVisits(for: Date()),
+                events: [
+                    (name: "Morning Team Standup", icon: .calendar, time: "9:00 AM - 9:30 AM", type: "Work"),
+                    (name: "Lunch with Sarah", icon: .calendar, time: "12:30 PM - 1:30 PM", type: "Personal"),
+                    (name: "Dentist Appointment", icon: .calendar, time: "3:00 PM - 4:00 PM", type: "Personal")
+                ],
+                selectedPhotoIDs: $selectedPhotos,
+                selectedPlaceIDs: $selectedPlaces,
+                selectedEventNames: $selectedEvents
+            )
+        }
+    }
+
+    return PreviewWrapper()
 }

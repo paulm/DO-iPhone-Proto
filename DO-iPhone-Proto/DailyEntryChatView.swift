@@ -1,5 +1,25 @@
 import SwiftUI
 
+// MARK: - String Extension for Markdown Parsing
+
+private extension String {
+    /// Extracts the first H1 heading from Markdown content
+    /// Returns the title without the # prefix, or nil if no H1 found
+    func extractMarkdownTitle() -> String? {
+        let lines = self.components(separatedBy: .newlines)
+
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if trimmed.hasPrefix("# ") {
+                let title = String(trimmed.dropFirst(2))
+                    .trimmingCharacters(in: .whitespaces)
+                return title.isEmpty ? nil : title
+            }
+        }
+        return nil
+    }
+}
+
 // MARK: - Daily Entry Chat View
 /// Main view for the Daily Entry Chat section in Today tab
 /// Manages three states: no chat, active chat, and entry generated
@@ -197,17 +217,18 @@ struct DailyEntryChatView: View {
                         
                         Button(action: {
                             // Set entry data for existing entry first
-                            let data = EntryView.EntryData(
-                                title: "Morning Reflections",
-                                content: """
-Morning Reflections
+                            let entryContent = """
+# Morning Reflections
 
 Today I started with my usual morning routine, feeling energized and ready for the day ahead. The weather was perfect, with clear blue skies and a gentle breeze. I took some extra time to enjoy my coffee on the balcony, watching the city slowly wake up around me.
 
 I've been thinking a lot about balance lately—how to find more moments of peace in the midst of busy days. This morning felt like a small step in the right direction. Sometimes the best days are the ones where we don't try to do too much, but instead focus on being fully present in each moment.
 
 Later, I went for a walk in the park and noticed how the leaves are just beginning to change colors. Fall has always been my favorite season, and I'm looking forward to the cooler weather ahead. There's something about this time of year that makes me feel reflective and grateful.
-""",
+"""
+                            let data = EntryView.EntryData(
+                                title: entryContent.extractMarkdownTitle() ?? "Untitled Entry",
+                                content: entryContent,
                                 date: selectedDate,
                                 time: formatTime(selectedDate)
                             )
@@ -219,15 +240,12 @@ Later, I went for a walk in the park and noticed how the leaves are just beginni
                         }) {
                             VStack(alignment: .leading, spacing: 8) {
 
-                                
+
                                 // Entry content
                                 VStack(alignment: .leading, spacing: 3) {
-                                    Text("Morning Reflections")
-                                        .font(.subheadline)
-                                        .fontWeight(.semibold)
-                                        .foregroundStyle(.primary)
-                                        .multilineTextAlignment(.leading)
-                                    
+                                    // REMOVED: Redundant title display
+                                    // Title now only appears in Daily Entry section header
+
                                     Text("Today I started with my usual morning routine, feeling energized and ready for the day ahead. The weather was perfect...")
                                         .font(.subheadline)
                                         .foregroundStyle(.secondary)
@@ -407,9 +425,14 @@ Later, I went for a walk in the park and noticed how the leaves are just beginni
                     NotificationCenter.default.post(name: NSNotification.Name("DailyEntryUpdatedStatusChanged"), object: selectedDate)
 
                     // Automatically open the entry after update
+                    let entryContent = """
+# Morning Reflections
+
+Today started with a beautiful sunrise over the mountains. I took a moment to appreciate the quiet before the day began. The morning light streaming through my window reminded me of how much I value these peaceful moments.
+"""
                     let data = EntryView.EntryData(
-                        title: "Morning Reflections",
-                        content: "Today started with a beautiful sunrise over the mountains. I took a moment to appreciate the quiet before the day began. The morning light streaming through my window reminded me of how much I value these peaceful moments.",
+                        title: entryContent.extractMarkdownTitle() ?? "Untitled Entry",
+                        content: entryContent,
                         date: selectedDate,
                         time: formatTime(selectedDate)
                     )

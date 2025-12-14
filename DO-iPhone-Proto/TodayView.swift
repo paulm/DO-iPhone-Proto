@@ -2,6 +2,26 @@ import SwiftUI
 import TipKit
 import UIKit
 
+// MARK: - String Extension for Markdown Parsing
+
+private extension String {
+    /// Extracts the first H1 heading from Markdown content
+    /// Returns the title without the # prefix, or nil if no H1 found
+    func extractMarkdownTitle() -> String? {
+        let lines = self.components(separatedBy: .newlines)
+
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if trimmed.hasPrefix("# ") {
+                let title = String(trimmed.dropFirst(2))
+                    .trimmingCharacters(in: .whitespaces)
+                return title.isEmpty ? nil : title
+            }
+        }
+        return nil
+    }
+}
+
 // MARK: - Constants
 /// Size for toggle disclosure icons (arrow-right-circle)
 private let todayToggleIconSize: CGFloat = 24
@@ -232,6 +252,57 @@ struct TodayView: View {
     private var hasTrackerData: Bool {
         moodRating > 0 || energyRating > 0 || stressRating > 0 ||
         !foodInput.isEmpty || !prioritiesInput.isEmpty || !mediaInput.isEmpty || !peopleInput.isEmpty
+    }
+
+    // MARK: - Moments Collapsed State Helpers
+
+    private var availablePhotosCount: Int {
+        return 12 // photoColors.count
+    }
+
+    private var momentsCollapsedSummary: String {
+        var components: [String] = []
+        components.append("\(availablePhotosCount) Photo\(availablePhotosCount == 1 ? "" : "s")")
+        components.append("\(placesData.count) Place\(placesData.count == 1 ? "" : "s")")
+        components.append("\(eventsData.count) Event\(eventsData.count == 1 ? "" : "s")")
+        return components.joined(separator: ", ")
+    }
+
+    private var hasTrackersData: Bool {
+        return !selectedMomentsTrackers.isEmpty
+    }
+
+    private var trackerTimeOfDay: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        return hour < 12 ? "AM" : "PM"
+    }
+
+    private var currentEntryTitle: String {
+        guard DailyContentManager.shared.hasEntry(for: selectedDate) else {
+            return "Daily Entry"
+        }
+
+        // Hard-coded entry content (to be replaced with actual data later)
+        let entryContent = """
+# Morning Reflections
+
+Today I started with my usual morning routine, feeling energized and ready for the day ahead. The weather was perfect, with clear blue skies and a gentle breeze. I took some extra time to enjoy my coffee on the balcony, watching the city slowly wake up around me.
+
+I've been thinking a lot about balance lately—how to find more moments of peace in the midst of busy days. This morning felt like a small step in the right direction. Sometimes the best days are the ones where we don't try to do too much, but instead focus on being fully present in each moment.
+
+Later, I went for a walk in the park and noticed how the leaves are just beginning to change colors. Fall has always been my favorite season, and I'm looking forward to the cooler weather ahead. There's something about this time of year that makes me feel reflective and grateful.
+"""
+
+        // Extract title from Markdown H1 or use first line
+        if let h1Title = entryContent.extractMarkdownTitle() {
+            return h1Title
+        }
+
+        // Fallback: use first non-empty line
+        let firstLine = entryContent.components(separatedBy: .newlines)
+            .first(where: { !$0.trimmingCharacters(in: .whitespaces).isEmpty }) ?? ""
+
+        return firstLine.isEmpty ? "Untitled Entry" : firstLine
     }
 
     private var currentDayName: String {
@@ -514,17 +585,30 @@ struct TodayView: View {
         // Header
         Section {
             HStack(spacing: 12) {
-                // Title
-                Text("Daily Entry")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundStyle(Color(hex: "292F33"))
+                // Dynamic title based on entry state
+                let hasEntry = DailyContentManager.shared.hasEntry(for: selectedDate)
+
+                if dailyEntryExpanded {
+                    // EXPANDED STATE: Multi-line title with wrapping
+                    Text(hasEntry ? currentEntryTitle : "Daily Entry")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundStyle(Color(hex: "292F33"))
+                        .lineLimit(nil)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else {
+                    // COLLAPSED STATE: Single-line title with ellipsis
+                    Text(hasEntry ? currentEntryTitle : "Daily Entry")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundStyle(Color(hex: "292F33"))
+                        .lineLimit(1)
+                }
 
                 Spacer()
 
                 // Contextual buttons when collapsed
                 if !dailyEntryExpanded {
-                    let hasEntry = DailyContentManager.shared.hasEntry(for: selectedDate)
                     let hasNewMessages = DailyContentManager.shared.hasNewMessagesSinceEntry(for: selectedDate)
 
                     // Show only ONE button based on priority: Update Entry > View Entry > Generate Entry
@@ -548,17 +632,18 @@ struct TodayView: View {
                     } else if hasEntry {
                         // Priority 2: View Entry (when entry exists but no new messages)
                         Button(action: {
-                            let data = EntryView.EntryData(
-                                title: "Morning Reflections",
-                                content: """
-Morning Reflections
+                            let entryContent = """
+# Morning Reflections
 
 Today I started with my usual morning routine, feeling energized and ready for the day ahead. The weather was perfect, with clear blue skies and a gentle breeze. I took some extra time to enjoy my coffee on the balcony, watching the city slowly wake up around me.
 
 I've been thinking a lot about balance lately—how to find more moments of peace in the midst of busy days. This morning felt like a small step in the right direction. Sometimes the best days are the ones where we don't try to do too much, but instead focus on being fully present in each moment.
 
 Later, I went for a walk in the park and noticed how the leaves are just beginning to change colors. Fall has always been my favorite season, and I'm looking forward to the cooler weather ahead. There's something about this time of year that makes me feel reflective and grateful.
-""",
+"""
+                            let data = EntryView.EntryData(
+                                title: entryContent.extractMarkdownTitle() ?? "Untitled Entry",
+                                content: entryContent,
                                 date: selectedDate,
                                 time: formatTime(selectedDate)
                             )
@@ -628,17 +713,18 @@ Later, I went for a walk in the park and noticed how the leaves are just beginni
                     if DailyContentManager.shared.hasEntry(for: selectedDate) {
                         // Entry exists - show preview
                         Button(action: {
-                            let data = EntryView.EntryData(
-                                title: "Morning Reflections",
-                                content: """
-Morning Reflections
+                            let entryContent = """
+# Morning Reflections
 
 Today I started with my usual morning routine, feeling energized and ready for the day ahead. The weather was perfect, with clear blue skies and a gentle breeze. I took some extra time to enjoy my coffee on the balcony, watching the city slowly wake up around me.
 
 I've been thinking a lot about balance lately—how to find more moments of peace in the midst of busy days. This morning felt like a small step in the right direction. Sometimes the best days are the ones where we don't try to do too much, but instead focus on being fully present in each moment.
 
 Later, I went for a walk in the park and noticed how the leaves are just beginning to change colors. Fall has always been my favorite season, and I'm looking forward to the cooler weather ahead. There's something about this time of year that makes me feel reflective and grateful.
-""",
+"""
+                            let data = EntryView.EntryData(
+                                title: entryContent.extractMarkdownTitle() ?? "Untitled Entry",
+                                content: entryContent,
                                 date: selectedDate,
                                 time: formatTime(selectedDate)
                             )
@@ -648,11 +734,8 @@ Later, I went for a walk in the park and noticed how the leaves are just beginni
                             }
                         }) {
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("Morning Reflections")
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                                    .foregroundStyle(.primary)
-                                    .multilineTextAlignment(.leading)
+                                // REMOVED: Redundant title display
+                                // Title now only appears in section header
 
                                 Text("Today I started with my usual morning routine, feeling energized and ready for the day ahead. The weather was perfect...")
                                     .font(.subheadline)
@@ -1346,19 +1429,34 @@ Later, I went for a walk in the park and noticed how the leaves are just beginni
     private var momentsCollapsibleSection: some View {
         // Header
         Section {
-            Button(action: {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    momentsExpanded.toggle()
+            HStack(spacing: 12) {
+                Text("Moments")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundStyle(Color(hex: "292F33"))
+
+                Spacer()
+
+                // Collapsed state indicator
+                if !momentsExpanded {
+                    Button(action: { }) {  // No action - visual only
+                        Text(momentsCollapsedSummary)
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(Color(hex: "44C0FF"))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color(hex: "44C0FF").opacity(0.1))
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                    }
+                    .buttonStyle(PlainButtonStyle())
                 }
-            }) {
-                HStack {
-                    Text("Moments")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundStyle(Color(hex: "292F33"))
 
-                    Spacer()
-
+                // Toggle arrow - always on the far right
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        momentsExpanded.toggle()
+                    }
+                }) {
                     Image("arrow-right-circle")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
@@ -1366,18 +1464,31 @@ Later, I went for a walk in the park and noticed how the leaves are just beginni
                         .foregroundStyle(.secondary)
                         .rotationEffect(.degrees(momentsExpanded ? 90 : 0))
                 }
-                .padding(.horizontal, 16)
+                .buttonStyle(PlainButtonStyle())
             }
-            .buttonStyle(PlainButtonStyle())
+            .padding(.horizontal, 16)
             .listRowInsets(EdgeInsets(top: todayInterSectionSpacing, leading: 0, bottom: 0, trailing: 0))
             .listRowSeparator(.hidden)
         }
 
         // Content
         if momentsExpanded {
-            momentsEventsSection
-            momentsPlacesSection
-            momentsPhotosSection
+            Section {
+                HStack(spacing: 0) {
+                    MomentOption(icon: "photo.on.rectangle", count: availablePhotosCount, title: "Photos")
+
+                    MomentOption(icon: "mappin.and.ellipse", count: placesData.count, title: "Places")
+
+                    MomentOption(icon: "calendar", count: eventsData.count, title: "Events")
+                }
+                .frame(height: 120)
+                .padding(.vertical, 16)
+                .background(Color(.systemGray6))
+                .clipShape(RoundedRectangle(cornerRadius: 24))
+            }
+            .listRowInsets(EdgeInsets(top: todaySectionSpacing, leading: 16, bottom: todaySectionSpacing, trailing: 16))
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
         }
     }
 
@@ -1386,19 +1497,51 @@ Later, I went for a walk in the park and noticed how the leaves are just beginni
     private var trackersCollapsibleSection: some View {
         // Header
         Section {
-            Button(action: {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    trackersExpanded.toggle()
+            HStack(spacing: 12) {
+                Text("Trackers")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundStyle(Color(hex: "292F33"))
+
+                Spacer()
+
+                // Collapsed state indicator
+                if !trackersExpanded {
+                    if hasTrackersData {
+                        // Show count with checkmark
+                        HStack(spacing: 4) {
+                            Text("\(selectedMomentsTrackers.count)")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.subheadline)
+                                .foregroundStyle(.green)
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color(hex: "44C0FF").opacity(0.1))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                    } else {
+                        // Show "Input AM/PM" prompt
+                        Button(action: { }) {  // No action - visual only
+                            Text("Input \(trackerTimeOfDay)")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(Color(hex: "44C0FF"))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color(hex: "44C0FF").opacity(0.1))
+                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
                 }
-            }) {
-                HStack {
-                    Text("Trackers")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundStyle(Color(hex: "292F33"))
 
-                    Spacer()
-
+                // Toggle arrow - always on the far right
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        trackersExpanded.toggle()
+                    }
+                }) {
                     Image("arrow-right-circle")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
@@ -1406,9 +1549,9 @@ Later, I went for a walk in the park and noticed how the leaves are just beginni
                         .foregroundStyle(.secondary)
                         .rotationEffect(.degrees(trackersExpanded ? 90 : 0))
                 }
-                .padding(.horizontal, 16)
+                .buttonStyle(PlainButtonStyle())
             }
-            .buttonStyle(PlainButtonStyle())
+            .padding(.horizontal, 16)
             .listRowInsets(EdgeInsets(top: todayInterSectionSpacing, leading: 0, bottom: 0, trailing: 0))
             .listRowSeparator(.hidden)
         }
@@ -2512,6 +2655,33 @@ Later, I went for a walk in the park and noticed how the leaves are just beginni
         // Check if entry exists for current date
         entryCreated = DailyContentManager.shared.hasEntry(for: selectedDate)
         summaryGenerated = DailyContentManager.shared.hasSummary(for: selectedDate)
+    }
+}
+
+// MARK: - Supporting Views
+
+struct MomentOption: View {
+    let icon: String
+    let count: Int
+    let title: String
+
+    var body: some View {
+        Button(action: {
+            // TODO: Handle moment selection
+        }) {
+            VStack(spacing: 12) {
+                Image(systemName: icon)
+                    .font(.largeTitle)
+                    .foregroundStyle(.primary)
+
+                Text("\(count) \(title)")
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+            }
+            .frame(width: 120)
+            .frame(maxHeight: .infinity)
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 

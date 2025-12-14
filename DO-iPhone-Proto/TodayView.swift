@@ -330,22 +330,57 @@ struct TodayView: View {
 
     // MARK: - Moments Collapsed State Helpers
 
+    // Generate realistic moment counts based on date (allows zeros)
+    private func momentCount(for date: Date, type: String, maxCount: Int) -> Int {
+        guard maxCount > 0 else { return 0 }
+
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.year, .month, .day], from: date)
+
+        // Create a consistent seed from the date and type (use smaller numbers to avoid overflow)
+        let seed = ((components.year ?? 2024) % 100) * 10000 + (components.month ?? 1) * 100 + (components.day ?? 1)
+
+        // Use a simpler hash to avoid overflow
+        var hasher = Hasher()
+        hasher.combine(seed)
+        hasher.combine(type)
+        let hashValue = abs(hasher.finalize())
+
+        // Use seed to generate pseudo-random but consistent value
+        let value = hashValue % 100
+
+        // Different probability distributions based on value
+        // ~20% chance of 0, ~50% chance of 1-2, ~30% chance of 3+
+        if value < 20 {
+            return 0  // No moments this day
+        } else if value < 70 {
+            // 1-2 items
+            if maxCount == 1 {
+                return 1
+            } else {
+                return 1 + (hashValue % 2)
+            }
+        } else {
+            // 3 to maxCount items
+            if maxCount <= 3 {
+                return min(maxCount, 3)
+            } else {
+                let range = maxCount - 2
+                return 3 + (hashValue % range)
+            }
+        }
+    }
+
     private var availablePhotosCount: Int {
-        // Vary photo count based on day of month (3-12 photos)
-        let day = Calendar.current.component(.day, from: selectedDate)
-        return 3 + (day % 10)
+        momentCount(for: selectedDate, type: "photos", maxCount: 12)
     }
 
     private var dynamicPlacesCount: Int {
-        // Vary places count based on day of month (2-6 places)
-        let day = Calendar.current.component(.day, from: selectedDate)
-        return 2 + (day % 5)
+        momentCount(for: selectedDate, type: "places", maxCount: 6)
     }
 
     private var dynamicEventsCount: Int {
-        // Vary events count based on day of month (1-5 events)
-        let day = Calendar.current.component(.day, from: selectedDate)
-        return 1 + (day % 5)
+        momentCount(for: selectedDate, type: "events", maxCount: 5)
     }
 
     private var momentsCollapsedSummary: String {
@@ -2664,37 +2699,57 @@ struct TodayView: View {
     }
 
     private func addPlacesData() {
-        // Generate random visits for the selected date
-        placesData = Visit.generateRandomVisits(for: selectedDate)
+        // Generate places based on dynamic count
+        let placesCount = dynamicPlacesCount
+        if placesCount > 0 {
+            let allVisits = Visit.generateRandomVisits(for: selectedDate)
+            placesData = Array(allVisits.prefix(placesCount))
+        } else {
+            placesData = []
+        }
     }
 
     private func addEventsData() {
-        // Populate with sample events
-        eventsData = [
-            (name: "Morning Team Standup", icon: DayOneIcon.calendar, time: "9:00 AM - 9:30 AM", type: "Work"),
-            (name: "Dentist Appointment", icon: DayOneIcon.calendar, time: "11:00 AM - 12:00 PM", type: "Health"),
-            (name: "Lunch with Sarah", icon: DayOneIcon.calendar, time: "12:30 PM - 1:30 PM", type: "Personal"),
-            (name: "Project Review Meeting", icon: DayOneIcon.calendar, time: "2:00 PM - 3:00 PM", type: "Work"),
-            (name: "Yoga Class", icon: DayOneIcon.calendar, time: "5:30 PM - 6:30 PM", type: "Wellness")
-        ]
-    }
-
-    private func updateMomentsDataForSelectedDate() {
-        // Only show data for today, clear for all other dates
-        if Calendar.current.isDateInToday(selectedDate) {
-            // Generate random visits for the selected date
-            placesData = Visit.generateRandomVisits(for: selectedDate)
-
-            eventsData = [
+        // Generate events based on dynamic count
+        let eventsCount = dynamicEventsCount
+        if eventsCount > 0 {
+            let allEvents = [
                 (name: "Morning Team Standup", icon: DayOneIcon.calendar, time: "9:00 AM - 9:30 AM", type: "Work"),
                 (name: "Dentist Appointment", icon: DayOneIcon.calendar, time: "11:00 AM - 12:00 PM", type: "Health"),
                 (name: "Lunch with Sarah", icon: DayOneIcon.calendar, time: "12:30 PM - 1:30 PM", type: "Personal"),
                 (name: "Project Review Meeting", icon: DayOneIcon.calendar, time: "2:00 PM - 3:00 PM", type: "Work"),
                 (name: "Yoga Class", icon: DayOneIcon.calendar, time: "5:30 PM - 6:30 PM", type: "Wellness")
             ]
+            eventsData = Array(allEvents.prefix(eventsCount))
         } else {
-            // Clear data for non-today dates (show zero state)
+            eventsData = []
+        }
+    }
+
+    private func updateMomentsDataForSelectedDate() {
+        // Generate data for all dates based on dynamic counts
+        let placesCount = dynamicPlacesCount
+        let eventsCount = dynamicEventsCount
+
+        // Generate places data - limit to the count
+        if placesCount > 0 {
+            let allVisits = Visit.generateRandomVisits(for: selectedDate)
+            placesData = Array(allVisits.prefix(placesCount))
+        } else {
             placesData = []
+        }
+
+        // Generate events data - limit to the count
+        if eventsCount > 0 {
+            let allEvents = [
+                (name: "Morning Team Standup", icon: DayOneIcon.calendar, time: "9:00 AM - 9:30 AM", type: "Work"),
+                (name: "Dentist Appointment", icon: DayOneIcon.calendar, time: "11:00 AM - 12:00 PM", type: "Health"),
+                (name: "Lunch with Sarah", icon: DayOneIcon.calendar, time: "12:30 PM - 1:30 PM", type: "Personal"),
+                (name: "Project Review Meeting", icon: DayOneIcon.calendar, time: "2:00 PM - 3:00 PM", type: "Work"),
+                (name: "Yoga Class", icon: DayOneIcon.calendar, time: "5:30 PM - 6:30 PM", type: "Wellness")
+            ]
+            eventsData = Array(allEvents.prefix(eventsCount))
+        } else {
             eventsData = []
         }
     }

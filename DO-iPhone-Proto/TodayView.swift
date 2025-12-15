@@ -151,12 +151,6 @@ struct TodayView: View {
     @State private var showingJournalPicker = false
     @AppStorage("hasShownFirstTimeJournalAlert") private var hasShownFirstTimeJournalAlert = false
     @AppStorage("selectedJournalForEntries") private var selectedJournalForEntries = "Daily"
-    @State private var showingVisitsSheet = false
-    @State private var showingMomentsVisitsSheet = false
-    @State private var showingEventsSheet = false
-    @State private var showingMomentsEventsSheet = false
-    @State private var showingMediaSheet = false
-    @State private var showingMomentsMediaSheet = false
     @State private var showingMomentsSelector = false
     @State private var placesData: [Visit] = []
     @State private var eventsData: [(name: String, icon: DayOneIcon, time: String, type: String)] = []
@@ -973,7 +967,7 @@ struct TodayView: View {
     private var momentsPhotosSection: some View {
         Section {
             Button(action: {
-                showingMomentsMediaSheet = true
+                showingMomentsSelector = true
             }) {
                 HStack(alignment: .center, spacing: 12) {
                     // Left icon - fixed width
@@ -1042,7 +1036,7 @@ struct TodayView: View {
     private var momentsPlacesSection: some View {
         Section {
             Button(action: {
-                showingMomentsVisitsSheet = true
+                showingMomentsSelector = true
             }) {
                 HStack(spacing: 12) {
                     Image(dayOneIcon: .map_pin)
@@ -1101,7 +1095,7 @@ struct TodayView: View {
     private var momentsEventsSection: some View {
         Section {
             Button(action: {
-                showingMomentsEventsSheet = true
+                showingMomentsSelector = true
             }) {
                 HStack(spacing: 12) {
                     Image(dayOneIcon: .calendar)
@@ -2185,24 +2179,6 @@ struct TodayView: View {
                     }
                 }
             )
-        }
-        .sheet(isPresented: $showingVisitsSheet) {
-            VisitsSheetView(visits: $placesData, selectedDate: $selectedDate, onAddPlaces: addPlacesData)
-        }
-        .sheet(isPresented: $showingMomentsVisitsSheet) {
-            VisitsSheetView(visits: $placesData, selectedDate: $selectedDate, onAddPlaces: addPlacesData, isForChat: true, selectedPlacesForChat: $selectedMomentsPlaces)
-        }
-        .sheet(isPresented: $showingEventsSheet) {
-            EventsSheetView(events: $eventsData, onAddEvents: addEventsData)
-        }
-        .sheet(isPresented: $showingMomentsEventsSheet) {
-            EventsSheetView(events: $eventsData, onAddEvents: addEventsData, isForChat: true, selectedEventsForChat: $selectedMomentsEvents)
-        }
-        .sheet(isPresented: $showingMediaSheet) {
-            MediaSheetView()
-        }
-        .sheet(isPresented: $showingMomentsMediaSheet) {
-            MediaSheetView(isForChat: true, selectedPhotosForChat: $selectedMomentsPhotos)
         }
         .sheet(isPresented: $showingMomentsSelector) {
             MomentsSelectorView(

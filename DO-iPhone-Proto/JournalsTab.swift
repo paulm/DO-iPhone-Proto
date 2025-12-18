@@ -71,11 +71,11 @@ struct JournalsTabPagedView: View {
     @State private var journalsPopulation: JournalsPopulation = .threeJournals
     @State private var showAddJournalTips = false
     @State private var showTrashRow = false
-    @State private var showNewJournalButtons = true
+    @State private var showNewJournalButtons = false
     @State private var showAllEntries = false
     @State private var showingSectionsOrder = false
     @State private var journalsSectionExpanded = true
-    @State private var sectionOrder: [JournalSectionType] = [.recentJournals, .recentEntries, .journals, .newJournalButtons, .trash]
+    @State private var sectionOrder: [JournalSectionType] = [.recentJournals, .recentEntries, .journals, .newJournalButtons]
     @State private var addNotesJournalTip = AddNotesJournalTip()
     @State private var addWorkJournalTip = AddWorkJournalTip()
     @State private var addTravelJournalTip = AddTravelJournalTip()
@@ -385,8 +385,7 @@ struct JournalsTabPagedView: View {
                 showRecentJournals: $showRecentJournals,
                 showRecentEntries: $showRecentEntries,
                 showJournalsSection: $journalsSectionExpanded,
-                showNewJournalButtons: $showNewJournalButtons,
-                showTrashRow: $showTrashRow
+                showNewJournalButtons: $showNewJournalButtons
             )
         }
     }
@@ -431,8 +430,6 @@ struct JournalsTabPagedView: View {
             journalsSection
         case .newJournalButtons:
             newJournalButtonsSection
-        case .trash:
-            trashSection
         }
     }
 
@@ -643,8 +640,6 @@ struct JournalsTabPagedView: View {
             iconsJournalsSection
         case .newJournalButtons:
             iconsNewJournalButtonsSection
-        case .trash:
-            iconsTrashSection
         }
     }
     @ViewBuilder
@@ -826,6 +821,14 @@ struct JournalsTabPagedView: View {
             .onMove { indices, newOffset in
                 journalItems.move(fromOffsets: indices, toOffset: newOffset)
             }
+
+        // Trash row at the bottom
+        TrashRow(
+            itemCount: 12,
+            onSelect: {
+                // TODO: Handle trash selection
+            }
+        )
     }
 
     @ViewBuilder
@@ -1110,6 +1113,17 @@ struct JournalsTabPagedView: View {
                     }
                 }
             }
+
+        // Trash row at the bottom
+        CompactTrashRow(
+            itemCount: 12,
+            onSelect: {
+                // TODO: Handle trash selection
+            }
+        )
+        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+        .listRowSeparator(.hidden)
+        .padding(.top, 16)
     }
 
     @ViewBuilder
@@ -2536,7 +2550,6 @@ struct JournalsSectionsOrderView: View {
     @Binding var showRecentEntries: Bool
     @Binding var showJournalsSection: Bool
     @Binding var showNewJournalButtons: Bool
-    @Binding var showTrashRow: Bool
 
     var body: some View {
         NavigationStack {
@@ -2582,8 +2595,6 @@ struct JournalsSectionsOrderView: View {
             return $showJournalsSection
         case .newJournalButtons:
             return $showNewJournalButtons
-        case .trash:
-            return $showTrashRow
         }
     }
 }
@@ -2695,13 +2706,97 @@ struct AllEntriesCollectionRow: View {
     }
 }
 
+// MARK: - Trash Collection-Style Rows
+
+struct CompactTrashRow: View {
+    let itemCount: Int
+    let onSelect: () -> Void
+
+    var body: some View {
+        Button(action: onSelect) {
+            HStack(spacing: 12) {
+                // Trash icon
+                Image(systemName: "trash")
+                    .font(.system(size: 14))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 20)
+
+                // Trash text
+                Text("Trash")
+                    .font(.body)
+                    .fontWeight(.regular)
+                    .foregroundStyle(.primary)
+
+                Spacer()
+
+                // Item count
+                Text("\(itemCount)")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                // No disclosure toggle for Trash
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
+        .padding(.vertical, 0)
+        .padding(.horizontal, 0)
+    }
+}
+
+struct TrashRow: View {
+    let itemCount: Int
+    let onSelect: () -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 16) {
+                // Trash icon and content - tappable to select
+                Button(action: onSelect) {
+                    HStack(spacing: 16) {
+                        // Trash icon
+                        Image(systemName: "trash")
+                            .font(.system(size: 20))
+                            .foregroundStyle(.secondary)
+                            .frame(width: 30)
+
+                        // Trash info
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Trash")
+                                .font(.headline)
+                                .fontWeight(.regular)
+                                .foregroundStyle(.primary)
+
+                            Text("\(itemCount) items")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        Spacer()
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(PlainButtonStyle())
+
+                // No disclosure toggle for Trash
+            }
+            .padding(.vertical, 12)
+            .padding(.horizontal, 0)
+
+            // Divider at bottom
+            Divider()
+                .padding(.leading, 0)
+        }
+        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+        .listRowSeparator(.hidden)
+    }
+}
+
 // MARK: - Journal Section Type
 enum JournalSectionType: String, CaseIterable, Hashable {
     case recentJournals
     case recentEntries
     case journals
     case newJournalButtons
-    case trash
 
     var displayName: String {
         switch self {
@@ -2709,7 +2804,6 @@ enum JournalSectionType: String, CaseIterable, Hashable {
         case .recentEntries: return "Recent Entries"
         case .journals: return "Journals"
         case .newJournalButtons: return "New Journal Button Row"
-        case .trash: return "Trash"
         }
     }
 
@@ -2719,7 +2813,6 @@ enum JournalSectionType: String, CaseIterable, Hashable {
         case .recentEntries: return "doc.text"
         case .journals: return "book"
         case .newJournalButtons: return "plus.circle"
-        case .trash: return "trash"
         }
     }
 }

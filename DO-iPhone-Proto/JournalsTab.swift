@@ -61,7 +61,7 @@ struct JournalsTabPagedView: View {
     @State private var selectedFolder: JournalFolder?
     @State private var showingNewEntry = false
     @State private var shouldShowAudioAfterEntry = false
-    @State private var showRecentJournals = true
+    @State private var showRecentJournals = false
     @State private var showRecentEntries = false
     @State private var recentJournalsExpanded = true
     @State private var recentEntriesExpanded = true
@@ -252,21 +252,26 @@ struct JournalsTabPagedView: View {
             .navigationTitle("Journals")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
-                ToolbarItemGroup(placement: .navigationBarLeading) {
-                    // New Collection button
+                // New Collection button
+                ToolbarItem(placement: .navigationBarLeading) {
                     Button(action: {
                         // TODO: Add new collection action
                     }) {
                         Image("media-library-folder-add")
                             .renderingMode(.template)
                     }
+                }
 
-                    // New Journal button
+                // Spacer to separate buttons into different pill backgrounds
+                ToolbarSpacer(.fixed, placement: .navigationBarLeading)
+
+                // Text-only New Journal button
+                ToolbarItem(placement: .navigationBarLeading) {
                     Button(action: {
                         // TODO: Add new journal action
                     }) {
-                        Label("New Journal", systemImage: "plus")
-                            .labelStyle(.titleAndIcon)
+                        Text("+ New Journal")
+                            .font(.subheadline)
                     }
                 }
 

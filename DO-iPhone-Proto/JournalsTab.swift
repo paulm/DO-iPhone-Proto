@@ -82,6 +82,9 @@ struct JournalsTabPagedView: View {
     @State private var manuallyAddedJournalNames: Set<String> = []
     @State private var dismissedJournalTips: Set<String> = [] // Track dismissed tips by journal name
 
+    // New Journal FAB state
+    @State private var showingNewJournalFAB = false
+
     // Folder expansion state - expand all by default
     @State private var expandedFolders: Set<String> = Set(Journal.folders.map { $0.id })
 
@@ -234,164 +237,207 @@ struct JournalsTabPagedView: View {
     
     // MARK: - Navigation Content
     private var navigationContent: some View {
-        NavigationStack {
-            Group {
-                // List-based views (compact and list modes) use List which has built-in scrolling
-                // Grid mode uses ScrollView with LazyVStack
-                if viewMode == .list || viewMode == .compact {
-                    journalListContent
-                } else {
-                    ScrollView {
-                        VStack(spacing: 0) {
-                            journalListContent
-                                .padding(.top, 12)
+        ZStack(alignment: .bottomTrailing) {
+            NavigationStack {
+                Group {
+                    // List-based views (compact and list modes) use List which has built-in scrolling
+                    // Grid mode uses ScrollView with LazyVStack
+                    if viewMode == .list || viewMode == .compact {
+                        journalListContent
+                    } else {
+                        ScrollView {
+                            VStack(spacing: 0) {
+                                journalListContent
+                                    .padding(.top, 12)
+                            }
                         }
                     }
                 }
-            }
-            .navigationTitle("Journals")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                // New Collection button
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button(action: {
-                        // TODO: Add new collection action
-                    }) {
-                        Image("media-library-folder-add")
-                            .renderingMode(.template)
+                .navigationTitle("Journals")
+                .navigationBarTitleDisplayMode(.large)
+                .toolbar {
+                    // New Collection button
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button(action: {
+                            // TODO: Add new collection action
+                        }) {
+                            Image("media-library-folder-add")
+                                .renderingMode(.template)
+                        }
                     }
-                }
 
-                // Spacer to separate buttons into different pill backgrounds
-                ToolbarSpacer(.fixed, placement: .navigationBarLeading)
+//                    // Spacer to separate buttons into different pill backgrounds
+//                    ToolbarSpacer(.fixed, placement: .navigationBarLeading)
+//
+//                    // Text-only New Journal button
+//                    ToolbarItem(placement: .navigationBarLeading) {
+//                        Button(action: {
+//                            // TODO: Add new journal action
+//                        }) {
+//                            Text("+ New Journal")
+//                                .font(.subheadline)
+//                        }
+//                    }
 
-                // Text-only New Journal button
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button(action: {
-                        // TODO: Add new journal action
-                    }) {
-                        Text("+ New Journal")
-                            .font(.subheadline)
-                    }
-                }
-
-                ToolbarItemGroup(placement: .navigationBarTrailing) {
-                    Menu {
-                        Button(action: {
-                            isEditMode.toggle()
-                        }) {
-                            Label(isEditMode ? "Done" : "Edit", systemImage: isEditMode ? "checkmark" : "pencil")
-                        }
-                        
-                        Button(action: {
-                            // TODO: Select multiple journals action
-                        }) {
-                            Label("Select", systemImage: "checkmark.circle")
-                        }
-                        
-                        Button(action: {
-                            // TODO: Add new journal action
-                        }) {
-                            Label("New Journal", systemImage: "plus")
-                        }
-
-                        Button(action: {
-                            showingSectionsOrder = true
-                        }) {
-                            Label("Sort", systemImage: "arrow.up.arrow.down")
-                        }
-
-                        Divider()
-
-                        Picker("View Style", selection: $viewMode) {
-                            Label("Compact", systemImage: "list.bullet")
-                                .tag(ViewMode.compact)
-                            Label("Icons", systemImage: "square.grid.3x3")
-                                .tag(ViewMode.list)
-                            Label("Books", systemImage: "books.vertical")
-                                .tag(ViewMode.grid)
-                        }
-
-                        Divider()
-
-                        Toggle(isOn: $showRecentJournals) {
-                            Label("Show Recent Journals", systemImage: "clock")
-                        }
-
-                        Toggle(isOn: $showRecentEntries) {
-                            Label("Show Recent Entries", systemImage: "doc.text")
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis")
-                    }
-                    
-                    Menu {
-                        Button(action: {
-                            showingSettings = true
-                        }) {
-                            Label("Settings", systemImage: "gearshape")
-                        }
-
-                        Divider()
-
-                        Section("Journal Manager Options") {
-                            Toggle(isOn: $useSeparatedCollections) {
-                                Label("Separated Collections", systemImage: "folder.badge.gearshape")
+                    ToolbarItemGroup(placement: .navigationBarTrailing) {
+                        Menu {
+                            Button(action: {
+                                isEditMode.toggle()
+                            }) {
+                                Label(isEditMode ? "Done" : "Edit", systemImage: isEditMode ? "checkmark" : "pencil")
                             }
 
-                            Toggle(isOn: $showAddJournalTips) {
-                                Label("Show Add Journal Tips", systemImage: "lightbulb")
+                            Button(action: {
+                                // TODO: Select multiple journals action
+                            }) {
+                                Label("Select", systemImage: "checkmark.circle")
                             }
 
-                            Toggle(isOn: $showTrashRow) {
-                                Label("Show Trash Row", systemImage: "trash")
+                            Button(action: {
+                                // TODO: Add new journal action
+                            }) {
+                                Label("New Journal", systemImage: "plus")
                             }
+
+                            Button(action: {
+                                showingSectionsOrder = true
+                            }) {
+                                Label("Sort", systemImage: "arrow.up.arrow.down")
+                            }
+
+                            Divider()
+
+                            Picker("View Style", selection: $viewMode) {
+                                Label("Compact", systemImage: "list.bullet")
+                                    .tag(ViewMode.compact)
+                                Label("Icons", systemImage: "square.grid.3x3")
+                                    .tag(ViewMode.list)
+                                Label("Books", systemImage: "books.vertical")
+                                    .tag(ViewMode.grid)
+                            }
+
+                            Divider()
+
+                            Toggle(isOn: $showRecentJournals) {
+                                Label("Show Recent Journals", systemImage: "clock")
+                            }
+
+                            Toggle(isOn: $showRecentEntries) {
+                                Label("Show Recent Entries", systemImage: "doc.text")
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis")
                         }
 
-                        Section("Journals Population") {
-                            Picker("Population", selection: $journalsPopulation) {
-                                ForEach(JournalsPopulation.allCases, id: \.self) { option in
-                                    Text(option.rawValue).tag(option)
+                        Menu {
+                            Button(action: {
+                                showingSettings = true
+                            }) {
+                                Label("Settings", systemImage: "gearshape")
+                            }
+
+                            Divider()
+
+                            Section("Journal Manager Options") {
+                                Toggle(isOn: $useSeparatedCollections) {
+                                    Label("Separated Collections", systemImage: "folder.badge.gearshape")
+                                }
+
+                                Toggle(isOn: $showAddJournalTips) {
+                                    Label("Show Add Journal Tips", systemImage: "lightbulb")
+                                }
+
+                                Toggle(isOn: $showTrashRow) {
+                                    Label("Show Trash Row", systemImage: "trash")
                                 }
                             }
-                            .pickerStyle(.inline)
-                        }
-                    } label: {
-                        Circle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color.purple, Color.pink],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
+
+                            Section("Journals Population") {
+                                Picker("Population", selection: $journalsPopulation) {
+                                    ForEach(JournalsPopulation.allCases, id: \.self) { option in
+                                        Text(option.rawValue).tag(option)
+                                    }
+                                }
+                                .pickerStyle(.inline)
+                            }
+                        } label: {
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color.purple, Color.pink],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
                                 )
-                            )
-                            .frame(width: 32, height: 32)
-                            .overlay(
-                                Text("PM")
-                                    .font(.system(size: 12, weight: .semibold))
-                                    .foregroundColor(.white)
-                            )
+                                .frame(width: 32, height: 32)
+                                .overlay(
+                                    Text("PM")
+                                        .font(.system(size: 12, weight: .semibold))
+                                        .foregroundColor(.white)
+                                )
+                        }
                     }
                 }
+                .navigationDestination(item: $selectedJournal) { journal in
+                    JournalDetailPagedView(journal: journal, journalViewModel: journalViewModel, sheetRegularPosition: sheetRegularPosition)
+                }
+                .navigationDestination(item: $selectedFolder) { folder in
+                    FolderDetailView(folder: folder, sheetRegularPosition: sheetRegularPosition)
+                }
             }
-            .navigationDestination(item: $selectedJournal) { journal in
-                JournalDetailPagedView(journal: journal, journalViewModel: journalViewModel, sheetRegularPosition: sheetRegularPosition)
+            .sheet(isPresented: $showingSettings) {
+                AppSettingsView()
             }
-            .navigationDestination(item: $selectedFolder) { folder in
-                FolderDetailView(folder: folder, sheetRegularPosition: sheetRegularPosition)
+            .sheet(isPresented: $showingSectionsOrder) {
+                JournalsSectionsOrderView(
+                    sectionOrder: $sectionOrder,
+                    showRecentJournals: $showRecentJournals,
+                    showRecentEntries: $showRecentEntries,
+                    showJournalsSection: $journalsSectionExpanded,
+                    showNewJournalButtons: $showNewJournalButtons
+                )
+            }
+
+            // New Journal FAB
+            Button(action: {
+                // TODO: Add new journal action
+            }) {
+                HStack(spacing: 8) {
+                    Text("+ New Journal")
+                        .font(.system(size: 16, weight: .semibold))
+                }
+                .foregroundStyle(.white)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 14)
+                .background(Color(hex: "333B40"))
+                .clipShape(Capsule())
+            }
+            .buttonStyle(PlainButtonStyle())
+            .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
+            .padding(.trailing, 18)
+            .padding(.bottom, 30) // Position above tab bar (similar to Today tab FABs)
+            .offset(y: showingNewJournalFAB ? 0 : 150) // Slide up/down animation
+            .opacity(showingNewJournalFAB ? 1 : 0)
+        }
+        .onAppear {
+            // Animate FAB in after a short delay with bounce effect
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                withAnimation(.interpolatingSpring(stiffness: 180, damping: 12)) {
+                    showingNewJournalFAB = true
+                }
             }
         }
-        .sheet(isPresented: $showingSettings) {
-            AppSettingsView()
+        .onChange(of: selectedJournal) { oldValue, newValue in
+            // Hide FAB when navigating to journal detail, show when coming back
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                showingNewJournalFAB = newValue == nil
+            }
         }
-        .sheet(isPresented: $showingSectionsOrder) {
-            JournalsSectionsOrderView(
-                sectionOrder: $sectionOrder,
-                showRecentJournals: $showRecentJournals,
-                showRecentEntries: $showRecentEntries,
-                showJournalsSection: $journalsSectionExpanded,
-                showNewJournalButtons: $showNewJournalButtons
-            )
+        .onChange(of: selectedFolder) { oldValue, newValue in
+            // Hide FAB when navigating to folder detail, show when coming back
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                showingNewJournalFAB = newValue == nil
+            }
         }
     }
 

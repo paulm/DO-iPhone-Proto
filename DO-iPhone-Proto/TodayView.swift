@@ -611,11 +611,10 @@ struct TodayView: View {
                         dailyChatExpanded.toggle()
                     }
                 }) {
-                    Image("arrow-right-circle")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: todayToggleIconSize, height: todayToggleIconSize)
-                        .foregroundStyle(.secondary)
+                    Image(systemName: "chevron.right.circle.fill")
+                        .font(.system(size: todayToggleIconSize))
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(Color(hex: "44C0FF"), Color(hex: "F3F1F8"))
                         .rotationEffect(.degrees(dailyChatExpanded ? 90 : 0))
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -798,11 +797,10 @@ struct TodayView: View {
                         dailyEntryExpanded.toggle()
                     }
                 }) {
-                    Image("arrow-right-circle")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: todayToggleIconSize, height: todayToggleIconSize)
-                        .foregroundStyle(.secondary)
+                    Image(systemName: "chevron.right.circle.fill")
+                        .font(.system(size: todayToggleIconSize))
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(Color(hex: "44C0FF"), Color(hex: "F3F1F8"))
                         .rotationEffect(.degrees(dailyEntryExpanded ? 90 : 0))
                         .animation(.easeInOut(duration: 0.2), value: dailyEntryExpanded)
                 }
@@ -1558,11 +1556,10 @@ struct TodayView: View {
                         momentsExpanded.toggle()
                     }
                 }) {
-                    Image("arrow-right-circle")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: todayToggleIconSize, height: todayToggleIconSize)
-                        .foregroundStyle(.secondary)
+                    Image(systemName: "chevron.right.circle.fill")
+                        .font(.system(size: todayToggleIconSize))
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(Color(hex: "44C0FF"), Color(hex: "F3F1F8"))
                         .rotationEffect(.degrees(momentsExpanded ? 90 : 0))
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -1658,11 +1655,10 @@ struct TodayView: View {
                         trackersExpanded.toggle()
                     }
                 }) {
-                    Image("arrow-right-circle")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: todayToggleIconSize, height: todayToggleIconSize)
-                        .foregroundStyle(.secondary)
+                    Image(systemName: "chevron.right.circle.fill")
+                        .font(.system(size: todayToggleIconSize))
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(Color(hex: "44C0FF"), Color(hex: "F3F1F8"))
                         .rotationEffect(.degrees(trackersExpanded ? 90 : 0))
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -1696,11 +1692,10 @@ struct TodayView: View {
 
                     Spacer()
 
-                    Image("arrow-right-circle")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: todayToggleIconSize, height: todayToggleIconSize)
-                        .foregroundStyle(.secondary)
+                    Image(systemName: "chevron.right.circle.fill")
+                        .font(.system(size: todayToggleIconSize))
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(Color(hex: "44C0FF"), Color(hex: "F3F1F8"))
                         .rotationEffect(.degrees(inputsExpanded ? 90 : 0))
                 }
                 .padding(.horizontal, 16)

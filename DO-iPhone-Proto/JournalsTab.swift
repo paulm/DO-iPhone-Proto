@@ -454,11 +454,10 @@ struct JournalsTabPagedView: View {
 
                     Spacer()
 
-                    Image("arrow-right-circle")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: toggleIconSize, height: toggleIconSize)
-                        .foregroundStyle(.secondary)
+                    Image(systemName: "chevron.right.circle.fill")
+                        .font(.system(size: toggleIconSize))
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(Color(hex: "44C0FF"), Color(hex: "F3F1F8"))
                         .rotationEffect(.degrees(recentJournalsExpanded ? 90 : 0))
                 }
                 .padding(.horizontal, 16)
@@ -511,11 +510,10 @@ struct JournalsTabPagedView: View {
 
                     Spacer()
 
-                    Image("arrow-right-circle")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: toggleIconSize, height: toggleIconSize)
-                        .foregroundStyle(.secondary)
+                    Image(systemName: "chevron.right.circle.fill")
+                        .font(.system(size: toggleIconSize))
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(Color(hex: "44C0FF"), Color(hex: "F3F1F8"))
                         .rotationEffect(.degrees(recentEntriesExpanded ? 90 : 0))
                 }
                 .padding(.horizontal, 16)
@@ -663,11 +661,10 @@ struct JournalsTabPagedView: View {
 
                     Spacer()
 
-                    Image("arrow-right-circle")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: toggleIconSize, height: toggleIconSize)
-                        .foregroundStyle(.secondary)
+                    Image(systemName: "chevron.right.circle.fill")
+                        .font(.system(size: toggleIconSize))
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(Color(hex: "44C0FF"), Color(hex: "F3F1F8"))
                         .rotationEffect(.degrees(recentJournalsExpanded ? 90 : 0))
                 }
                 .padding(.horizontal, 16)
@@ -720,11 +717,10 @@ struct JournalsTabPagedView: View {
 
                     Spacer()
 
-                    Image("arrow-right-circle")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: toggleIconSize, height: toggleIconSize)
-                        .foregroundStyle(.secondary)
+                    Image(systemName: "chevron.right.circle.fill")
+                        .font(.system(size: toggleIconSize))
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(Color(hex: "44C0FF"), Color(hex: "F3F1F8"))
                         .rotationEffect(.degrees(recentEntriesExpanded ? 90 : 0))
                 }
                 .padding(.horizontal, 16)
@@ -1917,11 +1913,10 @@ struct CompactFolderRow: View {
 
                 // Disclosure toggle - rotates when expanded (on right side)
                 Button(action: onToggle) {
-                    Image("arrow-right-circle")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: toggleIconSize, height: toggleIconSize)
-                        .foregroundStyle(.secondary)
+                    Image(systemName: "chevron.right.circle.fill")
+                        .font(.system(size: toggleIconSize))
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(Color(hex: "44C0FF"), Color(hex: "F3F1F8"))
                         .rotationEffect(.degrees(isExpanded ? 90 : 0))
                         .animation(.easeInOut(duration: 0.2), value: isExpanded)
                 }
@@ -1983,11 +1978,10 @@ struct FolderRow: View {
 
                 // Disclosure toggle - rotates when expanded (far right)
                 Button(action: onToggle) {
-                    Image("arrow-right-circle")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: toggleIconSize, height: toggleIconSize)
-                        .foregroundStyle(.secondary)
+                    Image(systemName: "chevron.right.circle.fill")
+                        .font(.system(size: toggleIconSize))
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(Color(hex: "44C0FF"), Color(hex: "F3F1F8"))
                         .rotationEffect(.degrees(isExpanded ? 90 : 0))
                         .animation(.easeInOut(duration: 0.2), value: isExpanded)
                 }

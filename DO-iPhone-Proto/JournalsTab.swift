@@ -62,17 +62,17 @@ struct JournalsTabPagedView: View {
     @State private var showingNewEntry = false
     @State private var shouldShowAudioAfterEntry = false
     @State private var showRecentJournals = true
-    @State private var showRecentEntries = true
+    @State private var showRecentEntries = false
     @State private var recentJournalsExpanded = true
     @State private var recentEntriesExpanded = true
     @State private var isEditMode = false
     @State private var journalItems: [Journal.MixedJournalItem] = Journal.mixedJournalItems
     @State private var useSeparatedCollections = false
-    @State private var journalsPopulation: JournalsPopulation = .newUser
+    @State private var journalsPopulation: JournalsPopulation = .threeJournals
     @State private var showAddJournalTips = false
     @State private var showTrashRow = false
     @State private var showNewJournalButtons = true
-    @State private var showAllEntries = true
+    @State private var showAllEntries = false
     @State private var showingSectionsOrder = false
     @State private var journalsSectionExpanded = true
     @State private var sectionOrder: [JournalSectionType] = [.recentJournals, .recentEntries, .allEntries, .journals, .newJournalButtons, .trash]
@@ -787,6 +787,21 @@ struct JournalsTabPagedView: View {
         }
 
         if journalsSectionExpanded {
+            // All Entries collection-style row at the top
+            if filteredJournals.count > 1, let allEntries = Journal.allEntriesJournal {
+                let filteredJournalCount = filteredJournals.count
+                let filteredEntryCount = filteredJournals.compactMap { $0.entryCount }.reduce(0, +)
+
+                AllEntriesCollectionRow(
+                    totalJournalCount: filteredJournalCount,
+                    totalEntryCount: filteredEntryCount,
+                    onSelect: {
+                        journalViewModel.selectJournal(allEntries)
+                        selectedJournal = allEntries
+                    }
+                )
+            }
+
             ForEach(filteredMixedJournalItems) { item in
                 if item.isFolder, let folder = item.folder {
                     FolderRow(
@@ -1043,6 +1058,24 @@ struct JournalsTabPagedView: View {
         }
 
         if journalsSectionExpanded {
+            // All Entries collection-style row at the top
+            if filteredJournals.count > 1, let allEntries = Journal.allEntriesJournal {
+                let filteredJournalCount = filteredJournals.count
+                let filteredEntryCount = filteredJournals.compactMap { $0.entryCount }.reduce(0, +)
+
+                CompactAllEntriesCollectionRow(
+                    totalJournalCount: filteredJournalCount,
+                    totalEntryCount: filteredEntryCount,
+                    onSelect: {
+                        journalViewModel.selectJournal(allEntries)
+                        selectedJournal = allEntries
+                    }
+                )
+                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+                .listRowSeparator(.hidden)
+                .padding(.vertical, 8)
+            }
+
             if useSeparatedCollections {
                 ForEach(filteredMixedJournalItems) { item in
                     if let journal = item.journal {
@@ -2647,6 +2680,113 @@ struct JournalsSectionsOrderView: View {
         case .trash:
             return $showTrashRow
         }
+    }
+}
+
+// MARK: - All Entries Collection-Style Rows
+
+struct CompactAllEntriesCollectionRow: View {
+    let totalJournalCount: Int
+    let totalEntryCount: Int
+    let onSelect: () -> Void
+
+    var body: some View {
+        Button(action: onSelect) {
+            HStack(spacing: 12) {
+                // All Entries icon (library icon)
+                Image("files-library-media-library")
+                    .resizable()
+                    .frame(width: 20, height: 20)
+                    .foregroundStyle(Color(hex: "333B40"))
+
+                // All Entries text
+                Text("All Entries")
+                    .font(.body)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.primary)
+
+                Spacer()
+
+                // Journal count and entry count
+                HStack(spacing: 8) {
+                    Text("\(totalJournalCount) journals")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    Text("•")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    Text("\(totalEntryCount)")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+
+                // No disclosure toggle for All Entries
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
+        .padding(.vertical, 0)
+        .padding(.horizontal, 0)
+    }
+}
+
+struct AllEntriesCollectionRow: View {
+    let totalJournalCount: Int
+    let totalEntryCount: Int
+    let onSelect: () -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 16) {
+                // All Entries icon and content - tappable to select
+                Button(action: onSelect) {
+                    HStack(spacing: 16) {
+                        // All Entries icon (library icon)
+                        Image("files-library-media-library")
+                            .resizable()
+                            .frame(width: 30, height: 30)
+                            .foregroundStyle(Color(hex: "333B40"))
+
+                        // All Entries info
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("All Entries")
+                                .font(.headline)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.primary)
+
+                            HStack(spacing: 4) {
+                                Text("\(totalJournalCount) journals")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+
+                                Text("•")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+
+                                Text("\(totalEntryCount) entries")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+
+                        Spacer()
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(PlainButtonStyle())
+
+                // No disclosure toggle for All Entries
+            }
+            .padding(.vertical, 12)
+            .padding(.horizontal, 0)
+
+            // Divider at bottom
+            Divider()
+                .padding(.leading, 0)
+        }
+        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+        .listRowSeparator(.hidden)
     }
 }
 

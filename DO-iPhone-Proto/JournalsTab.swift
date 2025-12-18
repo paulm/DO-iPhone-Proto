@@ -75,7 +75,7 @@ struct JournalsTabPagedView: View {
     @State private var showAllEntries = false
     @State private var showingSectionsOrder = false
     @State private var journalsSectionExpanded = true
-    @State private var sectionOrder: [JournalSectionType] = [.recentJournals, .recentEntries, .allEntries, .journals, .newJournalButtons, .trash]
+    @State private var sectionOrder: [JournalSectionType] = [.recentJournals, .recentEntries, .journals, .newJournalButtons, .trash]
     @State private var addNotesJournalTip = AddNotesJournalTip()
     @State private var addWorkJournalTip = AddWorkJournalTip()
     @State private var addTravelJournalTip = AddTravelJournalTip()
@@ -265,7 +265,8 @@ struct JournalsTabPagedView: View {
                     Button(action: {
                         // TODO: Add new journal action
                     }) {
-                        Image(systemName: "plus")
+                        Label("New Journal", systemImage: "plus")
+                            .labelStyle(.titleAndIcon)
                     }
                 }
 
@@ -383,7 +384,6 @@ struct JournalsTabPagedView: View {
                 sectionOrder: $sectionOrder,
                 showRecentJournals: $showRecentJournals,
                 showRecentEntries: $showRecentEntries,
-                showAllEntries: $showAllEntries,
                 showJournalsSection: $journalsSectionExpanded,
                 showNewJournalButtons: $showNewJournalButtons,
                 showTrashRow: $showTrashRow
@@ -427,8 +427,6 @@ struct JournalsTabPagedView: View {
             recentJournalsSection
         case .recentEntries:
             recentEntriesSection
-        case .allEntries:
-            allEntriesRow
         case .journals:
             journalsSection
         case .newJournalButtons:
@@ -641,8 +639,6 @@ struct JournalsTabPagedView: View {
             iconsRecentJournalsSection
         case .recentEntries:
             iconsRecentEntriesSection
-        case .allEntries:
-            allEntriesRow
         case .journals:
             iconsJournalsSection
         case .newJournalButtons:
@@ -757,37 +753,7 @@ struct JournalsTabPagedView: View {
 
     @ViewBuilder
     private var iconsJournalsSection: some View {
-        if showRecentJournals || showRecentEntries || filteredJournals.count > 1 {
-            Button(action: {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    journalsSectionExpanded.toggle()
-                }
-            }) {
-                HStack {
-                    Text("Journals")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundStyle(.primary)
-
-                    Spacer()
-
-                    Image("arrow-right-circle")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: toggleIconSize, height: toggleIconSize)
-                        .foregroundStyle(.secondary)
-                        .rotationEffect(.degrees(journalsSectionExpanded ? 90 : 0))
-                }
-                .padding(.horizontal, 16)
-            }
-            .buttonStyle(PlainButtonStyle())
-            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-            .listRowSeparator(.hidden)
-            .padding(.bottom, 8)
-        }
-
-        if journalsSectionExpanded {
-            // All Entries collection-style row at the top
+        // All Entries collection-style row at the top
             if filteredJournals.count > 1, let allEntries = Journal.allEntriesJournal {
                 let filteredJournalCount = filteredJournals.count
                 let filteredEntryCount = filteredJournals.compactMap { $0.entryCount }.reduce(0, +)
@@ -860,7 +826,6 @@ struct JournalsTabPagedView: View {
             .onMove { indices, newOffset in
                 journalItems.move(fromOffsets: indices, toOffset: newOffset)
             }
-        }
     }
 
     @ViewBuilder
@@ -1028,37 +993,7 @@ struct JournalsTabPagedView: View {
 
     @ViewBuilder
     private var journalsSection: some View {
-        if showRecentJournals || showRecentEntries || filteredJournals.count > 1 {
-            Button(action: {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    journalsSectionExpanded.toggle()
-                }
-            }) {
-                HStack {
-                    Text("Journals")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundStyle(.primary)
-
-                    Spacer()
-
-                    Image("arrow-right-circle")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: toggleIconSize, height: toggleIconSize)
-                        .foregroundStyle(.secondary)
-                        .rotationEffect(.degrees(journalsSectionExpanded ? 90 : 0))
-                }
-                .padding(.horizontal, 16)
-            }
-            .buttonStyle(PlainButtonStyle())
-            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-            .listRowSeparator(.hidden)
-            .padding(.bottom, 8)
-        }
-
-        if journalsSectionExpanded {
-            // All Entries collection-style row at the top
+        // All Entries collection-style row at the top
             if filteredJournals.count > 1, let allEntries = Journal.allEntriesJournal {
                 let filteredJournalCount = filteredJournals.count
                 let filteredEntryCount = filteredJournals.compactMap { $0.entryCount }.reduce(0, +)
@@ -1175,7 +1110,6 @@ struct JournalsTabPagedView: View {
                     }
                 }
             }
-        }
     }
 
     @ViewBuilder
@@ -1240,32 +1174,6 @@ struct JournalsTabPagedView: View {
                     Label("Empty Trash", systemImage: "trash")
                 }
             }
-            .padding(.top, 16)
-            .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
-            .listRowSeparator(.hidden)
-        }
-    }
-
-    @ViewBuilder
-    private var allEntriesRow: some View {
-        if showAllEntries, let allEntries = Journal.allEntriesJournal, filteredJournals.count > 1 {
-            Button(action: {
-                journalViewModel.selectJournal(allEntries)
-                selectedJournal = allEntries
-            }) {
-                HStack {
-                    Text("All Entries")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundStyle(.primary)
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .buttonStyle(PlainButtonStyle())
-            .padding(.bottom, 16)
             .padding(.top, 16)
             .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
             .listRowSeparator(.hidden)
@@ -2626,7 +2534,6 @@ struct JournalsSectionsOrderView: View {
     @Binding var sectionOrder: [JournalSectionType]
     @Binding var showRecentJournals: Bool
     @Binding var showRecentEntries: Bool
-    @Binding var showAllEntries: Bool
     @Binding var showJournalsSection: Bool
     @Binding var showNewJournalButtons: Bool
     @Binding var showTrashRow: Bool
@@ -2671,8 +2578,6 @@ struct JournalsSectionsOrderView: View {
             return $showRecentJournals
         case .recentEntries:
             return $showRecentEntries
-        case .allEntries:
-            return $showAllEntries
         case .journals:
             return $showJournalsSection
         case .newJournalButtons:
@@ -2794,7 +2699,6 @@ struct AllEntriesCollectionRow: View {
 enum JournalSectionType: String, CaseIterable, Hashable {
     case recentJournals
     case recentEntries
-    case allEntries
     case journals
     case newJournalButtons
     case trash
@@ -2803,7 +2707,6 @@ enum JournalSectionType: String, CaseIterable, Hashable {
         switch self {
         case .recentJournals: return "Recent Journals"
         case .recentEntries: return "Recent Entries"
-        case .allEntries: return "All Entries"
         case .journals: return "Journals"
         case .newJournalButtons: return "New Journal Button Row"
         case .trash: return "Trash"
@@ -2813,7 +2716,6 @@ enum JournalSectionType: String, CaseIterable, Hashable {
     var icon: String {
         switch self {
         case .recentJournals: return "clock"
-        case .allEntries: return "tray.full"
         case .recentEntries: return "doc.text"
         case .journals: return "book"
         case .newJournalButtons: return "plus.circle"

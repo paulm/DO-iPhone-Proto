@@ -1596,13 +1596,13 @@ struct PagedJournalSheetContent: View {
         // Screen height - sheetRegularPosition - 80 (from bottom) - 56 (FAB height) - 50 (adjustment)
         UIScreen.main.bounds.height - sheetRegularPosition - 80 - 56 - 50
     }
-    
+
     private var fabExpandedPosition: CGFloat {
         // When expanded, sheet is roughly at status bar height (~50pt)
         // So we need: Screen height - 50 (expanded position) - 80 (from bottom) - 56 (FAB height)
         UIScreen.main.bounds.height - 50 - 80 - 56
     }
-    
+
     var body: some View {
         ZStack(alignment: .topTrailing) {
             // Content based on selected tab - fills entire sheet area
@@ -1623,7 +1623,7 @@ struct PagedJournalSheetContent: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            
+
             // FAB buttons that animate based on sheet position
             if showFAB && showingFABState {
                 HStack(spacing: 12) {
@@ -1645,7 +1645,7 @@ struct PagedJournalSheetContent: View {
                     }
                     .buttonStyle(PlainButtonStyle())
                     .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
-                    
+
                     // Record Audio button
                     Button(action: {
                         showingAudioRecord = true
@@ -1899,7 +1899,7 @@ struct CompactJournalRow: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            .padding(.vertical, -3)
+            .padding(.vertical, -5)
             .padding(.horizontal, 0)
         }
         .buttonStyle(PlainButtonStyle())

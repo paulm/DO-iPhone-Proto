@@ -11,6 +11,7 @@ class CustomSheetViewController: UIViewController {
     private var segmentedBlurView: UIVisualEffectView?
     private let contentHostingController: UIHostingController<AnyView>
     private var segmentedHostingController: UIHostingController<AnyView>
+    private var fabHostingController: UIHostingController<AnyView>?
     
     // Constraints for sheet positioning
     private var heightConstraint: NSLayoutConstraint!
@@ -113,6 +114,7 @@ class CustomSheetViewController: UIViewController {
         setupSegmentedControl()  // Add segmented control on top with blur
         setupGestures()
         setupContent()
+        setupFAB()  // Add FAB overlay (outside scroll view)
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -254,7 +256,45 @@ class CustomSheetViewController: UIViewController {
             contentHostingController.view.heightAnchor.constraint(equalToConstant: 1000) // Content height
         ])
     }
-    
+
+    private func setupFAB() {
+        guard showFAB, let journal = journal else { return }
+
+        // Create SwiftUI FAB view
+        let fabView = JournalDetailFAB(journal: journal, onTap: { [weak self] in
+            guard let self = self, let journal = self.journal else { return }
+
+            // Present entry view from UIKit layer
+            let entryView = EntryView(journal: journal)
+            let entryHostingController = UIHostingController(rootView: entryView)
+
+            if let sheet = entryHostingController.sheetPresentationController {
+                sheet.detents = [.large()]
+                sheet.prefersGrabberVisible = true
+            }
+
+            self.present(entryHostingController, animated: true)
+        })
+
+        let hostingController = UIHostingController(rootView: AnyView(fabView))
+        hostingController.view.backgroundColor = .clear
+        hostingController.view.translatesAutoresizingMaskIntoConstraints = false
+
+        addChild(hostingController)
+        view.addSubview(hostingController.view)
+        hostingController.didMove(toParent: self)
+
+        fabHostingController = hostingController
+
+        // Position FAB at bottom-right, 30pt from bottom, 18pt from trailing
+        NSLayoutConstraint.activate([
+            hostingController.view.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -18),
+            hostingController.view.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -30),
+            hostingController.view.widthAnchor.constraint(equalToConstant: 56),
+            hostingController.view.heightAnchor.constraint(equalToConstant: 56)
+        ])
+    }
+
     private func setupGestures() {
         // Pan gesture for dragging the sheet
         panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(handlePanGesture(_:)))
@@ -645,84 +685,53 @@ struct PagedJournalSheetContentWithoutSegmented: View {
     var showFAB: Bool = false
     @ObservedObject var tabSelection: TabSelection
     let useLargeListDates: Bool
-    @State private var showingEntryView = false
-    @State private var showingAudioRecord = false
-    @State private var showingFABState = false
-
-    // Calculate FAB positions to maintain 80pt from bottom of device
-    private var fabRegularPosition: CGFloat {
-        // When sheet is at regular position, calculate distance from sheet top
-        // Screen height - sheetRegularPosition - 80 (from bottom) - 56 (FAB height) - 50 (adjustment)
-        UIScreen.main.bounds.height - sheetRegularPosition - 80 - 56 - 50
+    var body: some View {
+        // Content based on selected tab (FAB moved to UIKit layer for fixed positioning)
+        Group {
+            switch tabSelection.selectedTab {
+            case 0:
+                PagedCoverTabView(journal: journal)
+            case 1:
+                ListTabView(journal: journal, useLargeListDates: useLargeListDates)
+            case 2:
+                CalendarTabView(journal: journal)
+            case 3:
+                MediaTabView()
+            case 4:
+                MapTabView()
+            default:
+                ListTabView(journal: journal, useLargeListDates: useLargeListDates)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
+}
 
-    private var fabExpandedPosition: CGFloat {
-        // When expanded, sheet is roughly at status bar height (~50pt)
-        // So we need: Screen height - 50 (expanded position) - 80 (from bottom) - 56 (FAB height)
-        UIScreen.main.bounds.height - 50 - 80 - 56
-    }
+// MARK: - Journal Detail FAB View
+struct JournalDetailFAB: View {
+    let journal: Journal
+    let onTap: () -> Void
+    @State private var showingFAB = false
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            // Content based on selected tab
-            Group {
-                switch tabSelection.selectedTab {
-                case 0:
-                    PagedCoverTabView(journal: journal)
-                case 1:
-                    ListTabView(journal: journal, useLargeListDates: useLargeListDates)
-                case 2:
-                    CalendarTabView(journal: journal)
-                case 3:
-                    MediaTabView()
-                case 4:
-                    MapTabView()
-                default:
-                    ListTabView(journal: journal, useLargeListDates: useLargeListDates)
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-            // FAB button that animates based on sheet position
-            // Same style as Today tab FAB but with journal color
-            if showFAB && showingFABState {
-                Button(action: {
-                    showingEntryView = true
-                }) {
-                    Text(DayOneIcon.plus.rawValue)
-                        .dayOneIconFont(size: 24)
-                        .foregroundColor(.white)
-                        .frame(width: 56, height: 56)
-                }
-                .background(journal.color)
-                .clipShape(Circle())
-                .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
-                .padding(.trailing, 18)
-                .padding(.top, sheetState.isExpanded ? fabExpandedPosition : fabRegularPosition)
-                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: sheetState.isExpanded)
-                .transition(.asymmetric(
-                    insertion: .scale(scale: 0.8).combined(with: .opacity),
-                    removal: .scale(scale: 0.8).combined(with: .opacity)
-                ))
-            }
+        Button(action: onTap) {
+            Text(DayOneIcon.plus.rawValue)
+                .dayOneIconFont(size: 24)
+                .foregroundColor(.white)
+                .frame(width: 56, height: 56)
         }
+        .background(journal.color)
+        .clipShape(Circle())
+        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+        .offset(y: showingFAB ? 0 : 150) // Slide up/down animation
+        .opacity(showingFAB ? 1 : 0)
         .onAppear {
-            // Only show FAB if enabled
-            if showFAB {
-                // Animate FAB in after a short delay with bounce effect
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    withAnimation(.interpolatingSpring(stiffness: 180, damping: 12)) {
-                        showingFABState = true
-                    }
+            // Animate FAB in after a short delay with bounce effect
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                withAnimation(.interpolatingSpring(stiffness: 180, damping: 12)) {
+                    showingFAB = true
                 }
             }
         }
-        .sheet(isPresented: $showingEntryView) {
-            EntryView(journal: journal)
-        }
-        .compactAudioSheet(
-            isPresented: $showingAudioRecord,
-            journal: journal
-        )
     }
 }

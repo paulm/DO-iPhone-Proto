@@ -66,6 +66,7 @@ struct JournalsTabPagedView: View {
     @State private var recentJournalsExpanded = true
     @State private var recentEntriesExpanded = true
     @State private var isEditMode = false
+    @State private var showingReorderModal = false
     @State private var journalItems: [Journal.MixedJournalItem] = Journal.mixedJournalItems
     @State private var useSeparatedCollections = false
     @State private var journalsPopulation: JournalsPopulation = .threeJournals
@@ -282,9 +283,9 @@ struct JournalsTabPagedView: View {
                     ToolbarItemGroup(placement: .navigationBarTrailing) {
                         Menu {
                             Button(action: {
-                                isEditMode.toggle()
+                                showingReorderModal = true
                             }) {
-                                Label(isEditMode ? "Done" : "Edit", systemImage: isEditMode ? "checkmark" : "pencil")
+                                Label("Edit", systemImage: "pencil")
                             }
 
                             Button(action: {
@@ -395,6 +396,13 @@ struct JournalsTabPagedView: View {
                     showRecentEntries: $showRecentEntries,
                     showJournalsSection: $journalsSectionExpanded,
                     showNewJournalButtons: $showNewJournalButtons
+                )
+            }
+            .sheet(isPresented: $showingReorderModal) {
+                JournalsReorderView(
+                    journals: filteredJournals,
+                    folders: filteredFolders,
+                    journalItems: $journalItems
                 )
             }
 
@@ -2859,6 +2867,223 @@ enum JournalSectionType: String, CaseIterable, Hashable {
         case .journals: return "book"
         case .newJournalButtons: return "plus.circle"
         }
+    }
+}
+
+// MARK: - Journals Reorder View
+struct JournalsReorderView: View {
+    @Environment(\.dismiss) private var dismiss
+    let journals: [Journal]
+    let folders: [JournalFolder]
+    @Binding var journalItems: [Journal.MixedJournalItem]
+
+    @State private var reorderableItems: [ReorderItem] = []
+
+    struct ReorderItem: Identifiable {
+        let id: String
+        var type: ItemType
+        var journal: Journal?
+        var folder: JournalFolder?
+        var children: [ReorderItem]
+        var isExpanded: Bool
+
+        enum ItemType {
+            case journal
+            case folder
+        }
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                ForEach(reorderableItems) { item in
+                    if item.type == .folder {
+                        FolderReorderSection(
+                            folder: item.folder!,
+                            isExpanded: item.isExpanded,
+                            children: item.children,
+                            onToggle: {
+                                toggleFolder(item.id)
+                            }
+                        )
+                    } else {
+                        JournalReorderRow(journal: item.journal!)
+                    }
+                }
+                .onMove(perform: moveItems)
+            }
+            .listStyle(.plain)
+            .navigationTitle("Edit Journals")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .onAppear {
+            setupReorderableItems()
+        }
+    }
+
+    private func setupReorderableItems() {
+        var items: [ReorderItem] = []
+
+        // Add folders first
+        for folder in folders {
+            var folderJournals: [Journal] = []
+
+            // Find journals that belong to this folder
+            for journal in journals {
+                for item in journalItems {
+                    if item.isFolder, let f = item.folder, f.id == folder.id {
+                        if f.journals.contains(where: { $0.id == journal.id }) {
+                            folderJournals.append(journal)
+                            break
+                        }
+                    }
+                }
+            }
+
+            let children = folderJournals.map { journal in
+                ReorderItem(
+                    id: journal.id,
+                    type: .journal,
+                    journal: journal,
+                    folder: nil,
+                    children: [],
+                    isExpanded: false
+                )
+            }
+
+            items.append(ReorderItem(
+                id: folder.id,
+                type: .folder,
+                journal: nil,
+                folder: folder,
+                children: children,
+                isExpanded: true
+            ))
+        }
+
+        // Add standalone journals (not in any folder)
+        for journal in journals {
+            var isInFolder = false
+
+            for folder in folders {
+                for item in journalItems {
+                    if item.isFolder, let f = item.folder, f.id == folder.id {
+                        if f.journals.contains(where: { $0.id == journal.id }) {
+                            isInFolder = true
+                            break
+                        }
+                    }
+                }
+                if isInFolder { break }
+            }
+
+            if !isInFolder {
+                items.append(ReorderItem(
+                    id: journal.id,
+                    type: .journal,
+                    journal: journal,
+                    folder: nil,
+                    children: [],
+                    isExpanded: false
+                ))
+            }
+        }
+
+        reorderableItems = items
+    }
+
+    private func toggleFolder(_ id: String) {
+        if let index = reorderableItems.firstIndex(where: { $0.id == id }) {
+            reorderableItems[index].isExpanded.toggle()
+        }
+    }
+
+    private func moveItems(from source: IndexSet, to destination: Int) {
+        reorderableItems.move(fromOffsets: source, toOffset: destination)
+    }
+}
+
+struct FolderReorderSection: View {
+    let folder: JournalFolder
+    let isExpanded: Bool
+    let children: [JournalsReorderView.ReorderItem]
+    let onToggle: () -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Folder header
+            Button(action: onToggle) {
+                HStack(spacing: 12) {
+                    Image(systemName: "folder.fill")
+                        .font(.system(size: 18))
+                        .foregroundStyle(Color(hex: "333B40"))
+
+                    Text(folder.name)
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.secondary)
+                        .rotationEffect(.degrees(isExpanded ? 90 : 0))
+
+                    Image(systemName: "line.3.horizontal")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.vertical, 8)
+            }
+            .buttonStyle(PlainButtonStyle())
+
+            // Folder contents
+            if isExpanded {
+                ForEach(children) { child in
+                    if let journal = child.journal {
+                        JournalReorderRow(journal: journal)
+                            .padding(.leading, 32)
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct JournalReorderRow: View {
+    let journal: Journal
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Circle()
+                .fill(journal.color)
+                .frame(width: 12, height: 12)
+
+            Text(journal.name)
+                .font(.body)
+                .foregroundStyle(.primary)
+
+            Spacer()
+
+            if let count = journal.entryCount {
+                Text("\(count)")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+
+            Image(systemName: "line.3.horizontal")
+                .font(.system(size: 14))
+                .foregroundStyle(.secondary)
+        }
+        .padding(.vertical, 6)
     }
 }
 

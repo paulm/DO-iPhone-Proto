@@ -267,18 +267,17 @@ struct JournalsTabPagedView: View {
                         }
                     }
 
-//                    // Spacer to separate buttons into different pill backgrounds
-//                    ToolbarSpacer(.fixed, placement: .navigationBarLeading)
-//
-//                    // Text-only New Journal button
-//                    ToolbarItem(placement: .navigationBarLeading) {
-//                        Button(action: {
-//                            // TODO: Add new journal action
-//                        }) {
-//                            Text("+ New Journal")
-//                                .font(.subheadline)
-//                        }
-//                    }
+                    // Spacer to separate buttons into different pill backgrounds
+                    ToolbarSpacer(.fixed, placement: .navigationBarLeading)
+
+                    // Edit button to open reorder modal
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button(action: {
+                            showingReorderModal = true
+                        }) {
+                            Text("Edit")
+                        }
+                    }
 
                     ToolbarItemGroup(placement: .navigationBarTrailing) {
                         Menu {

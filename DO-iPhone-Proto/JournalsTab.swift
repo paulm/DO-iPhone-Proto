@@ -1020,13 +1020,10 @@ struct JournalsTabPagedView: View {
     @ViewBuilder
     private var iconsJournalsSection: some View {
         // All Entries collection-style row at the top
-            if filteredJournals.count > 1, let allEntries = allEntriesJournal {
-                let filteredJournalCount = filteredJournals.count
-                let filteredEntryCount = filteredJournals.compactMap { $0.entryCount }.reduce(0, +)
-
+            if let allEntries = allEntriesJournal {
                 AllEntriesCollectionRow(
-                    totalJournalCount: filteredJournalCount,
-                    totalEntryCount: filteredEntryCount,
+                    totalJournalCount: allEntries.journalCount ?? 0,
+                    totalEntryCount: allEntries.entryCount ?? 0,
                     onSelect: {
                         journalViewModel.selectJournal(allEntries)
                         selectedJournal = allEntries
@@ -1358,13 +1355,10 @@ struct JournalsTabPagedView: View {
     @ViewBuilder
     private var journalsSection: some View {
         // All Entries collection-style row at the top
-            if filteredJournals.count > 1, let allEntries = allEntriesJournal {
-                let filteredJournalCount = filteredJournals.count
-                let filteredEntryCount = filteredJournals.compactMap { $0.entryCount }.reduce(0, +)
-
+            if let allEntries = allEntriesJournal {
                 CompactAllEntriesCollectionRow(
-                    totalJournalCount: filteredJournalCount,
-                    totalEntryCount: filteredEntryCount,
+                    totalJournalCount: allEntries.journalCount ?? 0,
+                    totalEntryCount: allEntries.entryCount ?? 0,
                     onSelect: {
                         journalViewModel.selectJournal(allEntries)
                         selectedJournal = allEntries

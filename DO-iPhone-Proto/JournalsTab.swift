@@ -72,6 +72,8 @@ struct JournalsTabPagedView: View {
     @State private var journalsPopulation: JournalsPopulation = .threeJournals
     @State private var showAddJournalTips = false
     @State private var showTrashRow = false
+    @State private var showCompactView = false
+    @State private var showBooksView = false
     @State private var showNewJournalButtons = false
     @State private var showAllEntries = false
     @State private var showingSectionsOrder = false
@@ -159,6 +161,14 @@ struct JournalsTabPagedView: View {
         return filteredJournals.contains(where: { $0.name == "Travel" })
     }
 
+    // Count available view modes (Icons is always available)
+    private var availableViewModesCount: Int {
+        var count = 1 // Icons is always available
+        if showCompactView { count += 1 }
+        if showBooksView { count += 1 }
+        return count
+    }
+
     // Determine which tip to show based on progression
     // Order: Notes -> Work -> Travel
     private enum CurrentJournalTip {
@@ -234,6 +244,18 @@ struct JournalsTabPagedView: View {
                 shouldShowAudioAfterEntry = false
             }
         }
+        .onChange(of: showCompactView) { _, newValue in
+            // If Compact view is hidden and we're currently in compact mode, switch to list mode
+            if !newValue && viewMode == .compact {
+                viewMode = .list
+            }
+        }
+        .onChange(of: showBooksView) { _, newValue in
+            // If Books view is hidden and we're currently in grid mode, switch to list mode
+            if !newValue && viewMode == .grid {
+                viewMode = .list
+            }
+        }
     }
     
     // MARK: - Navigation Content
@@ -305,18 +327,25 @@ struct JournalsTabPagedView: View {
                                 Label("Sort", systemImage: "arrow.up.arrow.down")
                             }
 
-                            Divider()
+                            // Only show View Style picker if more than one view mode is available
+                            if availableViewModesCount > 1 {
+                                Divider()
 
-                            Picker("View Style", selection: $viewMode) {
-                                Label("Compact", systemImage: "list.bullet")
-                                    .tag(ViewMode.compact)
-                                Label("Icons", systemImage: "square.grid.3x3")
-                                    .tag(ViewMode.list)
-                                Label("Books", systemImage: "books.vertical")
-                                    .tag(ViewMode.grid)
+                                Picker("View Style", selection: $viewMode) {
+                                    if showCompactView {
+                                        Label("Compact", systemImage: "list.bullet")
+                                            .tag(ViewMode.compact)
+                                    }
+                                    Label("Icons", systemImage: "square.grid.3x3")
+                                        .tag(ViewMode.list)
+                                    if showBooksView {
+                                        Label("Books", systemImage: "books.vertical")
+                                            .tag(ViewMode.grid)
+                                    }
+                                }
+
+                                Divider()
                             }
-
-                            Divider()
 
                             Toggle(isOn: $showRecentJournals) {
                                 Label("Show Recent Journals", systemImage: "clock")
@@ -349,6 +378,14 @@ struct JournalsTabPagedView: View {
 
                                 Toggle(isOn: $showTrashRow) {
                                     Label("Show Trash Row", systemImage: "trash")
+                                }
+
+                                Toggle(isOn: $showCompactView) {
+                                    Label("Show Compact View", systemImage: "list.bullet")
+                                }
+
+                                Toggle(isOn: $showBooksView) {
+                                    Label("Show Books View", systemImage: "books.vertical")
                                 }
                             }
 

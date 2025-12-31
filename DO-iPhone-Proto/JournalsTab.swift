@@ -1114,6 +1114,10 @@ struct JournalsTabPagedView: View {
                             onSelect: {
                                 journalViewModel.selectJournal(journal)
                                 selectedJournal = journal
+                            },
+                            onNewEntry: {
+                                selectedJournal = journal
+                                showingNewEntry = true
                             }
                         )
                     }
@@ -1155,6 +1159,10 @@ struct JournalsTabPagedView: View {
                                 onSelect: {
                                     journalViewModel.selectJournal(journal)
                                     selectedJournal = journal
+                                },
+                                onNewEntry: {
+                                    selectedJournal = journal
+                                    showingNewEntry = true
                                 }
                             )
                             .padding(.leading, 20)
@@ -1187,6 +1195,10 @@ struct JournalsTabPagedView: View {
                                     onSelect: {
                                         journalViewModel.selectJournal(journal)
                                         selectedJournal = journal
+                                    },
+                                    onNewEntry: {
+                                        selectedJournal = journal
+                                        showingNewEntry = true
                                     }
                                 )
                                 .padding(.leading, 20)
@@ -1199,6 +1211,10 @@ struct JournalsTabPagedView: View {
                             onSelect: {
                                 journalViewModel.selectJournal(journal)
                                 selectedJournal = journal
+                            },
+                            onNewEntry: {
+                                selectedJournal = journal
+                                showingNewEntry = true
                             }
                         )
                     }
@@ -1901,7 +1917,9 @@ struct CompactJournalRow: View {
     let journal: Journal
     let isSelected: Bool
     let onSelect: () -> Void
-    
+    var onNewEntry: (() -> Void)? = nil
+    @State private var showingEditJournal = false
+
     var body: some View {
         Button(action: onSelect) {
             HStack(spacing: 12) {
@@ -1948,16 +1966,18 @@ struct CompactJournalRow: View {
         }
         .buttonStyle(PlainButtonStyle())
         .contextMenu {
-            Button(action: {
-                // TODO: Edit journal action
-            }) {
-                Label("Edit Journal", systemImage: "pencil")
+            if let newEntry = onNewEntry {
+                Button {
+                    newEntry()
+                } label: {
+                    Label("New Entry", systemImage: "plus")
+                }
             }
 
-            Button(action: {
-                // TODO: New entry action
-            }) {
-                Label("New Entry", systemImage: "plus")
+            Button {
+                showingEditJournal = true
+            } label: {
+                Label("Edit Journal", systemImage: "pencil")
             }
         }
     }
@@ -2162,6 +2182,21 @@ struct JournalRow: View {
 
             Divider()
                 .padding(.leading, 0)
+        }
+        .contextMenu {
+            if let newEntry = onNewEntry {
+                Button {
+                    newEntry()
+                } label: {
+                    Label("New Entry", systemImage: "plus")
+                }
+            }
+
+            Button {
+                showingEditJournal = true
+            } label: {
+                Label("Edit Journal", systemImage: "pencil")
+            }
         }
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
             // New Entry (journal color)

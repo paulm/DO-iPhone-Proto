@@ -85,6 +85,11 @@ struct JournalsTabPagedView: View {
     @State private var manuallyAddedJournalNames: Set<String> = []
     @State private var dismissedJournalTips: Set<String> = [] // Track dismissed tips by journal name
 
+    // Rename state
+    @State private var renamingCollectionID: String? = nil
+    @State private var editedCollectionName = ""
+    @FocusState private var collectionNameFieldFocused: Bool
+
     // New Journal FAB state
     @State private var showingNewJournalFAB = false
 
@@ -232,6 +237,44 @@ struct JournalsTabPagedView: View {
         dismissedJournalTips.insert(name)
     }
 
+    // Add new collection to the bottom of the list
+    private func addNewCollection() {
+        let newName = generateNewCollectionName()
+        let newId = UUID().uuidString
+
+        // Create new folder
+        let newFolder = JournalFolder(id: newId, name: newName, journals: [])
+
+        // Add to journalItems at the end
+        journalItems.append(Journal.MixedJournalItem(folder: newFolder))
+
+        // Immediately enter rename mode
+        renamingCollectionID = newId
+        editedCollectionName = newName
+
+        // Focus the text field after a short delay to ensure it's rendered
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            collectionNameFieldFocused = true
+        }
+    }
+
+    // Generate unique name for new collections
+    private func generateNewCollectionName() -> String {
+        let existingNames = Set(journalItems.compactMap { item -> String? in
+            if let folder = item.folder {
+                return folder.name
+            }
+            return nil
+        })
+
+        var counter = 1
+        while existingNames.contains("New Collection \(counter)") {
+            counter += 1
+        }
+
+        return "New Collection \(counter)"
+    }
+
     var body: some View {
         navigationContent
         .sheet(isPresented: $showingNewEntry) {
@@ -282,7 +325,7 @@ struct JournalsTabPagedView: View {
                     // New Collection button
                     ToolbarItem(placement: .navigationBarLeading) {
                         Button(action: {
-                            // TODO: Add new collection action
+                            addNewCollection()
                         }) {
                             Image("media-library-folder-add")
                                 .renderingMode(.template)
@@ -310,21 +353,15 @@ struct JournalsTabPagedView: View {
                             }
 
                             Button(action: {
-                                // TODO: Select multiple journals action
-                            }) {
-                                Label("Select", systemImage: "checkmark.circle")
-                            }
-
-                            Button(action: {
                                 // TODO: Add new journal action
                             }) {
                                 Label("New Journal", systemImage: "plus")
                             }
 
                             Button(action: {
-                                showingSectionsOrder = true
+                                addNewCollection()
                             }) {
-                                Label("Sort", systemImage: "arrow.up.arrow.down")
+                                Label("New Collection", systemImage: "folder.badge.plus")
                             }
 
                             // Only show View Style picker if more than one view mode is available
@@ -346,6 +383,8 @@ struct JournalsTabPagedView: View {
 
                                 Divider()
                             }
+
+                            Divider()
 
                             Toggle(isOn: $showRecentJournals) {
                                 Label("Show Recent Journals", systemImage: "clock")
@@ -871,6 +910,25 @@ struct JournalsTabPagedView: View {
                         },
                         onSelectFolder: {
                             selectedFolder = folder
+                        },
+                        isRenaming: renamingCollectionID == folder.id,
+                        editedName: $editedCollectionName,
+                        onRenameSubmit: {
+                            if !editedCollectionName.isEmpty {
+                                print("Rename collection '\(folder.name)' to '\(editedCollectionName)'")
+                                // TODO: Implement collection rename
+                            }
+                            renamingCollectionID = nil
+                        },
+                        nameFieldFocused: $collectionNameFieldFocused,
+                        onRename: {
+                            editedCollectionName = folder.name
+                            renamingCollectionID = folder.id
+                            collectionNameFieldFocused = true
+                        },
+                        onDelete: {
+                            print("Delete collection '\(folder.name)'")
+                            // TODO: Implement collection deletion
                         }
                     )
                     .id(folder.id)
@@ -888,6 +946,14 @@ struct JournalsTabPagedView: View {
                                 onNewEntry: {
                                     journalViewModel.selectJournal(journal)
                                     showingNewEntry = true
+                                },
+                                onRename: { newName in
+                                    print("Rename journal '\(journal.name)' to '\(newName)'")
+                                    // TODO: Implement journal rename
+                                },
+                                onDelete: {
+                                    print("Delete journal '\(journal.name)'")
+                                    // TODO: Implement journal deletion
                                 }
                             )
                             .padding(.leading, 20)
@@ -905,6 +971,14 @@ struct JournalsTabPagedView: View {
                         onNewEntry: {
                             journalViewModel.selectJournal(journal)
                             showingNewEntry = true
+                        },
+                        onRename: { newName in
+                            print("Rename journal '\(journal.name)' to '\(newName)'")
+                            // TODO: Implement journal rename
+                        },
+                        onDelete: {
+                            print("Delete journal '\(journal.name)'")
+                            // TODO: Implement journal deletion
                         }
                     )
                 }
@@ -1118,6 +1192,14 @@ struct JournalsTabPagedView: View {
                             onNewEntry: {
                                 selectedJournal = journal
                                 showingNewEntry = true
+                            },
+                            onRename: { newName in
+                                print("Rename journal '\(journal.name)' to '\(newName)'")
+                                // TODO: Implement journal rename
+                            },
+                            onDelete: {
+                                print("Delete journal '\(journal.name)'")
+                                // TODO: Implement journal deletion
                             }
                         )
                     }
@@ -1148,6 +1230,25 @@ struct JournalsTabPagedView: View {
                         },
                         onSelectFolder: {
                             selectedFolder = folder
+                        },
+                        isRenaming: renamingCollectionID == folder.id,
+                        editedName: $editedCollectionName,
+                        onRenameSubmit: {
+                            if !editedCollectionName.isEmpty {
+                                print("Rename collection '\(folder.name)' to '\(editedCollectionName)'")
+                                // TODO: Implement collection rename
+                            }
+                            renamingCollectionID = nil
+                        },
+                        nameFieldFocused: $collectionNameFieldFocused,
+                        onRename: {
+                            editedCollectionName = folder.name
+                            renamingCollectionID = folder.id
+                            collectionNameFieldFocused = true
+                        },
+                        onDelete: {
+                            print("Delete collection '\(folder.name)'")
+                            // TODO: Implement collection deletion
                         }
                     )
 
@@ -1184,7 +1285,17 @@ struct JournalsTabPagedView: View {
                             },
                             onSelectFolder: {
                                 selectedFolder = folder
-                            }
+                            },
+                            isRenaming: renamingCollectionID == folder.id,
+                            editedName: $editedCollectionName,
+                            onRenameSubmit: {
+                                if !editedCollectionName.isEmpty {
+                                    print("Rename collection '\(folder.name)' to '\(editedCollectionName)'")
+                                    // TODO: Implement collection rename
+                                }
+                                renamingCollectionID = nil
+                            },
+                            nameFieldFocused: $collectionNameFieldFocused
                         )
 
                         if expandedFolders.contains(folder.id) {
@@ -1215,6 +1326,14 @@ struct JournalsTabPagedView: View {
                             onNewEntry: {
                                 selectedJournal = journal
                                 showingNewEntry = true
+                            },
+                            onRename: { newName in
+                                print("Rename journal '\(journal.name)' to '\(newName)'")
+                                // TODO: Implement journal rename
+                            },
+                            onDelete: {
+                                print("Delete journal '\(journal.name)'")
+                                // TODO: Implement journal deletion
                             }
                         )
                     }
@@ -1918,7 +2037,13 @@ struct CompactJournalRow: View {
     let isSelected: Bool
     let onSelect: () -> Void
     var onNewEntry: (() -> Void)? = nil
+    var onRename: ((String) -> Void)? = nil
+    var onDelete: (() -> Void)? = nil
     @State private var showingEditJournal = false
+    @State private var isRenaming = false
+    @State private var editedName = ""
+    @State private var showingDeleteConfirmation = false
+    @FocusState private var isNameFieldFocused: Bool
 
     var body: some View {
         Button(action: onSelect) {
@@ -1927,12 +2052,27 @@ struct CompactJournalRow: View {
                 Circle()
                     .fill(journal.color)
                     .frame(width: 12, height: 12)
-                
+
                 // Journal name
-                Text(journal.name)
-                    .font(.body)
-                    .fontWeight(.regular)
-                    .foregroundStyle(.primary)
+                if isRenaming {
+                    TextField("Journal Name", text: $editedName)
+                        .font(.body)
+                        .fontWeight(.regular)
+                        .foregroundStyle(.primary)
+                        .focused($isNameFieldFocused)
+                        .onSubmit {
+                            if !editedName.isEmpty {
+                                onRename?(editedName)
+                            }
+                            isRenaming = false
+                        }
+                        .submitLabel(.done)
+                } else {
+                    Text(journal.name)
+                        .font(.body)
+                        .fontWeight(.regular)
+                        .foregroundStyle(.primary)
+                }
 
                 Spacer()
 
@@ -1979,6 +2119,32 @@ struct CompactJournalRow: View {
             } label: {
                 Label("Edit Journal", systemImage: "pencil")
             }
+
+            Button {
+                editedName = journal.name
+                isRenaming = true
+                isNameFieldFocused = true
+            } label: {
+                Label("Rename", systemImage: "character.cursor.ibeam")
+            }
+
+            Button(role: .destructive) {
+                showingDeleteConfirmation = true
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        }
+        .alert("Delete Journal", isPresented: $showingDeleteConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
+                onDelete?()
+            }
+        } message: {
+            if let count = journal.entryCount, count > 0 {
+                Text("This journal contains \(count) \(count == 1 ? "entry" : "entries"). All entries will be permanently deleted.")
+            } else {
+                Text("Are you sure you want to delete this journal?")
+            }
         }
     }
 }
@@ -1988,6 +2154,13 @@ struct CompactFolderRow: View {
     let isExpanded: Bool
     let onToggle: () -> Void
     let onSelectFolder: () -> Void
+    var isRenaming: Bool = false
+    @Binding var editedName: String
+    var onRenameSubmit: (() -> Void)? = nil
+    var nameFieldFocused: FocusState<Bool>.Binding
+    var onRename: (() -> Void)? = nil
+    var onDelete: (() -> Void)? = nil
+    @State private var showingDeleteConfirmation = false
 
     var body: some View {
         Button(action: onSelectFolder) {
@@ -1999,10 +2172,22 @@ struct CompactFolderRow: View {
                     .foregroundStyle(Color(hex: "333B40"))
 
                 // Folder name
-                Text(folder.name)
-                    .font(.body)
-                    .fontWeight(.medium)
-                    .foregroundStyle(.primary)
+                if isRenaming {
+                    TextField("Collection Name", text: $editedName)
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                        .focused(nameFieldFocused)
+                        .onSubmit {
+                            onRenameSubmit?()
+                        }
+                        .submitLabel(.done)
+                } else {
+                    Text(folder.name)
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                }
 
                 Spacer()
 
@@ -2034,6 +2219,31 @@ struct CompactFolderRow: View {
             }
         }
         .buttonStyle(PlainButtonStyle())
+        .contextMenu {
+            Button {
+                onRename?()
+            } label: {
+                Label("Rename", systemImage: "character.cursor.ibeam")
+            }
+
+            Button(role: .destructive) {
+                showingDeleteConfirmation = true
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        }
+        .alert("Delete Collection", isPresented: $showingDeleteConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
+                onDelete?()
+            }
+        } message: {
+            if folder.journalCount > 0 {
+                Text("This collection contains \(folder.journalCount) \(folder.journalCount == 1 ? "journal" : "journals"). All journals will be preserved and moved out of the collection.")
+            } else {
+                Text("Are you sure you want to delete this collection?")
+            }
+        }
         .padding(.vertical, 0)
         .padding(.horizontal, 0)
     }
@@ -2045,6 +2255,13 @@ struct FolderRow: View {
     let isEditMode: Bool
     let onToggle: () -> Void
     let onSelectFolder: () -> Void
+    var isRenaming: Bool = false
+    @Binding var editedName: String
+    var onRenameSubmit: (() -> Void)? = nil
+    var nameFieldFocused: FocusState<Bool>.Binding
+    var onRename: (() -> Void)? = nil
+    var onDelete: (() -> Void)? = nil
+    @State private var showingDeleteConfirmation = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -2060,10 +2277,22 @@ struct FolderRow: View {
 
                         // Folder info
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(folder.name)
-                                .font(.headline)
-                                .fontWeight(.medium)
-                                .foregroundStyle(.primary)
+                            if isRenaming {
+                                TextField("Collection Name", text: $editedName)
+                                    .font(.headline)
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(.primary)
+                                    .focused(nameFieldFocused)
+                                    .onSubmit {
+                                        onRenameSubmit?()
+                                    }
+                                    .submitLabel(.done)
+                            } else {
+                                Text(folder.name)
+                                    .font(.headline)
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(.primary)
+                            }
 
                             HStack(spacing: 4) {
                                 Text("\(folder.journalCount) journals")
@@ -2106,6 +2335,31 @@ struct FolderRow: View {
                     .padding(.leading, 0)
             }
         }
+        .contextMenu {
+            Button {
+                onRename?()
+            } label: {
+                Label("Rename", systemImage: "character.cursor.ibeam")
+            }
+
+            Button(role: .destructive) {
+                showingDeleteConfirmation = true
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        }
+        .alert("Delete Collection", isPresented: $showingDeleteConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
+                onDelete?()
+            }
+        } message: {
+            if folder.journalCount > 0 {
+                Text("This collection contains \(folder.journalCount) \(folder.journalCount == 1 ? "journal" : "journals"). All journals will be preserved and moved out of the collection.")
+            } else {
+                Text("Are you sure you want to delete this collection?")
+            }
+        }
         .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
         .listRowSeparator(.hidden)
     }
@@ -2117,7 +2371,13 @@ struct JournalRow: View {
     let isEditMode: Bool
     let onSelect: () -> Void
     var onNewEntry: (() -> Void)? = nil
+    var onRename: ((String) -> Void)? = nil
+    var onDelete: (() -> Void)? = nil
     @State private var showingEditJournal = false
+    @State private var isRenaming = false
+    @State private var editedName = ""
+    @State private var showingDeleteConfirmation = false
+    @FocusState private var isNameFieldFocused: Bool
 
     var body: some View {
         VStack(spacing: 0) {
@@ -2141,10 +2401,25 @@ struct JournalRow: View {
 
                         // Journal info
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(journal.name)
-                                .font(.headline)
-                                .fontWeight(.medium)
-                                .foregroundStyle(.primary)
+                            if isRenaming {
+                                TextField("Journal Name", text: $editedName)
+                                    .font(.headline)
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(.primary)
+                                    .focused($isNameFieldFocused)
+                                    .onSubmit {
+                                        if !editedName.isEmpty {
+                                            onRename?(editedName)
+                                        }
+                                        isRenaming = false
+                                    }
+                                    .submitLabel(.done)
+                            } else {
+                                Text(journal.name)
+                                    .font(.headline)
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(.primary)
+                            }
 
                             // Show journal count for "All Entries"
                             if let journalCount = journal.journalCount {
@@ -2196,6 +2471,32 @@ struct JournalRow: View {
                 showingEditJournal = true
             } label: {
                 Label("Edit Journal", systemImage: "pencil")
+            }
+
+            Button {
+                editedName = journal.name
+                isRenaming = true
+                isNameFieldFocused = true
+            } label: {
+                Label("Rename", systemImage: "character.cursor.ibeam")
+            }
+
+            Button(role: .destructive) {
+                showingDeleteConfirmation = true
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        }
+        .alert("Delete Journal", isPresented: $showingDeleteConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
+                onDelete?()
+            }
+        } message: {
+            if let count = journal.entryCount, count > 0 {
+                Text("This journal contains \(count) \(count == 1 ? "entry" : "entries"). All entries will be permanently deleted.")
+            } else {
+                Text("Are you sure you want to delete this journal?")
             }
         }
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {

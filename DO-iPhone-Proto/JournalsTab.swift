@@ -2538,6 +2538,8 @@ struct FolderRow: View {
                                     .font(.headline)
                                     .fontWeight(.medium)
                                     .foregroundStyle(.primary)
+                                    .lineLimit(2)
+                                    .truncationMode(.tail)
                             }
 
                             HStack(spacing: 4) {
@@ -2665,6 +2667,8 @@ struct JournalRow: View {
                                     .font(.headline)
                                     .fontWeight(.medium)
                                     .foregroundStyle(.primary)
+                                    .lineLimit(2)
+                                    .truncationMode(.tail)
                             }
 
                             // Show journal count for "All Entries"
@@ -3580,6 +3584,9 @@ struct JournalsReorderView: View {
                                 },
                                 onRemoveFromCollection: {
                                     removeJournalFromCollection(journal: journalNode)
+                                },
+                                onRename: { newName in
+                                    renameJournal(id: journalNode.id, newName: newName)
                                 }
                             )
                         case .collection(let collection):
@@ -3588,7 +3595,10 @@ struct JournalsReorderView: View {
                                 accentColor: accentColor,
                                 isFlashing: flashingCollectionId == collection.id,
                                 flashColor: flashColor,
-                                onTap: { toggleCollection(id: collection.id) }
+                                onTap: { toggleCollection(id: collection.id) },
+                                onRename: { newName in
+                                    renameCollection(id: collection.id, newName: newName)
+                                }
                             )
                         case .dropZone:
                             EmptyView()
@@ -3724,6 +3734,53 @@ struct JournalsReorderView: View {
                 updateCollection(collection)
                 rebuildCache()
                 applyChangesLive()
+            }
+        }
+    }
+
+    func renameCollection(id: String, newName: String) {
+        withAnimation {
+            if let index = findCollectionIndex(id: id),
+               case .collection(var collection) = rootItems[index] {
+                collection.name = newName
+                updateCollection(collection)
+                rootItems[index] = .collection(collection)
+                rebuildCache()
+                applyChangesLive()
+            }
+        }
+    }
+
+    func renameJournal(id: String, newName: String) {
+        withAnimation {
+            // Find journal in root items
+            if let index = rootItems.firstIndex(where: {
+                if case .journal(let node, _) = $0, node.id == id {
+                    return true
+                }
+                return false
+            }), case .journal(let node, let isNested) = rootItems[index] {
+                // Create new journal with updated name
+                let updatedJournal = node.journal.withName(newName)
+                let updatedNode = JournalNode(id: node.id, journal: updatedJournal)
+                rootItems[index] = .journal(updatedNode, isNested: isNested)
+                rebuildCache()
+                applyChangesLive()
+                return
+            }
+
+            // Find journal in collections
+            for (collectionId, var collection) in collections {
+                if let journalIndex = collection.contents.firstIndex(where: { $0.id == id }) {
+                    // Create new journal with updated name
+                    let updatedJournal = collection.contents[journalIndex].journal.withName(newName)
+                    let updatedNode = JournalNode(id: collection.contents[journalIndex].id, journal: updatedJournal)
+                    collection.contents[journalIndex] = updatedNode
+                    updateCollection(collection)
+                    rebuildCache()
+                    applyChangesLive()
+                    return
+                }
             }
         }
     }
@@ -4128,11 +4185,16 @@ struct JournalReorderRow: View {
     let accentColor: Color
     let onMoveToCollection: (String) -> Void
     let onRemoveFromCollection: () -> Void
+    let onRename: ((String) -> Void)?
+
+    @State private var isRenaming = false
+    @State private var editedName = ""
+    @FocusState private var isNameFieldFocused: Bool
 
     private enum Layout {
-        static let iconSize: CGFloat = 20
-        static let rowSpacing: CGFloat = 12
-        static let rowVerticalPadding: CGFloat = 4
+        static let iconSize: CGFloat = 12
+        static let rowSpacing: CGFloat = 14
+        static let rowVerticalPadding: CGFloat = 0
         static let nestedIndentation: CGFloat = 32
     }
 
@@ -4143,8 +4205,31 @@ struct JournalReorderRow: View {
                 .fill(journalNode.color)
                 .frame(width: Layout.iconSize, height: Layout.iconSize)
 
-            Text(journalNode.name)
-                .font(.body)
+            if isRenaming {
+                TextField("Journal Name", text: $editedName)
+                    .font(.body)
+                    .focused($isNameFieldFocused)
+                    .onSubmit {
+                        if !editedName.isEmpty {
+                            onRename?(editedName)
+                        }
+                        isRenaming = false
+                    }
+                    .submitLabel(.done)
+                    .onChange(of: isNameFieldFocused) { _, isFocused in
+                        if !isFocused && isRenaming {
+                            if !editedName.isEmpty {
+                                onRename?(editedName)
+                            }
+                            isRenaming = false
+                        }
+                    }
+            } else {
+                Text(journalNode.name)
+                    .font(.body)
+                    .lineLimit(2)
+                    .truncationMode(.tail)
+            }
 
             Spacer()
 
@@ -4161,7 +4246,7 @@ struct JournalReorderRow: View {
                     onRemoveFromCollection()
                 } label: {
                     Image(systemName: "folder.badge.minus")
-                        .foregroundColor(accentColor)
+                        .foregroundColor(.secondary)
                         .font(.body)
                 }
                 .buttonStyle(.plain)
@@ -4183,6 +4268,12 @@ struct JournalReorderRow: View {
         }
         .padding(.vertical, Layout.rowVerticalPadding)
         .padding(.leading, isNested ? Layout.nestedIndentation : 0)
+        .onTapGesture(count: 2) {
+            editedName = journalNode.name
+            isRenaming = true
+            isNameFieldFocused = true
+        }
+        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
     }
 }
 
@@ -4194,6 +4285,11 @@ struct CollectionReorderRow: View {
     let isFlashing: Bool
     let flashColor: Color
     let onTap: () -> Void
+    let onRename: ((String) -> Void)?
+
+    @State private var isRenaming = false
+    @State private var editedName = ""
+    @FocusState private var isNameFieldFocused: Bool
 
     private enum Layout {
         static let iconSize: CGFloat = 20
@@ -4209,8 +4305,33 @@ struct CollectionReorderRow: View {
                 .frame(width: Layout.iconSize, height: Layout.iconSize)
                 .foregroundStyle(collection.color)
 
-            Text(collection.name)
-                .font(.body)
+            if isRenaming {
+                TextField("Collection Name", text: $editedName)
+                    .font(.body)
+                    .fontWeight(.semibold)
+                    .focused($isNameFieldFocused)
+                    .onSubmit {
+                        if !editedName.isEmpty {
+                            onRename?(editedName)
+                        }
+                        isRenaming = false
+                    }
+                    .submitLabel(.done)
+                    .onChange(of: isNameFieldFocused) { _, isFocused in
+                        if !isFocused && isRenaming {
+                            if !editedName.isEmpty {
+                                onRename?(editedName)
+                            }
+                            isRenaming = false
+                        }
+                    }
+            } else {
+                Text(collection.name)
+                    .font(.body)
+                    .fontWeight(.semibold)
+                    .lineLimit(2)
+                    .truncationMode(.tail)
+            }
 
             Spacer()
 
@@ -4234,6 +4355,12 @@ struct CollectionReorderRow: View {
         .onTapGesture {
             onTap()
         }
+        .onTapGesture(count: 2) {
+            editedName = collection.name
+            isRenaming = true
+            isNameFieldFocused = true
+        }
+        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
     }
 }
 

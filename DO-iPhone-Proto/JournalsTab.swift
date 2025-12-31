@@ -69,7 +69,7 @@ struct JournalsTabPagedView: View {
     @State private var showingReorderModal = false
     @State private var journalItems: [Journal.MixedJournalItem] = Journal.mixedJournalItems
     @State private var useSeparatedCollections = false
-    @State private var journalsPopulation: JournalsPopulation = .threeJournals
+    @State private var journalsPopulation: JournalsPopulation = .lots
     @State private var showAddJournalTips = false
     @State private var showTrashRow = false
     @State private var showCompactView = false
@@ -2906,220 +2906,694 @@ enum JournalSectionType: String, CaseIterable, Hashable {
     }
 }
 
+// MARK: - Journals Reorder View Data Models
+
+// Simple adapter node for journals
+struct JournalNode: Identifiable, Equatable {
+    let id: String
+    let journal: Journal
+
+    var name: String { journal.name }
+    var color: Color { journal.color }
+    var entryCount: Int? { journal.entryCount }
+}
+
+// Collection (formerly Folder) node with expandable contents
+struct CollectionNode: Identifiable, Equatable {
+    let id: String
+    var name: String
+    var contents: [JournalNode]
+    var isExpanded: Bool = false
+
+    var itemCount: Int { contents.count }
+    var color: Color { Color(hex: "333B40") }
+}
+
+// Display node union type for rendering
+enum DisplayNode: Identifiable, Equatable {
+    case journal(JournalNode, isNested: Bool = false)
+    case collection(CollectionNode)
+    case dropZone
+
+    var id: String {
+        switch self {
+        case .journal(let journal, _): return journal.id
+        case .collection(let collection): return collection.id
+        case .dropZone: return "dropZone"
+        }
+    }
+}
+
 // MARK: - Journals Reorder View
+
 struct JournalsReorderView: View {
+    // MARK: - Layout Constants
+    private enum Layout {
+        static let nestedIndentation: CGFloat = 32
+        static let rowVerticalPadding: CGFloat = 4
+        static let iconSize: CGFloat = 20
+        static let rowSpacing: CGFloat = 12
+    }
+
+    // MARK: - Haptics
+    private let impactLight = UIImpactFeedbackGenerator(style: .light)
+    private let impactMedium = UIImpactFeedbackGenerator(style: .medium)
+    private let selectionFeedback = UISelectionFeedbackGenerator()
+
     @Environment(\.dismiss) private var dismiss
+
+    // Input data
     let journals: [Journal]
     let folders: [JournalFolder]
     @Binding var journalItems: [Journal.MixedJournalItem]
 
-    @State private var reorderableItems: [ReorderItem] = []
+    // State management
+    @State private var rootItems: [DisplayNode] = []
+    @State private var collections: [String: CollectionNode] = [:]
 
-    struct ReorderItem: Identifiable {
-        let id: String
-        var type: ItemType
-        var journal: Journal?
-        var folder: JournalFolder?
-        var children: [ReorderItem]
-        var isExpanded: Bool
+    // Cached computed properties
+    @State private var cachedDisplayedItems: [DisplayNode] = []
+    @State private var cachedOrderedCollections: [CollectionNode] = []
 
-        enum ItemType {
-            case journal
-            case folder
-        }
-    }
+    let accentColor = Color(hex: "44C0FF")
 
     var body: some View {
         NavigationStack {
-            List {
-                ForEach(reorderableItems) { item in
-                    if item.type == .folder {
-                        FolderReorderSection(
-                            folder: item.folder!,
-                            isExpanded: item.isExpanded,
-                            children: item.children,
-                            onToggle: {
-                                toggleFolder(item.id)
-                            }
-                        )
-                    } else {
-                        JournalReorderRow(journal: item.journal!)
+            ZStack {
+                List {
+                    ForEach(cachedDisplayedItems) { item in
+                        switch item {
+                        case .journal(let journalNode, let isNested):
+                            JournalReorderRow(
+                                journalNode: journalNode,
+                                isNested: isNested,
+                                orderedCollections: cachedOrderedCollections,
+                                accentColor: accentColor,
+                                onMoveToCollection: { collectionId in
+                                    moveJournalToCollection(journal: journalNode, collectionId: collectionId)
+                                },
+                                onRemoveFromCollection: {
+                                    removeJournalFromCollection(journal: journalNode)
+                                }
+                            )
+                        case .collection(let collection):
+                            CollectionReorderRow(
+                                collection: collection,
+                                accentColor: accentColor,
+                                onTap: { toggleCollection(id: collection.id) }
+                            )
+                        case .dropZone:
+                            EmptyView()
+                        }
+                    }
+                    .onMove(perform: moveItem)
+                }
+                .listStyle(.plain)
+                .environment(\.editMode, .constant(.active)) // Always in edit mode
+
+                // Empty state
+                if rootItems.isEmpty {
+                    VStack(spacing: 16) {
+                        Image(systemName: "book")
+                            .font(.system(size: 60))
+                            .foregroundColor(.secondary.opacity(0.5))
+
+                        Text("No Journals Yet")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.secondary)
+
+                        Text("Tap the + button below to create your first journal")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary.opacity(0.8))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 40)
                     }
                 }
-                .onMove(perform: moveItems)
             }
-            .listStyle(.plain)
-            .navigationTitle("Edit Journals")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") {
-                        dismiss()
+                // Top trailing - Done button
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        applyChangesAndDismiss()
+                    } label: {
+                        Image(systemName: "checkmark")
+                            .foregroundColor(accentColor)
+                            .fontWeight(.semibold)
                     }
                 }
-            }
-        }
-        .onAppear {
-            setupReorderableItems()
-        }
-    }
 
-    private func setupReorderableItems() {
-        var items: [ReorderItem] = []
-
-        // Add folders first
-        for folder in folders {
-            var folderJournals: [Journal] = []
-
-            // Find journals that belong to this folder
-            for journal in journals {
-                for item in journalItems {
-                    if item.isFolder, let f = item.folder, f.id == folder.id {
-                        if f.journals.contains(where: { $0.id == journal.id }) {
-                            folderJournals.append(journal)
-                            break
-                        }
+                // Bottom bar - New Collection button
+                ToolbarItem(placement: .bottomBar) {
+                    Button("New Collection", systemImage: "folder.badge.plus") {
+                        addNewCollection()
                     }
+                    .labelStyle(.titleAndIcon)
                 }
-            }
 
-            let children = folderJournals.map { journal in
-                ReorderItem(
-                    id: journal.id,
-                    type: .journal,
-                    journal: journal,
-                    folder: nil,
-                    children: [],
-                    isExpanded: false
-                )
-            }
-
-            items.append(ReorderItem(
-                id: folder.id,
-                type: .folder,
-                journal: nil,
-                folder: folder,
-                children: children,
-                isExpanded: true
-            ))
-        }
-
-        // Add standalone journals (not in any folder)
-        for journal in journals {
-            var isInFolder = false
-
-            for folder in folders {
-                for item in journalItems {
-                    if item.isFolder, let f = item.folder, f.id == folder.id {
-                        if f.journals.contains(where: { $0.id == journal.id }) {
-                            isInFolder = true
-                            break
-                        }
-                    }
-                }
-                if isInFolder { break }
-            }
-
-            if !isInFolder {
-                items.append(ReorderItem(
-                    id: journal.id,
-                    type: .journal,
-                    journal: journal,
-                    folder: nil,
-                    children: [],
-                    isExpanded: false
-                ))
-            }
-        }
-
-        reorderableItems = items
-    }
-
-    private func toggleFolder(_ id: String) {
-        if let index = reorderableItems.firstIndex(where: { $0.id == id }) {
-            reorderableItems[index].isExpanded.toggle()
-        }
-    }
-
-    private func moveItems(from source: IndexSet, to destination: Int) {
-        reorderableItems.move(fromOffsets: source, toOffset: destination)
-    }
-}
-
-struct FolderReorderSection: View {
-    let folder: JournalFolder
-    let isExpanded: Bool
-    let children: [JournalsReorderView.ReorderItem]
-    let onToggle: () -> Void
-
-    var body: some View {
-        VStack(spacing: 0) {
-            // Folder header
-            Button(action: onToggle) {
-                HStack(spacing: 12) {
-                    Image(systemName: "folder.fill")
-                        .font(.system(size: 18))
-                        .foregroundStyle(Color(hex: "333B40"))
-
-                    Text(folder.name)
-                        .font(.body)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.primary)
-
+                // Bottom bar - New Journal button
+                ToolbarItem(placement: .bottomBar) {
                     Spacer()
-
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 12))
-                        .foregroundStyle(.secondary)
-                        .rotationEffect(.degrees(isExpanded ? 90 : 0))
-
-                    Image(systemName: "line.3.horizontal")
-                        .font(.system(size: 14))
-                        .foregroundStyle(.secondary)
                 }
-                .padding(.vertical, 8)
-            }
-            .buttonStyle(PlainButtonStyle())
 
-            // Folder contents
-            if isExpanded {
-                ForEach(children) { child in
-                    if let journal = child.journal {
-                        JournalReorderRow(journal: journal)
-                            .padding(.leading, 32)
+                ToolbarItem(placement: .bottomBar) {
+                    Button("New Journal", systemImage: "plus") {
+                        addNewJournal()
                     }
+                    .labelStyle(.titleAndIcon)
                 }
             }
         }
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
+        .onAppear {
+            initializeFromJournals()
+            rebuildCache()
+        }
+    }
+
+    // MARK: - Initialization
+
+    private func initializeFromJournals() {
+        // Convert existing data to our node structure
+        rootItems = []
+        collections = [:]
+
+        // Build collections dictionary from folders
+        for folder in folders {
+            let journalNodes = folder.journals.map { JournalNode(id: $0.id, journal: $0) }
+            let collection = CollectionNode(
+                id: folder.id,
+                name: folder.name,
+                contents: journalNodes,
+                isExpanded: false
+            )
+            collections[collection.id] = collection
+        }
+
+        // Build root items based on journalItems order
+        for item in journalItems {
+            if item.isFolder, let folder = item.folder {
+                if let collection = collections[folder.id] {
+                    rootItems.append(.collection(collection))
+                }
+            } else if let journal = item.journal {
+                let journalNode = JournalNode(id: journal.id, journal: journal)
+                rootItems.append(.journal(journalNode, isNested: false))
+            }
+        }
+    }
+
+    // MARK: - Cache Management
+
+    private func rebuildCache() {
+        var result: [DisplayNode] = []
+        for item in rootItems {
+            result.append(item)
+            if case .collection(let collection) = item, collection.isExpanded {
+                result.append(contentsOf: collection.contents.map { .journal($0, isNested: true) })
+            }
+        }
+        cachedDisplayedItems = result
+
+        cachedOrderedCollections = rootItems.compactMap { item in
+            if case .collection(let collection) = item {
+                return collection
+            }
+            return nil
+        }
+    }
+
+    // MARK: - Collection Operations
+
+    func toggleCollection(id: String) {
+        selectionFeedback.selectionChanged()
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+            if let index = findCollectionIndex(id: id),
+               case .collection(var collection) = rootItems[index] {
+                collection.isExpanded.toggle()
+                updateCollection(collection)
+                rebuildCache()
+                applyChangesLive()
+            }
+        }
+    }
+
+    func addNewCollection() {
+        impactMedium.impactOccurred()
+        withAnimation {
+            let newName = generateNextCollectionName()
+            let newCollection = CollectionNode(id: UUID().uuidString, name: newName, contents: [], isExpanded: false)
+            collections[newCollection.id] = newCollection
+            rootItems.append(.collection(newCollection))
+            rebuildCache()
+            applyChangesLive()
+        }
+    }
+
+    private func generateNextCollectionName() -> String {
+        let existingNames = Set(collections.values.map { $0.name })
+        var suffix = "A"
+
+        while existingNames.contains("Collection \(suffix)") {
+            suffix = incrementSuffix(suffix)
+        }
+
+        return "Collection \(suffix)"
+    }
+
+    private func incrementSuffix(_ suffix: String) -> String {
+        var chars = Array(suffix)
+        var index = chars.count - 1
+
+        while index >= 0 {
+            if chars[index] < "Z" {
+                chars[index] = Character(UnicodeScalar(chars[index].asciiValue! + 1))
+                return String(chars)
+            } else {
+                chars[index] = "A"
+                index -= 1
+            }
+        }
+
+        return "A" + String(chars)
+    }
+
+    func addNewJournal() {
+        impactMedium.impactOccurred()
+        // TODO: Implement add new journal
+        // For now, just show haptic feedback
+    }
+
+    // MARK: - Save and Dismiss
+
+    /// Apply current state to journalItems binding in real-time
+    private func applyChangesLive() {
+        var updatedItems: [Journal.MixedJournalItem] = []
+
+        for item in rootItems {
+            switch item {
+            case .journal(let journalNode, _):
+                // Root-level journal
+                if let originalJournal = journals.first(where: { $0.id == journalNode.id }) {
+                    updatedItems.append(Journal.MixedJournalItem(journal: originalJournal))
+                }
+
+            case .collection(let collection):
+                // Collection with its journals
+                if let originalFolder = folders.first(where: { $0.id == collection.id }) {
+                    // Create updated folder with reordered journals
+                    let reorderedJournals = collection.contents.compactMap { journalNode in
+                        journals.first(where: { $0.id == journalNode.id })
+                    }
+                    let updatedFolder = JournalFolder(
+                        id: originalFolder.id,
+                        name: collection.name,
+                        journals: reorderedJournals
+                    )
+                    updatedItems.append(Journal.MixedJournalItem(folder: updatedFolder))
+                }
+
+            case .dropZone:
+                break
+            }
+        }
+
+        // Update the binding immediately (live updates)
+        journalItems = updatedItems
+    }
+
+    func applyChangesAndDismiss() {
+        // Apply any final changes
+        applyChangesLive()
+
+        // Dismiss the modal
+        dismiss()
+    }
+
+    func findCollectionIndex(id: String) -> Int? {
+        rootItems.firstIndex { item in
+            if case .collection(let c) = item, c.id == id {
+                return true
+            }
+            return false
+        }
+    }
+
+    func updateCollection(_ collection: CollectionNode) {
+        collections[collection.id] = collection
+        if let index = findCollectionIndex(id: collection.id) {
+            rootItems[index] = .collection(collection)
+        }
+    }
+
+    // MARK: - Journal Movement
+
+    func moveJournalToCollection(journal: JournalNode, collectionId: String) {
+        guard var collection = collections[collectionId] else { return }
+
+        withAnimation {
+            removeJournalFromSource(journal)
+            collection.contents.append(journal)
+            collection.isExpanded = true
+            updateCollection(collection)
+            rebuildCache()
+            applyChangesLive()
+        }
+    }
+
+    func removeJournalFromCollection(journal: JournalNode) {
+        withAnimation {
+            var parentCollectionId: String?
+            var parentCollectionIndex: Int?
+
+            for (index, item) in rootItems.enumerated() {
+                if case .collection(let collection) = item {
+                    if collection.contents.contains(where: { $0.id == journal.id }) {
+                        parentCollectionId = collection.id
+                        parentCollectionIndex = index
+                        break
+                    }
+                }
+            }
+
+            guard let collectionId = parentCollectionId,
+                  let collectionIndex = parentCollectionIndex,
+                  var collection = collections[collectionId] else { return }
+
+            collection.contents.removeAll { $0.id == journal.id }
+            updateCollection(collection)
+
+            rootItems.insert(.journal(journal, isNested: false), at: collectionIndex + 1)
+            rebuildCache()
+            applyChangesLive()
+        }
+    }
+
+    func removeJournalFromSource(_ journal: JournalNode) {
+        if let index = rootItems.firstIndex(where: {
+            if case .journal(let j, _) = $0, j.id == journal.id { return true }
+            return false
+        }) {
+            rootItems.remove(at: index)
+            return
+        }
+
+        for (_, var collection) in collections {
+            if let index = collection.contents.firstIndex(where: { $0.id == journal.id }) {
+                collection.contents.remove(at: index)
+                updateCollection(collection)
+                return
+            }
+        }
+    }
+
+    // MARK: - Drag & Drop
+
+    func moveItem(from source: IndexSet, to destination: Int) {
+        guard let sourceIndex = source.first else { return }
+        let movedItem = cachedDisplayedItems[sourceIndex]
+
+        let operation = determineMoveOperation(movedItem: movedItem, sourceIndex: sourceIndex, destination: destination)
+
+        withAnimation {
+            switch operation {
+            case .collectionMove(let fromRootIndex, let toRootIndex):
+                rootItems.move(fromOffsets: IndexSet(integer: fromRootIndex), toOffset: toRootIndex)
+
+            case .sameContextMove(let sourceContext, let fromIndex, let toIndex):
+                performSameContextMove(sourceContext: sourceContext, fromIndex: fromIndex, toIndex: toIndex)
+
+            case .crossLevelMove(let journal, _, let toContext, let destination):
+                performCrossLevelMove(journal: journal, fromContext: getItemContext(at: sourceIndex), toContext: toContext, destination: destination)
+
+            case .invalid:
+                return
+            }
+
+            impactLight.impactOccurred()
+            rebuildCache()
+            applyChangesLive()
+        }
+    }
+
+    private func determineMoveOperation(movedItem: DisplayNode, sourceIndex: Int, destination: Int) -> MoveOperation {
+        if case .dropZone = movedItem { return .invalid }
+
+        if case .collection = movedItem {
+            let rootIndex = mapDisplayIndexToRootIndex(sourceIndex)
+            let destRootIndex = mapDisplayIndexToRootIndex(destination)
+            guard rootIndex >= 0 && rootIndex < rootItems.count else { return .invalid }
+            guard destRootIndex >= 0 && destRootIndex <= rootItems.count else { return .invalid }
+            return .collectionMove(fromRootIndex: rootIndex, toRootIndex: destRootIndex)
+        }
+
+        guard case .journal(let journal, _) = movedItem else { return .invalid }
+
+        let sourceContext = getItemContext(at: sourceIndex)
+        var destinationContext = getItemContext(at: destination)
+
+        if case .inCollection(let sourceCollectionId) = sourceContext,
+           destinationContext != sourceContext {
+            if let collectionIndex = cachedDisplayedItems.firstIndex(where: { item in
+                if case .collection(let c) = item, c.id == sourceCollectionId { return true }
+                return false
+            }),
+               case .collection(let sourceCollection) = cachedDisplayedItems[collectionIndex] {
+                let collectionEndIndex = collectionIndex + sourceCollection.contents.count
+                if destination == collectionEndIndex + 1 {
+                    destinationContext = .inCollection(sourceCollectionId)
+                }
+            }
+        }
+
+        if sourceContext == destinationContext {
+            return .sameContextMove(sourceContext: sourceContext, fromIndex: sourceIndex, toIndex: destination)
+        }
+
+        return .crossLevelMove(journal: journal, fromContext: sourceContext, toContext: destinationContext, destination: destination)
+    }
+
+    private func performSameContextMove(sourceContext: ItemContext, fromIndex: Int, toIndex: Int) {
+        if sourceContext == .root {
+            let rootIndex = mapDisplayIndexToRootIndex(fromIndex)
+            let destRootIndex = mapDisplayIndexToRootIndex(toIndex)
+            guard rootIndex >= 0 && rootIndex < rootItems.count else { return }
+            guard destRootIndex >= 0 && destRootIndex <= rootItems.count else { return }
+            rootItems.move(fromOffsets: IndexSet(integer: rootIndex), toOffset: destRootIndex)
+        } else if case .inCollection(let collectionId) = sourceContext,
+                  var collection = collections[collectionId] {
+            let collectionStartIndex = cachedDisplayedItems.firstIndex { item in
+                if case .collection(let c) = item, c.id == collectionId { return true }
+                return false
+            }
+
+            if let collectionStart = collectionStartIndex {
+                let sourceInCollection = fromIndex - collectionStart - 1
+                let destInCollection = toIndex - collectionStart - 1
+                guard sourceInCollection >= 0 && sourceInCollection < collection.contents.count else { return }
+                guard destInCollection >= 0 && destInCollection <= collection.contents.count else { return }
+                collection.contents.move(fromOffsets: IndexSet(integer: sourceInCollection), toOffset: destInCollection)
+                updateCollection(collection)
+            }
+        }
+    }
+
+    private func performCrossLevelMove(journal: JournalNode, fromContext: ItemContext, toContext: ItemContext, destination: Int) {
+        var calculatedInsertPosition: Int?
+        var calculatedCollectionId: String?
+
+        if case .inCollection(let destCollectionId) = toContext,
+           let destCollection = collections[destCollectionId] {
+            if let collectionStartIndex = cachedDisplayedItems.firstIndex(where: { item in
+                if case .collection(let c) = item, c.id == destCollectionId { return true }
+                return false
+            }) {
+                let positionInCollection = destination - collectionStartIndex - 1
+                calculatedInsertPosition = max(0, min(positionInCollection, destCollection.contents.count))
+                calculatedCollectionId = destCollectionId
+            }
+        } else {
+            calculatedInsertPosition = mapDisplayIndexToRootIndex(destination)
+        }
+
+        removeJournalFromSource(journal)
+
+        if let collectionId = calculatedCollectionId,
+           let insertPos = calculatedInsertPosition,
+           var destCollection = collections[collectionId] {
+            let finalInsertPosition = min(insertPos, destCollection.contents.count)
+            destCollection.contents.insert(journal, at: finalInsertPosition)
+            if !destCollection.isExpanded {
+                destCollection.isExpanded = true
+            }
+            updateCollection(destCollection)
+        } else if let insertPos = calculatedInsertPosition {
+            let finalInsertPosition = min(insertPos, rootItems.count)
+            rootItems.insert(.journal(journal, isNested: false), at: finalInsertPosition)
+        }
+    }
+
+    func mapDisplayIndexToRootIndex(_ displayIndex: Int) -> Int {
+        var rootCount = 0
+        var currentDisplayIndex = 0
+
+        for item in rootItems {
+            if currentDisplayIndex >= displayIndex {
+                return rootCount
+            }
+            currentDisplayIndex += 1
+            if case .collection(let collection) = item, collection.isExpanded {
+                currentDisplayIndex += collection.contents.count
+            }
+            rootCount += 1
+        }
+
+        return rootCount
+    }
+
+    enum ItemContext: Equatable {
+        case root
+        case inCollection(String)
+    }
+
+    enum MoveOperation {
+        case collectionMove(fromRootIndex: Int, toRootIndex: Int)
+        case sameContextMove(sourceContext: ItemContext, fromIndex: Int, toIndex: Int)
+        case crossLevelMove(journal: JournalNode, fromContext: ItemContext, toContext: ItemContext, destination: Int)
+        case invalid
+    }
+
+    func getItemContext(at index: Int) -> ItemContext {
+        guard index < cachedDisplayedItems.count else { return .root }
+
+        for i in stride(from: index, through: 0, by: -1) {
+            if case .collection(let collection) = cachedDisplayedItems[i] {
+                if collection.isExpanded && i < index {
+                    let collectionEndIndex = i + collection.contents.count
+                    if index > i && index <= collectionEndIndex {
+                        return .inCollection(collection.id)
+                    }
+                }
+                if i == index {
+                    return .root
+                }
+            }
+        }
+
+        return .root
     }
 }
+
+// MARK: - Journal Reorder Row
 
 struct JournalReorderRow: View {
-    let journal: Journal
+    let journalNode: JournalNode
+    let isNested: Bool
+    let orderedCollections: [CollectionNode]
+    let accentColor: Color
+    let onMoveToCollection: (String) -> Void
+    let onRemoveFromCollection: () -> Void
+
+    private enum Layout {
+        static let iconSize: CGFloat = 20
+        static let rowSpacing: CGFloat = 12
+        static let rowVerticalPadding: CGFloat = 4
+        static let nestedIndentation: CGFloat = 32
+    }
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Layout.rowSpacing) {
+            // Use smaller circle with journal's color
             Circle()
-                .fill(journal.color)
-                .frame(width: 12, height: 12)
+                .fill(journalNode.color)
+                .frame(width: Layout.iconSize, height: Layout.iconSize)
 
-            Text(journal.name)
+            Text(journalNode.name)
                 .font(.body)
-                .foregroundStyle(.primary)
 
             Spacer()
 
-            if let count = journal.entryCount {
+            // Entry count
+            if let count = journalNode.entryCount {
                 Text("\(count)")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
 
-            Image(systemName: "line.3.horizontal")
-                .font(.system(size: 14))
-                .foregroundStyle(.secondary)
+            // Collection add/remove icon (always visible in edit mode)
+            if isNested {
+                Button {
+                    onRemoveFromCollection()
+                } label: {
+                    Image(systemName: "folder.badge.minus")
+                        .foregroundColor(accentColor)
+                        .font(.body)
+                }
+                .buttonStyle(.plain)
+            } else {
+                Menu {
+                    ForEach(orderedCollections, id: \.id) { collection in
+                        Button {
+                            onMoveToCollection(collection.id)
+                        } label: {
+                            Label(collection.name, systemImage: "folder")
+                        }
+                    }
+                } label: {
+                    Image(systemName: "folder.badge.plus")
+                        .foregroundColor(accentColor)
+                        .font(.body)
+                }
+            }
         }
-        .padding(.vertical, 6)
+        .padding(.vertical, Layout.rowVerticalPadding)
+        .padding(.leading, isNested ? Layout.nestedIndentation : 0)
+    }
+}
+
+// MARK: - Collection Reorder Row
+
+struct CollectionReorderRow: View {
+    let collection: CollectionNode
+    let accentColor: Color
+    let onTap: () -> Void
+
+    private enum Layout {
+        static let iconSize: CGFloat = 20
+        static let rowSpacing: CGFloat = 12
+        static let rowVerticalPadding: CGFloat = 4
+    }
+
+    var body: some View {
+        HStack(spacing: Layout.rowSpacing) {
+            // Use media-library-folder icon like main journals page
+            Image("media-library-folder")
+                .resizable()
+                .frame(width: Layout.iconSize, height: Layout.iconSize)
+                .foregroundStyle(collection.color)
+
+            Text(collection.name)
+                .font(.body)
+
+            Spacer()
+
+            // Journal count on right side
+            Text("\(collection.itemCount) Journals")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(.secondary)
+                .rotationEffect(.degrees(collection.isExpanded ? 90 : 0))
+        }
+        .padding(.vertical, Layout.rowVerticalPadding)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onTap()
+        }
     }
 }
 

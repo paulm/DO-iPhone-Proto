@@ -139,7 +139,7 @@ struct JournalsTabPagedView: View {
             return filteredJournals.map { Journal.MixedJournalItem(journal: $0) }
         case .lots:
             // Return all mixed items (journals and folders)
-            return Journal.mixedJournalItems
+            return journalItems
         }
     }
 
@@ -3144,9 +3144,13 @@ struct JournalsReorderView: View {
         impactMedium.impactOccurred()
         withAnimation {
             let newName = generateNextCollectionName()
-            let newCollection = CollectionNode(id: UUID().uuidString, name: newName, contents: [], isExpanded: false)
+            let newId = UUID().uuidString
+
+            // Create the collection node
+            let newCollection = CollectionNode(id: newId, name: newName, contents: [], isExpanded: false)
             collections[newCollection.id] = newCollection
             rootItems.append(.collection(newCollection))
+
             rebuildCache()
             applyChangesLive()
         }
@@ -3182,8 +3186,48 @@ struct JournalsReorderView: View {
 
     func addNewJournal() {
         impactMedium.impactOccurred()
-        // TODO: Implement add new journal
-        // For now, just show haptic feedback
+
+        // Generate a unique name for the new journal
+        let newName = generateNextJournalName()
+
+        // Create a new journal with default settings
+        let newJournal = Journal(
+            name: newName,
+            color: Color(hex: "44C0FF"), // Default Day One blue
+            entryCount: 0
+        )
+
+        // Create node and add to bottom of root items
+        let journalNode = JournalNode(id: newJournal.id, journal: newJournal)
+        rootItems.append(.journal(journalNode, isNested: false))
+
+        // Rebuild cache and apply changes
+        rebuildCache()
+        applyChangesLive()
+    }
+
+    private func generateNextJournalName() -> String {
+        // Collect all existing journal names from rootItems
+        var existingNames = Set<String>()
+        for item in rootItems {
+            switch item {
+            case .journal(let journalNode, _):
+                existingNames.insert(journalNode.name)
+            case .collection(let collection):
+                for journalNode in collection.contents {
+                    existingNames.insert(journalNode.name)
+                }
+            case .dropZone:
+                break
+            }
+        }
+
+        var counter = 1
+        while existingNames.contains("New Journal \(counter)") {
+            counter += 1
+        }
+
+        return "New Journal \(counter)"
     }
 
     // MARK: - Save and Dismiss
@@ -3195,25 +3239,20 @@ struct JournalsReorderView: View {
         for item in rootItems {
             switch item {
             case .journal(let journalNode, _):
-                // Root-level journal
-                if let originalJournal = journals.first(where: { $0.id == journalNode.id }) {
-                    updatedItems.append(Journal.MixedJournalItem(journal: originalJournal))
-                }
+                // Root-level journal - use the journal stored in the node
+                updatedItems.append(Journal.MixedJournalItem(journal: journalNode.journal))
 
             case .collection(let collection):
-                // Collection with its journals
-                if let originalFolder = folders.first(where: { $0.id == collection.id }) {
-                    // Create updated folder with reordered journals
-                    let reorderedJournals = collection.contents.compactMap { journalNode in
-                        journals.first(where: { $0.id == journalNode.id })
-                    }
-                    let updatedFolder = JournalFolder(
-                        id: originalFolder.id,
-                        name: collection.name,
-                        journals: reorderedJournals
-                    )
-                    updatedItems.append(Journal.MixedJournalItem(folder: updatedFolder))
+                // Collection with its journals - rebuild folder with reordered contents
+                let reorderedJournals = collection.contents.map { journalNode in
+                    journalNode.journal
                 }
+                let updatedFolder = JournalFolder(
+                    id: collection.id,
+                    name: collection.name,
+                    journals: reorderedJournals
+                )
+                updatedItems.append(Journal.MixedJournalItem(folder: updatedFolder))
 
             case .dropZone:
                 break

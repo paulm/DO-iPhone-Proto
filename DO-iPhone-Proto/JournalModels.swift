@@ -73,6 +73,33 @@ struct Journal: Identifiable, Equatable, Hashable {
         self.journalCount = journalCount
     }
 
+    // Copy initializer that preserves all properties including ID
+    init(
+        id: String,
+        name: String,
+        description: String,
+        type: String,
+        color: Color,
+        iconURL: String,
+        settings: JournalSettings,
+        features: JournalFeatures,
+        appearance: JournalAppearance,
+        entryCount: Int?,
+        journalCount: Int?
+    ) {
+        self.id = id
+        self.name = name
+        self.description = description
+        self.type = type
+        self.color = color
+        self.iconURL = iconURL
+        self.settings = settings
+        self.features = features
+        self.appearance = appearance
+        self.entryCount = entryCount
+        self.journalCount = journalCount
+    }
+
     // Legacy initializer for compatibility
     init(name: String, color: Color, entryCount: Int?, journalCount: Int? = nil, coverImage: String? = nil) {
         self.id = UUID().uuidString
@@ -102,6 +129,26 @@ struct Journal: Identifiable, Equatable, Hashable {
         )
         self.entryCount = entryCount
         self.journalCount = journalCount
+    }
+}
+
+// MARK: - Journal Extension
+extension Journal {
+    // Create a copy with a new name (preserves ID and all other properties)
+    func withName(_ newName: String) -> Journal {
+        return Journal(
+            id: self.id,
+            name: newName,
+            description: self.description,
+            type: self.type,
+            color: self.color,
+            iconURL: self.iconURL,
+            settings: self.settings,
+            features: self.features,
+            appearance: self.appearance,
+            entryCount: self.entryCount,
+            journalCount: self.journalCount
+        )
     }
 }
 
@@ -180,6 +227,27 @@ struct JournalFolder: Identifiable, Equatable, Hashable {
 
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
+    }
+}
+
+// MARK: - JournalFolder Extension
+extension JournalFolder {
+    // Create a copy with a new name (preserves ID and journals)
+    func withName(_ newName: String) -> JournalFolder {
+        return JournalFolder(
+            id: self.id,
+            name: newName,
+            journals: self.journals
+        )
+    }
+
+    // Create a copy with updated journals array (preserves ID and name)
+    func withJournals(_ journals: [Journal]) -> JournalFolder {
+        return JournalFolder(
+            id: self.id,
+            name: self.name,
+            journals: journals
+        )
     }
 }
 

@@ -915,8 +915,14 @@ struct JournalsTabPagedView: View {
                         editedName: $editedCollectionName,
                         onRenameSubmit: {
                             if !editedCollectionName.isEmpty {
-                                print("Rename collection '\(folder.name)' to '\(editedCollectionName)'")
-                                // TODO: Implement collection rename
+                                // Find the folder in journalItems and update it
+                                if let index = journalItems.firstIndex(where: { $0.id == folder.id }) {
+                                    // Create new folder with updated name
+                                    let updatedFolder = folder.withName(editedCollectionName)
+
+                                    // Replace in journalItems with new wrapper
+                                    journalItems[index] = Journal.MixedJournalItem(folder: updatedFolder)
+                                }
                             }
                             renamingCollectionID = nil
                         },
@@ -948,8 +954,22 @@ struct JournalsTabPagedView: View {
                                     showingNewEntry = true
                                 },
                                 onRename: { newName in
-                                    print("Rename journal '\(journal.name)' to '\(newName)'")
-                                    // TODO: Implement journal rename
+                                    // Find the parent folder and update the journal within it
+                                    if let folderIndex = journalItems.firstIndex(where: { $0.id == folder.id }),
+                                       let currentFolder = journalItems[folderIndex].folder {
+
+                                        // Update the journal in the folder's journals array
+                                        var updatedJournals = currentFolder.journals
+                                        if let journalIndex = updatedJournals.firstIndex(where: { $0.id == journal.id }) {
+                                            updatedJournals[journalIndex] = journal.withName(newName)
+
+                                            // Create new folder with updated journals array
+                                            let updatedFolder = currentFolder.withJournals(updatedJournals)
+
+                                            // Replace folder in journalItems
+                                            journalItems[folderIndex] = Journal.MixedJournalItem(folder: updatedFolder)
+                                        }
+                                    }
                                 },
                                 onDelete: {
                                     print("Delete journal '\(journal.name)'")
@@ -973,8 +993,14 @@ struct JournalsTabPagedView: View {
                             showingNewEntry = true
                         },
                         onRename: { newName in
-                            print("Rename journal '\(journal.name)' to '\(newName)'")
-                            // TODO: Implement journal rename
+                            // Find the journal in journalItems and update it
+                            if let index = journalItems.firstIndex(where: { $0.id == journal.id }) {
+                                // Create new journal with updated name
+                                let updatedJournal = journal.withName(newName)
+
+                                // Replace in journalItems
+                                journalItems[index] = Journal.MixedJournalItem(journal: updatedJournal)
+                            }
                         },
                         onDelete: {
                             print("Delete journal '\(journal.name)'")
@@ -1194,8 +1220,14 @@ struct JournalsTabPagedView: View {
                                 showingNewEntry = true
                             },
                             onRename: { newName in
-                                print("Rename journal '\(journal.name)' to '\(newName)'")
-                                // TODO: Implement journal rename
+                                // Find the journal in journalItems and update it
+                                if let index = journalItems.firstIndex(where: { $0.id == journal.id }) {
+                                    // Create new journal with updated name
+                                    let updatedJournal = journal.withName(newName)
+
+                                    // Replace in journalItems
+                                    journalItems[index] = Journal.MixedJournalItem(journal: updatedJournal)
+                                }
                             },
                             onDelete: {
                                 print("Delete journal '\(journal.name)'")
@@ -1235,8 +1267,14 @@ struct JournalsTabPagedView: View {
                         editedName: $editedCollectionName,
                         onRenameSubmit: {
                             if !editedCollectionName.isEmpty {
-                                print("Rename collection '\(folder.name)' to '\(editedCollectionName)'")
-                                // TODO: Implement collection rename
+                                // Find the folder in journalItems and update it
+                                if let index = journalItems.firstIndex(where: { $0.id == folder.id }) {
+                                    // Create new folder with updated name
+                                    let updatedFolder = folder.withName(editedCollectionName)
+
+                                    // Replace in journalItems with new wrapper
+                                    journalItems[index] = Journal.MixedJournalItem(folder: updatedFolder)
+                                }
                             }
                             renamingCollectionID = nil
                         },
@@ -1290,8 +1328,14 @@ struct JournalsTabPagedView: View {
                             editedName: $editedCollectionName,
                             onRenameSubmit: {
                                 if !editedCollectionName.isEmpty {
-                                    print("Rename collection '\(folder.name)' to '\(editedCollectionName)'")
-                                    // TODO: Implement collection rename
+                                    // Find the folder in journalItems and update it
+                                    if let index = journalItems.firstIndex(where: { $0.id == folder.id }) {
+                                        // Create new folder with updated name
+                                        let updatedFolder = folder.withName(editedCollectionName)
+
+                                        // Replace in journalItems with new wrapper
+                                        journalItems[index] = Journal.MixedJournalItem(folder: updatedFolder)
+                                    }
                                 }
                                 renamingCollectionID = nil
                             },
@@ -1328,8 +1372,14 @@ struct JournalsTabPagedView: View {
                                 showingNewEntry = true
                             },
                             onRename: { newName in
-                                print("Rename journal '\(journal.name)' to '\(newName)'")
-                                // TODO: Implement journal rename
+                                // Find the journal in journalItems and update it
+                                if let index = journalItems.firstIndex(where: { $0.id == journal.id }) {
+                                    // Create new journal with updated name
+                                    let updatedJournal = journal.withName(newName)
+
+                                    // Replace in journalItems
+                                    journalItems[index] = Journal.MixedJournalItem(journal: updatedJournal)
+                                }
                             },
                             onDelete: {
                                 print("Delete journal '\(journal.name)'")

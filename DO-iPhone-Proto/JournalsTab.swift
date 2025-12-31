@@ -21,6 +21,7 @@ enum JournalsPopulation: String, CaseIterable {
     case newUser = "New User"
     case threeJournals = "3 Journals"
     case lots = "Lots"
+    case oneHundredOne = "101 Journals"
 }
 
 // MARK: - Journals Tab Paged Variant
@@ -111,7 +112,7 @@ struct JournalsTabPagedView: View {
         case .threeJournals:
             // Return Journal, Notes, Daily (first 3 journals)
             baseJournals = Array(allJournals.prefix(3))
-        case .lots:
+        case .lots, .oneHundredOne:
             // Return all journals
             baseJournals = allJournals
         }
@@ -130,7 +131,7 @@ struct JournalsTabPagedView: View {
         case .newUser, .threeJournals:
             // No folders for simplified modes
             return []
-        case .lots:
+        case .lots, .oneHundredOne:
             // Return all folders
             return Journal.folders
         }
@@ -142,7 +143,7 @@ struct JournalsTabPagedView: View {
         case .newUser, .threeJournals:
             // Create mixed items from filtered journals only
             return filteredJournals.map { Journal.MixedJournalItem(journal: $0) }
-        case .lots:
+        case .lots, .oneHundredOne:
             // Return all mixed items (journals and folders)
             return journalItems
         }
@@ -151,6 +152,33 @@ struct JournalsTabPagedView: View {
     // Should show All Entries only when there are 2 or more journals
     private var shouldShowAllEntries: Bool {
         return filteredJournals.count > 1
+    }
+
+    // Dynamic All Entries journal based on current journalItems
+    private var allEntriesJournal: Journal? {
+        // Collect all journals from journalItems (both standalone and in folders)
+        var allJournals: [Journal] = []
+
+        for item in journalItems {
+            if let journal = item.journal {
+                allJournals.append(journal)
+            } else if let folder = item.folder {
+                allJournals.append(contentsOf: folder.journals)
+            }
+        }
+
+        // Only show if there are 2+ journals
+        guard allJournals.count > 1 else { return nil }
+
+        let totalEntryCount = allJournals.compactMap { $0.entryCount }.reduce(0, +)
+        let totalJournalCount = allJournals.count
+
+        return Journal(
+            name: "All Entries",
+            color: Color(hex: "333B40"),
+            entryCount: totalEntryCount,
+            journalCount: totalJournalCount
+        )
     }
 
     // Check if specific journals exist in filtered journals
@@ -275,6 +303,120 @@ struct JournalsTabPagedView: View {
         return "New Collection \(counter)"
     }
 
+    // Add new journal to the bottom of the list
+    private func addNewJournal() {
+        let newName = generateNewJournalName()
+
+        // Create new journal with a random color from Day One palette
+        let colors = [
+            Color(hex: "44C0FF"), Color(hex: "FFC107"), Color(hex: "2DCC71"),
+            Color(hex: "3398DB"), Color(hex: "6A6DCD"), Color(hex: "607D8B"),
+            Color(hex: "C27BD2"), Color(hex: "FF983B"), Color(hex: "E91E63"),
+            Color(hex: "16D6D9")
+        ]
+        let randomColor = colors.randomElement() ?? Color(hex: "44C0FF")
+
+        let newJournal = Journal(name: newName, color: randomColor, entryCount: 0)
+
+        // Add to journalItems at the end
+        journalItems.append(Journal.MixedJournalItem(journal: newJournal))
+    }
+
+    // Generate unique name for new journals
+    private func generateNewJournalName() -> String {
+        // Get all journal names from both standalone and folders
+        var existingNames = Set<String>()
+
+        for item in journalItems {
+            if let journal = item.journal {
+                existingNames.insert(journal.name)
+            } else if let folder = item.folder {
+                for journal in folder.journals {
+                    existingNames.insert(journal.name)
+                }
+            }
+        }
+
+        var counter = 1
+        while existingNames.contains("New Journal \(counter)") {
+            counter += 1
+        }
+
+        return "New Journal \(counter)"
+    }
+
+    // Repopulate journals with the selected option
+    private func repopulateJournals(with option: JournalsPopulation) {
+        // Clear existing journals
+        journalItems.removeAll()
+
+        switch option {
+        case .newUser:
+            // Add only "Journal"
+            let journal = Journal(name: "Journal", color: Color(hex: "44C0FF"), entryCount: 0)
+            journalItems.append(Journal.MixedJournalItem(journal: journal))
+
+        case .threeJournals:
+            // Add Journal, Notes, Daily
+            let journals = [
+                Journal(name: "Journal", color: Color(hex: "44C0FF"), entryCount: 22),
+                Journal(name: "Notes", color: Color(hex: "FFC107"), entryCount: 19),
+                Journal(name: "Daily", color: Color(hex: "2DCC71"), entryCount: 8)
+            ]
+            journalItems = journals.map { Journal.MixedJournalItem(journal: $0) }
+
+        case .lots:
+            // Load from sample journals and folders
+            journalItems = Journal.mixedJournalItems
+
+        case .oneHundredOne:
+            // Create 101 journals across 8 collections
+            let colors = [
+                Color(hex: "44C0FF"), Color(hex: "FFC107"), Color(hex: "2DCC71"),
+                Color(hex: "3398DB"), Color(hex: "6A6DCD"), Color(hex: "607D8B"),
+                Color(hex: "C27BD2"), Color(hex: "FF983B"), Color(hex: "E91E63"),
+                Color(hex: "16D6D9")
+            ]
+
+            // Create 8 collections with journals
+            let collectionNames = [
+                "Work", "Personal", "Travel", "Health & Fitness",
+                "Learning", "Projects", "Creative", "Archive"
+            ]
+
+            var journalCounter = 1
+
+            for (index, collectionName) in collectionNames.enumerated() {
+                // 10-15 journals per collection
+                let journalsInCollection = (10...15).randomElement() ?? 12
+                var collectionJournals: [Journal] = []
+
+                for _ in 0..<journalsInCollection {
+                    let color = colors[journalCounter % colors.count]
+                    let entryCount = Int.random(in: 0...150)
+                    let journal = Journal(
+                        name: "Journal \(journalCounter)",
+                        color: color,
+                        entryCount: entryCount
+                    )
+                    collectionJournals.append(journal)
+                    journalCounter += 1
+
+                    if journalCounter > 101 { break }
+                }
+
+                let folder = JournalFolder(
+                    id: UUID().uuidString,
+                    name: collectionName,
+                    journals: collectionJournals
+                )
+                journalItems.append(Journal.MixedJournalItem(folder: folder))
+
+                if journalCounter > 101 { break }
+            }
+        }
+    }
+
     var body: some View {
         navigationContent
         .sheet(isPresented: $showingNewEntry) {
@@ -353,7 +495,7 @@ struct JournalsTabPagedView: View {
                             }
 
                             Button(action: {
-                                // TODO: Add new journal action
+                                addNewJournal()
                             }) {
                                 Label("New Journal", systemImage: "plus")
                             }
@@ -428,13 +570,12 @@ struct JournalsTabPagedView: View {
                                 }
                             }
 
-                            Section("Journals Population") {
-                                Picker("Population", selection: $journalsPopulation) {
-                                    ForEach(JournalsPopulation.allCases, id: \.self) { option in
-                                        Text(option.rawValue).tag(option)
+                            Section("Repopulate Journals") {
+                                ForEach(JournalsPopulation.allCases, id: \.self) { option in
+                                    Button(option.rawValue) {
+                                        repopulateJournals(with: option)
                                     }
                                 }
-                                .pickerStyle(.inline)
                             }
                         } label: {
                             Circle()
@@ -483,7 +624,7 @@ struct JournalsTabPagedView: View {
 
             // New Journal FAB
             Button(action: {
-                // TODO: Add new journal action
+                addNewJournal()
             }) {
                 HStack(spacing: 8) {
                     Text("+ New Journal")
@@ -879,7 +1020,7 @@ struct JournalsTabPagedView: View {
     @ViewBuilder
     private var iconsJournalsSection: some View {
         // All Entries collection-style row at the top
-            if filteredJournals.count > 1, let allEntries = Journal.allEntriesJournal {
+            if filteredJournals.count > 1, let allEntries = allEntriesJournal {
                 let filteredJournalCount = filteredJournals.count
                 let filteredEntryCount = filteredJournals.compactMap { $0.entryCount }.reduce(0, +)
 
@@ -933,8 +1074,18 @@ struct JournalsTabPagedView: View {
                             collectionNameFieldFocused = true
                         },
                         onDelete: {
-                            print("Delete collection '\(folder.name)'")
-                            // TODO: Implement collection deletion
+                            // Find the folder index
+                            if let folderIndex = journalItems.firstIndex(where: { $0.id == folder.id }) {
+                                // Get all journals from the folder to preserve them
+                                let journalsToPreserve = folder.journals
+
+                                // Remove the folder
+                                journalItems.remove(at: folderIndex)
+
+                                // Insert the journals at the same position
+                                let journalItems = journalsToPreserve.map { Journal.MixedJournalItem(journal: $0) }
+                                self.journalItems.insert(contentsOf: journalItems, at: folderIndex)
+                            }
                         }
                     )
                     .id(folder.id)
@@ -972,8 +1123,25 @@ struct JournalsTabPagedView: View {
                                     }
                                 },
                                 onDelete: {
-                                    print("Delete journal '\(journal.name)'")
-                                    // TODO: Implement journal deletion
+                                    // Find the parent folder and remove the journal from it
+                                    if let folderIndex = journalItems.firstIndex(where: { $0.id == folder.id }),
+                                       let currentFolder = journalItems[folderIndex].folder {
+
+                                        // Remove the journal from the folder's journals array
+                                        var updatedJournals = currentFolder.journals
+                                        updatedJournals.removeAll(where: { $0.id == journal.id })
+
+                                        if updatedJournals.isEmpty {
+                                            // If folder is now empty, remove the folder
+                                            journalItems.remove(at: folderIndex)
+                                        } else {
+                                            // Create new folder with updated journals array
+                                            let updatedFolder = currentFolder.withJournals(updatedJournals)
+
+                                            // Replace folder in journalItems
+                                            journalItems[folderIndex] = Journal.MixedJournalItem(folder: updatedFolder)
+                                        }
+                                    }
                                 }
                             )
                             .padding(.leading, 20)
@@ -1003,8 +1171,8 @@ struct JournalsTabPagedView: View {
                             }
                         },
                         onDelete: {
-                            print("Delete journal '\(journal.name)'")
-                            // TODO: Implement journal deletion
+                            // Remove standalone journal from journalItems
+                            journalItems.removeAll(where: { $0.id == journal.id })
                         }
                     )
                 }
@@ -1038,7 +1206,9 @@ struct JournalsTabPagedView: View {
                 }
                 .frame(width: 48)
 
-                Button(action: {}) {
+                Button(action: {
+                    addNewJournal()
+                }) {
                     HStack(spacing: 8) {
                         Image(systemName: "plus")
                             .font(.system(size: 18))
@@ -1093,7 +1263,7 @@ struct JournalsTabPagedView: View {
     private var gridJournalList: some View {
         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 3), spacing: 20) {
             // All Entries at the top (only show when there are 2+ journals)
-            if shouldShowAllEntries, let allEntries = Journal.allEntriesJournal {
+            if shouldShowAllEntries, let allEntries = allEntriesJournal {
                 JournalBookView(
                     journal: allEntries,
                     isSelected: allEntries.id == journalViewModel.selectedJournal.id,
@@ -1188,7 +1358,7 @@ struct JournalsTabPagedView: View {
     @ViewBuilder
     private var journalsSection: some View {
         // All Entries collection-style row at the top
-            if filteredJournals.count > 1, let allEntries = Journal.allEntriesJournal {
+            if filteredJournals.count > 1, let allEntries = allEntriesJournal {
                 let filteredJournalCount = filteredJournals.count
                 let filteredEntryCount = filteredJournals.compactMap { $0.entryCount }.reduce(0, +)
 
@@ -1230,8 +1400,8 @@ struct JournalsTabPagedView: View {
                                 }
                             },
                             onDelete: {
-                                print("Delete journal '\(journal.name)'")
-                                // TODO: Implement journal deletion
+                                // Remove standalone journal from journalItems
+                                journalItems.removeAll(where: { $0.id == journal.id })
                             }
                         )
                     }
@@ -1285,8 +1455,18 @@ struct JournalsTabPagedView: View {
                             collectionNameFieldFocused = true
                         },
                         onDelete: {
-                            print("Delete collection '\(folder.name)'")
-                            // TODO: Implement collection deletion
+                            // Find the folder index
+                            if let folderIndex = journalItems.firstIndex(where: { $0.id == folder.id }) {
+                                // Get all journals from the folder to preserve them
+                                let journalsToPreserve = folder.journals
+
+                                // Remove the folder
+                                journalItems.remove(at: folderIndex)
+
+                                // Insert the journals at the same position
+                                let journalItems = journalsToPreserve.map { Journal.MixedJournalItem(journal: $0) }
+                                self.journalItems.insert(contentsOf: journalItems, at: folderIndex)
+                            }
                         }
                     )
 
@@ -1382,8 +1562,8 @@ struct JournalsTabPagedView: View {
                                 }
                             },
                             onDelete: {
-                                print("Delete journal '\(journal.name)'")
-                                // TODO: Implement journal deletion
+                                // Remove standalone journal from journalItems
+                                journalItems.removeAll(where: { $0.id == journal.id })
                             }
                         )
                     }
@@ -1418,7 +1598,9 @@ struct JournalsTabPagedView: View {
                 }
                 .frame(width: 48)
 
-                Button(action: {}) {
+                Button(action: {
+                    addNewJournal()
+                }) {
                     HStack(spacing: 8) {
                         Image(systemName: "plus")
                             .font(.system(size: 18))

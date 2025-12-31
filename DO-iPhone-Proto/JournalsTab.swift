@@ -3557,6 +3557,10 @@ struct JournalsReorderView: View {
     @State private var cachedDisplayedItems: [DisplayNode] = []
     @State private var cachedOrderedCollections: [CollectionNode] = []
 
+    // Flash animation state
+    @State private var flashingCollectionId: String? = nil
+    @State private var flashColor: Color = .blue
+
     let accentColor = Color(hex: "44C0FF")
 
     var body: some View {
@@ -3582,6 +3586,8 @@ struct JournalsReorderView: View {
                             CollectionReorderRow(
                                 collection: collection,
                                 accentColor: accentColor,
+                                isFlashing: flashingCollectionId == collection.id,
+                                flashColor: flashColor,
                                 onTap: { toggleCollection(id: collection.id) }
                             )
                         case .dropZone:
@@ -3877,10 +3883,16 @@ struct JournalsReorderView: View {
         withAnimation {
             removeJournalFromSource(journal)
             collection.contents.append(journal)
-            collection.isExpanded = true
             updateCollection(collection)
             rebuildCache()
             applyChangesLive()
+        }
+
+        // Trigger flash animation on the collection with journal's color
+        flashingCollectionId = collectionId
+        flashColor = journal.journal.color
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+            flashingCollectionId = nil
         }
     }
 
@@ -4179,6 +4191,8 @@ struct JournalReorderRow: View {
 struct CollectionReorderRow: View {
     let collection: CollectionNode
     let accentColor: Color
+    let isFlashing: Bool
+    let flashColor: Color
     let onTap: () -> Void
 
     private enum Layout {
@@ -4211,6 +4225,11 @@ struct CollectionReorderRow: View {
                 .rotationEffect(.degrees(collection.isExpanded ? 90 : 0))
         }
         .padding(.vertical, Layout.rowVerticalPadding)
+        .listRowBackground(
+            Rectangle()
+                .fill(flashColor.opacity(isFlashing ? 0.1 : 0))
+                .animation(.easeOut(duration: 0.4), value: isFlashing)
+        )
         .contentShape(Rectangle())
         .onTapGesture {
             onTap()

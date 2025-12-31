@@ -181,6 +181,26 @@ struct JournalsTabPagedView: View {
         )
     }
 
+    // Extract journals from current journalItems (for reorder modal)
+    private var currentJournals: [Journal] {
+        var journals: [Journal] = []
+        for item in journalItems {
+            if let journal = item.journal {
+                journals.append(journal)
+            } else if let folder = item.folder {
+                journals.append(contentsOf: folder.journals)
+            }
+        }
+        return journals
+    }
+
+    // Extract folders from current journalItems (for reorder modal)
+    private var currentFolders: [JournalFolder] {
+        return journalItems.compactMap { item in
+            item.folder
+        }
+    }
+
     // Check if specific journals exist in filtered journals
     private var hasNotesJournal: Bool {
         return filteredJournals.contains(where: { $0.name == "Notes" })
@@ -616,8 +636,8 @@ struct JournalsTabPagedView: View {
             }
             .sheet(isPresented: $showingReorderModal) {
                 JournalsReorderView(
-                    journals: filteredJournals,
-                    folders: filteredFolders,
+                    journals: currentJournals,
+                    folders: currentFolders,
                     journalItems: $journalItems
                 )
             }

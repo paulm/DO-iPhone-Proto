@@ -411,11 +411,24 @@ struct JournalsTabPagedView: View {
                 let journalsInCollection = (10...15).randomElement() ?? 12
                 var collectionJournals: [Journal] = []
 
-                for _ in 0..<journalsInCollection {
+                for i in 0..<journalsInCollection {
                     let color = colors[journalCounter % colors.count]
                     let entryCount = Int.random(in: 0...150)
+
+                    // Add some long journal names for testing
+                    let name: String
+                    if journalCounter == 5 {
+                        name = "My Very Long Journal Name That Goes On and On to Test Truncation"
+                    } else if journalCounter == 23 {
+                        name = "Another Extremely Long Journal Title for Testing UI Layout and Truncation Behavior"
+                    } else if journalCounter == 47 {
+                        name = "Weekly Reflections and Personal Growth Journey Through Life's Adventures"
+                    } else {
+                        name = "Journal \(journalCounter)"
+                    }
+
                     let journal = Journal(
-                        name: "Journal \(journalCounter)",
+                        name: name,
                         color: color,
                         entryCount: entryCount
                     )

@@ -271,18 +271,18 @@ extension Journal {
             Journal(name: "Notes", color: Color(hex: "FFC107"), entryCount: 142), // Honey
             Journal(name: "Daily", color: Color(hex: "2DCC71"), entryCount: 63), // Green
             // Work folder journals - different colors
-            Journal(name: "Meeting Notes", color: Color(hex: "3398DB"), entryCount: 45), // Blue
+            Journal(name: "Meeting Notes and Important Discussions from Weekly Team Syncs", color: Color(hex: "3398DB"), entryCount: 45), // Blue
             Journal(name: "Product Docs", color: Color(hex: "6A6DCD"), entryCount: 28), // Iris
             Journal(name: "Work Notes", color: Color(hex: "607D8B"), entryCount: 91), // Slate
             // Standalone journals
             Journal(name: "Dreams", color: Color(hex: "C27BD2"), entryCount: 19, coverImage: "bike"), // Lavender
             Journal(name: "Fitness", color: Color(hex: "FF983B"), entryCount: 104), // Fire
             // Personal folder journals - different colors
-            Journal(name: "Reflections", color: Color(hex: "E91E63"), entryCount: 56), // Hot Pink
+            Journal(name: "Personal Reflections and Daily Thoughts on Growth and Self Discovery", color: Color(hex: "E91E63"), entryCount: 56), // Hot Pink
             Journal(name: "Ideas", color: Color(hex: "FFC107"), entryCount: 73), // Honey
             Journal(name: "Gratitude Daily", color: Color(hex: "2DCC71"), entryCount: 38), // Green
             // Standalone journal
-            Journal(name: "Movie Log", color: Color(hex: "6A6DCD"), entryCount: 22), // Iris
+            Journal(name: "Movie and TV Show Reviews with Ratings and Recommendations", color: Color(hex: "6A6DCD"), entryCount: 22), // Iris
             // Travel journal
             Journal(name: "Travel", color: Color(hex: "16D6D9"), entryCount: 0), // Aqua
             // Travel folder journals - different colors

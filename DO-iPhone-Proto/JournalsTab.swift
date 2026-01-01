@@ -3570,6 +3570,26 @@ struct JournalsReorderView: View {
 
     let accentColor = Color(hex: "44C0FF")
 
+    // Computed counts for navigation title
+    private var totalJournalCount: Int {
+        var count = 0
+        for item in rootItems {
+            switch item {
+            case .journal:
+                count += 1
+            case .collection(let collection):
+                count += collection.contents.count
+            case .dropZone:
+                break
+            }
+        }
+        return count
+    }
+
+    private var totalCollectionCount: Int {
+        return collections.count
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -3591,6 +3611,18 @@ struct JournalsReorderView: View {
                                 },
                                 onRename: { newName in
                                     renameJournal(id: journalNode.id, newName: newName)
+                                },
+                                onEdit: {
+                                    // TODO: Implement edit journal action
+                                },
+                                onPreviewBook: {
+                                    // TODO: Implement preview book action
+                                },
+                                onExport: {
+                                    // TODO: Implement export action
+                                },
+                                onDelete: {
+                                    deleteJournal(id: journalNode.id)
                                 }
                             )
                         case .collection(let collection):
@@ -3602,6 +3634,15 @@ struct JournalsReorderView: View {
                                 onTap: { toggleCollection(id: collection.id) },
                                 onRename: { newName in
                                     renameCollection(id: collection.id, newName: newName)
+                                },
+                                onPreviewBook: {
+                                    // TODO: Implement preview book action
+                                },
+                                onExport: {
+                                    // TODO: Implement export action
+                                },
+                                onDelete: {
+                                    deleteCollection(id: collection.id)
                                 }
                             )
                         case .dropZone:
@@ -3644,6 +3685,7 @@ struct JournalsReorderView: View {
                     }
                 }
             }
+            .navigationTitle("\(totalJournalCount) \(totalJournalCount == 1 ? "Journal" : "Journals"), \(totalCollectionCount) \(totalCollectionCount == 1 ? "Collection" : "Collections")")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 // Top trailing - Done button
@@ -3797,6 +3839,63 @@ struct JournalsReorderView: View {
                     return
                 }
             }
+        }
+    }
+
+    func deleteJournal(id: String) {
+        impactMedium.impactOccurred()
+        withAnimation {
+            // Find and remove journal from root items
+            if let index = rootItems.firstIndex(where: {
+                if case .journal(let node, _) = $0, node.id == id {
+                    return true
+                }
+                return false
+            }) {
+                rootItems.remove(at: index)
+                rebuildCache()
+                applyChangesLive()
+                return
+            }
+
+            // Find and remove journal from collections
+            for (collectionId, var collection) in collections {
+                if let journalIndex = collection.contents.firstIndex(where: { $0.id == id }) {
+                    collection.contents.remove(at: journalIndex)
+                    updateCollection(collection)
+                    rebuildCache()
+                    applyChangesLive()
+                    return
+                }
+            }
+        }
+    }
+
+    func deleteCollection(id: String) {
+        impactMedium.impactOccurred()
+        withAnimation {
+            // Find the collection in rootItems
+            guard let index = findCollectionIndex(id: id),
+                  case .collection(let collection) = rootItems[index] else {
+                return
+            }
+
+            // Extract journals from the collection
+            let journalsToPreserve = collection.contents.map { journalNode in
+                DisplayNode.journal(journalNode, isNested: false)
+            }
+
+            // Remove the collection from rootItems
+            rootItems.remove(at: index)
+
+            // Insert the journals at the position where the collection was
+            rootItems.insert(contentsOf: journalsToPreserve, at: index)
+
+            // Remove from collections dictionary
+            collections.removeValue(forKey: id)
+
+            rebuildCache()
+            applyChangesLive()
         }
     }
 
@@ -4204,10 +4303,15 @@ struct JournalReorderRow: View {
     let onMoveToCollection: (String) -> Void
     let onRemoveFromCollection: () -> Void
     let onRename: ((String) -> Void)?
+    let onEdit: (() -> Void)?
+    let onPreviewBook: (() -> Void)?
+    let onExport: (() -> Void)?
+    let onDelete: (() -> Void)?
 
     @State private var isRenaming = false
     @State private var editedName = ""
     @FocusState private var isNameFieldFocused: Bool
+    @State private var showingDeleteConfirmation = false
 
     private enum Layout {
         static let iconSize: CGFloat = 12
@@ -4258,31 +4362,81 @@ struct JournalReorderRow: View {
                     .foregroundStyle(.secondary)
             }
 
-            // Collection add/remove icon (always visible in edit mode)
-            if isNested {
-                Button {
-                    onRemoveFromCollection()
-                } label: {
-                    Image(systemName: "folder.badge.minus")
-                        .foregroundColor(.secondary)
-                        .font(.body)
-                }
-                .buttonStyle(.plain)
-            } else {
-                Menu {
-                    ForEach(orderedCollections, id: \.id) { collection in
-                        Button {
-                            onMoveToCollection(collection.id)
-                        } label: {
-                            Label(collection.name, systemImage: "folder")
-                        }
+            // Ellipsis menu
+            Menu {
+                if let onEdit = onEdit {
+                    Button {
+                        onEdit()
+                    } label: {
+                        Label("Edit Journal", systemImage: "pencil")
                     }
-                } label: {
-                    Image(systemName: "folder.badge.plus")
-                        .foregroundColor(accentColor)
-                        .font(.body)
                 }
+
+                if let onRename = onRename {
+                    Button {
+                        editedName = journalNode.name
+                        isRenaming = true
+                        isNameFieldFocused = true
+                    } label: {
+                        Label("Rename", systemImage: "character.cursor.ibeam")
+                    }
+                }
+
+                if !orderedCollections.isEmpty {
+                    Menu {
+                        ForEach(orderedCollections, id: \.id) { collection in
+                            Button {
+                                onMoveToCollection(collection.id)
+                            } label: {
+                                Label(collection.name, systemImage: "folder")
+                            }
+                        }
+                    } label: {
+                        Label("Move to Collection", systemImage: "folder.badge.plus")
+                    }
+                }
+
+                if isNested {
+                    Button {
+                        onRemoveFromCollection()
+                    } label: {
+                        Label("Remove from Collection", systemImage: "folder.badge.minus")
+                    }
+                }
+
+                Divider()
+
+                if let onExport = onExport {
+                    Button {
+                        onExport()
+                    } label: {
+                        Label("Export", systemImage: "square.and.arrow.up")
+                    }
+                }
+
+                if let onPreviewBook = onPreviewBook {
+                    Button {
+                        onPreviewBook()
+                    } label: {
+                        Label("Preview Book", systemImage: "book")
+                    }
+                }
+
+                if let onDelete = onDelete {
+                    Divider()
+
+                    Button(role: .destructive) {
+                        showingDeleteConfirmation = true
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                }
+            } label: {
+                Image(systemName: "ellipsis")
+                    .foregroundColor(.secondary)
+                    .font(.body)
             }
+            .buttonStyle(.plain)
         }
         .padding(.vertical, Layout.rowVerticalPadding)
         .padding(.leading, isNested ? Layout.nestedIndentation : 0)
@@ -4290,6 +4444,14 @@ struct JournalReorderRow: View {
             editedName = journalNode.name
             isRenaming = true
             isNameFieldFocused = true
+        }
+        .alert("Delete Journal", isPresented: $showingDeleteConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
+                onDelete?()
+            }
+        } message: {
+            Text("Are you sure you want to delete \"\(journalNode.name)\"? This action cannot be undone.")
         }
         .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
     }
@@ -4304,10 +4466,14 @@ struct CollectionReorderRow: View {
     let flashColor: Color
     let onTap: () -> Void
     let onRename: ((String) -> Void)?
+    let onPreviewBook: (() -> Void)?
+    let onExport: (() -> Void)?
+    let onDelete: (() -> Void)?
 
     @State private var isRenaming = false
     @State private var editedName = ""
     @FocusState private var isNameFieldFocused: Bool
+    @State private var showingDeleteConfirmation = false
 
     private enum Layout {
         static let iconSize: CGFloat = 20
@@ -4358,6 +4524,50 @@ struct CollectionReorderRow: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
+            // Ellipsis menu
+            Menu {
+                if let onRename = onRename {
+                    Button {
+                        editedName = collection.name
+                        isRenaming = true
+                        isNameFieldFocused = true
+                    } label: {
+                        Label("Rename", systemImage: "character.cursor.ibeam")
+                    }
+                }
+
+                if let onPreviewBook = onPreviewBook {
+                    Button {
+                        onPreviewBook()
+                    } label: {
+                        Label("Preview Book", systemImage: "book")
+                    }
+                }
+
+                if let onExport = onExport {
+                    Button {
+                        onExport()
+                    } label: {
+                        Label("Export", systemImage: "square.and.arrow.up")
+                    }
+                }
+
+                if let onDelete = onDelete {
+                    Divider()
+
+                    Button(role: .destructive) {
+                        showingDeleteConfirmation = true
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                }
+            } label: {
+                Image(systemName: "ellipsis")
+                    .foregroundColor(.secondary)
+                    .font(.body)
+            }
+            .buttonStyle(.plain)
+
             Image(systemName: "chevron.right")
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundColor(.secondary)
@@ -4377,6 +4587,18 @@ struct CollectionReorderRow: View {
             editedName = collection.name
             isRenaming = true
             isNameFieldFocused = true
+        }
+        .alert("Delete Collection", isPresented: $showingDeleteConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
+                onDelete?()
+            }
+        } message: {
+            if collection.itemCount > 0 {
+                Text("This collection contains \(collection.itemCount) \(collection.itemCount == 1 ? "journal" : "journals"). All journals will be preserved and moved out of the collection.")
+            } else {
+                Text("Are you sure you want to delete this collection?")
+            }
         }
         .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
     }

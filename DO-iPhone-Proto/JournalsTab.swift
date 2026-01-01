@@ -3567,6 +3567,9 @@ struct JournalsReorderView: View {
     // Scroll state
     @State private var scrollToId: String? = nil
 
+    // Toolbar hint overlays
+    @State private var showToolbarHints = true
+
     let accentColor = Color(hex: "44C0FF")
 
     // Computed counts for navigation title
@@ -3704,6 +3707,7 @@ struct JournalsReorderView: View {
                 ToolbarItem(placement: .bottomBar) {
                     Button("New Collection", systemImage: "folder.badge.plus") {
                         addNewCollection()
+                        showToolbarHints = false
                     }
                     .labelStyle(.titleAndIcon)
                 }
@@ -3716,9 +3720,36 @@ struct JournalsReorderView: View {
                 ToolbarItem(placement: .bottomBar) {
                     Button("New Journal", systemImage: "plus") {
                         addNewJournal()
+                        showToolbarHints = false
                     }
                     .labelStyle(.titleAndIcon)
                 }
+            }
+            .overlay(alignment: .bottom) {
+                if showToolbarHints {
+                    HStack(spacing: 0) {
+                        // New Collection hint overlay
+                        Image("journals-new-collection")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 163)
+                            .padding(.leading, 56)
+
+                        Spacer()
+
+                        // New Journal hint overlay
+                        Image("journals-new-journal")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 118)
+                            .padding(.trailing, 56)
+                    }
+                    .padding(.bottom, 0)
+                    .allowsHitTesting(false)
+                }
+            }
+            .onTapGesture {
+                showToolbarHints = false
             }
         }
         .presentationDetents([.large])

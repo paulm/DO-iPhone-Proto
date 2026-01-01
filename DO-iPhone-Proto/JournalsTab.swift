@@ -1194,9 +1194,6 @@ struct JournalsTabPagedView: View {
                     )
                 }
             }
-            .onMove { indices, newOffset in
-                journalItems.move(fromOffsets: indices, toOffset: newOffset)
-            }
 
         // Trash row at the bottom
         TrashRow(
@@ -3564,6 +3561,8 @@ struct JournalsReorderView: View {
     // Flash animation state
     @State private var flashingCollectionId: String? = nil
     @State private var flashColor: Color = .blue
+    @State private var flashingJournalId: String? = nil
+    @State private var flashingJournalColor: Color = .blue
 
     // Scroll state
     @State private var scrollToId: String? = nil
@@ -3603,6 +3602,8 @@ struct JournalsReorderView: View {
                                 isNested: isNested,
                                 orderedCollections: cachedOrderedCollections,
                                 accentColor: accentColor,
+                                isFlashing: flashingJournalId == journalNode.id,
+                                flashColor: flashingJournalColor,
                                 onMoveToCollection: { collectionId in
                                     moveJournalToCollection(journal: journalNode, collectionId: collectionId)
                                 },
@@ -4062,11 +4063,14 @@ struct JournalsReorderView: View {
             applyChangesLive()
         }
 
-        // Trigger flash animation on the collection with journal's color
+        // Trigger flash animation on both the collection and the journal with journal's color
         flashingCollectionId = collectionId
+        flashingJournalId = journal.id
         flashColor = journal.journal.color
+        flashingJournalColor = journal.journal.color
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
             flashingCollectionId = nil
+            flashingJournalId = nil
         }
     }
 
@@ -4300,6 +4304,8 @@ struct JournalReorderRow: View {
     let isNested: Bool
     let orderedCollections: [CollectionNode]
     let accentColor: Color
+    let isFlashing: Bool
+    let flashColor: Color
     let onMoveToCollection: (String) -> Void
     let onRemoveFromCollection: () -> Void
     let onRename: ((String) -> Void)?
@@ -4437,9 +4443,40 @@ struct JournalReorderRow: View {
                     .font(.body)
             }
             .buttonStyle(.plain)
+
+            // Collection add/remove icon (always visible in edit mode)
+            if isNested {
+                Button {
+                    onRemoveFromCollection()
+                } label: {
+                    Image(systemName: "folder.badge.minus")
+                        .foregroundColor(.secondary)
+                        .font(.body)
+                }
+                .buttonStyle(.plain)
+            } else {
+                Menu {
+                    ForEach(orderedCollections, id: \.id) { collection in
+                        Button {
+                            onMoveToCollection(collection.id)
+                        } label: {
+                            Label(collection.name, systemImage: "folder")
+                        }
+                    }
+                } label: {
+                    Image(systemName: "folder.badge.plus")
+                        .foregroundColor(accentColor)
+                        .font(.body)
+                }
+            }
         }
         .padding(.vertical, Layout.rowVerticalPadding)
         .padding(.leading, isNested ? Layout.nestedIndentation : 0)
+        .listRowBackground(
+            Rectangle()
+                .fill(flashColor.opacity(isFlashing ? 0.1 : 0))
+                .animation(.easeOut(duration: 0.4), value: isFlashing)
+        )
         .onTapGesture(count: 2) {
             editedName = journalNode.name
             isRenaming = true
@@ -4453,7 +4490,7 @@ struct JournalReorderRow: View {
         } message: {
             Text("Are you sure you want to delete \"\(journalNode.name)\"? This action cannot be undone.")
         }
-        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 24))
     }
 }
 

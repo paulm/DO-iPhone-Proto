@@ -3565,13 +3565,17 @@ struct JournalsReorderView: View {
     @State private var flashingCollectionId: String? = nil
     @State private var flashColor: Color = .blue
 
+    // Scroll state
+    @State private var scrollToId: String? = nil
+
     let accentColor = Color(hex: "44C0FF")
 
     var body: some View {
         NavigationStack {
             ZStack {
-                List {
-                    ForEach(cachedDisplayedItems) { item in
+                ScrollViewReader { proxy in
+                    List {
+                        ForEach(cachedDisplayedItems) { item in
                         switch item {
                         case .journal(let journalNode, let isNested):
                             JournalReorderRow(
@@ -3604,10 +3608,21 @@ struct JournalsReorderView: View {
                             EmptyView()
                         }
                     }
-                    .onMove(perform: moveItem)
+                        .onMove(perform: moveItem)
+                    }
+                    .listStyle(.plain)
+                    .environment(\.editMode, .constant(.active)) // Always in edit mode
+                    .onChange(of: scrollToId) { _, newId in
+                        if let id = newId {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                withAnimation {
+                                    proxy.scrollTo(id, anchor: .bottom)
+                                }
+                                scrollToId = nil
+                            }
+                        }
+                    }
                 }
-                .listStyle(.plain)
-                .environment(\.editMode, .constant(.active)) // Always in edit mode
 
                 // Empty state
                 if rootItems.isEmpty {
@@ -3787,9 +3802,9 @@ struct JournalsReorderView: View {
 
     func addNewCollection() {
         impactMedium.impactOccurred()
+        let newId = UUID().uuidString
         withAnimation {
             let newName = generateNextCollectionName()
-            let newId = UUID().uuidString
 
             // Create the collection node
             let newCollection = CollectionNode(id: newId, name: newName, contents: [], isExpanded: false)
@@ -3799,6 +3814,9 @@ struct JournalsReorderView: View {
             rebuildCache()
             applyChangesLive()
         }
+
+        // Scroll to the newly created collection
+        scrollToId = newId
     }
 
     private func generateNextCollectionName() -> String {

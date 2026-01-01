@@ -3993,11 +3993,15 @@ struct JournalsReorderView: View {
 
         // Create node and add to bottom of root items
         let journalNode = JournalNode(id: newJournal.id, journal: newJournal)
+        let newId = journalNode.id
         rootItems.append(.journal(journalNode, isNested: false))
 
         // Rebuild cache and apply changes
         rebuildCache()
         applyChangesLive()
+
+        // Scroll to the newly created journal
+        scrollToId = newId
     }
 
     private func generateNextJournalName() -> String {

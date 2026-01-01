@@ -72,7 +72,7 @@ struct JournalsTabPagedView: View {
     @State private var useSeparatedCollections = false
     @State private var journalsPopulation: JournalsPopulation = .lots
     @State private var showAddJournalTips = false
-    @State private var showTrashRow = false
+    @State private var trashCount: Int = 7 // Controlled by Fill/Empty Trash button
     @State private var showCompactView = false
     @State private var showBooksView = false
     @State private var showNewJournalButtons = false
@@ -316,11 +316,11 @@ struct JournalsTabPagedView: View {
         })
 
         var counter = 1
-        while existingNames.contains("New Collection \(counter)") {
+        while existingNames.contains("Collection \(counter)") {
             counter += 1
         }
 
-        return "New Collection \(counter)"
+        return "Collection \(counter)"
     }
 
     // Add new journal to the bottom of the list
@@ -358,17 +358,22 @@ struct JournalsTabPagedView: View {
         }
 
         var counter = 1
-        while existingNames.contains("New Journal \(counter)") {
+        while existingNames.contains("Journal \(counter)") {
             counter += 1
         }
 
-        return "New Journal \(counter)"
+        return "Journal \(counter)"
     }
 
     // Repopulate journals with the selected option
     private func repopulateJournals(with option: JournalsPopulation) {
         // Clear existing journals
         journalItems.removeAll()
+
+        // Empty trash when New User is selected
+        if option == .newUser {
+            trashCount = 0
+        }
 
         switch option {
         case .newUser:
@@ -590,8 +595,14 @@ struct JournalsTabPagedView: View {
                                     Label("Show Add Journal Tips", systemImage: "lightbulb")
                                 }
 
-                                Toggle(isOn: $showTrashRow) {
-                                    Label("Show Trash Row", systemImage: "trash")
+                                Button {
+                                    if trashCount > 0 {
+                                        trashCount = 0
+                                    } else {
+                                        trashCount = 7
+                                    }
+                                } label: {
+                                    Label(trashCount > 0 ? "Empty Trash" : "Fill Trash", systemImage: "trash")
                                 }
 
                                 Toggle(isOn: $showCompactView) {
@@ -1209,12 +1220,14 @@ struct JournalsTabPagedView: View {
             }
 
         // Trash row at the bottom
-        TrashRow(
-            itemCount: 12,
-            onSelect: {
-                // TODO: Handle trash selection
-            }
-        )
+        if trashCount > 0 {
+            TrashRow(
+                itemCount: trashCount,
+                onSelect: {
+                    // TODO: Handle trash selection
+                }
+            )
+        }
     }
 
     @ViewBuilder
@@ -1259,7 +1272,7 @@ struct JournalsTabPagedView: View {
 
     @ViewBuilder
     private var iconsTrashSection: some View {
-        if showTrashRow {
+        if trashCount > 0 {
             Button(action: {}) {
                 HStack(spacing: 12) {
                     Image(systemName: "trash")
@@ -1270,7 +1283,7 @@ struct JournalsTabPagedView: View {
                         .fontWeight(.regular)
                         .foregroundStyle(.primary)
                     Spacer()
-                    Text("12")
+                    Text("\(trashCount)")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -1595,15 +1608,17 @@ struct JournalsTabPagedView: View {
             }
 
         // Trash row at the bottom
-        CompactTrashRow(
-            itemCount: 12,
-            onSelect: {
-                // TODO: Handle trash selection
-            }
-        )
-        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
-        .listRowSeparator(.hidden)
-        .padding(.top, 16)
+        if trashCount > 0 {
+            CompactTrashRow(
+                itemCount: trashCount,
+                onSelect: {
+                    // TODO: Handle trash selection
+                }
+            )
+            .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+            .listRowSeparator(.hidden)
+            .padding(.top, 16)
+        }
     }
 
     @ViewBuilder
@@ -1648,7 +1663,7 @@ struct JournalsTabPagedView: View {
 
     @ViewBuilder
     private var trashSection: some View {
-        if showTrashRow {
+        if trashCount > 0 {
             Button(action: {}) {
                 HStack(spacing: 12) {
                     Image(systemName: "trash")
@@ -1659,7 +1674,7 @@ struct JournalsTabPagedView: View {
                         .fontWeight(.regular)
                         .foregroundStyle(.primary)
                     Spacer()
-                    Text("12")
+                    Text("\(trashCount)")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -3965,13 +3980,13 @@ struct JournalsReorderView: View {
 
     private func generateNextCollectionName() -> String {
         let existingNames = Set(collections.values.map { $0.name })
-        var suffix = "A"
+        var counter = 1
 
-        while existingNames.contains("Collection \(suffix)") {
-            suffix = incrementSuffix(suffix)
+        while existingNames.contains("Collection \(counter)") {
+            counter += 1
         }
 
-        return "Collection \(suffix)"
+        return "Collection \(counter)"
     }
 
     private func incrementSuffix(_ suffix: String) -> String {
@@ -4034,11 +4049,11 @@ struct JournalsReorderView: View {
         }
 
         var counter = 1
-        while existingNames.contains("New Journal \(counter)") {
+        while existingNames.contains("Journal \(counter)") {
             counter += 1
         }
 
-        return "New Journal \(counter)"
+        return "Journal \(counter)"
     }
 
     // MARK: - Save and Dismiss

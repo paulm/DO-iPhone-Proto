@@ -61,30 +61,12 @@ struct JournalDetailPagedView: View, StyleComputedProperties {
 
                     Divider()
 
-                    Section("Journal Detail Options") {
-                        Toggle(isOn: $showCoverImage) {
-                            Label("Show Cover Image", systemImage: "photo")
-                        }
-
-                        Toggle(isOn: $useLargeListDates) {
-                            Label("Large List Dates", systemImage: "calendar")
-                        }
-
-                        Menu {
-                            Picker("Style", selection: $selectedStyle) {
-                                ForEach(JournalDetailStyle.allCases, id: \.self) { style in
-                                    Text(style.rawValue).tag(style)
-                                }
-                            }
-                        } label: {
-                            HStack {
-                                Label("Style", systemImage: "paintbrush")
-                                Spacer()
-                                Text(selectedStyle.rawValue)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    }
+                    DetailSettingsSection(
+                        sectionTitle: "Journal Detail Options",
+                        showCoverImage: $showCoverImage,
+                        useLargeListDates: $useLargeListDates,
+                        selectedStyle: $selectedStyle
+                    )
                 } label: {
                     Circle()
                         .fill(
@@ -116,85 +98,21 @@ struct JournalDetailPagedView: View, StyleComputedProperties {
 
     // MARK: - Layout
     private var simpleLayout: some View {
-        ZStack {
-            GeometryReader { geometry in
-                ScrollView {
-                    VStack(spacing: 0) {
-                        // Header section with journal color background
-                        ZStack(alignment: .bottom) {
-                            // Background color extends behind nav bar
-                            headerBackgroundColor
-                                .frame(height: 300 + geometry.safeAreaInsets.top)
-                                .offset(y: -geometry.safeAreaInsets.top)
-                                .zIndex(0)
-
-                            // Cover image overlay if enabled
-                            if showCoverImage {
-                                let imageName = !journal.appearance.originalCoverImageData.isEmpty ?
-                                    journal.appearance.originalCoverImageData : "bike"
-                                Image(imageName)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .frame(height: 300 + geometry.safeAreaInsets.top)
-                                    .offset(y: -geometry.safeAreaInsets.top)
-                                    .clipped()
-                                    .overlay(
-                                        LinearGradient(
-                                            colors: [
-                                                Color.clear,
-                                                headerBackgroundColor.opacity(0.7)
-                                            ],
-                                            startPoint: .top,
-                                            endPoint: .bottom
-                                        )
-                                    )
-                                    .zIndex(1)
-                            }
-
-                            // Journal title - positioned at bottom of visible colored area
-                            VStack(spacing: 0) {
-                                Spacer()
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(journal.name)
-                                        .font(.largeTitle)
-                                        .fontWeight(.bold)
-                                        .foregroundStyle(headerTextColor)
-
-                                    Text("2020 – 2025")
-                                        .font(.subheadline)
-                                        .foregroundStyle(headerTextColor.opacity(0.8))
-                                }
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.horizontal, 20)
-                                .padding(.bottom, 16)
-                            }
-                            .frame(height: 300 + geometry.safeAreaInsets.top)
-                            .offset(y: -geometry.safeAreaInsets.top)
-                            .zIndex(2)
-                        }
-                        .frame(height: 300 - geometry.safeAreaInsets.top)
-
-                        // Content section - simple SwiftUI content
-                        simpleLayoutContent
-                            .padding(.top, 14)
-                    }
-                }
-                .background(Color(UIColor.systemBackground))
+        SimpleDetailLayout(
+            title: journal.name,
+            subtitle: "2020 – 2025",
+            headerBackgroundColor: headerBackgroundColor,
+            headerTextColor: headerTextColor,
+            showCoverImage: showCoverImage,
+            coverImageName: !journal.appearance.originalCoverImageData.isEmpty ?
+                journal.appearance.originalCoverImageData : "bike",
+            fabJournal: journal,
+            onFabTap: {
+                // Present entry view
+                // TODO: Implement entry view presentation
             }
-
-            // Floating FAB (separate from scroll view)
-            VStack {
-                Spacer()
-                HStack {
-                    Spacer()
-                    JournalDetailFAB(journal: journal, onTap: {
-                        // Present entry view
-                        // TODO: Implement entry view presentation
-                    })
-                    .padding(.trailing, 18)
-                    .padding(.bottom, 30)
-                }
-            }
+        ) {
+            simpleLayoutContent
         }
     }
 

@@ -97,6 +97,9 @@ struct JournalsTabPagedView: View {
     // Folder expansion state - expand all by default
     @State private var expandedFolders: Set<String> = Set(Journal.folders.map { $0.id })
 
+    // Auto-scroll to newly created journal
+    @State private var scrollToId: String? = nil
+
     // Sheet regular position from top (in points)
     let sheetRegularPosition: CGFloat = 250
 
@@ -340,6 +343,9 @@ struct JournalsTabPagedView: View {
 
         // Add to journalItems at the end
         journalItems.append(Journal.MixedJournalItem(journal: newJournal))
+
+        // Scroll to make the new journal visible
+        scrollToId = newJournal.id
     }
 
     // Generate unique name for new journals
@@ -931,18 +937,30 @@ struct JournalsTabPagedView: View {
     }
 
     private var iconsModeView: some View {
-        List {
-            // Render sections in custom order
-            ForEach(sectionOrder, id: \.self) { sectionType in
-                iconsSectionView(for: sectionType)
-            }
+        ScrollViewReader { proxy in
+            List {
+                // Render sections in custom order
+                ForEach(sectionOrder, id: \.self) { sectionType in
+                    iconsSectionView(for: sectionType)
+                }
 
-            // Fixed items that don't reorder
-            tipKitSection
+                // Fixed items that don't reorder
+                tipKitSection
+            }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .environment(\.editMode, .constant(isEditMode ? .active : .inactive))
+            .onChange(of: scrollToId) { _, newId in
+                if let id = newId {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        withAnimation {
+                            proxy.scrollTo(id, anchor: .bottom)
+                        }
+                        scrollToId = nil
+                    }
+                }
+            }
         }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
-        .environment(\.editMode, .constant(isEditMode ? .active : .inactive))
     }
 
     // MARK: - Icons Mode Section Views

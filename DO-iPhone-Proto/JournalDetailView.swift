@@ -251,7 +251,7 @@ struct JournalDetailPagedView: View {
                         ZStack(alignment: .bottom) {
                             // Background color extends behind nav bar
                             journal.color
-                                .frame(height: 200 + geometry.safeAreaInsets.top)
+                                .frame(height: 300 + geometry.safeAreaInsets.top)
                                 .offset(y: -geometry.safeAreaInsets.top)
                                 .zIndex(0)
 
@@ -262,7 +262,7 @@ struct JournalDetailPagedView: View {
                                 Image(imageName)
                                     .resizable()
                                     .aspectRatio(contentMode: .fill)
-                                    .frame(height: 200 + geometry.safeAreaInsets.top)
+                                    .frame(height: 300 + geometry.safeAreaInsets.top)
                                     .offset(y: -geometry.safeAreaInsets.top)
                                     .clipped()
                                     .overlay(
@@ -295,15 +295,15 @@ struct JournalDetailPagedView: View {
                                 .padding(.horizontal, 20)
                                 .padding(.bottom, 16)
                             }
-                            .frame(height: 200 + geometry.safeAreaInsets.top)
+                            .frame(height: 300 + geometry.safeAreaInsets.top)
                             .offset(y: -geometry.safeAreaInsets.top)
                             .zIndex(2)
                         }
-                        .frame(height: 200)
+                        .frame(height: 300 - geometry.safeAreaInsets.top)
 
                         // Content section - simple SwiftUI content
                         simpleLayoutContent
-                            .padding(.top, -44)
+                            .padding(.top, 14)
                     }
                 }
                 .background(Color(UIColor.systemBackground))

@@ -31,12 +31,6 @@ struct JournalDetailPagedView: View {
         simpleLayout
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .principal) {
-                Text(journal.name)
-                    .font(.headline)
-                    .foregroundStyle(.white)
-            }
-
             ToolbarItemGroup(placement: .navigationBarTrailing) {
                 Menu {
                     Button(action: {

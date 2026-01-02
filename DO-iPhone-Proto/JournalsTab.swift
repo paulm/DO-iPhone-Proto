@@ -4012,10 +4012,19 @@ struct JournalsReorderView: View {
         // Generate a unique name for the new journal
         let newName = generateNextJournalName()
 
-        // Create a new journal with default settings
+        // Create a new journal with a random color from Day One palette
+        let colors = [
+            Color(hex: "44C0FF"), Color(hex: "FFC107"), Color(hex: "2DCC71"),
+            Color(hex: "3398DB"), Color(hex: "6A6DCD"), Color(hex: "607D8B"),
+            Color(hex: "C27BD2"), Color(hex: "FF983B"), Color(hex: "E91E63"),
+            Color(hex: "16D6D9")
+        ]
+        let randomColor = colors.randomElement() ?? Color(hex: "44C0FF")
+
+        // Create a new journal with random color
         let newJournal = Journal(
             name: newName,
-            color: Color(hex: "44C0FF"), // Default Day One blue
+            color: randomColor,
             entryCount: 0
         )
 

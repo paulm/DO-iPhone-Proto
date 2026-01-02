@@ -485,6 +485,9 @@ struct JournalDetailPillPicker: View {
                         HStack(spacing: 8) {
                             Image(dayOneIcon: tab.dayOneIcon)
                                 .renderingMode(.template)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 22, height: 22)
 
                             if selection == tab {
                                 Text(tab.title)
@@ -492,9 +495,9 @@ struct JournalDetailPillPicker: View {
                                     .transition(.opacity.combined(with: .move(edge: .leading)))
                             }
                         }
-                        .font(.body.weight(.regular))
-                        .padding(.horizontal, 26)
-                        .padding(.vertical, 10)
+                        .font(.subheadline.weight(.medium))
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 7)
                         .contentShape(Capsule())
                     }
                     .foregroundStyle(selection == tab ? .white : .secondary)

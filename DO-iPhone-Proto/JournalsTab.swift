@@ -2671,6 +2671,20 @@ struct JournalRow: View {
                                         .offset(x: 3)
                                 }
                             )
+                            .overlay(
+                                // Shared or Concealed icon
+                                Group {
+                                    if journal.isShared == true {
+                                        Text(DayOneIcon.users.rawValue)
+                                            .font(.custom("DayOneIcons", size: 16))
+                                            .foregroundStyle(.white)
+                                    } else if journal.isConcealed == true {
+                                        Text(DayOneIcon.eye_cross.rawValue)
+                                            .font(.custom("DayOneIcons", size: 16))
+                                            .foregroundStyle(.white)
+                                    }
+                                }
+                            )
 
                         // Journal info
                         VStack(alignment: .leading, spacing: 4) {

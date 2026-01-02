@@ -53,13 +53,15 @@ struct Journal: Identifiable, Equatable, Hashable {
     let appearance: JournalAppearance
     let entryCount: Int?
     let journalCount: Int? // For "All Entries" - number of journals included
+    let isShared: Bool? // Shared with other users
+    let isConcealed: Bool? // Concealed/private journal
 
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
     
     // Initialize from JournalData
-    init(from data: JournalData, entryCount: Int? = nil, journalCount: Int? = nil) {
+    init(from data: JournalData, entryCount: Int? = nil, journalCount: Int? = nil, isShared: Bool? = nil, isConcealed: Bool? = nil) {
         self.id = data.id
         self.name = data.name
         self.description = data.description
@@ -71,6 +73,8 @@ struct Journal: Identifiable, Equatable, Hashable {
         self.appearance = data.appearance
         self.entryCount = entryCount
         self.journalCount = journalCount
+        self.isShared = isShared
+        self.isConcealed = isConcealed
     }
 
     // Copy initializer that preserves all properties including ID
@@ -85,7 +89,9 @@ struct Journal: Identifiable, Equatable, Hashable {
         features: JournalFeatures,
         appearance: JournalAppearance,
         entryCount: Int?,
-        journalCount: Int?
+        journalCount: Int?,
+        isShared: Bool? = nil,
+        isConcealed: Bool? = nil
     ) {
         self.id = id
         self.name = name
@@ -98,10 +104,12 @@ struct Journal: Identifiable, Equatable, Hashable {
         self.appearance = appearance
         self.entryCount = entryCount
         self.journalCount = journalCount
+        self.isShared = isShared
+        self.isConcealed = isConcealed
     }
 
     // Legacy initializer for compatibility
-    init(name: String, color: Color, entryCount: Int?, journalCount: Int? = nil, coverImage: String? = nil) {
+    init(name: String, color: Color, entryCount: Int?, journalCount: Int? = nil, coverImage: String? = nil, isShared: Bool? = nil, isConcealed: Bool? = nil) {
         self.id = UUID().uuidString
         self.name = name
         self.description = ""
@@ -129,6 +137,8 @@ struct Journal: Identifiable, Equatable, Hashable {
         )
         self.entryCount = entryCount
         self.journalCount = journalCount
+        self.isShared = isShared
+        self.isConcealed = isConcealed
     }
 }
 
@@ -147,7 +157,9 @@ extension Journal {
             features: self.features,
             appearance: self.appearance,
             entryCount: self.entryCount,
-            journalCount: self.journalCount
+            journalCount: self.journalCount,
+            isShared: self.isShared,
+            isConcealed: self.isConcealed
         )
     }
 }
@@ -277,6 +289,8 @@ extension Journal {
             // Standalone journals
             Journal(name: "Dreams", color: Color(hex: "C27BD2"), entryCount: 19, coverImage: "bike"), // Lavender
             Journal(name: "Fitness", color: Color(hex: "FF983B"), entryCount: 104), // Fire
+            Journal(name: "Smith Family Journal", color: Color(hex: "2DCC71"), entryCount: 34, isShared: true), // Green, Shared
+            Journal(name: "Therapy", color: Color(hex: "607D8B"), entryCount: 18, isConcealed: true), // Slate, Concealed
             // Personal folder journals - different colors
             Journal(name: "Personal Reflections and Daily Thoughts on Growth and Self Discovery", color: Color(hex: "E91E63"), entryCount: 56), // Hot Pink
             Journal(name: "Ideas", color: Color(hex: "FFC107"), entryCount: 73), // Honey
@@ -418,6 +432,16 @@ extension Journal {
         // Add Fitness
         if let fitness = allUnfoldered.first(where: { $0.name == "Fitness" }) {
             items.append(MixedJournalItem(journal: fitness))
+        }
+
+        // Add Smith Family Journal (shared)
+        if let smithFamily = allUnfoldered.first(where: { $0.name == "Smith Family Journal" }) {
+            items.append(MixedJournalItem(journal: smithFamily))
+        }
+
+        // Add Therapy (concealed)
+        if let therapy = allUnfoldered.first(where: { $0.name == "Therapy" }) {
+            items.append(MixedJournalItem(journal: therapy))
         }
 
         // Add Personal folder

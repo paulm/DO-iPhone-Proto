@@ -442,7 +442,7 @@ struct JournalDetailPillPicker: View {
                             if selection == tab {
                                 Text(tab.title)
                                     .lineLimit(1)
-                                    .transition(.opacity.combined(with: .move(edge: .trailing)))
+                                    .transition(.opacity.combined(with: .move(edge: .leading)))
                             }
                         }
                         .font(.body.weight(.regular))

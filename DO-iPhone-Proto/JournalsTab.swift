@@ -2742,16 +2742,10 @@ struct JournalRow: View {
             // New Entry (journal color)
             if let newEntry = onNewEntry {
                 Button(action: newEntry) {
-                    Label("New", systemImage: "plus")
+                    Label("New Entry", systemImage: "plus")
                 }
                 .tint(journal.color)
             }
-
-            // Select Journal (blue)
-            Button(action: onSelect) {
-                Label("Select", systemImage: "checkmark.circle")
-            }
-            .tint(.blue)
 
             // Edit Journal (gray)
             Button(action: {

@@ -244,56 +244,70 @@ struct JournalDetailPagedView: View {
     // MARK: - Simple Layout
     private var simpleLayout: some View {
         ZStack {
-            ScrollView {
-                VStack(spacing: 0) {
-                    // Header section with journal color background
-                    ZStack(alignment: .bottom) {
-                        // Background color
-                        journal.color
-                            .frame(height: 200)
+            GeometryReader { geometry in
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // Header section with journal color background
+                        ZStack(alignment: .bottom) {
+                            // Background color extends behind nav bar
+                            journal.color
+                                .frame(height: 200 + geometry.safeAreaInsets.top)
+                                .offset(y: -geometry.safeAreaInsets.top)
+                                .zIndex(0)
 
-                        // Cover image overlay if enabled
-                        if showCoverImage {
-                            let imageName = !journal.appearance.originalCoverImageData.isEmpty ?
-                                journal.appearance.originalCoverImageData : "bike"
-                            Image(imageName)
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(height: 200)
-                                .clipped()
-                                .overlay(
-                                    LinearGradient(
-                                        colors: [
-                                            Color.clear,
-                                            journal.color.opacity(0.7)
-                                        ],
-                                        startPoint: .top,
-                                        endPoint: .bottom
+                            // Cover image overlay if enabled
+                            if showCoverImage {
+                                let imageName = !journal.appearance.originalCoverImageData.isEmpty ?
+                                    journal.appearance.originalCoverImageData : "bike"
+                                Image(imageName)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(height: 200 + geometry.safeAreaInsets.top)
+                                    .offset(y: -geometry.safeAreaInsets.top)
+                                    .clipped()
+                                    .overlay(
+                                        LinearGradient(
+                                            colors: [
+                                                Color.clear,
+                                                journal.color.opacity(0.7)
+                                            ],
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        )
                                     )
-                                )
-                        }
+                                    .zIndex(1)
+                            }
 
-                        // Journal title
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(journal.name)
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                                .foregroundStyle(.white)
+                            // Journal title - positioned at bottom of visible colored area
+                            VStack(spacing: 0) {
+                                Spacer()
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(journal.name)
+                                        .font(.largeTitle)
+                                        .fontWeight(.bold)
+                                        .foregroundStyle(.white)
 
-                            Text("2020 – 2025")
-                                .font(.subheadline)
-                                .foregroundStyle(.white.opacity(0.8))
+                                    Text("2020 – 2025")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.white.opacity(0.8))
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 20)
+                                .padding(.bottom, 16)
+                            }
+                            .frame(height: 200 + geometry.safeAreaInsets.top)
+                            .offset(y: -geometry.safeAreaInsets.top)
+                            .zIndex(2)
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 16)
+                        .frame(height: 200)
+
+                        // Content section - simple SwiftUI content
+                        simpleLayoutContent
+                            .padding(.top, -44)
                     }
-
-                    // Content section - simple SwiftUI content
-                    simpleLayoutContent
                 }
+                .background(Color(UIColor.systemBackground))
             }
-            .background(Color(UIColor.systemBackground))
 
             // Floating FAB (separate from scroll view)
             VStack {
@@ -321,10 +335,11 @@ struct JournalDetailPagedView: View {
                 Image(systemName: "book").tag(0)
                 Text("List").tag(1)
                 Text("Calendar").tag(2)
+                Text("Media").tag(3)
+                Text("Map").tag(4)
             }
             .pickerStyle(.segmented)
             .padding(.horizontal, 16)
-            .padding(.top, 16)
             .padding(.bottom, 12)
 
             // Content based on selected tab
@@ -357,6 +372,16 @@ struct JournalDetailPagedView: View {
                 case 2:
                     // Calendar view placeholder
                     Text("Calendar View")
+                        .foregroundStyle(.secondary)
+                        .padding()
+                case 3:
+                    // Media view placeholder
+                    Text("Media View")
+                        .foregroundStyle(.secondary)
+                        .padding()
+                case 4:
+                    // Map view placeholder
+                    Text("Map View")
                         .foregroundStyle(.secondary)
                         .padding()
                 default:

@@ -326,31 +326,27 @@ struct JournalDetailPagedView: View {
     }
 
     // MARK: - Simple Layout Content
-    @State private var selectedContentTab = 1
+    @State private var selectedContentTab: JournalDetailTab = .list
 
     private var simpleLayoutContent: some View {
         VStack(spacing: 0) {
-            // Segmented Control
-            Picker("View", selection: $selectedContentTab) {
-                Image(systemName: "book").tag(0)
-                Text("List").tag(1)
-                Text("Calendar").tag(2)
-                Text("Media").tag(3)
-                Text("Map").tag(4)
-            }
-            .pickerStyle(.segmented)
-            .padding(.horizontal, 16)
+            // Pill Picker (Mail-style)
+            JournalDetailPillPicker(
+                tabs: JournalDetailTab.allTabs,
+                selection: $selectedContentTab,
+                selectedColor: journal.color
+            )
             .padding(.bottom, 12)
 
             // Content based on selected tab
             VStack(spacing: 16) {
                 switch selectedContentTab {
-                case 0:
+                case .book:
                     // Book view placeholder
                     Text("Book View")
                         .foregroundStyle(.secondary)
                         .padding()
-                case 1:
+                case .list:
                     // List view placeholder
                     ForEach(0..<10, id: \.self) { index in
                         HStack {
@@ -369,26 +365,101 @@ struct JournalDetailPagedView: View {
                         .cornerRadius(8)
                     }
                     .padding(.horizontal, 16)
-                case 2:
+                case .calendar:
                     // Calendar view placeholder
                     Text("Calendar View")
                         .foregroundStyle(.secondary)
                         .padding()
-                case 3:
+                case .media:
                     // Media view placeholder
                     Text("Media View")
                         .foregroundStyle(.secondary)
                         .padding()
-                case 4:
+                case .map:
                     // Map view placeholder
                     Text("Map View")
                         .foregroundStyle(.secondary)
                         .padding()
-                default:
-                    EmptyView()
                 }
             }
             .padding(.bottom, 120) // Extra padding for FAB clearance
+        }
+    }
+}
+
+// MARK: - Journal Detail Tab Model
+enum JournalDetailTab: String, Identifiable, Hashable, CaseIterable {
+    case book
+    case list
+    case calendar
+    case media
+    case map
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .book: return "Book"
+        case .list: return "List"
+        case .calendar: return "Calendar"
+        case .media: return "Media"
+        case .map: return "Map"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .book: return "book"
+        case .list: return "list.bullet"
+        case .calendar: return "calendar"
+        case .media: return "photo.on.rectangle"
+        case .map: return "map"
+        }
+    }
+
+    static let allTabs: [JournalDetailTab] = allCases
+}
+
+// MARK: - Journal Detail Pill Picker
+struct JournalDetailPillPicker: View {
+    let tabs: [JournalDetailTab]
+    @Binding var selection: JournalDetailTab
+    let selectedColor: Color
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
+                ForEach(tabs) { tab in
+                    Button {
+                        withAnimation(.bouncy) {
+                            selection = tab
+                        }
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: tab.systemImage)
+                                .symbolVariant(selection == tab ? .fill : .none)
+
+                            if selection == tab {
+                                Text(tab.title)
+                                    .lineLimit(1)
+                                    .transition(.opacity.combined(with: .move(edge: .trailing)))
+                            }
+                        }
+                        .font(.body.weight(.regular))
+                        .padding(.horizontal, 26)
+                        .padding(.vertical, 10)
+                        .contentShape(Capsule())
+                    }
+                    .foregroundStyle(selection == tab ? .white : .secondary)
+                    .background {
+                        Capsule()
+                            .fill(selection == tab ? selectedColor : Color(uiColor: .secondarySystemFill))
+                    }
+                    .accessibilityLabel(Text(tab.title))
+                    .accessibilityAddTraits(selection == tab ? [.isSelected] : [])
+                }
+            }
+            .padding(.horizontal, 16)
         }
     }
 }

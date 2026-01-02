@@ -2792,7 +2792,7 @@ struct RecentJournalBookView: View {
 }
 
 // MARK: - Folder Detail View
-struct FolderDetailView: View {
+struct FolderDetailView: View, StyleComputedProperties {
     let folder: JournalFolder
     let sheetRegularPosition: CGFloat  // Kept for compatibility
     @State private var showingEditView = false
@@ -2800,28 +2800,14 @@ struct FolderDetailView: View {
     @State private var useLargeListDates = false
     @State private var selectedContentTab: JournalDetailTab = .timeline
     @Environment(\.dismiss) private var dismiss
-    @AppStorage("journalDetailStyle") private var selectedStyle: JournalDetailStyle = .colored
+    @AppStorage("journalDetailStyle") var selectedStyle: JournalDetailStyle = .colored
+
+    // StyleComputedProperties requirement
+    var color: Color { folder.color }
 
     // Get journal names as comma-separated string
     private var journalNames: String {
         folder.journals.map { $0.name }.joined(separator: ", ")
-    }
-
-    // Style computed properties
-    private var headerBackgroundColor: Color {
-        selectedStyle == .colored ? folder.color : .white
-    }
-
-    private var headerTextColor: Color {
-        selectedStyle == .colored ? .white : folder.color
-    }
-
-    private var toolbarColorScheme: ColorScheme? {
-        selectedStyle == .colored ? .dark : nil
-    }
-
-    private var selectedPillColor: Color {
-        selectedStyle == .colored ? Color(hex: "333B40") : folder.color
     }
 
     var body: some View {

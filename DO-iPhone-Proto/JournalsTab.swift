@@ -2398,24 +2398,6 @@ struct CompactJournalRow: View {
             } label: {
                 Label("Rename", systemImage: "character.cursor.ibeam")
             }
-
-            Button(role: .destructive) {
-                showingDeleteConfirmation = true
-            } label: {
-                Label("Delete", systemImage: "trash")
-            }
-        }
-        .alert("Delete Journal", isPresented: $showingDeleteConfirmation) {
-            Button("Cancel", role: .cancel) { }
-            Button("Delete", role: .destructive) {
-                onDelete?()
-            }
-        } message: {
-            if let count = journal.entryCount, count > 0 {
-                Text("This journal contains \(count) \(count == 1 ? "entry" : "entries"). All entries will be permanently deleted.")
-            } else {
-                Text("Are you sure you want to delete this journal?")
-            }
         }
     }
 }
@@ -2754,24 +2736,6 @@ struct JournalRow: View {
                 isNameFieldFocused = true
             } label: {
                 Label("Rename", systemImage: "character.cursor.ibeam")
-            }
-
-            Button(role: .destructive) {
-                showingDeleteConfirmation = true
-            } label: {
-                Label("Delete", systemImage: "trash")
-            }
-        }
-        .alert("Delete Journal", isPresented: $showingDeleteConfirmation) {
-            Button("Cancel", role: .cancel) { }
-            Button("Delete", role: .destructive) {
-                onDelete?()
-            }
-        } message: {
-            if let count = journal.entryCount, count > 0 {
-                Text("This journal contains \(count) \(count == 1 ? "entry" : "entries"). All entries will be permanently deleted.")
-            } else {
-                Text("Are you sure you want to delete this journal?")
             }
         }
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {

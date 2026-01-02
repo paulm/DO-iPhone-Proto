@@ -285,6 +285,10 @@ struct JournalDetailPagedView: View {
         return .dark
     }
 
+    private var selectedPillColor: Color {
+        selectedStyle == .colored ? Color(hex: "333B40") : journal.color
+    }
+
     private var simpleLayout: some View {
         ZStack {
             GeometryReader { geometry in
@@ -369,7 +373,7 @@ struct JournalDetailPagedView: View {
     }
 
     // MARK: - Simple Layout Content
-    @State private var selectedContentTab: JournalDetailTab = .list
+    @State private var selectedContentTab: JournalDetailTab = .timeline
 
     private var simpleLayoutContent: some View {
         VStack(spacing: 0) {
@@ -377,7 +381,7 @@ struct JournalDetailPagedView: View {
             JournalDetailPillPicker(
                 tabs: JournalDetailTab.allTabs,
                 selection: $selectedContentTab,
-                selectedColor: journal.color
+                selectedColor: selectedPillColor
             )
             .padding(.bottom, 12)
 
@@ -389,7 +393,7 @@ struct JournalDetailPagedView: View {
                     Text("Book View")
                         .foregroundStyle(.secondary)
                         .padding()
-                case .list:
+                case .timeline:
                     // List view placeholder
                     ForEach(0..<10, id: \.self) { index in
                         HStack {
@@ -433,7 +437,7 @@ struct JournalDetailPagedView: View {
 // MARK: - Journal Detail Tab Model
 enum JournalDetailTab: String, Identifiable, Hashable, CaseIterable {
     case book
-    case list
+    case timeline
     case calendar
     case media
     case map
@@ -443,20 +447,20 @@ enum JournalDetailTab: String, Identifiable, Hashable, CaseIterable {
     var title: String {
         switch self {
         case .book: return "Book"
-        case .list: return "List"
+        case .timeline: return "Timeline"
         case .calendar: return "Calendar"
         case .media: return "Media"
         case .map: return "Map"
         }
     }
 
-    var systemImage: String {
+    var dayOneIcon: DayOneIcon {
         switch self {
-        case .book: return "book"
-        case .list: return "list.bullet"
-        case .calendar: return "calendar"
-        case .media: return "photo.on.rectangle"
-        case .map: return "map"
+        case .book: return .book
+        case .timeline: return .unordered_list
+        case .calendar: return .calendar
+        case .media: return .photo_stack
+        case .map: return .map_pin
         }
     }
 
@@ -479,8 +483,8 @@ struct JournalDetailPillPicker: View {
                         }
                     } label: {
                         HStack(spacing: 8) {
-                            Image(systemName: tab.systemImage)
-                                .symbolVariant(selection == tab ? .fill : .none)
+                            Image(dayOneIcon: tab.dayOneIcon)
+                                .renderingMode(.template)
 
                             if selection == tab {
                                 Text(tab.title)

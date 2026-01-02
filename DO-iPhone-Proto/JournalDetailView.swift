@@ -6,6 +6,12 @@ enum JournalDetailLayout: String, CaseIterable {
     case simple = "Simple"
 }
 
+// MARK: - Simple Layout Style
+enum JournalDetailStyle: String, CaseIterable {
+    case colored = "Colored"
+    case white = "White"
+}
+
 // MARK: - Journal Detail View for iPhone
 struct JournalDetailPagedView: View {
     let journal: Journal
@@ -22,6 +28,7 @@ struct JournalDetailPagedView: View {
 
     @State private var useLargeListDates = false
     @AppStorage("journalDetailLayout") private var selectedLayout: JournalDetailLayout = .simple
+    @AppStorage("journalDetailStyle") private var selectedStyle: JournalDetailStyle = .colored
 
     init(journal: Journal, journalViewModel: JournalSelectionViewModel, sheetRegularPosition: CGFloat) {
         self.journal = journal
@@ -134,6 +141,25 @@ struct JournalDetailPagedView: View {
                             Label("Content Controller Standard", systemImage: "switch.2")
                         }
                     }
+
+                    if selectedLayout == .simple {
+                        Section("Simple Layout Options") {
+                            Menu {
+                                Picker("Style", selection: $selectedStyle) {
+                                    ForEach(JournalDetailStyle.allCases, id: \.self) { style in
+                                        Text(style.rawValue).tag(style)
+                                    }
+                                }
+                            } label: {
+                                HStack {
+                                    Label("Style", systemImage: "paintbrush")
+                                    Spacer()
+                                    Text(selectedStyle.rawValue)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                    }
                 } label: {
                     Circle()
                         .fill(
@@ -154,7 +180,7 @@ struct JournalDetailPagedView: View {
         }
         .toolbarBackground(selectedLayout == .customSheet ? (showCoverImage ? .hidden : .visible) : .automatic, for: .navigationBar)
         .toolbarBackground(selectedLayout == .customSheet ? journal.color : .clear, for: .navigationBar)
-        .toolbarColorScheme(selectedLayout == .customSheet ? (showCoverImage ? .dark : nil) : .dark, for: .navigationBar)
+        .toolbarColorScheme(toolbarColorScheme, for: .navigationBar)
         .sheet(isPresented: $showingEditView) {
             PagedEditJournalView(journal: journal)
         }
@@ -242,6 +268,23 @@ struct JournalDetailPagedView: View {
     }
 
     // MARK: - Simple Layout
+    private var headerBackgroundColor: Color {
+        selectedStyle == .colored ? journal.color : .white
+    }
+
+    private var headerTextColor: Color {
+        selectedStyle == .colored ? .white : journal.color
+    }
+
+    private var toolbarColorScheme: ColorScheme? {
+        if selectedLayout == .customSheet {
+            return showCoverImage ? .dark : nil
+        } else if selectedLayout == .simple {
+            return selectedStyle == .colored ? .dark : nil
+        }
+        return .dark
+    }
+
     private var simpleLayout: some View {
         ZStack {
             GeometryReader { geometry in
@@ -250,7 +293,7 @@ struct JournalDetailPagedView: View {
                         // Header section with journal color background
                         ZStack(alignment: .bottom) {
                             // Background color extends behind nav bar
-                            journal.color
+                            headerBackgroundColor
                                 .frame(height: 300 + geometry.safeAreaInsets.top)
                                 .offset(y: -geometry.safeAreaInsets.top)
                                 .zIndex(0)
@@ -269,7 +312,7 @@ struct JournalDetailPagedView: View {
                                         LinearGradient(
                                             colors: [
                                                 Color.clear,
-                                                journal.color.opacity(0.7)
+                                                headerBackgroundColor.opacity(0.7)
                                             ],
                                             startPoint: .top,
                                             endPoint: .bottom
@@ -285,11 +328,11 @@ struct JournalDetailPagedView: View {
                                     Text(journal.name)
                                         .font(.largeTitle)
                                         .fontWeight(.bold)
-                                        .foregroundStyle(.white)
+                                        .foregroundStyle(headerTextColor)
 
                                     Text("2020 – 2025")
                                         .font(.subheadline)
-                                        .foregroundStyle(.white.opacity(0.8))
+                                        .foregroundStyle(headerTextColor.opacity(0.8))
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(.horizontal, 20)

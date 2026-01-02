@@ -1,11 +1,5 @@
 import SwiftUI
 
-// MARK: - Layout Type
-enum JournalDetailLayout: String, CaseIterable {
-    case customSheet = "Custom Sheet"
-    case simple = "Simple"
-}
-
 // MARK: - Simple Layout Style
 enum JournalDetailStyle: String, CaseIterable {
     case colored = "Colored"
@@ -16,18 +10,13 @@ enum JournalDetailStyle: String, CaseIterable {
 struct JournalDetailPagedView: View {
     let journal: Journal
     let journalViewModel: JournalSelectionViewModel
-    let sheetRegularPosition: CGFloat
+    let sheetRegularPosition: CGFloat  // Kept for compatibility with call site
     @State private var showingEditView = false
     @State private var showingSettings = false
-    @State private var useStandardController = false
     @State private var showCoverImage: Bool
-    @StateObject private var sheetState = SheetState()
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    @Environment(\.verticalSizeClass) private var verticalSizeClass
 
     @State private var useLargeListDates = false
-    @AppStorage("journalDetailLayout") private var selectedLayout: JournalDetailLayout = .simple
     @AppStorage("journalDetailStyle") private var selectedStyle: JournalDetailStyle = .colored
 
     init(journal: Journal, journalViewModel: JournalSelectionViewModel, sheetRegularPosition: CGFloat) {
@@ -38,46 +27,14 @@ struct JournalDetailPagedView: View {
         _showCoverImage = State(initialValue: journal.name == "Dreams")
     }
 
-    // Computed properties for orientation-specific values
-    private var isLandscape: Bool {
-        verticalSizeClass == .compact
-    }
-
-    private var mediumDetentHeight: CGFloat {
-        isLandscape ? 240 : 650  // Landscape: 240pt, Portrait: 650pt (increased to show more content by default)
-    }
-
-    private var largeDetentHeight: CGFloat {
-        isLandscape ? 350 : 750  // Landscape: 450pt, Portrait: 750pt
-    }
-
-    private var titleTopPadding: CGFloat {
-        // Position title between nav bar and sheet
-        // Nav bar is ~44pt, safe area top is ~47pt (total ~91pt from top of screen)
-        // sheetRegularPosition is 350pt from top
-        // Available space: 350 - 91 = 259pt
-        // Title height is ~50pt (title + date)
-        // Center it: (259 - 50) / 2 = ~104pt from safe area top
-        isLandscape ? 1 : 25
-    }
-
     var body: some View {
-        Group {
-            switch selectedLayout {
-            case .customSheet:
-                customSheetLayout
-            case .simple:
-                simpleLayout
-            }
-        }
+        simpleLayout
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
                 Text(journal.name)
                     .font(.headline)
                     .foregroundStyle(.white)
-                    .opacity(sheetState.isExpanded ? 1 : 0)
-                    .animation(.easeInOut(duration: 0.2), value: sheetState.isExpanded)
             }
 
             ToolbarItemGroup(placement: .navigationBarTrailing) {
@@ -114,21 +71,6 @@ struct JournalDetailPagedView: View {
                     Divider()
 
                     Section("Journal Detail Options") {
-                        Menu {
-                            Picker("Layout", selection: $selectedLayout) {
-                                ForEach(JournalDetailLayout.allCases, id: \.self) { layout in
-                                    Text(layout.rawValue).tag(layout)
-                                }
-                            }
-                        } label: {
-                            HStack {
-                                Label("Layouts", systemImage: "rectangle.3.group")
-                                Spacer()
-                                Text(selectedLayout.rawValue)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-
                         Toggle(isOn: $showCoverImage) {
                             Label("Show Cover Image", systemImage: "photo")
                         }
@@ -137,26 +79,18 @@ struct JournalDetailPagedView: View {
                             Label("Large List Dates", systemImage: "calendar")
                         }
 
-                        Toggle(isOn: $useStandardController) {
-                            Label("Content Controller Standard", systemImage: "switch.2")
-                        }
-                    }
-
-                    if selectedLayout == .simple {
-                        Section("Simple Layout Options") {
-                            Menu {
-                                Picker("Style", selection: $selectedStyle) {
-                                    ForEach(JournalDetailStyle.allCases, id: \.self) { style in
-                                        Text(style.rawValue).tag(style)
-                                    }
+                        Menu {
+                            Picker("Style", selection: $selectedStyle) {
+                                ForEach(JournalDetailStyle.allCases, id: \.self) { style in
+                                    Text(style.rawValue).tag(style)
                                 }
-                            } label: {
-                                HStack {
-                                    Label("Style", systemImage: "paintbrush")
-                                    Spacer()
-                                    Text(selectedStyle.rawValue)
-                                        .foregroundStyle(.secondary)
-                                }
+                            }
+                        } label: {
+                            HStack {
+                                Label("Style", systemImage: "paintbrush")
+                                Spacer()
+                                Text(selectedStyle.rawValue)
+                                    .foregroundStyle(.secondary)
                             }
                         }
                     }
@@ -178,8 +112,8 @@ struct JournalDetailPagedView: View {
                 }
             }
         }
-        .toolbarBackground(selectedLayout == .customSheet ? (showCoverImage ? .hidden : .visible) : .automatic, for: .navigationBar)
-        .toolbarBackground(selectedLayout == .customSheet ? journal.color : .clear, for: .navigationBar)
+        .toolbarBackground(.automatic, for: .navigationBar)
+        .toolbarBackground(.clear, for: .navigationBar)
         .toolbarColorScheme(toolbarColorScheme, for: .navigationBar)
         .sheet(isPresented: $showingEditView) {
             PagedEditJournalView(journal: journal)
@@ -189,85 +123,7 @@ struct JournalDetailPagedView: View {
         }
     }
 
-    // MARK: - Custom Sheet Layout
-    private var customSheetLayout: some View {
-        ZStack {
-            // Full screen journal color background
-            journal.color
-                .ignoresSafeArea()
-
-            // Cover image overlay - use journal's cover or fallback to bike
-            if showCoverImage {
-                GeometryReader { geometry in
-                    VStack {
-                        let imageName = !journal.appearance.originalCoverImageData.isEmpty ?
-                            journal.appearance.originalCoverImageData : "bike"
-                        Image(imageName)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: geometry.size.width, height: sheetRegularPosition + 100)
-                            .clipped()
-                            .ignoresSafeArea()
-                            .overlay(
-                                VStack {
-                                    Spacer()
-                                    LinearGradient(
-                                        colors: [
-                                            Color.clear,
-                                            journal.color
-                                        ],
-                                        startPoint: .top,
-                                        endPoint: .bottom
-                                    )
-                                    .frame(height: 100)
-                                }
-                            )
-
-                        Spacer()
-                    }
-                }
-                .ignoresSafeArea()
-            }
-
-            VStack(alignment: .leading) {
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text(journal.name)
-                            .font(.title)
-                            .fontWeight(.bold)
-                            .foregroundStyle(.white)
-
-                        Text("2020 – 2025")
-                            .font(.caption)
-                            .foregroundStyle(.white.opacity(0.8))
-                    }
-
-                    Spacer()
-                }
-                .padding(.leading, 18)
-                .padding(.top, titleTopPadding)
-
-                Spacer()
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .zIndex(1)
-
-            // Custom sheet overlay with orientation-specific detent positions
-            CustomSheetView(
-                journal: journal,
-                sheetRegularPosition: 350,
-                mediumDetentHeight: mediumDetentHeight,
-                largeDetentHeight: largeDetentHeight,
-                sheetState: sheetState,
-                useStandardController: useStandardController,
-                useLargeListDates: useLargeListDates
-            )
-            .id("\(useStandardController)-\(useLargeListDates)") // Recreate when toggles change
-            .zIndex(2) // Ensure sheet appears above title text (which has zIndex 1)
-        }
-    }
-
-    // MARK: - Simple Layout
+    // MARK: - Layout
     private var headerBackgroundColor: Color {
         selectedStyle == .colored ? journal.color : .white
     }
@@ -277,12 +133,7 @@ struct JournalDetailPagedView: View {
     }
 
     private var toolbarColorScheme: ColorScheme? {
-        if selectedLayout == .customSheet {
-            return showCoverImage ? .dark : nil
-        } else if selectedLayout == .simple {
-            return selectedStyle == .colored ? .dark : nil
-        }
-        return .dark
+        selectedStyle == .colored ? .dark : nil
     }
 
     private var selectedPillColor: Color {

@@ -2794,124 +2794,40 @@ struct RecentJournalBookView: View {
 // MARK: - Folder Detail View
 struct FolderDetailView: View {
     let folder: JournalFolder
-    let sheetRegularPosition: CGFloat
+    let sheetRegularPosition: CGFloat  // Kept for compatibility
     @State private var showingEditView = false
-    @State private var useStandardController = false
     @State private var showCoverImage = false
     @State private var useLargeListDates = false
-    @StateObject private var sheetState = SheetState()
+    @State private var selectedContentTab: JournalDetailTab = .timeline
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    @Environment(\.verticalSizeClass) private var verticalSizeClass
-
-    // Computed properties for orientation-specific values
-    private var isLandscape: Bool {
-        verticalSizeClass == .compact
-    }
-
-    private var mediumDetentHeight: CGFloat {
-        isLandscape ? 240 : 650  // Match journal detail view
-    }
-
-    private var largeDetentHeight: CGFloat {
-        isLandscape ? 350 : 750  // Match journal detail view
-    }
-
-    private var titleTopPadding: CGFloat {
-        // Match journal detail view positioning
-        isLandscape ? 1 : 25
-    }
+    @AppStorage("journalDetailStyle") private var selectedStyle: JournalDetailStyle = .colored
 
     // Get journal names as comma-separated string
     private var journalNames: String {
         folder.journals.map { $0.name }.joined(separator: ", ")
     }
 
+    // Style computed properties
+    private var headerBackgroundColor: Color {
+        selectedStyle == .colored ? folder.color : .white
+    }
+
+    private var headerTextColor: Color {
+        selectedStyle == .colored ? .white : folder.color
+    }
+
+    private var toolbarColorScheme: ColorScheme? {
+        selectedStyle == .colored ? .dark : nil
+    }
+
+    private var selectedPillColor: Color {
+        selectedStyle == .colored ? Color(hex: "333B40") : folder.color
+    }
+
     var body: some View {
-        ZStack {
-            // Full screen folder color background
-            folder.color
-                .ignoresSafeArea()
-
-            // Cover image overlay - use bike image as fallback
-            if showCoverImage {
-                GeometryReader { geometry in
-                    VStack {
-                        Image("bike")
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: geometry.size.width, height: sheetRegularPosition + 100)
-                            .clipped()
-                            .ignoresSafeArea()
-                            .overlay(
-                                VStack {
-                                    Spacer()
-                                    LinearGradient(
-                                        colors: [
-                                            Color.clear,
-                                            folder.color
-                                        ],
-                                        startPoint: .top,
-                                        endPoint: .bottom
-                                    )
-                                    .frame(height: 100)
-                                }
-                            )
-
-                        Spacer()
-                    }
-                }
-                .ignoresSafeArea()
-            }
-
-            VStack(alignment: .leading) {
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text(folder.name)
-                            .font(.title)
-                            .fontWeight(.bold)
-                            .foregroundStyle(.white)
-
-                        // Journal names in the same format as date range
-                        Text(journalNames)
-                            .font(.caption)
-                            .foregroundStyle(.white.opacity(0.8))
-                    }
-
-                    Spacer()
-                }
-                .padding(.leading, 18)
-                .padding(.top, titleTopPadding)
-
-                Spacer()
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .zIndex(1)
-
-            // Custom sheet overlay with orientation-specific detent positions
-            CustomSheetView(
-                journal: folder.journals.first ?? Journal(name: folder.name, color: folder.color, entryCount: folder.entryCount),
-                sheetRegularPosition: 350,
-                mediumDetentHeight: mediumDetentHeight,
-                largeDetentHeight: largeDetentHeight,
-                sheetState: sheetState,
-                useStandardController: useStandardController,
-                useLargeListDates: useLargeListDates,
-                showFAB: false // Don't show FAB in collection detail views
-            )
-            .id("\(useStandardController)-\(useLargeListDates)") // Recreate when toggles change
-            .zIndex(2)
-        }
+        simpleLayout
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .principal) {
-                Text(folder.name)
-                    .font(.headline)
-                    .foregroundStyle(.white)
-                    .opacity(sheetState.isExpanded ? 1 : 0)
-                    .animation(.easeInOut(duration: 0.2), value: sheetState.isExpanded)
-            }
-
             ToolbarItemGroup(placement: .navigationBarTrailing) {
                 Menu {
                     Button(action: {
@@ -2934,16 +2850,29 @@ struct FolderDetailView: View {
 
                     Divider()
 
-                    Toggle(isOn: $useStandardController) {
-                        Label("Content Controller Standard", systemImage: "switch.2")
-                    }
+                    Section("Folder Detail Options") {
+                        Toggle(isOn: $showCoverImage) {
+                            Label("Show Cover Image", systemImage: "photo")
+                        }
 
-                    Toggle(isOn: $showCoverImage) {
-                        Label("Show Cover Image", systemImage: "photo")
-                    }
+                        Toggle(isOn: $useLargeListDates) {
+                            Label("Large List Dates", systemImage: "calendar")
+                        }
 
-                    Toggle(isOn: $useLargeListDates) {
-                        Label("Large List Dates", systemImage: "calendar")
+                        Menu {
+                            Picker("Style", selection: $selectedStyle) {
+                                ForEach(JournalDetailStyle.allCases, id: \.self) { style in
+                                    Text(style.rawValue).tag(style)
+                                }
+                            }
+                        } label: {
+                            HStack {
+                                Label("Style", systemImage: "paintbrush")
+                                Spacer()
+                                Text(selectedStyle.rawValue)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
                     }
                 } label: {
                     Image(systemName: "ellipsis")
@@ -2970,12 +2899,124 @@ struct FolderDetailView: View {
                 }
             }
         }
-        .toolbarBackground(showCoverImage ? .hidden : .visible, for: .navigationBar)
-        .toolbarBackground(folder.color, for: .navigationBar)
-        .toolbarColorScheme(showCoverImage ? .dark : nil, for: .navigationBar)
-        .tint(folder.color)
+        .toolbarBackground(.automatic, for: .navigationBar)
+        .toolbarBackground(.clear, for: .navigationBar)
+        .toolbarColorScheme(toolbarColorScheme, for: .navigationBar)
         .sheet(isPresented: $showingEditView) {
             PagedEditJournalView(journal: folder.journals.first ?? Journal(name: folder.name, color: folder.color, entryCount: folder.entryCount))
+        }
+    }
+
+    // MARK: - Simple Layout
+    private var simpleLayout: some View {
+        ZStack {
+            GeometryReader { geometry in
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // Header section with folder color background
+                        ZStack(alignment: .bottom) {
+                            // Background color extends behind nav bar
+                            headerBackgroundColor
+                                .frame(height: 300 + geometry.safeAreaInsets.top)
+                                .offset(y: -geometry.safeAreaInsets.top)
+                                .zIndex(0)
+
+                            // Cover image overlay if enabled
+                            if showCoverImage {
+                                Image("bike")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(height: 300 + geometry.safeAreaInsets.top)
+                                    .offset(y: -geometry.safeAreaInsets.top)
+                                    .clipped()
+                                    .overlay(
+                                        LinearGradient(
+                                            colors: [
+                                                Color.clear,
+                                                headerBackgroundColor.opacity(0.7)
+                                            ],
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        )
+                                    )
+                                    .zIndex(1)
+                            }
+
+                            // Folder title - positioned at bottom of visible colored area
+                            VStack(spacing: 0) {
+                                Spacer()
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(folder.name)
+                                        .font(.largeTitle)
+                                        .fontWeight(.bold)
+                                        .foregroundStyle(headerTextColor)
+
+                                    Text(journalNames)
+                                        .font(.subheadline)
+                                        .foregroundStyle(headerTextColor.opacity(0.8))
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 20)
+                                .padding(.bottom, 16)
+                            }
+                            .frame(height: 300 + geometry.safeAreaInsets.top)
+                            .offset(y: -geometry.safeAreaInsets.top)
+                            .zIndex(2)
+                        }
+                        .frame(height: 300 - geometry.safeAreaInsets.top)
+
+                        // Content section - simple SwiftUI content
+                        simpleLayoutContent
+                            .padding(.top, 14)
+                    }
+                }
+                .background(Color(UIColor.systemBackground))
+            }
+
+            // Floating FAB (separate from scroll view)
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    JournalDetailFAB(journal: folder.journals.first ?? Journal(name: folder.name, color: folder.color, entryCount: folder.entryCount), onTap: {
+                        // Present entry view
+                        // TODO: Implement entry view presentation
+                    })
+                    .padding(.trailing, 18)
+                    .padding(.bottom, 30)
+                }
+            }
+        }
+    }
+
+    // MARK: - Simple Layout Content
+    private var simpleLayoutContent: some View {
+        VStack(spacing: 0) {
+            // Pill Picker (Mail-style)
+            JournalDetailPillPicker(
+                tabs: JournalDetailTab.allTabs,
+                selection: $selectedContentTab,
+                selectedColor: selectedPillColor
+            )
+            .padding(.bottom, 12)
+
+            // Content based on selected tab
+            Group {
+                switch selectedContentTab {
+                case .book:
+                    PagedCoverTabView(journal: folder.journals.first ?? Journal(name: folder.name, color: folder.color, entryCount: folder.entryCount))
+                case .timeline:
+                    ListTabView(journal: folder.journals.first ?? Journal(name: folder.name, color: folder.color, entryCount: folder.entryCount), useLargeListDates: useLargeListDates)
+                case .calendar:
+                    CalendarTabView(journal: folder.journals.first ?? Journal(name: folder.name, color: folder.color, entryCount: folder.entryCount))
+                case .media:
+                    MediaTabView()
+                case .map:
+                    MapTabView()
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(.bottom, 120) // Extra padding for FAB clearance
         }
     }
 }

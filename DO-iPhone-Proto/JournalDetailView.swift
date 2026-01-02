@@ -330,3 +330,32 @@ struct JournalDetailPillPicker: View {
         }
     }
 }
+
+// MARK: - Journal Detail FAB View
+struct JournalDetailFAB: View {
+    let journal: Journal
+    let onTap: () -> Void
+    @State private var showingFAB = false
+
+    var body: some View {
+        Button(action: onTap) {
+            Text(DayOneIcon.plus.rawValue)
+                .dayOneIconFont(size: 24)
+                .foregroundColor(.white)
+                .frame(width: 56, height: 56)
+        }
+        .background(journal.color)
+        .clipShape(Circle())
+        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+        .offset(y: showingFAB ? 0 : 150) // Slide up/down animation
+        .opacity(showingFAB ? 1 : 0)
+        .onAppear {
+            // Animate FAB in after a short delay with bounce effect
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                withAnimation(.interpolatingSpring(stiffness: 180, damping: 12)) {
+                    showingFAB = true
+                }
+            }
+        }
+    }
+}

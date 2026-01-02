@@ -46,7 +46,7 @@ struct SimpleDetailLayout<Content: View>: View {
                         ZStack(alignment: .bottom) {
                             // Background color extends behind nav bar
                             headerBackgroundColor
-                                .frame(height: 300 + geometry.safeAreaInsets.top)
+                                .frame(height: 220 + geometry.safeAreaInsets.top)
                                 .offset(y: -geometry.safeAreaInsets.top)
                                 .zIndex(0)
 
@@ -55,7 +55,7 @@ struct SimpleDetailLayout<Content: View>: View {
                                 Image(coverImageName)
                                     .resizable()
                                     .aspectRatio(contentMode: .fill)
-                                    .frame(height: 300 + geometry.safeAreaInsets.top)
+                                    .frame(height: 220 + geometry.safeAreaInsets.top)
                                     .offset(y: -geometry.safeAreaInsets.top)
                                     .clipped()
                                     .overlay(
@@ -88,11 +88,11 @@ struct SimpleDetailLayout<Content: View>: View {
                                 .padding(.horizontal, 20)
                                 .padding(.bottom, 16)
                             }
-                            .frame(height: 300 + geometry.safeAreaInsets.top)
+                            .frame(height: 220 + geometry.safeAreaInsets.top)
                             .offset(y: -geometry.safeAreaInsets.top)
                             .zIndex(2)
                         }
-                        .frame(height: 300 - geometry.safeAreaInsets.top)
+                        .frame(height: 220 - geometry.safeAreaInsets.top)
 
                         // Content section
                         content

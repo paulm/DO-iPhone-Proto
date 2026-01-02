@@ -1,5 +1,11 @@
 import SwiftUI
 
+// MARK: - Layout Type
+enum JournalDetailLayout: String, CaseIterable {
+    case customSheet = "Custom Sheet"
+    case simple = "Simple"
+}
+
 // MARK: - Journal Detail View for iPhone
 struct JournalDetailPagedView: View {
     let journal: Journal
@@ -15,6 +21,7 @@ struct JournalDetailPagedView: View {
     @Environment(\.verticalSizeClass) private var verticalSizeClass
 
     @State private var useLargeListDates = false
+    @AppStorage("journalDetailLayout") private var selectedLayout: JournalDetailLayout = .simple
 
     init(journal: Journal, journalViewModel: JournalSelectionViewModel, sheetRegularPosition: CGFloat) {
         self.journal = journal
@@ -48,6 +55,116 @@ struct JournalDetailPagedView: View {
     }
 
     var body: some View {
+        Group {
+            switch selectedLayout {
+            case .customSheet:
+                customSheetLayout
+            case .simple:
+                simpleLayout
+            }
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text(journal.name)
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                    .opacity(sheetState.isExpanded ? 1 : 0)
+                    .animation(.easeInOut(duration: 0.2), value: sheetState.isExpanded)
+            }
+
+            ToolbarItemGroup(placement: .navigationBarTrailing) {
+                Menu {
+                    Button(action: {
+                        showingEditView = true
+                    }) {
+                        Label("Journal Settings", systemImage: "gear")
+                    }
+
+                    Button(action: {
+                        // TODO: Preview Book action
+                    }) {
+                        Label("Preview Book", systemImage: "book")
+                    }
+
+                    Button(action: {
+                        // TODO: Export action
+                    }) {
+                        Label("Export", systemImage: "square.and.arrow.up")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .foregroundStyle(.white)
+                }
+
+                Menu {
+                    Button(action: {
+                        showingSettings = true
+                    }) {
+                        Label("Settings", systemImage: "gearshape")
+                    }
+
+                    Divider()
+
+                    Section("Journal Detail Options") {
+                        Menu {
+                            Picker("Layout", selection: $selectedLayout) {
+                                ForEach(JournalDetailLayout.allCases, id: \.self) { layout in
+                                    Text(layout.rawValue).tag(layout)
+                                }
+                            }
+                        } label: {
+                            HStack {
+                                Label("Layouts", systemImage: "rectangle.3.group")
+                                Spacer()
+                                Text(selectedLayout.rawValue)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+
+                        Toggle(isOn: $showCoverImage) {
+                            Label("Show Cover Image", systemImage: "photo")
+                        }
+
+                        Toggle(isOn: $useLargeListDates) {
+                            Label("Large List Dates", systemImage: "calendar")
+                        }
+
+                        Toggle(isOn: $useStandardController) {
+                            Label("Content Controller Standard", systemImage: "switch.2")
+                        }
+                    }
+                } label: {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.purple, Color.pink],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 32, height: 32)
+                        .overlay(
+                            Text("PM")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(.white)
+                        )
+                }
+            }
+        }
+        .toolbarBackground(selectedLayout == .customSheet ? (showCoverImage ? .hidden : .visible) : .automatic, for: .navigationBar)
+        .toolbarBackground(selectedLayout == .customSheet ? journal.color : .clear, for: .navigationBar)
+        .toolbarColorScheme(selectedLayout == .customSheet ? (showCoverImage ? .dark : nil) : .dark, for: .navigationBar)
+        .sheet(isPresented: $showingEditView) {
+            PagedEditJournalView(journal: journal)
+        }
+        .sheet(isPresented: $showingSettings) {
+            AppSettingsView()
+        }
+    }
+
+    // MARK: - Custom Sheet Layout
+    private var customSheetLayout: some View {
         ZStack {
             // Full screen journal color background
             journal.color
@@ -122,88 +239,131 @@ struct JournalDetailPagedView: View {
             .id("\(useStandardController)-\(useLargeListDates)") // Recreate when toggles change
             .zIndex(2) // Ensure sheet appears above title text (which has zIndex 1)
         }
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .principal) {
-                Text(journal.name)
-                    .font(.headline)
-                    .foregroundStyle(.white)
-                    .opacity(sheetState.isExpanded ? 1 : 0)
-                    .animation(.easeInOut(duration: 0.2), value: sheetState.isExpanded)
-            }
+    }
 
-            ToolbarItemGroup(placement: .navigationBarTrailing) {
-                Menu {
-                    Button(action: {
-                        showingEditView = true
-                    }) {
-                        Label("Journal Settings", systemImage: "gear")
+    // MARK: - Simple Layout
+    private var simpleLayout: some View {
+        ZStack {
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Header section with journal color background
+                    ZStack(alignment: .bottom) {
+                        // Background color
+                        journal.color
+                            .frame(height: 200)
+
+                        // Cover image overlay if enabled
+                        if showCoverImage {
+                            let imageName = !journal.appearance.originalCoverImageData.isEmpty ?
+                                journal.appearance.originalCoverImageData : "bike"
+                            Image(imageName)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(height: 200)
+                                .clipped()
+                                .overlay(
+                                    LinearGradient(
+                                        colors: [
+                                            Color.clear,
+                                            journal.color.opacity(0.7)
+                                        ],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
+                                )
+                        }
+
+                        // Journal title
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(journal.name)
+                                .font(.largeTitle)
+                                .fontWeight(.bold)
+                                .foregroundStyle(.white)
+
+                            Text("2020 – 2025")
+                                .font(.subheadline)
+                                .foregroundStyle(.white.opacity(0.8))
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 16)
                     }
 
-                    Button(action: {
-                        // TODO: Preview Book action
-                    }) {
-                        Label("Preview Book", systemImage: "book")
-                    }
-
-                    Button(action: {
-                        // TODO: Export action
-                    }) {
-                        Label("Export", systemImage: "square.and.arrow.up")
-                    }
-                } label: {
-                    Image(systemName: "ellipsis")
-                        .foregroundStyle(.white)
+                    // Content section - simple SwiftUI content
+                    simpleLayoutContent
                 }
+            }
+            .background(Color(UIColor.systemBackground))
 
-                Menu {
-                    Button(action: {
-                        showingSettings = true
-                    }) {
-                        Label("Settings", systemImage: "gearshape")
-                    }
-
-                    Divider()
-
-                    Section("Journal Detail Options") {
-                        Toggle(isOn: $showCoverImage) {
-                            Label("Show Cover Image", systemImage: "photo")
-                        }
-
-                        Toggle(isOn: $useLargeListDates) {
-                            Label("Large List Dates", systemImage: "calendar")
-                        }
-
-                        Toggle(isOn: $useStandardController) {
-                            Label("Content Controller Standard", systemImage: "switch.2")
-                        }
-                    }
-                } label: {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [Color.purple, Color.pink],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 32, height: 32)
-                        .overlay(
-                            Text("PM")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(.white)
-                        )
+            // Floating FAB (separate from scroll view)
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    JournalDetailFAB(journal: journal, onTap: {
+                        // Present entry view
+                        // TODO: Implement entry view presentation
+                    })
+                    .padding(.trailing, 18)
+                    .padding(.bottom, 30)
                 }
             }
         }
-        .toolbarBackground(showCoverImage ? .hidden : .visible, for: .navigationBar)
-        .toolbarBackground(journal.color, for: .navigationBar)
-        .toolbarColorScheme(showCoverImage ? .dark : nil, for: .navigationBar)
-        .sheet(isPresented: $showingEditView) {
-            PagedEditJournalView(journal: journal)
-        }
-        .sheet(isPresented: $showingSettings) {
-            AppSettingsView()
+    }
+
+    // MARK: - Simple Layout Content
+    @State private var selectedContentTab = 1
+
+    private var simpleLayoutContent: some View {
+        VStack(spacing: 0) {
+            // Segmented Control
+            Picker("View", selection: $selectedContentTab) {
+                Image(systemName: "book").tag(0)
+                Text("List").tag(1)
+                Text("Calendar").tag(2)
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal, 16)
+            .padding(.top, 16)
+            .padding(.bottom, 12)
+
+            // Content based on selected tab
+            VStack(spacing: 16) {
+                switch selectedContentTab {
+                case 0:
+                    // Book view placeholder
+                    Text("Book View")
+                        .foregroundStyle(.secondary)
+                        .padding()
+                case 1:
+                    // List view placeholder
+                    ForEach(0..<10, id: \.self) { index in
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Entry \(index + 1)")
+                                    .font(.headline)
+                                Text("March \(index + 1), 2025")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 12)
+                        .background(Color(UIColor.secondarySystemGroupedBackground))
+                        .cornerRadius(8)
+                    }
+                    .padding(.horizontal, 16)
+                case 2:
+                    // Calendar view placeholder
+                    Text("Calendar View")
+                        .foregroundStyle(.secondary)
+                        .padding()
+                default:
+                    EmptyView()
+                }
+            }
+            .padding(.bottom, 120) // Extra padding for FAB clearance
         }
     }
 }

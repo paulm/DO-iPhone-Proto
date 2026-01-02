@@ -386,49 +386,21 @@ struct JournalDetailPagedView: View {
             .padding(.bottom, 12)
 
             // Content based on selected tab
-            VStack(spacing: 16) {
+            Group {
                 switch selectedContentTab {
                 case .book:
-                    // Book view placeholder
-                    Text("Book View")
-                        .foregroundStyle(.secondary)
-                        .padding()
+                    PagedCoverTabView(journal: journal)
                 case .timeline:
-                    // List view placeholder
-                    ForEach(0..<10, id: \.self) { index in
-                        HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Entry \(index + 1)")
-                                    .font(.headline)
-                                Text("March \(index + 1), 2025")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            Spacer()
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 12)
-                        .background(Color(UIColor.secondarySystemGroupedBackground))
-                        .cornerRadius(8)
-                    }
-                    .padding(.horizontal, 16)
+                    ListTabView(journal: journal, useLargeListDates: useLargeListDates)
                 case .calendar:
-                    // Calendar view placeholder
-                    Text("Calendar View")
-                        .foregroundStyle(.secondary)
-                        .padding()
+                    CalendarTabView(journal: journal)
                 case .media:
-                    // Media view placeholder
-                    Text("Media View")
-                        .foregroundStyle(.secondary)
-                        .padding()
+                    MediaTabView()
                 case .map:
-                    // Map view placeholder
-                    Text("Map View")
-                        .foregroundStyle(.secondary)
-                        .padding()
+                    MapTabView()
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding(.bottom, 120) // Extra padding for FAB clearance
         }
     }

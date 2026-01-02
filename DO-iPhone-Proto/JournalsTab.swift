@@ -4423,6 +4423,17 @@ struct JournalReorderRow: View {
 
             Spacer()
 
+            // Shared or Concealed icon
+            if journalNode.journal.isShared == true {
+                Text(DayOneIcon.users.rawValue)
+                    .font(.custom("DayOneIcons", size: 14))
+                    .foregroundStyle(.secondary)
+            } else if journalNode.journal.isConcealed == true {
+                Text(DayOneIcon.eye_cross.rawValue)
+                    .font(.custom("DayOneIcons", size: 14))
+                    .foregroundStyle(.secondary)
+            }
+
             // Entry count
             if let count = journalNode.entryCount {
                 Text("\(count)")

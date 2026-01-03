@@ -19,14 +19,16 @@ struct CalendarEntry: Identifiable, Equatable {
 
 @Observable
 class CalendarViewModel {
+    static let shared = CalendarViewModel()
+
     var selectedDate: Date = Date()
     var currentDisplayedMonth: Date = Date()
     var entries: [CalendarEntry] = []
     var selectedJournal: Journal?
-    
+
     private let calendar = Calendar.current
-    
-    init() {
+
+    private init() {
         generateSampleData()
     }
     
@@ -471,7 +473,7 @@ struct CalendarEntryRowView: View {
 // MARK: - Main Calendar View
 
 struct JournalCalendarView: View {
-    @State private var viewModel = CalendarViewModel()
+    @State private var viewModel = CalendarViewModel.shared
     @Binding var selectedJournal: Journal?
     @State private var showingEntryPreview = false
     @State private var showingDayMenu = false

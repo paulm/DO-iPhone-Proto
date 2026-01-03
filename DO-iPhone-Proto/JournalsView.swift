@@ -508,8 +508,8 @@ struct MediaTabView: View {
 
     private let spacing: CGFloat = 1
 
-    // Generate shuffled array of 40 sample images (cycling through 1-22)
-    private let sampleImages: [String] = {
+    // Static shuffled array - generated only once and shared across all instances
+    private static let sampleImages: [String] = {
         var images: [String] = []
         for i in 0..<40 {
             images.append("do-sample - \((i % 22) + 1)")
@@ -533,7 +533,7 @@ struct MediaTabView: View {
             LazyVGrid(columns: columns, spacing: spacing) {
                 ForEach(0..<40, id: \.self) { index in
                     GeometryReader { geo in
-                        Image(sampleImages[index])
+                        Image(Self.sampleImages[index])
                             .resizable()
                             .scaledToFill()
                             .frame(width: geo.size.width, height: geo.size.width)

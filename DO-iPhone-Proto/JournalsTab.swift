@@ -1853,6 +1853,7 @@ struct PagedJournalSheetContent: View {
     @State private var showingEntryView = false
     @State private var showingFABState = false
     @State private var showingAudioRecord = false
+    @AppStorage("mediaViewSize") var mediaViewSize: MediaViewSize = .medium
     
     // Calculate FAB positions to maintain 80pt from bottom of device
     private var fabRegularPosition: CGFloat {
@@ -1879,7 +1880,7 @@ struct PagedJournalSheetContent: View {
                 case 2:
                     CalendarTabView(journal: journal)
                 case 3:
-                    MediaTabView()
+                    MediaTabView(mediaViewSize: mediaViewSize)
                 case 4:
                     MapTabView()
                 default:
@@ -2801,6 +2802,7 @@ struct FolderDetailView: View, StyleComputedProperties {
     @State private var selectedContentTab: JournalDetailTab = .timeline
     @Environment(\.dismiss) private var dismiss
     @AppStorage("journalDetailStyle") var selectedStyle: JournalDetailStyle = .colored
+    @AppStorage("mediaViewSize") var mediaViewSize: MediaViewSize = .medium
 
     // StyleComputedProperties requirement
     var color: Color { folder.color }
@@ -2840,7 +2842,8 @@ struct FolderDetailView: View, StyleComputedProperties {
                         sectionTitle: "Folder Detail Options",
                         showCoverImage: $showCoverImage,
                         useLargeListDates: $useLargeListDates,
-                        selectedStyle: $selectedStyle
+                        selectedStyle: $selectedStyle,
+                        mediaViewSize: $mediaViewSize
                     )
                 } label: {
                     Image(systemName: "ellipsis")
@@ -2915,7 +2918,7 @@ struct FolderDetailView: View, StyleComputedProperties {
                 case .calendar:
                     CalendarTabView(journal: folder.journals.first ?? Journal(name: folder.name, color: folder.color, entryCount: folder.entryCount))
                 case .media:
-                    MediaTabView()
+                    MediaTabView(mediaViewSize: mediaViewSize)
                 case .map:
                     MapTabView()
                 }

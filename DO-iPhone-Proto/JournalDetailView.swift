@@ -12,6 +12,7 @@ struct JournalDetailPagedView: View, StyleComputedProperties {
 
     @State private var useLargeListDates = false
     @AppStorage("journalDetailStyle") var selectedStyle: JournalDetailStyle = .colored
+    @AppStorage("mediaViewSize") var mediaViewSize: MediaViewSize = .medium
 
     // StyleComputedProperties requirement
     var color: Color { journal.color }
@@ -65,7 +66,8 @@ struct JournalDetailPagedView: View, StyleComputedProperties {
                         sectionTitle: "Journal Detail Options",
                         showCoverImage: $showCoverImage,
                         useLargeListDates: $useLargeListDates,
-                        selectedStyle: $selectedStyle
+                        selectedStyle: $selectedStyle,
+                        mediaViewSize: $mediaViewSize
                     )
                 } label: {
                     Circle()
@@ -147,7 +149,7 @@ struct JournalDetailPagedView: View, StyleComputedProperties {
                     case .calendar:
                         CalendarTabView(journal: journal)
                     case .media:
-                        MediaTabView()
+                        MediaTabView(mediaViewSize: mediaViewSize)
                     case .map:
                         Color.clear // Placeholder, won't be shown
                     }

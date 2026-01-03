@@ -6,6 +6,21 @@ enum JournalDetailStyle: String, CaseIterable {
     case white = "White"
 }
 
+// MARK: - Media View Size
+enum MediaViewSize: String, CaseIterable {
+    case small = "Small"
+    case medium = "Medium"
+    case large = "Large"
+
+    var targetWidth: CGFloat {
+        switch self {
+        case .small: return 105   // Targets 4 columns on iPhone (~98pt each)
+        case .medium: return 135  // Targets 3 columns on iPhone (~130pt each)
+        case .large: return 250   // Targets 2 columns on iPhone (larger squares)
+        }
+    }
+}
+
 // MARK: - Journal Detail Tab Model
 enum JournalDetailTab: String, Identifiable, Hashable, CaseIterable {
     case book

@@ -503,23 +503,45 @@ struct CalendarTabView: View {
 }
 
 struct MediaTabView: View {
-    @Environment(\.horizontalSizeClass) var horizontalSizeClass
-    
-    private var columns: [GridItem] {
-        let count = horizontalSizeClass == .compact ? 3 : 4
-        return Array(repeating: GridItem(.flexible(), spacing: 1), count: count)
+    let mediaViewSize: MediaViewSize
+    @State private var availableWidth: CGFloat = UIScreen.main.bounds.width
+
+    private let spacing: CGFloat = 1
+
+    // Smart column calculation based on available width and target size
+    private func calculateColumns(availableWidth: CGFloat) -> Int {
+        let targetWidth = mediaViewSize.targetWidth
+        // Calculate max columns that fit within target width (use ceil to fit more columns)
+        let columns = Int(ceil((availableWidth + spacing) / (targetWidth + spacing)))
+        return max(1, columns) // Ensure at least 1 column
     }
-    
+
     var body: some View {
+        let columnCount = calculateColumns(availableWidth: availableWidth)
+        let columns = Array(repeating: GridItem(.flexible(), spacing: spacing), count: columnCount)
+
         ScrollView {
-            LazyVGrid(columns: columns, spacing: 1) {
+            LazyVGrid(columns: columns, spacing: spacing) {
                 ForEach(0..<40) { index in
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.3))
+                    Image("bike")
+                        .resizable()
+                        .scaledToFill()
                         .aspectRatio(1, contentMode: .fit)
+                        .clipped()
                 }
             }
         }
+        .background(
+            GeometryReader { geo in
+                Color.clear
+                    .onAppear {
+                        availableWidth = geo.size.width
+                    }
+                    .onChange(of: geo.size.width) { oldWidth, newWidth in
+                        availableWidth = newWidth
+                    }
+            }
+        )
         .ignoresSafeArea(.all, edges: .horizontal)
     }
 }

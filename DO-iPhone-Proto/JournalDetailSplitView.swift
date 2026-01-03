@@ -32,6 +32,7 @@ struct JournalDetailSplitView: View {
     @State private var viewMode: JournalViewMode = .list
     @State private var showingEntryView = false
     @State private var selectedEntryData: EntryView.EntryData?
+    @AppStorage("mediaViewSize") var mediaViewSize: MediaViewSize = .medium
     
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
@@ -104,7 +105,7 @@ struct JournalDetailSplitView: View {
                                 .background(Color(UIColor.systemBackground))
                         case .media:
                             // Use existing MediaTabView from JournalsView
-                            MediaTabView()
+                            MediaTabView(mediaViewSize: mediaViewSize)
                                 .background(Color(UIColor.systemBackground))
                         case .map:
                             // Use existing MapTabView from JournalsView

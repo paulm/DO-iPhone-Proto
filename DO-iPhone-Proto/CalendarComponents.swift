@@ -487,9 +487,6 @@ struct JournalCalendarView: View {
         ScrollViewReader { proxy in
             ScrollView {
                 VStack(spacing: 0) {
-                    // Add top padding for floating segmented control
-                    Color.clear.frame(height: 70)
-                    
                     CalendarWeekdayHeader()
                         .padding(.top, 8)
                     

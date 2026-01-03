@@ -55,13 +55,14 @@ struct Journal: Identifiable, Equatable, Hashable {
     let journalCount: Int? // For "All Entries" - number of journals included
     let isShared: Bool? // Shared with other users
     let isConcealed: Bool? // Concealed/private journal
+    let memberCount: Int? // Number of members for shared journals
 
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
     
     // Initialize from JournalData
-    init(from data: JournalData, entryCount: Int? = nil, journalCount: Int? = nil, isShared: Bool? = nil, isConcealed: Bool? = nil) {
+    init(from data: JournalData, entryCount: Int? = nil, journalCount: Int? = nil, isShared: Bool? = nil, isConcealed: Bool? = nil, memberCount: Int? = nil) {
         self.id = data.id
         self.name = data.name
         self.description = data.description
@@ -75,6 +76,7 @@ struct Journal: Identifiable, Equatable, Hashable {
         self.journalCount = journalCount
         self.isShared = isShared
         self.isConcealed = isConcealed
+        self.memberCount = memberCount
     }
 
     // Copy initializer that preserves all properties including ID
@@ -91,7 +93,8 @@ struct Journal: Identifiable, Equatable, Hashable {
         entryCount: Int?,
         journalCount: Int?,
         isShared: Bool? = nil,
-        isConcealed: Bool? = nil
+        isConcealed: Bool? = nil,
+        memberCount: Int? = nil
     ) {
         self.id = id
         self.name = name
@@ -106,10 +109,11 @@ struct Journal: Identifiable, Equatable, Hashable {
         self.journalCount = journalCount
         self.isShared = isShared
         self.isConcealed = isConcealed
+        self.memberCount = memberCount
     }
 
     // Legacy initializer for compatibility
-    init(name: String, color: Color, entryCount: Int?, journalCount: Int? = nil, coverImage: String? = nil, isShared: Bool? = nil, isConcealed: Bool? = nil) {
+    init(name: String, color: Color, entryCount: Int?, journalCount: Int? = nil, coverImage: String? = nil, isShared: Bool? = nil, isConcealed: Bool? = nil, memberCount: Int? = nil) {
         self.id = UUID().uuidString
         self.name = name
         self.description = ""
@@ -139,6 +143,7 @@ struct Journal: Identifiable, Equatable, Hashable {
         self.journalCount = journalCount
         self.isShared = isShared
         self.isConcealed = isConcealed
+        self.memberCount = memberCount
     }
 }
 
@@ -159,7 +164,8 @@ extension Journal {
             entryCount: self.entryCount,
             journalCount: self.journalCount,
             isShared: self.isShared,
-            isConcealed: self.isConcealed
+            isConcealed: self.isConcealed,
+            memberCount: self.memberCount
         )
     }
 }
@@ -289,7 +295,7 @@ extension Journal {
             // Standalone journals
             Journal(name: "Dreams", color: Color(hex: "C27BD2"), entryCount: 19, coverImage: "bike"), // Lavender
             Journal(name: "Fitness", color: Color(hex: "FF983B"), entryCount: 104), // Fire
-            Journal(name: "Smith Family Journal", color: Color(hex: "2DCC71"), entryCount: 34, isShared: true), // Green, Shared
+            Journal(name: "Smith Family Journal", color: Color(hex: "2DCC71"), entryCount: 34, isShared: true, memberCount: 5), // Green, Shared
             Journal(name: "Therapy", color: Color(hex: "607D8B"), entryCount: 18, isConcealed: true), // Slate, Concealed
             // Personal folder journals - different colors
             Journal(name: "Personal Reflections and Daily Thoughts on Growth and Self Discovery", color: Color(hex: "E91E63"), entryCount: 56), // Hot Pink

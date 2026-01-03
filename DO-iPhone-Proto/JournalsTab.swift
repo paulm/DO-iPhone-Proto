@@ -2031,13 +2031,33 @@ struct CompactJournalRow: View {
                             Text("\(entryCount)")
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
+
+                            if journal.isShared == true, let memberCount = journal.memberCount {
+                                Text("•")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                Text("\(memberCount)")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
                     }
                 } else if let count = journal.entryCount {
                     // Regular journal - just show entry count
-                    Text("\(count)")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                    HStack(spacing: 4) {
+                        Text("\(count)")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+
+                        if journal.isShared == true, let memberCount = journal.memberCount {
+                            Text("•")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Text("\(memberCount)")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                 }
             }
             .padding(.vertical, -5)
@@ -2375,12 +2395,32 @@ struct JournalRow: View {
                                         Text("\(entryCount) entries")
                                             .font(.caption)
                                             .foregroundStyle(.secondary)
+
+                                        if journal.isShared == true, let memberCount = journal.memberCount {
+                                            Text("•")
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
+                                            Text("\(memberCount) members")
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
+                                        }
                                     }
                                 }
                             } else if let count = journal.entryCount {
-                                Text("\(count) entries")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                HStack(spacing: 4) {
+                                    Text("\(count) entries")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+
+                                    if journal.isShared == true, let memberCount = journal.memberCount {
+                                        Text("•")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                        Text("\(memberCount) members")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
                             }
                         }
 
@@ -2534,14 +2574,34 @@ struct JournalBookView: View {
                             Text("\(entryCount)")
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)
+
+                            if journal.isShared == true, let memberCount = journal.memberCount {
+                                Text("•")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                                Text("\(memberCount)")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
                     }
                     .padding(.top, 4)
                 } else if let count = journal.entryCount {
-                    Text("\(count)")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .padding(.top, 4)
+                    HStack(spacing: 4) {
+                        Text("\(count)")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+
+                        if journal.isShared == true, let memberCount = journal.memberCount {
+                            Text("•")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                            Text("\(memberCount)")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .padding(.top, 4)
                 }
             }
         }

@@ -74,14 +74,14 @@ struct SimpleDetailLayout<Content: View>: View {
                             // Title and subtitle - positioned at bottom of visible colored area
                             VStack(spacing: 0) {
                                 Spacer()
-                                VStack(alignment: .leading, spacing: 4) {
+                                VStack(alignment: .leading, spacing: 0) {
                                     Text(title)
                                         .font(.largeTitle)
                                         .fontWeight(.bold)
                                         .foregroundStyle(headerTextColor)
 
                                     Text(subtitle)
-                                        .font(.subheadline)
+                                        .font(.caption)
                                         .foregroundStyle(headerTextColor.opacity(0.8))
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)

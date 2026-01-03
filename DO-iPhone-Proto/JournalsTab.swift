@@ -69,7 +69,6 @@ struct JournalsTabPagedView: View {
     @State private var isEditMode = false
     @State private var showingReorderModal = false
     @State private var journalItems: [Journal.MixedJournalItem] = Journal.mixedJournalItems
-    @State private var useSeparatedCollections = false
     @State private var journalsPopulation: JournalsPopulation = .lots
     @State private var showAddJournalTips = false
     @State private var trashCount: Int = 7 // Controlled by Fill/Empty Trash button
@@ -572,10 +571,6 @@ struct JournalsTabPagedView: View {
 
                             Divider()
 
-                            Toggle(isOn: $showRecentJournals) {
-                                Label("Show Recent Journals", systemImage: "clock")
-                            }
-
                             Toggle(isOn: $showRecentEntries) {
                                 Label("Show Recent Entries", systemImage: "doc.text")
                             }
@@ -593,12 +588,12 @@ struct JournalsTabPagedView: View {
                             Divider()
 
                             Section("Journal Manager Options") {
-                                Toggle(isOn: $useSeparatedCollections) {
-                                    Label("Separated Collections", systemImage: "folder.badge.gearshape")
-                                }
-
                                 Toggle(isOn: $showAddJournalTips) {
                                     Label("Show Add Journal Tips", systemImage: "lightbulb")
+                                }
+
+                                Toggle(isOn: $showRecentJournals) {
+                                    Label("Show Recent Journals", systemImage: "clock")
                                 }
 
                                 Button {
@@ -1430,121 +1425,7 @@ struct JournalsTabPagedView: View {
                 .padding(.vertical, 8)
             }
 
-            if useSeparatedCollections {
-                ForEach(filteredMixedJournalItems) { item in
-                    if let journal = item.journal {
-                        CompactJournalRow(
-                            journal: journal,
-                            isSelected: journal.id == journalViewModel.selectedJournal.id,
-                            onSelect: {
-                                journalViewModel.selectJournal(journal)
-                                selectedJournal = journal
-                            },
-                            onNewEntry: {
-                                selectedJournal = journal
-                                showingNewEntry = true
-                            },
-                            onRename: { newName in
-                                // Find the journal in journalItems and update it
-                                if let index = journalItems.firstIndex(where: { $0.id == journal.id }) {
-                                    // Create new journal with updated name
-                                    let updatedJournal = journal.withName(newName)
-
-                                    // Replace in journalItems
-                                    journalItems[index] = Journal.MixedJournalItem(journal: updatedJournal)
-                                }
-                            },
-                            onDelete: {
-                                // Remove standalone journal from journalItems
-                                journalItems.removeAll(where: { $0.id == journal.id })
-                            }
-                        )
-                    }
-                }
-
-                if !filteredFolders.isEmpty {
-                    Text("Collections")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundStyle(.primary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.top, 24)
-                        .padding(.bottom, 8)
-                        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
-                        .listRowSeparator(.hidden)
-                }
-
-                ForEach(folders) { folder in
-                    CompactFolderRow(
-                        folder: folder,
-                        isExpanded: expandedFolders.contains(folder.id),
-                        onToggle: {
-                            if expandedFolders.contains(folder.id) {
-                                expandedFolders.remove(folder.id)
-                            } else {
-                                expandedFolders.insert(folder.id)
-                            }
-                        },
-                        onSelectFolder: {
-                            selectedFolder = folder
-                        },
-                        isRenaming: renamingCollectionID == folder.id,
-                        editedName: $editedCollectionName,
-                        onRenameSubmit: {
-                            if !editedCollectionName.isEmpty {
-                                // Find the folder in journalItems and update it
-                                if let index = journalItems.firstIndex(where: { $0.id == folder.id }) {
-                                    // Create new folder with updated name
-                                    let updatedFolder = folder.withName(editedCollectionName)
-
-                                    // Replace in journalItems with new wrapper
-                                    journalItems[index] = Journal.MixedJournalItem(folder: updatedFolder)
-                                }
-                            }
-                            renamingCollectionID = nil
-                        },
-                        nameFieldFocused: $collectionNameFieldFocused,
-                        onRename: {
-                            editedCollectionName = folder.name
-                            renamingCollectionID = folder.id
-                            collectionNameFieldFocused = true
-                        },
-                        onDelete: {
-                            // Find the folder index
-                            if let folderIndex = journalItems.firstIndex(where: { $0.id == folder.id }) {
-                                // Get all journals from the folder to preserve them
-                                let journalsToPreserve = folder.journals
-
-                                // Remove the folder
-                                journalItems.remove(at: folderIndex)
-
-                                // Insert the journals at the same position
-                                let journalItems = journalsToPreserve.map { Journal.MixedJournalItem(journal: $0) }
-                                self.journalItems.insert(contentsOf: journalItems, at: folderIndex)
-                            }
-                        }
-                    )
-
-                    if expandedFolders.contains(folder.id) {
-                        ForEach(folder.journals) { journal in
-                            CompactJournalRow(
-                                journal: journal,
-                                isSelected: journal.id == journalViewModel.selectedJournal.id,
-                                onSelect: {
-                                    journalViewModel.selectJournal(journal)
-                                    selectedJournal = journal
-                                },
-                                onNewEntry: {
-                                    selectedJournal = journal
-                                    showingNewEntry = true
-                                }
-                            )
-                            .padding(.leading, 20)
-                        }
-                    }
-                }
-            } else {
-                ForEach(filteredMixedJournalItems) { item in
+            ForEach(filteredMixedJournalItems) { item in
                     if item.isFolder, let folder = item.folder {
                         CompactFolderRow(
                             folder: folder,
@@ -1623,7 +1504,6 @@ struct JournalsTabPagedView: View {
                         )
                     }
                 }
-            }
 
         // Trash row at the bottom
         if trashCount > 0 {

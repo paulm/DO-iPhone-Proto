@@ -130,22 +130,31 @@ struct JournalDetailPagedView: View, StyleComputedProperties {
             .padding(.bottom, 12)
 
             // Content based on selected tab
-            Group {
-                switch selectedContentTab {
-                case .book:
-                    PagedCoverTabView(journal: journal)
-                case .timeline:
-                    ListTabView(journal: journal, useLargeListDates: useLargeListDates)
-                case .calendar:
-                    CalendarTabView(journal: journal)
-                case .media:
-                    MediaTabView()
-                case .map:
+            if selectedContentTab == .map {
+                // Map fills from here to bottom of screen
+                GeometryReader { geometry in
                     MapTabView()
+                        .frame(width: geometry.size.width, height: geometry.size.height + 600)
+                        .ignoresSafeArea(.all, edges: .bottom)
                 }
+            } else {
+                Group {
+                    switch selectedContentTab {
+                    case .book:
+                        PagedCoverTabView(journal: journal)
+                    case .timeline:
+                        ListTabView(journal: journal, useLargeListDates: useLargeListDates)
+                    case .calendar:
+                        CalendarTabView(journal: journal)
+                    case .media:
+                        MediaTabView()
+                    case .map:
+                        Color.clear // Placeholder, won't be shown
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.bottom, 120) // Extra padding for FAB clearance
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.bottom, 120) // Extra padding for FAB clearance
         }
     }
 }

@@ -528,31 +528,28 @@ struct MapTabView: View {
     // Park City, Utah coordinates
     private let parkCityCoordinate = CLLocationCoordinate2D(latitude: 40.6461, longitude: -111.4980)
     @State private var cameraPosition: MapCameraPosition = .automatic
-    
+
     var body: some View {
-        ZStack {
-            // Full-screen map that extends to edges and behind segmented controller
-            Map(position: $cameraPosition) {
-                // Add a marker for Park City
-                Marker("Park City", coordinate: parkCityCoordinate)
-                    .tint(.blue)
-            }
-            .mapStyle(.standard)
-            .mapControls {
-                MapUserLocationButton()
-                MapCompass()
-                MapScaleView()
-            }
-            .ignoresSafeArea(.all)
-            .onAppear {
-                // Zoom to Park City, Utah
-                cameraPosition = .region(
-                    MKCoordinateRegion(
-                        center: parkCityCoordinate,
-                        span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
-                    )
+        // Full-screen map
+        Map(position: $cameraPosition) {
+            // Add a marker for Park City
+            Marker("Park City", coordinate: parkCityCoordinate)
+                .tint(.blue)
+        }
+        .mapStyle(.standard)
+        .mapControls {
+            MapUserLocationButton()
+            MapCompass()
+            MapScaleView()
+        }
+        .onAppear {
+            // Zoom to Park City, Utah
+            cameraPosition = .region(
+                MKCoordinateRegion(
+                    center: parkCityCoordinate,
+                    span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
                 )
-            }
+            )
         }
     }
 }

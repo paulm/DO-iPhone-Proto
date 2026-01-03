@@ -550,8 +550,8 @@ struct JournalsTabPagedView: View {
 
                             Divider()
 
-                            Toggle(isOn: $showRecentEntries) {
-                                Label("Show Recent Entries", systemImage: "doc.text")
+                            Toggle(isOn: $showRecentJournals) {
+                                Label("Show Recent Journals", systemImage: "clock")
                             }
                         } label: {
                             Image(systemName: "ellipsis")
@@ -571,8 +571,8 @@ struct JournalsTabPagedView: View {
                                     Label("Show Add Journal Tips", systemImage: "lightbulb")
                                 }
 
-                                Toggle(isOn: $showRecentJournals) {
-                                    Label("Show Recent Journals", systemImage: "clock")
+                                Toggle(isOn: $showRecentEntries) {
+                                    Label("Show Recent Entries", systemImage: "doc.text")
                                 }
 
                                 Menu {

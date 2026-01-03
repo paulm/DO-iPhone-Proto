@@ -57,7 +57,7 @@ struct JournalRowPreferenceKey: PreferenceKey {
 struct JournalsTabPagedView: View {
     @Environment(JournalSelectionViewModel.self) private var journalViewModel
     @State private var showingSettings = false
-    @State private var viewMode: ViewMode = .list // Default to Icons view
+    @State private var viewMode: ViewMode = .list // Default to Regular view
     @State private var selectedJournal: Journal?
     @State private var selectedFolder: JournalFolder?
     @State private var showingNewEntry = false
@@ -72,8 +72,6 @@ struct JournalsTabPagedView: View {
     @State private var journalsPopulation: JournalsPopulation = .lots
     @State private var showAddJournalTips = false
     @State private var trashCount: Int = 7 // Controlled by Fill/Empty Trash button
-    @State private var showCompactView = false
-    @State private var showBooksView = false
     @State private var showNewJournalButtons = false
     @State private var showAllEntries = false
     @State private var showingSectionsOrder = false
@@ -218,10 +216,7 @@ struct JournalsTabPagedView: View {
 
     // Count available view modes (Icons is always available)
     private var availableViewModesCount: Int {
-        var count = 1 // Icons is always available
-        if showCompactView { count += 1 }
-        if showBooksView { count += 1 }
-        return count
+        return 3 // All three view modes (Compact, Regular, Books) are always available
     }
 
     // Determine which tip to show based on progression
@@ -472,18 +467,6 @@ struct JournalsTabPagedView: View {
                 shouldShowAudioAfterEntry = false
             }
         }
-        .onChange(of: showCompactView) { _, newValue in
-            // If Compact view is hidden and we're currently in compact mode, switch to list mode
-            if !newValue && viewMode == .compact {
-                viewMode = .list
-            }
-        }
-        .onChange(of: showBooksView) { _, newValue in
-            // If Books view is hidden and we're currently in grid mode, switch to list mode
-            if !newValue && viewMode == .grid {
-                viewMode = .list
-            }
-        }
     }
     
     // MARK: - Navigation Content
@@ -554,16 +537,12 @@ struct JournalsTabPagedView: View {
                                 Divider()
 
                                 Picker("View Style", selection: $viewMode) {
-                                    if showCompactView {
-                                        Label("Compact", systemImage: "list.bullet")
-                                            .tag(ViewMode.compact)
-                                    }
-                                    Label("Icons", systemImage: "square.grid.3x3")
+                                    Label("Compact", systemImage: "list.bullet")
+                                        .tag(ViewMode.compact)
+                                    Label("Regular", systemImage: "square.grid.3x3")
                                         .tag(ViewMode.list)
-                                    if showBooksView {
-                                        Label("Books", systemImage: "books.vertical")
-                                            .tag(ViewMode.grid)
-                                    }
+                                    Label("Books", systemImage: "books.vertical")
+                                        .tag(ViewMode.grid)
                                 }
 
                                 Divider()
@@ -596,6 +575,24 @@ struct JournalsTabPagedView: View {
                                     Label("Show Recent Journals", systemImage: "clock")
                                 }
 
+                                Menu {
+                                    Picker("Journals View", selection: $viewMode) {
+                                        Label("Compact", systemImage: "list.bullet")
+                                            .tag(ViewMode.compact)
+                                        Label("Regular", systemImage: "square.grid.3x3")
+                                            .tag(ViewMode.list)
+                                        Label("Books", systemImage: "books.vertical")
+                                            .tag(ViewMode.grid)
+                                    }
+                                } label: {
+                                    HStack {
+                                        Label("Journals View", systemImage: "square.grid.3x3")
+                                        Spacer()
+                                        Text(viewMode == .compact ? "Compact" : viewMode == .list ? "Regular" : "Books")
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
+
                                 Button {
                                     if trashCount > 0 {
                                         trashCount = 0
@@ -604,14 +601,6 @@ struct JournalsTabPagedView: View {
                                     }
                                 } label: {
                                     Label(trashCount > 0 ? "Empty Trash" : "Fill Trash", systemImage: "trash")
-                                }
-
-                                Toggle(isOn: $showCompactView) {
-                                    Label("Show Compact View", systemImage: "list.bullet")
-                                }
-
-                                Toggle(isOn: $showBooksView) {
-                                    Label("Show Books View", systemImage: "books.vertical")
                                 }
                             }
 

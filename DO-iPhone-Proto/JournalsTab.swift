@@ -532,22 +532,6 @@ struct JournalsTabPagedView: View {
                                 Label("New Collection", systemImage: "folder.badge.plus")
                             }
 
-                            // Only show View Style picker if more than one view mode is available
-                            if availableViewModesCount > 1 {
-                                Divider()
-
-                                Picker("View Style", selection: $viewMode) {
-                                    Label("Compact", systemImage: "list.bullet")
-                                        .tag(ViewMode.compact)
-                                    Label("Regular", systemImage: "square.grid.3x3")
-                                        .tag(ViewMode.list)
-                                    Label("Books", systemImage: "books.vertical")
-                                        .tag(ViewMode.grid)
-                                }
-
-                                Divider()
-                            }
-
                             Divider()
 
                             Toggle(isOn: $showRecentJournals) {

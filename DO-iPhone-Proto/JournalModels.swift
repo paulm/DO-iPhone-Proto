@@ -402,7 +402,7 @@ extension Journal {
         let allFolders = folders
         let allUnfoldered = unfolderedJournals
 
-        // Specific order: Journal, Notes, Work folder, Daily, Dreams, Fitness, Personal folder, Movie Log, Travel folder
+        // Specific order: Journal, Notes, Work folder, Daily, Smith Family Journal, Therapy, Dreams, Personal folder, Fitness, Movie Log, Travel folder
 
         // Add Journal
         if let journal = allUnfoldered.first(where: { $0.name == "Journal" }) {
@@ -424,16 +424,6 @@ extension Journal {
             items.append(MixedJournalItem(journal: daily))
         }
 
-        // Add Dreams
-        if let dreams = allUnfoldered.first(where: { $0.name == "Dreams" }) {
-            items.append(MixedJournalItem(journal: dreams))
-        }
-
-        // Add Fitness
-        if let fitness = allUnfoldered.first(where: { $0.name == "Fitness" }) {
-            items.append(MixedJournalItem(journal: fitness))
-        }
-
         // Add Smith Family Journal (shared)
         if let smithFamily = allUnfoldered.first(where: { $0.name == "Smith Family Journal" }) {
             items.append(MixedJournalItem(journal: smithFamily))
@@ -444,9 +434,19 @@ extension Journal {
             items.append(MixedJournalItem(journal: therapy))
         }
 
+        // Add Dreams
+        if let dreams = allUnfoldered.first(where: { $0.name == "Dreams" }) {
+            items.append(MixedJournalItem(journal: dreams))
+        }
+
         // Add Personal folder
         if let personalFolder = allFolders.first(where: { $0.name == "Personal" }) {
             items.append(MixedJournalItem(folder: personalFolder))
+        }
+
+        // Add Fitness
+        if let fitness = allUnfoldered.first(where: { $0.name == "Fitness" }) {
+            items.append(MixedJournalItem(journal: fitness))
         }
 
         // Add Movie Log

@@ -68,6 +68,7 @@ struct JournalsTabPagedView: View {
     @State private var recentEntriesExpanded = true
     @State private var isEditMode = false
     @State private var showingReorderModal = false
+    @State private var shouldAddCollectionOnModalOpen = false
     @State private var journalItems: [Journal.MixedJournalItem] = Journal.mixedJournalItems
     @State private var journalsPopulation: JournalsPopulation = .lots
     @State private var showAddJournalTips = false
@@ -497,7 +498,8 @@ struct JournalsTabPagedView: View {
                     // New Collection button
                     ToolbarItem(placement: .navigationBarLeading) {
                         Button(action: {
-                            addNewCollection()
+                            shouldAddCollectionOnModalOpen = true
+                            showingReorderModal = true
                         }) {
                             Image("media-library-folder-add")
                                 .renderingMode(.template)
@@ -531,7 +533,8 @@ struct JournalsTabPagedView: View {
                             }
 
                             Button(action: {
-                                addNewCollection()
+                                shouldAddCollectionOnModalOpen = true
+                                showingReorderModal = true
                             }) {
                                 Label("New Collection", systemImage: "folder.badge.plus")
                             }
@@ -641,7 +644,8 @@ struct JournalsTabPagedView: View {
                     journals: currentJournals,
                     folders: currentFolders,
                     journalItems: $journalItems,
-                    journalsPopulation: journalsPopulation
+                    journalsPopulation: journalsPopulation,
+                    shouldAddCollectionOnOpen: $shouldAddCollectionOnModalOpen
                 )
             }
 
@@ -3261,6 +3265,7 @@ struct JournalsReorderView: View {
     let folders: [JournalFolder]
     @Binding var journalItems: [Journal.MixedJournalItem]
     let journalsPopulation: JournalsPopulation
+    @Binding var shouldAddCollectionOnOpen: Bool
 
     // State management
     @State private var rootItems: [DisplayNode] = []
@@ -3281,6 +3286,9 @@ struct JournalsReorderView: View {
 
     // Toolbar hint overlays
     @State private var showToolbarHints = false
+
+    // Track newly added collection for auto-rename
+    @State private var newlyAddedCollectionId: String? = nil
 
     let accentColor = Color(hex: "44C0FF")
 
@@ -3350,6 +3358,10 @@ struct JournalsReorderView: View {
                                 onTap: { toggleCollection(id: collection.id) },
                                 onRename: { newName in
                                     renameCollection(id: collection.id, newName: newName)
+                                    // Clear the auto-rename flag after renaming
+                                    if newlyAddedCollectionId == collection.id {
+                                        newlyAddedCollectionId = nil
+                                    }
                                 },
                                 onPreviewBook: {
                                     // TODO: Implement preview book action
@@ -3359,7 +3371,8 @@ struct JournalsReorderView: View {
                                 },
                                 onDelete: {
                                     deleteCollection(id: collection.id)
-                                }
+                                },
+                                shouldAutoRename: newlyAddedCollectionId == collection.id
                             )
                         case .dropZone:
                             EmptyView()
@@ -3476,6 +3489,12 @@ struct JournalsReorderView: View {
             // Show hints if new user state is active
             if journalsPopulation == .newUser {
                 showToolbarHints = true
+            }
+
+            // Add new collection if requested
+            if shouldAddCollectionOnOpen {
+                addNewCollection()
+                shouldAddCollectionOnOpen = false
             }
         }
     }
@@ -3668,6 +3687,9 @@ struct JournalsReorderView: View {
 
         // Scroll to the newly created collection
         scrollToId = newId
+
+        // Mark this collection for auto-rename
+        newlyAddedCollectionId = newId
     }
 
     private func generateNextCollectionName() -> String {
@@ -4281,6 +4303,7 @@ struct CollectionReorderRow: View {
     let onPreviewBook: (() -> Void)?
     let onExport: (() -> Void)?
     let onDelete: (() -> Void)?
+    let shouldAutoRename: Bool
 
     @State private var isRenaming = false
     @State private var editedName = ""
@@ -4410,6 +4433,15 @@ struct CollectionReorderRow: View {
                 Text("This collection contains \(collection.itemCount) \(collection.itemCount == 1 ? "journal" : "journals"). All journals will be preserved and moved out of the collection.")
             } else {
                 Text("Are you sure you want to delete this collection?")
+            }
+        }
+        .onAppear {
+            if shouldAutoRename {
+                editedName = "" // Clear the name so user can type directly
+                isRenaming = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    isNameFieldFocused = true
+                }
             }
         }
         .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))

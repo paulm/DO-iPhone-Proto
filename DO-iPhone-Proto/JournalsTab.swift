@@ -486,6 +486,7 @@ struct JournalsTabPagedView: View {
                             VStack(spacing: 0) {
                                 journalListContent
                                     .padding(.top, 12)
+                                    .padding(.bottom, 70)
                             }
                         }
                     }
@@ -713,6 +714,9 @@ struct JournalsTabPagedView: View {
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
         .environment(\.editMode, .constant(isEditMode ? .active : .inactive))
+        .safeAreaInset(edge: .bottom) {
+            Spacer().frame(height: 70)
+        }
     }
 
     // MARK: - Section Views
@@ -922,6 +926,9 @@ struct JournalsTabPagedView: View {
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
             .environment(\.editMode, .constant(isEditMode ? .active : .inactive))
+            .safeAreaInset(edge: .bottom) {
+                Spacer().frame(height: 70)
+            }
             .onChange(of: scrollToId) { _, newId in
                 if let id = newId {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
@@ -3362,6 +3369,9 @@ struct JournalsReorderView: View {
                     }
                     .listStyle(.plain)
                     .environment(\.editMode, .constant(.active)) // Always in edit mode
+                    .safeAreaInset(edge: .bottom) {
+                        Spacer().frame(height: 70)
+                    }
                     .onChange(of: scrollToId) { _, newId in
                         if let id = newId {
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {

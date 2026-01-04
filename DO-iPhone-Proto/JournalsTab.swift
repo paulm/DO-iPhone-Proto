@@ -4107,7 +4107,7 @@ struct JournalReorderRow: View {
 
     private enum Layout {
         static let iconSize: CGFloat = 12
-        static let rowSpacing: CGFloat = 20
+        static let rowSpacing: CGFloat = 8
         static let rowVerticalPadding: CGFloat = 0
         static let nestedIndentation: CGFloat = 32
     }
@@ -4238,6 +4238,8 @@ struct JournalReorderRow: View {
                 Image(systemName: "ellipsis")
                     .foregroundColor(.secondary)
                     .font(.body)
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
 
@@ -4249,6 +4251,8 @@ struct JournalReorderRow: View {
                     Image(systemName: "folder.badge.minus")
                         .foregroundColor(.secondary)
                         .font(.body)
+                        .frame(minWidth: 44, minHeight: 44)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
             } else {
@@ -4264,6 +4268,8 @@ struct JournalReorderRow: View {
                     Image(systemName: "folder.badge.plus")
                         .foregroundColor(accentColor)
                         .font(.body)
+                        .frame(minWidth: 44, minHeight: 44)
+                        .contentShape(Rectangle())
                 }
             }
         }
@@ -4312,7 +4318,7 @@ struct CollectionReorderRow: View {
 
     private enum Layout {
         static let iconSize: CGFloat = 20
-        static let rowSpacing: CGFloat = 20
+        static let rowSpacing: CGFloat = 8
         static let rowVerticalPadding: CGFloat = 4
     }
 
@@ -4400,6 +4406,8 @@ struct CollectionReorderRow: View {
                 Image(systemName: "ellipsis")
                     .foregroundColor(.secondary)
                     .font(.body)
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
 

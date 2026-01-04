@@ -937,7 +937,7 @@ struct JournalsTabPagedView: View {
                 if let id = newId {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                         withAnimation {
-                            proxy.scrollTo(id, anchor: .bottom)
+                            proxy.scrollTo(id, anchor: .center)
                         }
                         scrollToId = nil
                     }
@@ -3387,9 +3387,9 @@ struct JournalsReorderView: View {
                     }
                     .onChange(of: scrollToId) { _, newId in
                         if let id = newId {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                withAnimation {
-                                    proxy.scrollTo(id, anchor: .bottom)
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    proxy.scrollTo(id, anchor: .center)
                                 }
                                 scrollToId = nil
                             }

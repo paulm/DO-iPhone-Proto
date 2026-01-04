@@ -367,6 +367,9 @@ struct JournalsTabPagedView: View {
 
     // Repopulate journals with the selected option
     private func repopulateJournals(with option: JournalsPopulation) {
+        // Update the population setting
+        journalsPopulation = option
+
         // Clear existing journals
         journalItems.removeAll()
 
@@ -636,7 +639,8 @@ struct JournalsTabPagedView: View {
                 JournalsReorderView(
                     journals: currentJournals,
                     folders: currentFolders,
-                    journalItems: $journalItems
+                    journalItems: $journalItems,
+                    journalsPopulation: journalsPopulation
                 )
             }
 
@@ -1882,7 +1886,13 @@ struct PagedCoverTabView: View {
 struct PagedEditJournalView: View {
     @Environment(\.dismiss) private var dismiss
     let journal: Journal
-    
+
+    @AppStorage("journalsPopulation") private var journalsPopulation: JournalsPopulation = .lots
+    @State private var showHelperGraphics = false
+
+    // Track if helper graphics have been shown this session (static to persist across view instances)
+    private static var hasShownHelperGraphicsThisSession = false
+
     var body: some View {
         NavigationStack {
             Form {
@@ -1893,7 +1903,7 @@ struct PagedEditJournalView: View {
                         Text(journal.name)
                             .foregroundStyle(.secondary)
                     }
-                    
+
                     HStack {
                         Text("Color")
                         Spacer()
@@ -1902,7 +1912,7 @@ struct PagedEditJournalView: View {
                             .frame(width: 24, height: 24)
                     }
                 }
-                
+
                 if !journal.appearance.originalCoverImageData.isEmpty {
                     Section("Appearance") {
                         HStack {
@@ -1913,7 +1923,7 @@ struct PagedEditJournalView: View {
                         }
                     }
                 }
-                
+
                 Section {
                     Text("Journal editing functionality would be implemented here")
                         .font(.caption)
@@ -1928,13 +1938,31 @@ struct PagedEditJournalView: View {
                         dismiss()
                     }
                 }
-                
+
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
                         dismiss()
                     }
                     .fontWeight(.semibold)
                 }
+            }
+            .overlay {
+                if showHelperGraphics {
+                    Color.black.opacity(0.4)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            showHelperGraphics = false
+                        }
+                }
+            }
+        }
+        .onAppear {
+            // Only show helper graphics if:
+            // 1. New user state is active
+            // 2. Haven't shown them this session yet
+            if journalsPopulation == .newUser && !Self.hasShownHelperGraphicsThisSession {
+                showHelperGraphics = true
+                Self.hasShownHelperGraphicsThisSession = true
             }
         }
     }
@@ -3225,6 +3253,7 @@ struct JournalsReorderView: View {
     let journals: [Journal]
     let folders: [JournalFolder]
     @Binding var journalItems: [Journal.MixedJournalItem]
+    let journalsPopulation: JournalsPopulation
 
     // State management
     @State private var rootItems: [DisplayNode] = []
@@ -3244,7 +3273,7 @@ struct JournalsReorderView: View {
     @State private var scrollToId: String? = nil
 
     // Toolbar hint overlays
-    @State private var showToolbarHints = true
+    @State private var showToolbarHints = false
 
     let accentColor = Color(hex: "44C0FF")
 
@@ -3433,6 +3462,11 @@ struct JournalsReorderView: View {
         .onAppear {
             initializeFromJournals()
             rebuildCache()
+
+            // Show hints if new user state is active
+            if journalsPopulation == .newUser {
+                showToolbarHints = true
+            }
         }
     }
 

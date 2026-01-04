@@ -4107,7 +4107,7 @@ struct JournalReorderRow: View {
 
     private enum Layout {
         static let iconSize: CGFloat = 12
-        static let rowSpacing: CGFloat = 14
+        static let rowSpacing: CGFloat = 20
         static let rowVerticalPadding: CGFloat = 0
         static let nestedIndentation: CGFloat = 32
     }
@@ -4312,7 +4312,7 @@ struct CollectionReorderRow: View {
 
     private enum Layout {
         static let iconSize: CGFloat = 20
-        static let rowSpacing: CGFloat = 12
+        static let rowSpacing: CGFloat = 20
         static let rowVerticalPadding: CGFloat = 4
     }
 

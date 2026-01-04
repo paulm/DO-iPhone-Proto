@@ -103,28 +103,18 @@ struct JournalsTabPagedView: View {
 
     // Get visible journals and folders based on population setting
     private var filteredJournals: [Journal] {
-        let allJournals = Journal.sampleJournals
-        var baseJournals: [Journal]
-
-        switch journalsPopulation {
-        case .newUser:
-            // Return only the first journal ("Journal")
-            baseJournals = Array(allJournals.prefix(1))
-        case .threeJournals:
-            // Return Journal, Notes, Daily (first 3 journals)
-            baseJournals = Array(allJournals.prefix(3))
-        case .lots, .oneHundredOne:
-            // Return all journals
-            baseJournals = allJournals
+        // Extract all journals from journalItems (dynamic data that gets updated by modal)
+        var allJournals: [Journal] = []
+        for item in journalItems {
+            if let journal = item.journal {
+                allJournals.append(journal)
+            } else if let folder = item.folder {
+                allJournals.append(contentsOf: folder.journals)
+            }
         }
 
-        // Add manually added journals that aren't already in the base list
-        let baseJournalNames = Set(baseJournals.map { $0.name })
-        let manuallyAddedJournals = allJournals.filter { journal in
-            manuallyAddedJournalNames.contains(journal.name) && !baseJournalNames.contains(journal.name)
-        }
-
-        return baseJournals + manuallyAddedJournals
+        // Return all journals - the filtering is already done in journalItems by repopulateJournals
+        return allJournals
     }
 
     private var filteredFolders: [JournalFolder] {
@@ -139,15 +129,8 @@ struct JournalsTabPagedView: View {
     }
 
     private var filteredMixedJournalItems: [Journal.MixedJournalItem] {
-        // For newUser and threeJournals modes, only show standalone journals (no folders)
-        switch journalsPopulation {
-        case .newUser, .threeJournals:
-            // Create mixed items from filtered journals only
-            return filteredJournals.map { Journal.MixedJournalItem(journal: $0) }
-        case .lots, .oneHundredOne:
-            // Return all mixed items (journals and folders)
-            return journalItems
-        }
+        // Return journalItems directly - it's already filtered by repopulateJournals
+        return journalItems
     }
 
     // Should show All Entries only when there are 2 or more journals

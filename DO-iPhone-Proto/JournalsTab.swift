@@ -3676,8 +3676,8 @@ struct JournalsReorderView: View {
         withAnimation {
             let newName = generateNextCollectionName()
 
-            // Create the collection node
-            let newCollection = CollectionNode(id: newId, name: newName, contents: [], isExpanded: false)
+            // Create the collection node (expanded by default so added journals are visible)
+            let newCollection = CollectionNode(id: newId, name: newName, contents: [], isExpanded: true)
             collections[newCollection.id] = newCollection
             rootItems.append(.collection(newCollection))
 

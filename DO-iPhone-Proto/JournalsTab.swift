@@ -655,9 +655,12 @@ struct JournalsTabPagedView: View {
         }
         .onAppear {
             // Animate FAB in after a short delay with bounce effect
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                withAnimation(.interpolatingSpring(stiffness: 180, damping: 12)) {
-                    showingNewJournalFAB = true
+            // Only show FAB if we're in the list view (not in a detail view)
+            if selectedJournal == nil && selectedFolder == nil {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    withAnimation(.interpolatingSpring(stiffness: 180, damping: 12)) {
+                        showingNewJournalFAB = true
+                    }
                 }
             }
         }

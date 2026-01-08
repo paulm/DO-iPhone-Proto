@@ -85,6 +85,14 @@ struct JournalsTabPagedView: View {
     @State private var dismissedJournalTips: Set<String> = [] // Track dismissed tips by journal name
     @State private var showingCreateJournal = false
 
+    // New Journal button style
+    enum NewJournalButtonStyle: String, CaseIterable {
+        case fab = "FAB"
+        case topToolbar = "Top Toolbar"
+    }
+    @State private var newJournalButtonStyle: NewJournalButtonStyle = .fab
+    @State private var showingNewJournalFAB = false
+
     // Rename state
     @State private var renamingCollectionID: String? = nil
     @State private var editedCollectionName = ""
@@ -474,7 +482,7 @@ struct JournalsTabPagedView: View {
                 .navigationTitle("Journals")
                 .navigationBarTitleDisplayMode(.large)
                 .toolbar {
-                    // Edit button (arrows icon) - first in group
+                    // Reorder button (arrows icon)
                     ToolbarItem(placement: .navigationBarLeading) {
                         Button(action: {
                             showingReorderModal = true
@@ -484,36 +492,22 @@ struct JournalsTabPagedView: View {
                         }
                     }
 
-                    // New Collection button - grouped with Edit
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        Button(action: {
-                            shouldAddCollectionOnModalOpen = true
-                            showingReorderModal = true
-                        }) {
-                            Image("media-library-folder-add")
-                                .renderingMode(.template)
-                        }
-                    }
+                    // + Journal button - only shown when Top Toolbar is selected
+                    if newJournalButtonStyle == .topToolbar {
+                        // Spacer to separate buttons into different pill backgrounds
+                        ToolbarSpacer(.fixed, placement: .navigationBarLeading)
 
-                    // Spacer to separate buttons into different pill backgrounds
-                    ToolbarSpacer(.fixed, placement: .navigationBarLeading)
-
-                    // + Journal button
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        Button(action: {
-                            addNewJournal()
-                        }) {
-                            Text("+ Journal")
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button(action: {
+                                addNewJournal()
+                            }) {
+                                Text("+ Journal")
+                            }
                         }
                     }
 
                     ToolbarItemGroup(placement: .navigationBarTrailing) {
                         Menu {
-                            Button(action: {
-                                showingReorderModal = true
-                            }) {
-                                Label("Edit", systemImage: "pencil")
-                            }
 
                             Button(action: {
                                 addNewJournal()
@@ -526,6 +520,12 @@ struct JournalsTabPagedView: View {
                                 showingReorderModal = true
                             }) {
                                 Label("New Collection", systemImage: "folder.badge.plus")
+                            }
+                            
+                            Button(action: {
+                                showingReorderModal = true
+                            }) {
+                                Label("Reorder", systemImage: "arrow.up.arrow.down")
                             }
 
                             Divider()
@@ -569,6 +569,21 @@ struct JournalsTabPagedView: View {
                                         Label("Journals View", systemImage: "square.grid.3x3")
                                         Spacer()
                                         Text(viewMode == .compact ? "Compact" : viewMode == .list ? "Regular" : "Books")
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
+
+                                Menu {
+                                    Picker("New Journal", selection: $newJournalButtonStyle) {
+                                        ForEach(NewJournalButtonStyle.allCases, id: \.self) { style in
+                                            Text(style.rawValue).tag(style)
+                                        }
+                                    }
+                                } label: {
+                                    HStack {
+                                        Label("New Journal", systemImage: "plus.circle")
+                                        Spacer()
+                                        Text(newJournalButtonStyle.rawValue)
                                             .foregroundStyle(.secondary)
                                     }
                                 }
@@ -642,6 +657,69 @@ struct JournalsTabPagedView: View {
                     createJournal(name: name, color: color, isPersonal: isPersonal)
                     showingCreateJournal = false
                 })
+            }
+            .overlay(alignment: .bottomTrailing) {
+                // New Journal FAB - only shown when FAB style is selected
+                if newJournalButtonStyle == .fab {
+                    Button(action: {
+                        addNewJournal()
+                    }) {
+                        HStack(spacing: 8) {
+                            Text("+ New Journal")
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 14)
+                        .background(Color(hex: "333B40"))
+                        .clipShape(Capsule())
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
+                    .padding(.trailing, 18)
+                    .padding(.bottom, 30) // Position above tab bar (similar to Today tab FABs)
+                    .offset(y: showingNewJournalFAB ? 0 : 150) // Slide up/down animation
+                    .opacity(showingNewJournalFAB ? 1 : 0)
+                }
+            }
+            .onAppear {
+                // Animate FAB in after a short delay with bounce effect
+                // Only show FAB if we're in the list view (not in a detail view) and FAB style is selected
+                if newJournalButtonStyle == .fab && selectedJournal == nil && selectedFolder == nil {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        withAnimation(.interpolatingSpring(stiffness: 180, damping: 12)) {
+                            showingNewJournalFAB = true
+                        }
+                    }
+                }
+            }
+            .onChange(of: selectedJournal) { oldValue, newValue in
+                // Hide FAB when navigating to journal detail, show when coming back
+                if newJournalButtonStyle == .fab {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        showingNewJournalFAB = newValue == nil
+                    }
+                }
+            }
+            .onChange(of: selectedFolder) { oldValue, newValue in
+                // Hide FAB when navigating to folder detail, show when coming back
+                if newJournalButtonStyle == .fab {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        showingNewJournalFAB = newValue == nil
+                    }
+                }
+            }
+            .onChange(of: newJournalButtonStyle) { oldValue, newValue in
+                // Update FAB visibility when style changes
+                if newValue == .fab && selectedJournal == nil && selectedFolder == nil {
+                    withAnimation(.interpolatingSpring(stiffness: 180, damping: 12)) {
+                        showingNewJournalFAB = true
+                    }
+                } else {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        showingNewJournalFAB = false
+                    }
+                }
             }
         }
     }

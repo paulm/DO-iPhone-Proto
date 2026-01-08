@@ -2427,60 +2427,81 @@ struct CompactFolderRow: View {
     @State private var showingDeleteConfirmation = false
 
     var body: some View {
-        Button(action: onSelectFolder) {
-            HStack(spacing: 12) {
-                // Folder icon
-                Image("media-library-folder")
-                    .resizable()
-                    .frame(width: 20, height: 20)
-                    .foregroundStyle(Color(hex: "333B40"))
+        HStack(spacing: 12) {
+            // Folder icon and content - tappable to toggle expand/collapse
+            Button(action: onToggle) {
+                HStack(spacing: 12) {
+                    // Folder icon
+                    Image("media-library-folder")
+                        .resizable()
+                        .frame(width: 20, height: 20)
+                        .foregroundStyle(Color(hex: "333B40"))
 
-                // Folder name
-                if isRenaming {
-                    TextField("Collection Name", text: $editedName)
-                        .font(.body)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.primary)
-                        .focused(nameFieldFocused)
-                        .onSubmit {
-                            onRenameSubmit?()
-                        }
-                        .submitLabel(.done)
-                } else {
-                    Text(folder.name)
-                        .font(.body)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.primary)
+                    // Folder name
+                    if isRenaming {
+                        TextField("Collection Name", text: $editedName)
+                            .font(.body)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.primary)
+                            .focused(nameFieldFocused)
+                            .onSubmit {
+                                onRenameSubmit?()
+                            }
+                            .submitLabel(.done)
+                    } else {
+                        Text(folder.name)
+                            .font(.body)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.primary)
+                    }
+
+                    Spacer()
+
+                    // Folder info: journal count and entry count
+                    HStack(spacing: 8) {
+                        Text("\(folder.journalCount) journals")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        Text("•")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        Text("\(folder.entryCount)")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
                 }
-
-                Spacer()
-
-                // Folder info: journal count and entry count
-                HStack(spacing: 8) {
-                    Text("\(folder.journalCount) journals")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-
-                    Text("•")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-
-                    Text("\(folder.entryCount)")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-
-                // Disclosure toggle - rotates when expanded (on right side)
-                Button(action: onToggle) {
-                    Image(systemName: "chevron.right.circle.fill")
-                        .font(.system(size: toggleIconSize))
-                        .symbolRenderingMode(.palette)
-                        .foregroundStyle(Color(hex: "44C0FF"), Color(hex: "F3F1F8"))
-                        .rotationEffect(.degrees(isExpanded ? 90 : 0))
-                        .animation(.easeInOut(duration: 0.2), value: isExpanded)
-                }
-                .buttonStyle(PlainButtonStyle())
+                .contentShape(Rectangle())
             }
+            .buttonStyle(PlainButtonStyle())
+
+            // Ellipsis menu
+            Menu {
+                Button {
+                    onSelectFolder()
+                } label: {
+                    Label("View", systemImage: "eye")
+                }
+
+                Button {
+                    onRename?()
+                } label: {
+                    Label("Rename", systemImage: "character.cursor.ibeam")
+                }
+
+                Button(role: .destructive) {
+                    showingDeleteConfirmation = true
+                } label: {
+                    Label("Delete", systemImage: "trash")
+                }
+            } label: {
+                Image(systemName: "ellipsis")
+                    .foregroundStyle(.secondary)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(PlainButtonStyle())
         }
         .buttonStyle(PlainButtonStyle())
         .contextMenu {
@@ -2530,8 +2551,8 @@ struct FolderRow: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 16) {
-                // Folder icon and content - tappable to select folder
-                Button(action: onSelectFolder) {
+                // Folder icon and content - tappable to toggle expand/collapse
+                Button(action: onToggle) {
                     HStack(spacing: 16) {
                         // Folder icon
                         Image("media-library-folder")
@@ -2581,14 +2602,30 @@ struct FolderRow: View {
                 }
                 .buttonStyle(PlainButtonStyle())
 
-                // Disclosure toggle - rotates when expanded (far right)
-                Button(action: onToggle) {
-                    Image(systemName: "chevron.right.circle.fill")
-                        .font(.system(size: toggleIconSize))
-                        .symbolRenderingMode(.palette)
-                        .foregroundStyle(Color(hex: "44C0FF"), Color(hex: "F3F1F8"))
-                        .rotationEffect(.degrees(isExpanded ? 90 : 0))
-                        .animation(.easeInOut(duration: 0.2), value: isExpanded)
+                // Ellipsis menu
+                Menu {
+                    Button {
+                        onSelectFolder()
+                    } label: {
+                        Label("View", systemImage: "eye")
+                    }
+
+                    Button {
+                        onRename?()
+                    } label: {
+                        Label("Rename", systemImage: "character.cursor.ibeam")
+                    }
+
+                    Button(role: .destructive) {
+                        showingDeleteConfirmation = true
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .foregroundStyle(.secondary)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(PlainButtonStyle())
             }
@@ -2599,19 +2636,6 @@ struct FolderRow: View {
             if !isExpanded {
                 Divider()
                     .padding(.leading, 0)
-            }
-        }
-        .contextMenu {
-            Button {
-                onRename?()
-            } label: {
-                Label("Rename", systemImage: "character.cursor.ibeam")
-            }
-
-            Button(role: .destructive) {
-                showingDeleteConfirmation = true
-            } label: {
-                Label("Delete", systemImage: "trash")
             }
         }
         .alert("Delete Collection", isPresented: $showingDeleteConfirmation) {

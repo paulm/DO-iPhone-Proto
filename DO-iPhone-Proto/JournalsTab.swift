@@ -89,9 +89,6 @@ struct JournalsTabPagedView: View {
     @State private var editedCollectionName = ""
     @FocusState private var collectionNameFieldFocused: Bool
 
-    // New Journal FAB state
-    @State private var showingNewJournalFAB = false
-
     // Folder expansion state - expand all by default
     @State private var expandedFolders: Set<String> = Set(Journal.folders.map { $0.id })
 
@@ -115,6 +112,11 @@ struct JournalsTabPagedView: View {
 
         // Return all journals - the filtering is already done in journalItems by repopulateJournals
         return allJournals
+    }
+
+    // Get all available collections (folders) for collection management menu
+    private var availableCollections: [JournalFolder] {
+        journalItems.compactMap { $0.folder }
     }
 
     private var filteredFolders: [JournalFolder] {
@@ -478,7 +480,17 @@ struct JournalsTabPagedView: View {
                 .navigationTitle("Journals")
                 .navigationBarTitleDisplayMode(.large)
                 .toolbar {
-                    // New Collection button
+                    // Edit button (arrows icon) - first in group
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button(action: {
+                            showingReorderModal = true
+                        }) {
+                            Text(DayOneIcon.arrows_up_down.rawValue)
+                                .font(.custom("DayOneIcons", size: 18))
+                        }
+                    }
+
+                    // New Collection button - grouped with Edit
                     ToolbarItem(placement: .navigationBarLeading) {
                         Button(action: {
                             shouldAddCollectionOnModalOpen = true
@@ -492,12 +504,12 @@ struct JournalsTabPagedView: View {
                     // Spacer to separate buttons into different pill backgrounds
                     ToolbarSpacer(.fixed, placement: .navigationBarLeading)
 
-                    // Edit button to open reorder modal
+                    // + Journal button
                     ToolbarItem(placement: .navigationBarLeading) {
                         Button(action: {
-                            showingReorderModal = true
+                            addNewJournal()
                         }) {
-                            Text("Edit")
+                            Text("+ Journal")
                         }
                     }
 
@@ -630,50 +642,6 @@ struct JournalsTabPagedView: View {
                     journalsPopulation: journalsPopulation,
                     shouldAddCollectionOnOpen: $shouldAddCollectionOnModalOpen
                 )
-            }
-
-            // New Journal FAB
-            Button(action: {
-                addNewJournal()
-            }) {
-                HStack(spacing: 8) {
-                    Text("+ New Journal")
-                        .font(.system(size: 16, weight: .semibold))
-                }
-                .foregroundStyle(.white)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 14)
-                .background(Color(hex: "333B40"))
-                .clipShape(Capsule())
-            }
-            .buttonStyle(PlainButtonStyle())
-            .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
-            .padding(.trailing, 18)
-            .padding(.bottom, 30) // Position above tab bar (similar to Today tab FABs)
-            .offset(y: showingNewJournalFAB ? 0 : 150) // Slide up/down animation
-            .opacity(showingNewJournalFAB ? 1 : 0)
-        }
-        .onAppear {
-            // Animate FAB in after a short delay with bounce effect
-            // Only show FAB if we're in the list view (not in a detail view)
-            if selectedJournal == nil && selectedFolder == nil {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    withAnimation(.interpolatingSpring(stiffness: 180, damping: 12)) {
-                        showingNewJournalFAB = true
-                    }
-                }
-            }
-        }
-        .onChange(of: selectedJournal) { oldValue, newValue in
-            // Hide FAB when navigating to journal detail, show when coming back
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                showingNewJournalFAB = newValue == nil
-            }
-        }
-        .onChange(of: selectedFolder) { oldValue, newValue in
-            // Hide FAB when navigating to folder detail, show when coming back
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                showingNewJournalFAB = newValue == nil
             }
         }
     }
@@ -1170,7 +1138,53 @@ struct JournalsTabPagedView: View {
                                             journalItems[folderIndex] = Journal.MixedJournalItem(folder: updatedFolder)
                                         }
                                     }
-                                }
+                                },
+                                onMoveToCollection: { targetFolderId in
+                                    // Move journal from current folder to target folder
+                                    if let sourceFolderIndex = journalItems.firstIndex(where: { $0.id == folder.id }),
+                                       let sourceFolder = journalItems[sourceFolderIndex].folder,
+                                       let targetFolderIndex = journalItems.firstIndex(where: { $0.id == targetFolderId }),
+                                       let targetFolder = journalItems[targetFolderIndex].folder {
+
+                                        // Remove from source folder
+                                        var updatedSourceJournals = sourceFolder.journals
+                                        updatedSourceJournals.removeAll(where: { $0.id == journal.id })
+
+                                        // Add to target folder
+                                        var updatedTargetJournals = targetFolder.journals
+                                        updatedTargetJournals.append(journal)
+
+                                        // Update both folders
+                                        if updatedSourceJournals.isEmpty {
+                                            journalItems.remove(at: sourceFolderIndex)
+                                        } else {
+                                            journalItems[sourceFolderIndex] = Journal.MixedJournalItem(folder: sourceFolder.withJournals(updatedSourceJournals))
+                                        }
+                                        journalItems[targetFolderIndex] = Journal.MixedJournalItem(folder: targetFolder.withJournals(updatedTargetJournals))
+                                    }
+                                },
+                                onRemoveFromCollection: {
+                                    // Remove journal from folder and add as standalone
+                                    if let folderIndex = journalItems.firstIndex(where: { $0.id == folder.id }),
+                                       let currentFolder = journalItems[folderIndex].folder {
+
+                                        // Remove from folder
+                                        var updatedJournals = currentFolder.journals
+                                        updatedJournals.removeAll(where: { $0.id == journal.id })
+
+                                        // Update or remove folder
+                                        if updatedJournals.isEmpty {
+                                            journalItems.remove(at: folderIndex)
+                                        } else {
+                                            journalItems[folderIndex] = Journal.MixedJournalItem(folder: currentFolder.withJournals(updatedJournals))
+                                        }
+
+                                        // Add journal as standalone item
+                                        journalItems.append(Journal.MixedJournalItem(journal: journal))
+                                    }
+                                },
+                                availableCollections: availableCollections.filter { $0.id != folder.id },
+                                isInCollection: true
                             )
                             .padding(.leading, 20)
                         }
@@ -1201,7 +1215,23 @@ struct JournalsTabPagedView: View {
                         onDelete: {
                             // Remove standalone journal from journalItems
                             journalItems.removeAll(where: { $0.id == journal.id })
-                        }
+                        },
+                        onMoveToCollection: { targetFolderId in
+                            // Move standalone journal to a collection
+                            if let targetFolderIndex = journalItems.firstIndex(where: { $0.id == targetFolderId }),
+                               let targetFolder = journalItems[targetFolderIndex].folder {
+
+                                // Remove journal from standalone items
+                                journalItems.removeAll(where: { $0.id == journal.id })
+
+                                // Add to target folder
+                                var updatedJournals = targetFolder.journals
+                                updatedJournals.append(journal)
+                                journalItems[targetFolderIndex] = Journal.MixedJournalItem(folder: targetFolder.withJournals(updatedJournals))
+                            }
+                        },
+                        availableCollections: availableCollections,
+                        isInCollection: false
                     )
                 }
             }
@@ -1321,7 +1351,61 @@ struct JournalsTabPagedView: View {
                             onNewEntry: {
                                 journalViewModel.selectJournal(journal)
                                 showingNewEntry = true
-                            }
+                            },
+                            onRename: { newName in
+                                if let folderIndex = journalItems.firstIndex(where: { $0.id == folder.id }),
+                                   let currentFolder = journalItems[folderIndex].folder {
+                                    var updatedJournals = currentFolder.journals
+                                    if let journalIndex = updatedJournals.firstIndex(where: { $0.id == journal.id }) {
+                                        updatedJournals[journalIndex] = journal.withName(newName)
+                                        journalItems[folderIndex] = Journal.MixedJournalItem(folder: currentFolder.withJournals(updatedJournals))
+                                    }
+                                }
+                            },
+                            onDelete: {
+                                if let folderIndex = journalItems.firstIndex(where: { $0.id == folder.id }),
+                                   let currentFolder = journalItems[folderIndex].folder {
+                                    var updatedJournals = currentFolder.journals
+                                    updatedJournals.removeAll(where: { $0.id == journal.id })
+                                    if updatedJournals.isEmpty {
+                                        journalItems.remove(at: folderIndex)
+                                    } else {
+                                        journalItems[folderIndex] = Journal.MixedJournalItem(folder: currentFolder.withJournals(updatedJournals))
+                                    }
+                                }
+                            },
+                            onMoveToCollection: { targetFolderId in
+                                if let sourceFolderIndex = journalItems.firstIndex(where: { $0.id == folder.id }),
+                                   let sourceFolder = journalItems[sourceFolderIndex].folder,
+                                   let targetFolderIndex = journalItems.firstIndex(where: { $0.id == targetFolderId }),
+                                   let targetFolder = journalItems[targetFolderIndex].folder {
+                                    var updatedSourceJournals = sourceFolder.journals
+                                    updatedSourceJournals.removeAll(where: { $0.id == journal.id })
+                                    var updatedTargetJournals = targetFolder.journals
+                                    updatedTargetJournals.append(journal)
+                                    if updatedSourceJournals.isEmpty {
+                                        journalItems.remove(at: sourceFolderIndex)
+                                    } else {
+                                        journalItems[sourceFolderIndex] = Journal.MixedJournalItem(folder: sourceFolder.withJournals(updatedSourceJournals))
+                                    }
+                                    journalItems[targetFolderIndex] = Journal.MixedJournalItem(folder: targetFolder.withJournals(updatedTargetJournals))
+                                }
+                            },
+                            onRemoveFromCollection: {
+                                if let folderIndex = journalItems.firstIndex(where: { $0.id == folder.id }),
+                                   let currentFolder = journalItems[folderIndex].folder {
+                                    var updatedJournals = currentFolder.journals
+                                    updatedJournals.removeAll(where: { $0.id == journal.id })
+                                    if updatedJournals.isEmpty {
+                                        journalItems.remove(at: folderIndex)
+                                    } else {
+                                        journalItems[folderIndex] = Journal.MixedJournalItem(folder: currentFolder.withJournals(updatedJournals))
+                                    }
+                                    journalItems.append(Journal.MixedJournalItem(journal: journal))
+                                }
+                            },
+                            availableCollections: availableCollections.filter { $0.id != folder.id },
+                            isInCollection: true
                         )
                     }
                 } else if let journal = item.journal {
@@ -1335,7 +1419,27 @@ struct JournalsTabPagedView: View {
                         onNewEntry: {
                             journalViewModel.selectJournal(journal)
                             showingNewEntry = true
-                        }
+                        },
+                        onRename: { newName in
+                            if let index = journalItems.firstIndex(where: { $0.id == journal.id }) {
+                                let updatedJournal = journal.withName(newName)
+                                journalItems[index] = Journal.MixedJournalItem(journal: updatedJournal)
+                            }
+                        },
+                        onDelete: {
+                            journalItems.removeAll(where: { $0.id == journal.id })
+                        },
+                        onMoveToCollection: { targetFolderId in
+                            if let targetFolderIndex = journalItems.firstIndex(where: { $0.id == targetFolderId }),
+                               let targetFolder = journalItems[targetFolderIndex].folder {
+                                journalItems.removeAll(where: { $0.id == journal.id })
+                                var updatedJournals = targetFolder.journals
+                                updatedJournals.append(journal)
+                                journalItems[targetFolderIndex] = Journal.MixedJournalItem(folder: targetFolder.withJournals(updatedJournals))
+                            }
+                        },
+                        availableCollections: availableCollections,
+                        isInCollection: false
                     )
                 }
             }
@@ -1444,7 +1548,61 @@ struct JournalsTabPagedView: View {
                                     onNewEntry: {
                                         selectedJournal = journal
                                         showingNewEntry = true
-                                    }
+                                    },
+                                    onRename: { newName in
+                                        if let folderIndex = journalItems.firstIndex(where: { $0.id == folder.id }),
+                                           let currentFolder = journalItems[folderIndex].folder {
+                                            var updatedJournals = currentFolder.journals
+                                            if let journalIndex = updatedJournals.firstIndex(where: { $0.id == journal.id }) {
+                                                updatedJournals[journalIndex] = journal.withName(newName)
+                                                journalItems[folderIndex] = Journal.MixedJournalItem(folder: currentFolder.withJournals(updatedJournals))
+                                            }
+                                        }
+                                    },
+                                    onDelete: {
+                                        if let folderIndex = journalItems.firstIndex(where: { $0.id == folder.id }),
+                                           let currentFolder = journalItems[folderIndex].folder {
+                                            var updatedJournals = currentFolder.journals
+                                            updatedJournals.removeAll(where: { $0.id == journal.id })
+                                            if updatedJournals.isEmpty {
+                                                journalItems.remove(at: folderIndex)
+                                            } else {
+                                                journalItems[folderIndex] = Journal.MixedJournalItem(folder: currentFolder.withJournals(updatedJournals))
+                                            }
+                                        }
+                                    },
+                                    onMoveToCollection: { targetFolderId in
+                                        if let sourceFolderIndex = journalItems.firstIndex(where: { $0.id == folder.id }),
+                                           let sourceFolder = journalItems[sourceFolderIndex].folder,
+                                           let targetFolderIndex = journalItems.firstIndex(where: { $0.id == targetFolderId }),
+                                           let targetFolder = journalItems[targetFolderIndex].folder {
+                                            var updatedSourceJournals = sourceFolder.journals
+                                            updatedSourceJournals.removeAll(where: { $0.id == journal.id })
+                                            var updatedTargetJournals = targetFolder.journals
+                                            updatedTargetJournals.append(journal)
+                                            if updatedSourceJournals.isEmpty {
+                                                journalItems.remove(at: sourceFolderIndex)
+                                            } else {
+                                                journalItems[sourceFolderIndex] = Journal.MixedJournalItem(folder: sourceFolder.withJournals(updatedSourceJournals))
+                                            }
+                                            journalItems[targetFolderIndex] = Journal.MixedJournalItem(folder: targetFolder.withJournals(updatedTargetJournals))
+                                        }
+                                    },
+                                    onRemoveFromCollection: {
+                                        if let folderIndex = journalItems.firstIndex(where: { $0.id == folder.id }),
+                                           let currentFolder = journalItems[folderIndex].folder {
+                                            var updatedJournals = currentFolder.journals
+                                            updatedJournals.removeAll(where: { $0.id == journal.id })
+                                            if updatedJournals.isEmpty {
+                                                journalItems.remove(at: folderIndex)
+                                            } else {
+                                                journalItems[folderIndex] = Journal.MixedJournalItem(folder: currentFolder.withJournals(updatedJournals))
+                                            }
+                                            journalItems.append(Journal.MixedJournalItem(journal: journal))
+                                        }
+                                    },
+                                    availableCollections: availableCollections.filter { $0.id != folder.id },
+                                    isInCollection: true
                                 )
                                 .padding(.leading, 20)
                             }
@@ -1474,7 +1632,19 @@ struct JournalsTabPagedView: View {
                             onDelete: {
                                 // Remove standalone journal from journalItems
                                 journalItems.removeAll(where: { $0.id == journal.id })
-                            }
+                            },
+                            onMoveToCollection: { targetFolderId in
+                                // Move standalone journal to a collection
+                                if let targetFolderIndex = journalItems.firstIndex(where: { $0.id == targetFolderId }),
+                                   let targetFolder = journalItems[targetFolderIndex].folder {
+                                    journalItems.removeAll(where: { $0.id == journal.id })
+                                    var updatedJournals = targetFolder.journals
+                                    updatedJournals.append(journal)
+                                    journalItems[targetFolderIndex] = Journal.MixedJournalItem(folder: targetFolder.withJournals(updatedJournals))
+                                }
+                            },
+                            availableCollections: availableCollections,
+                            isInCollection: false
                         )
                     }
                 }
@@ -2003,6 +2173,10 @@ struct CompactJournalRow: View {
     var onNewEntry: (() -> Void)? = nil
     var onRename: ((String) -> Void)? = nil
     var onDelete: (() -> Void)? = nil
+    var onMoveToCollection: ((String) -> Void)? = nil
+    var onRemoveFromCollection: (() -> Void)? = nil
+    var availableCollections: [JournalFolder] = []
+    var isInCollection: Bool = false
     @State private var showingEditJournal = false
     @State private var isRenaming = false
     @State private var editedName = ""
@@ -2111,6 +2285,46 @@ struct CompactJournalRow: View {
             } label: {
                 Label("Rename", systemImage: "character.cursor.ibeam")
             }
+
+            if !availableCollections.isEmpty {
+                Menu {
+                    ForEach(availableCollections, id: \.id) { collection in
+                        Button {
+                            onMoveToCollection?(collection.id)
+                        } label: {
+                            Label(collection.name, systemImage: "folder")
+                        }
+                    }
+                } label: {
+                    Label("Move to Collection", systemImage: "folder.badge.plus")
+                }
+            }
+
+            if isInCollection {
+                Button {
+                    onRemoveFromCollection?()
+                } label: {
+                    Label("Remove from Collection", systemImage: "folder.badge.minus")
+                }
+            }
+
+            if let onDelete = onDelete {
+                Divider()
+
+                Button(role: .destructive) {
+                    showingDeleteConfirmation = true
+                } label: {
+                    Label("Delete", systemImage: "trash")
+                }
+            }
+        }
+        .alert("Delete Journal", isPresented: $showingDeleteConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
+                onDelete?()
+            }
+        } message: {
+            Text("Are you sure you want to delete \"\(journal.name)\"? This action cannot be undone.")
         }
     }
 }
@@ -2341,6 +2555,10 @@ struct JournalRow: View {
     var onNewEntry: (() -> Void)? = nil
     var onRename: ((String) -> Void)? = nil
     var onDelete: (() -> Void)? = nil
+    var onMoveToCollection: ((String) -> Void)? = nil
+    var onRemoveFromCollection: (() -> Void)? = nil
+    var availableCollections: [JournalFolder] = []
+    var isInCollection: Bool = false
     @State private var showingEditJournal = false
     @State private var isRenaming = false
     @State private var editedName = ""
@@ -2484,6 +2702,46 @@ struct JournalRow: View {
             } label: {
                 Label("Rename", systemImage: "character.cursor.ibeam")
             }
+
+            if !availableCollections.isEmpty {
+                Menu {
+                    ForEach(availableCollections, id: \.id) { collection in
+                        Button {
+                            onMoveToCollection?(collection.id)
+                        } label: {
+                            Label(collection.name, systemImage: "folder")
+                        }
+                    }
+                } label: {
+                    Label("Move to Collection", systemImage: "folder.badge.plus")
+                }
+            }
+
+            if isInCollection {
+                Button {
+                    onRemoveFromCollection?()
+                } label: {
+                    Label("Remove from Collection", systemImage: "folder.badge.minus")
+                }
+            }
+
+            if let onDelete = onDelete {
+                Divider()
+
+                Button(role: .destructive) {
+                    showingDeleteConfirmation = true
+                } label: {
+                    Label("Delete", systemImage: "trash")
+                }
+            }
+        }
+        .alert("Delete Journal", isPresented: $showingDeleteConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
+                onDelete?()
+            }
+        } message: {
+            Text("Are you sure you want to delete \"\(journal.name)\"? This action cannot be undone.")
         }
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
             // New Entry (journal color)
@@ -2512,6 +2770,14 @@ struct JournalBookView: View {
     let isSelected: Bool
     let onSelect: () -> Void
     var onNewEntry: (() -> Void)? = nil
+    var onRename: ((String) -> Void)? = nil
+    var onDelete: (() -> Void)? = nil
+    var onMoveToCollection: ((String) -> Void)? = nil
+    var onRemoveFromCollection: (() -> Void)? = nil
+    var availableCollections: [JournalFolder] = []
+    var isInCollection: Bool = false
+    @State private var showingEditJournal = false
+    @State private var showingDeleteConfirmation = false
 
     var body: some View {
         Button(action: onSelect) {
@@ -2632,17 +2898,67 @@ struct JournalBookView: View {
         }
         .buttonStyle(PlainButtonStyle())
         .contextMenu {
-            Button(action: {
-                // TODO: Edit journal action
-            }) {
+            if let newEntry = onNewEntry {
+                Button {
+                    newEntry()
+                } label: {
+                    Label("New Entry", systemImage: "plus")
+                }
+            }
+
+            Button {
+                showingEditJournal = true
+            } label: {
                 Label("Edit Journal", systemImage: "pencil")
             }
 
-            Button(action: {
-                // TODO: New entry action
-            }) {
-                Label("New Entry", systemImage: "plus")
+            if let onRename = onRename {
+                Button {
+                    onRename("")
+                } label: {
+                    Label("Rename", systemImage: "character.cursor.ibeam")
+                }
             }
+
+            if !availableCollections.isEmpty {
+                Menu {
+                    ForEach(availableCollections, id: \.id) { collection in
+                        Button {
+                            onMoveToCollection?(collection.id)
+                        } label: {
+                            Label(collection.name, systemImage: "folder")
+                        }
+                    }
+                } label: {
+                    Label("Move to Collection", systemImage: "folder.badge.plus")
+                }
+            }
+
+            if isInCollection {
+                Button {
+                    onRemoveFromCollection?()
+                } label: {
+                    Label("Remove from Collection", systemImage: "folder.badge.minus")
+                }
+            }
+
+            if let onDelete = onDelete {
+                Divider()
+
+                Button(role: .destructive) {
+                    showingDeleteConfirmation = true
+                } label: {
+                    Label("Delete", systemImage: "trash")
+                }
+            }
+        }
+        .alert("Delete Journal", isPresented: $showingDeleteConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
+                onDelete?()
+            }
+        } message: {
+            Text("Are you sure you want to delete \"\(journal.name)\"? This action cannot be undone.")
         }
     }
 }
@@ -3270,9 +3586,6 @@ struct JournalsReorderView: View {
     // Scroll state
     @State private var scrollToId: String? = nil
 
-    // Toolbar hint overlays
-    @State private var showToolbarHints = false
-
     // Track newly added collection for auto-rename
     @State private var newlyAddedCollectionId: String? = nil
 
@@ -3421,7 +3734,6 @@ struct JournalsReorderView: View {
                 ToolbarItem(placement: .bottomBar) {
                     Button("New Collection", systemImage: "folder.badge.plus") {
                         addNewCollection()
-                        showToolbarHints = false
                     }
                     .labelStyle(.titleAndIcon)
                 }
@@ -3434,36 +3746,9 @@ struct JournalsReorderView: View {
                 ToolbarItem(placement: .bottomBar) {
                     Button("New Journal", systemImage: "plus") {
                         addNewJournal()
-                        showToolbarHints = false
                     }
                     .labelStyle(.titleAndIcon)
                 }
-            }
-            .overlay(alignment: .bottom) {
-                if showToolbarHints {
-                    HStack(spacing: 0) {
-                        // New Collection hint overlay
-                        Image("journals-new-collection")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 163)
-                            .padding(.leading, 56)
-
-                        Spacer()
-
-                        // New Journal hint overlay
-                        Image("journals-new-journal")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 118)
-                            .padding(.trailing, 56)
-                    }
-                    .padding(.bottom, 0)
-                    .allowsHitTesting(false)
-                }
-            }
-            .onTapGesture {
-                showToolbarHints = false
             }
         }
         .presentationDetents([.large])
@@ -3471,11 +3756,6 @@ struct JournalsReorderView: View {
         .onAppear {
             initializeFromJournals()
             rebuildCache()
-
-            // Show hints if new user state is active
-            if journalsPopulation == .newUser {
-                showToolbarHints = true
-            }
 
             // Add new collection if requested
             if shouldAddCollectionOnOpen {

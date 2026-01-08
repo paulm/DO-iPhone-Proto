@@ -4144,15 +4144,18 @@ struct JournalReorderRow: View {
                     .foregroundStyle(.secondary)
             }
 
-            // Entry count
-            if let count = journalNode.entryCount {
-                Text("\(count)")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-
             // Ellipsis menu
             Menu {
+                // Entry count as first item (static, non-interactive)
+                if let count = journalNode.entryCount {
+                    Button { } label: {
+                        Text("\(count) \(count == 1 ? "Entry" : "Entries")")
+                    }
+                    .disabled(true)
+
+                    Divider()
+                }
+
                 if let onEdit = onEdit {
                     Button {
                         onEdit()
@@ -4228,36 +4231,6 @@ struct JournalReorderRow: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-
-            // Collection add/remove icon (always visible in edit mode)
-            if isNested {
-                Button {
-                    onRemoveFromCollection()
-                } label: {
-                    Image(systemName: "folder.badge.minus")
-                        .foregroundColor(.secondary)
-                        .font(.body)
-                        .frame(minWidth: 44, minHeight: 44)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-            } else {
-                Menu {
-                    ForEach(orderedCollections, id: \.id) { collection in
-                        Button {
-                            onMoveToCollection(collection.id)
-                        } label: {
-                            Label(collection.name, systemImage: "folder")
-                        }
-                    }
-                } label: {
-                    Image(systemName: "folder.badge.plus")
-                        .foregroundColor(accentColor)
-                        .font(.body)
-                        .frame(minWidth: 44, minHeight: 44)
-                        .contentShape(Rectangle())
-                }
-            }
         }
         .padding(.vertical, Layout.rowVerticalPadding)
         .padding(.leading, isNested ? Layout.nestedIndentation : 0)
@@ -4346,13 +4319,16 @@ struct CollectionReorderRow: View {
 
             Spacer()
 
-            // Journal count on right side
-            Text("\(collection.itemCount) Journals")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-
             // Ellipsis menu
             Menu {
+                // Journal count as first item (static, non-interactive)
+                Button { } label: {
+                    Text("\(collection.itemCount) \(collection.itemCount == 1 ? "Journal" : "Journals")")
+                }
+                .disabled(true)
+
+                Divider()
+
                 if let onRename = onRename {
                     Button {
                         editedName = collection.name

@@ -108,6 +108,7 @@ struct JournalDetailPagedView: View, StyleComputedProperties {
             showCoverImage: showCoverImage,
             coverImageName: !journal.appearance.originalCoverImageData.isEmpty ?
                 journal.appearance.originalCoverImageData : "bike",
+            style: selectedStyle,
             fabJournal: journal,
             onFabTap: {
                 // Present entry view
@@ -127,7 +128,8 @@ struct JournalDetailPagedView: View, StyleComputedProperties {
             JournalDetailPillPicker(
                 tabs: JournalDetailTab.allTabs,
                 selection: $selectedContentTab,
-                selectedColor: selectedPillColor
+                selectedColor: selectedPillColor,
+                style: selectedStyle
             )
             .padding(.bottom, 12)
 
@@ -155,6 +157,7 @@ struct JournalDetailPagedView: View, StyleComputedProperties {
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color(UIColor.systemBackground))
                 .padding(.bottom, 120) // Extra padding for FAB clearance
             }
         }

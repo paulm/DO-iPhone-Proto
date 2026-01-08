@@ -2825,6 +2825,7 @@ struct FolderDetailView: View, StyleComputedProperties {
             headerTextColor: headerTextColor,
             showCoverImage: showCoverImage,
             coverImageName: "bike",
+            style: selectedStyle,
             fabJournal: folder.journals.first ?? Journal(name: folder.name, color: folder.color, entryCount: folder.entryCount),
             onFabTap: {
                 // Present entry view
@@ -2842,7 +2843,8 @@ struct FolderDetailView: View, StyleComputedProperties {
             JournalDetailPillPicker(
                 tabs: JournalDetailTab.allTabs,
                 selection: $selectedContentTab,
-                selectedColor: selectedPillColor
+                selectedColor: selectedPillColor,
+                style: selectedStyle
             )
             .padding(.bottom, 12)
 
@@ -2862,6 +2864,7 @@ struct FolderDetailView: View, StyleComputedProperties {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color(UIColor.systemBackground))
             .padding(.bottom, 120) // Extra padding for FAB clearance
         }
     }

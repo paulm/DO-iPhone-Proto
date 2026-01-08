@@ -10,6 +10,7 @@ struct SimpleDetailLayout<Content: View>: View {
     let showCoverImage: Bool
     let coverImageName: String
     let content: Content
+    let style: JournalDetailStyle
 
     // Optional FAB
     let fabJournal: Journal?
@@ -22,6 +23,7 @@ struct SimpleDetailLayout<Content: View>: View {
         headerTextColor: Color,
         showCoverImage: Bool = false,
         coverImageName: String = "bike",
+        style: JournalDetailStyle = .colored,
         fabJournal: Journal? = nil,
         onFabTap: (() -> Void)? = nil,
         @ViewBuilder content: () -> Content
@@ -32,6 +34,7 @@ struct SimpleDetailLayout<Content: View>: View {
         self.headerTextColor = headerTextColor
         self.showCoverImage = showCoverImage
         self.coverImageName = coverImageName
+        self.style = style
         self.fabJournal = fabJournal
         self.onFabTap = onFabTap
         self.content = content()
@@ -45,8 +48,11 @@ struct SimpleDetailLayout<Content: View>: View {
                         // Header section with colored background
                         ZStack(alignment: .bottom) {
                             // Background color extends behind nav bar
+                            // In Colored Full mode, extend header down to include pill picker area
+                            let headerExtension: CGFloat = style == .coloredFull ? 80 : 0
+
                             headerBackgroundColor
-                                .frame(height: 220 + geometry.safeAreaInsets.top)
+                                .frame(height: 220 + geometry.safeAreaInsets.top + headerExtension)
                                 .offset(y: -geometry.safeAreaInsets.top)
                                 .zIndex(0)
 
@@ -55,23 +61,13 @@ struct SimpleDetailLayout<Content: View>: View {
                                 Image(coverImageName)
                                     .resizable()
                                     .aspectRatio(contentMode: .fill)
-                                    .frame(height: 220 + geometry.safeAreaInsets.top)
+                                    .frame(height: 220 + geometry.safeAreaInsets.top + headerExtension)
                                     .offset(y: -geometry.safeAreaInsets.top)
                                     .clipped()
-                                    .overlay(
-                                        LinearGradient(
-                                            colors: [
-                                                Color.clear,
-                                                headerBackgroundColor.opacity(0.7)
-                                            ],
-                                            startPoint: .top,
-                                            endPoint: .bottom
-                                        )
-                                    )
                                     .zIndex(1)
                             }
 
-                            // Title and subtitle - positioned at bottom of visible colored area
+                            // Title and subtitle - positioned at bottom of visible colored area (not extended part)
                             VStack(spacing: 0) {
                                 Spacer()
                                 VStack(alignment: .leading, spacing: 0) {
@@ -92,14 +88,13 @@ struct SimpleDetailLayout<Content: View>: View {
                             .offset(y: -geometry.safeAreaInsets.top)
                             .zIndex(2)
                         }
-                        .frame(height: 220 - geometry.safeAreaInsets.top)
+                        .frame(height: 220 - geometry.safeAreaInsets.top + (style == .coloredFull ? 80 : 0))
 
                         // Content section
                         content
                             .padding(.top, 14)
                     }
                 }
-                .background(Color(UIColor.systemBackground))
             }
 
             // Floating FAB (separate from scroll view)

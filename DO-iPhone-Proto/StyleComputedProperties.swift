@@ -8,18 +8,18 @@ protocol StyleComputedProperties {
 
 extension StyleComputedProperties {
     var headerBackgroundColor: Color {
-        selectedStyle == .colored ? color : .white
+        selectedStyle == .white ? .white : color
     }
 
     var headerTextColor: Color {
-        selectedStyle == .colored ? .white : color
+        selectedStyle == .white ? color : .white
     }
 
     var toolbarColorScheme: ColorScheme? {
-        selectedStyle == .colored ? .dark : nil
+        selectedStyle == .white ? nil : .dark
     }
 
     var selectedPillColor: Color {
-        selectedStyle == .colored ? Color(hex: "333B40") : color
+        selectedStyle == .white ? color : Color(hex: "333B40")
     }
 }

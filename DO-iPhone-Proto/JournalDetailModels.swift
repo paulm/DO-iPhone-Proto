@@ -3,6 +3,7 @@ import SwiftUI
 // MARK: - Simple Layout Style
 enum JournalDetailStyle: String, CaseIterable {
     case colored = "Colored"
+    case coloredFull = "Colored Full"
     case white = "White"
 }
 
@@ -59,6 +60,7 @@ struct JournalDetailPillPicker: View {
     let tabs: [JournalDetailTab]
     @Binding var selection: JournalDetailTab
     let selectedColor: Color
+    let style: JournalDetailStyle
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -87,10 +89,23 @@ struct JournalDetailPillPicker: View {
                         .padding(.vertical, 7)
                         .contentShape(Capsule())
                     }
-                    .foregroundStyle(selection == tab ? .white : .secondary)
+                    .foregroundStyle(selection == tab ? .white : (style == .coloredFull ? .white.opacity(0.7) : .secondary))
                     .background {
-                        Capsule()
-                            .fill(selection == tab ? selectedColor : Color(uiColor: .secondarySystemFill))
+                        if style == .coloredFull {
+                            // iOS 26 Liquid Glass styling for Colored Full mode
+                            Capsule()
+                                .fill(selection == tab ? .ultraThinMaterial : .ultraThickMaterial)
+                                .overlay {
+                                    if selection == tab {
+                                        Capsule()
+                                            .fill(.white.opacity(0.15))
+                                    }
+                                }
+                        } else {
+                            // Standard solid fills for Colored and White modes
+                            Capsule()
+                                .fill(selection == tab ? selectedColor : Color(uiColor: .secondarySystemFill))
+                        }
                     }
                     .accessibilityLabel(Text(tab.title))
                     .accessibilityAddTraits(selection == tab ? [.isSelected] : [])

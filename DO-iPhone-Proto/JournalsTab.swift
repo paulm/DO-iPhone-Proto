@@ -4910,15 +4910,12 @@ struct CreateJournalView: View {
                 }
 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
+                    Button {
                         onCreate(journalName, selectedColor, isPersonal)
-                    }) {
+                    } label: {
                         Image(systemName: "checkmark")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundStyle(.white)
-                            .frame(width: 36, height: 36)
-                            .background(Color(hex: "44C0FF"))
-                            .clipShape(Circle())
+                            .foregroundColor(Color(hex: "44C0FF"))
+                            .fontWeight(.semibold)
                     }
                 }
             }

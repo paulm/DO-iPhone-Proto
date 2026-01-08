@@ -2359,7 +2359,7 @@ struct CompactJournalRow: View {
             Button {
                 showingEditJournal = true
             } label: {
-                Label("Edit Journal", systemImage: "pencil")
+                Label("Edit Journal", systemImage: "gearshape")
             }
 
             Button {
@@ -2380,7 +2380,7 @@ struct CompactJournalRow: View {
                         }
                     }
                 } label: {
-                    Label("Move to Collection", systemImage: "folder.badge.plus")
+                    Label("Move to Collection", systemImage: "plus.square.fill")
                 }
             }
 
@@ -2388,7 +2388,7 @@ struct CompactJournalRow: View {
                 Button {
                     onRemoveFromCollection?()
                 } label: {
-                    Label("Remove from Collection", systemImage: "folder.badge.minus")
+                    Label("Remove from Collection", systemImage: "minus.square.fill")
                 }
             }
 
@@ -2776,7 +2776,7 @@ struct JournalRow: View {
             Button {
                 showingEditJournal = true
             } label: {
-                Label("Edit Journal", systemImage: "pencil")
+                Label("Edit Journal", systemImage: "gearshape")
             }
 
             Button {
@@ -2797,7 +2797,7 @@ struct JournalRow: View {
                         }
                     }
                 } label: {
-                    Label("Move to Collection", systemImage: "folder.badge.plus")
+                    Label("Move to Collection", systemImage: "plus.square.fill")
                 }
             }
 
@@ -2805,7 +2805,7 @@ struct JournalRow: View {
                 Button {
                     onRemoveFromCollection?()
                 } label: {
-                    Label("Remove from Collection", systemImage: "folder.badge.minus")
+                    Label("Remove from Collection", systemImage: "minus.square.fill")
                 }
             }
 
@@ -2993,7 +2993,7 @@ struct JournalBookView: View {
             Button {
                 showingEditJournal = true
             } label: {
-                Label("Edit Journal", systemImage: "pencil")
+                Label("Edit Journal", systemImage: "gearshape")
             }
 
             if let onRename = onRename {
@@ -3014,7 +3014,7 @@ struct JournalBookView: View {
                         }
                     }
                 } label: {
-                    Label("Move to Collection", systemImage: "folder.badge.plus")
+                    Label("Move to Collection", systemImage: "plus.square.fill")
                 }
             }
 
@@ -3022,7 +3022,7 @@ struct JournalBookView: View {
                 Button {
                     onRemoveFromCollection?()
                 } label: {
-                    Label("Remove from Collection", systemImage: "folder.badge.minus")
+                    Label("Remove from Collection", systemImage: "minus.square.fill")
                 }
             }
 
@@ -4524,7 +4524,7 @@ struct JournalReorderRow: View {
                     Button {
                         onEdit()
                     } label: {
-                        Label("Edit Journal", systemImage: "pencil")
+                        Label("Edit Journal", systemImage: "gearshape")
                     }
                 }
 
@@ -4548,7 +4548,7 @@ struct JournalReorderRow: View {
                             }
                         }
                     } label: {
-                        Label("Move to Collection", systemImage: "folder.badge.plus")
+                        Label("Move to Collection", systemImage: "plus.square.fill")
                     }
                 }
 
@@ -4556,7 +4556,7 @@ struct JournalReorderRow: View {
                     Button {
                         onRemoveFromCollection()
                     } label: {
-                        Label("Remove from Collection", systemImage: "folder.badge.minus")
+                        Label("Remove from Collection", systemImage: "minus.square.fill")
                     }
                 }
 

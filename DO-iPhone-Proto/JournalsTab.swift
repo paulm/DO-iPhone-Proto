@@ -1163,6 +1163,46 @@ struct JournalsTabPagedView: View {
                         }
                     )
                     .id(folder.id)
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button(action: {
+                            selectedFolder = folder
+                        }) {
+                            Label("View", systemImage: "square.grid.2x2")
+                        }
+                        .tint(Color(hex: "44C0FF"))
+                    }
+                    .contextMenu {
+                        Button {
+                            selectedFolder = folder
+                        } label: {
+                            Label("View", systemImage: "square.grid.2x2")
+                        }
+
+                        Button {
+                            editedCollectionName = folder.name
+                            renamingCollectionID = folder.id
+                            collectionNameFieldFocused = true
+                        } label: {
+                            Label("Rename", systemImage: "character.cursor.ibeam")
+                        }
+
+                        Button(role: .destructive) {
+                            // Find the folder index
+                            if let folderIndex = journalItems.firstIndex(where: { $0.id == folder.id }) {
+                                // Get all journals from the folder to preserve them
+                                let journalsToPreserve = folder.journals
+
+                                // Remove the folder
+                                journalItems.remove(at: folderIndex)
+
+                                // Insert the journals at the same position
+                                let journalItems = journalsToPreserve.map { Journal.MixedJournalItem(journal: $0) }
+                                self.journalItems.insert(contentsOf: journalItems, at: folderIndex)
+                            }
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
 
                     if expandedFolders.contains(folder.id) {
                         ForEach(folder.journals) { journal in
@@ -1614,8 +1654,67 @@ struct JournalsTabPagedView: View {
                                 }
                                 renamingCollectionID = nil
                             },
-                            nameFieldFocused: $collectionNameFieldFocused
+                            nameFieldFocused: $collectionNameFieldFocused,
+                            onRename: {
+                                editedCollectionName = folder.name
+                                renamingCollectionID = folder.id
+                                collectionNameFieldFocused = true
+                            },
+                            onDelete: {
+                                // Find the folder index
+                                if let folderIndex = journalItems.firstIndex(where: { $0.id == folder.id }) {
+                                    // Get all journals from the folder to preserve them
+                                    let journalsToPreserve = folder.journals
+
+                                    // Remove the folder
+                                    journalItems.remove(at: folderIndex)
+
+                                    // Insert the journals at the same position
+                                    let journalItems = journalsToPreserve.map { Journal.MixedJournalItem(journal: $0) }
+                                    self.journalItems.insert(contentsOf: journalItems, at: folderIndex)
+                                }
+                            }
                         )
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            Button(action: {
+                                selectedFolder = folder
+                            }) {
+                                Label("View", systemImage: "square.grid.2x2")
+                            }
+                            .tint(Color(hex: "44C0FF"))
+                        }
+                        .contextMenu {
+                            Button {
+                                selectedFolder = folder
+                            } label: {
+                                Label("View", systemImage: "square.grid.2x2")
+                            }
+
+                            Button {
+                                editedCollectionName = folder.name
+                                renamingCollectionID = folder.id
+                                collectionNameFieldFocused = true
+                            } label: {
+                                Label("Rename", systemImage: "character.cursor.ibeam")
+                            }
+
+                            Button(role: .destructive) {
+                                // Find the folder index
+                                if let folderIndex = journalItems.firstIndex(where: { $0.id == folder.id }) {
+                                    // Get all journals from the folder to preserve them
+                                    let journalsToPreserve = folder.journals
+
+                                    // Remove the folder
+                                    journalItems.remove(at: folderIndex)
+
+                                    // Insert the journals at the same position
+                                    let journalItems = journalsToPreserve.map { Journal.MixedJournalItem(journal: $0) }
+                                    self.journalItems.insert(contentsOf: journalItems, at: folderIndex)
+                                }
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
 
                         if expandedFolders.contains(folder.id) {
                             ForEach(folder.journals) { journal in
@@ -2481,7 +2580,7 @@ struct CompactFolderRow: View {
                 Button {
                     onSelectFolder()
                 } label: {
-                    Label("View", systemImage: "eye")
+                    Label("View", systemImage: "square.grid.2x2")
                 }
 
                 Button {
@@ -2607,7 +2706,7 @@ struct FolderRow: View {
                     Button {
                         onSelectFolder()
                     } label: {
-                        Label("View", systemImage: "eye")
+                        Label("View", systemImage: "square.grid.2x2")
                     }
 
                     Button {
@@ -2864,7 +2963,7 @@ struct JournalRow: View {
             Button(action: {
                 showingEditJournal = true
             }) {
-                Label("Edit", systemImage: "pencil")
+                Label("Edit", systemImage: "gearshape")
             }
             .tint(.gray)
         }

@@ -52,23 +52,15 @@ struct SimpleDetailLayout<Content: View>: View {
 
                             // Cover image overlay if enabled
                             if showCoverImage {
-                                Image(coverImageName)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .frame(height: 220 + geometry.safeAreaInsets.top)
-                                    .offset(y: -geometry.safeAreaInsets.top)
-                                    .clipped()
-                                    .overlay(
-                                        LinearGradient(
-                                            colors: [
-                                                Color.clear,
-                                                headerBackgroundColor.opacity(0.7)
-                                            ],
-                                            startPoint: .top,
-                                            endPoint: .bottom
-                                        )
-                                    )
-                                    .zIndex(1)
+                                ZStack {
+                                    Image(coverImageName)
+                                        .resizable()
+                                        .scaledToFill()
+                                }
+                                .frame(height: 220 + geometry.safeAreaInsets.top)
+                                .offset(y: -geometry.safeAreaInsets.top)
+                                .clipped()
+                                .zIndex(1)
                             }
 
                             // Title and subtitle - positioned at bottom of visible colored area

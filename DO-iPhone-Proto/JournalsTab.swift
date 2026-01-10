@@ -674,7 +674,7 @@ struct JournalsTabPagedView: View {
                         .background(Color(hex: "333B40"))
                         .clipShape(Capsule())
                     }
-                    .buttonStyle(PlainButtonStyle())
+                    .buttonStyle(.plain)
                     .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
                     .padding(.trailing, 18)
                     .padding(.bottom, 30) // Position above tab bar (similar to Today tab FABs)
@@ -794,7 +794,7 @@ struct JournalsTabPagedView: View {
                 }
                 .padding(.horizontal, 16)
             }
-            .buttonStyle(PlainButtonStyle())
+            .buttonStyle(.plain)
             .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
             .listRowSeparator(.hidden)
         }
@@ -850,7 +850,7 @@ struct JournalsTabPagedView: View {
                 }
                 .padding(.horizontal, 16)
             }
-            .buttonStyle(PlainButtonStyle())
+            .buttonStyle(.plain)
             .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
             .listRowSeparator(.hidden)
         }
@@ -1016,7 +1016,7 @@ struct JournalsTabPagedView: View {
                 }
                 .padding(.horizontal, 16)
             }
-            .buttonStyle(PlainButtonStyle())
+            .buttonStyle(.plain)
             .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
             .listRowSeparator(.hidden)
         }
@@ -1072,7 +1072,7 @@ struct JournalsTabPagedView: View {
                 }
                 .padding(.horizontal, 16)
             }
-            .buttonStyle(PlainButtonStyle())
+            .buttonStyle(.plain)
             .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
             .listRowSeparator(.hidden)
         }
@@ -1160,17 +1160,12 @@ struct JournalsTabPagedView: View {
                                 let journalItems = journalsToPreserve.map { Journal.MixedJournalItem(journal: $0) }
                                 self.journalItems.insert(contentsOf: journalItems, at: folderIndex)
                             }
+                        },
+                        onReorder: {
+                            showingReorderModal = true
                         }
                     )
                     .id(folder.id)
-                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                        Button(action: {
-                            selectedFolder = folder
-                        }) {
-                            Label("View", systemImage: "square.grid.2x2")
-                        }
-                        .tint(Color(hex: "44C0FF"))
-                    }
                     .contextMenu {
                         Button {
                             selectedFolder = folder
@@ -1185,6 +1180,14 @@ struct JournalsTabPagedView: View {
                         } label: {
                             Label("Rename", systemImage: "character.cursor.ibeam")
                         }
+
+                        Button {
+                            showingReorderModal = true
+                        } label: {
+                            Label("Reorder", systemImage: "arrow.up.arrow.down")
+                        }
+
+                        Divider()
 
                         Button(role: .destructive) {
                             // Find the folder index
@@ -1300,6 +1303,9 @@ struct JournalsTabPagedView: View {
                                         // Add journal as standalone item
                                         journalItems.append(Journal.MixedJournalItem(journal: journal))
                                     }
+                                },
+                                onReorder: {
+                                    showingReorderModal = true
                                 },
                                 availableCollections: availableCollections.filter { $0.id != folder.id },
                                 isInCollection: true
@@ -1423,7 +1429,7 @@ struct JournalsTabPagedView: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            .buttonStyle(PlainButtonStyle())
+            .buttonStyle(.plain)
             .contextMenu {
                 Button(action: {}) {
                     Label("Empty Trash", systemImage: "trash")
@@ -1676,9 +1682,9 @@ struct JournalsTabPagedView: View {
                             }
                         )
                         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                            Button(action: {
+                            Button {
                                 selectedFolder = folder
-                            }) {
+                            } label: {
                                 Label("View", systemImage: "square.grid.2x2")
                             }
                             .tint(Color(hex: "44C0FF"))
@@ -1697,6 +1703,14 @@ struct JournalsTabPagedView: View {
                             } label: {
                                 Label("Rename", systemImage: "character.cursor.ibeam")
                             }
+
+                            Button {
+                                showingReorderModal = true
+                            } label: {
+                                Label("Reorder", systemImage: "arrow.up.arrow.down")
+                            }
+
+                            Divider()
 
                             Button(role: .destructive) {
                                 // Find the folder index
@@ -1904,7 +1918,7 @@ struct JournalsTabPagedView: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            .buttonStyle(PlainButtonStyle())
+            .buttonStyle(.plain)
             .contextMenu {
                 Button(action: {}) {
                     Label("Empty Trash", systemImage: "trash")
@@ -2115,7 +2129,7 @@ struct PagedJournalSheetContent: View {
                         .background(journal.color)
                         .clipShape(Capsule())
                     }
-                    .buttonStyle(PlainButtonStyle())
+                    .buttonStyle(.plain)
                     .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
 
                     // Record Audio button
@@ -2129,7 +2143,7 @@ struct PagedJournalSheetContent: View {
                             .background(journal.color)
                             .clipShape(Circle())
                     }
-                    .buttonStyle(PlainButtonStyle())
+                    .buttonStyle(.plain)
                     .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
                 }
                 .padding(.trailing, 18)
@@ -2358,6 +2372,7 @@ struct CompactJournalRow: View {
     var onDelete: (() -> Void)? = nil
     var onMoveToCollection: ((String) -> Void)? = nil
     var onRemoveFromCollection: (() -> Void)? = nil
+    var onReorder: (() -> Void)? = nil
     var availableCollections: [JournalFolder] = []
     var isInCollection: Bool = false
     @State private var showingEditJournal = false
@@ -2445,7 +2460,7 @@ struct CompactJournalRow: View {
             .padding(.vertical, -5)
             .padding(.horizontal, 0)
         }
-        .buttonStyle(PlainButtonStyle())
+        .buttonStyle(.plain)
         .contextMenu {
             if let newEntry = onNewEntry {
                 Button {
@@ -2491,9 +2506,15 @@ struct CompactJournalRow: View {
                 }
             }
 
-            if let onDelete = onDelete {
-                Divider()
+            Button {
+                onReorder?()
+            } label: {
+                Label("Reorder", systemImage: "arrow.up.arrow.down")
+            }
 
+            Divider()
+
+            if let onDelete = onDelete {
                 Button(role: .destructive) {
                     showingDeleteConfirmation = true
                 } label: {
@@ -2523,6 +2544,7 @@ struct CompactFolderRow: View {
     var nameFieldFocused: FocusState<Bool>.Binding
     var onRename: (() -> Void)? = nil
     var onDelete: (() -> Void)? = nil
+    var onReorder: (() -> Void)? = nil
     @State private var showingDeleteConfirmation = false
 
     var body: some View {
@@ -2573,7 +2595,7 @@ struct CompactFolderRow: View {
                 }
                 .contentShape(Rectangle())
             }
-            .buttonStyle(PlainButtonStyle())
+            .buttonStyle(.plain)
 
             // Ellipsis menu
             Menu {
@@ -2589,6 +2611,14 @@ struct CompactFolderRow: View {
                     Label("Rename", systemImage: "character.cursor.ibeam")
                 }
 
+                Button {
+                    onReorder?()
+                } label: {
+                    Label("Reorder", systemImage: "arrow.up.arrow.down")
+                }
+
+                Divider()
+
                 Button(role: .destructive) {
                     showingDeleteConfirmation = true
                 } label: {
@@ -2600,15 +2630,23 @@ struct CompactFolderRow: View {
                     .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
             }
-            .buttonStyle(PlainButtonStyle())
+            .buttonStyle(.plain)
         }
-        .buttonStyle(PlainButtonStyle())
+        .buttonStyle(.plain)
         .contextMenu {
             Button {
                 onRename?()
             } label: {
                 Label("Rename", systemImage: "character.cursor.ibeam")
             }
+
+            Button {
+                onReorder?()
+            } label: {
+                Label("Reorder", systemImage: "arrow.up.arrow.down")
+            }
+
+            Divider()
 
             Button(role: .destructive) {
                 showingDeleteConfirmation = true
@@ -2645,6 +2683,7 @@ struct FolderRow: View {
     var nameFieldFocused: FocusState<Bool>.Binding
     var onRename: (() -> Void)? = nil
     var onDelete: (() -> Void)? = nil
+    var onReorder: (() -> Void)? = nil
     @State private var showingDeleteConfirmation = false
 
     var body: some View {
@@ -2699,7 +2738,7 @@ struct FolderRow: View {
                     }
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(PlainButtonStyle())
+                .buttonStyle(.plain)
 
                 // Ellipsis menu
                 Menu {
@@ -2726,10 +2765,11 @@ struct FolderRow: View {
                         .frame(width: 44, height: 44)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(PlainButtonStyle())
+                .buttonStyle(.plain)
             }
-            .padding(.vertical, 12)
+            .padding(.vertical, 7)
             .padding(.horizontal, 0)
+            .padding(.bottom, 4)
 
             // Only show divider when folder is collapsed
             if !isExpanded {
@@ -2749,6 +2789,14 @@ struct FolderRow: View {
                 Text("Are you sure you want to delete this collection?")
             }
         }
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            Button {
+                onSelectFolder()
+            } label: {
+                Label("View", systemImage: "square.grid.2x2")
+            }
+            .tint(Color(hex: "44C0FF"))
+        }
         .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
         .listRowSeparator(.hidden)
     }
@@ -2764,6 +2812,7 @@ struct JournalRow: View {
     var onDelete: (() -> Void)? = nil
     var onMoveToCollection: ((String) -> Void)? = nil
     var onRemoveFromCollection: (() -> Void)? = nil
+    var onReorder: (() -> Void)? = nil
     var availableCollections: [JournalFolder] = []
     var isInCollection: Bool = false
     @State private var showingEditJournal = false
@@ -2878,7 +2927,7 @@ struct JournalRow: View {
                     }
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(PlainButtonStyle())
+                .buttonStyle(.plain)
             }
             .padding(.vertical, 7)
             .padding(.horizontal, 0)
@@ -2932,9 +2981,15 @@ struct JournalRow: View {
                 }
             }
 
-            if let onDelete = onDelete {
-                Divider()
+            Button {
+                onReorder?()
+            } label: {
+                Label("Reorder", systemImage: "arrow.up.arrow.down")
+            }
 
+            Divider()
+
+            if let onDelete = onDelete {
                 Button(role: .destructive) {
                     showingDeleteConfirmation = true
                 } label: {
@@ -2953,16 +3008,18 @@ struct JournalRow: View {
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
             // New Entry (journal color)
             if let newEntry = onNewEntry {
-                Button(action: newEntry) {
+                Button {
+                    newEntry()
+                } label: {
                     Label("New Entry", systemImage: "plus")
                 }
                 .tint(journal.color)
             }
 
             // Edit Journal (gray)
-            Button(action: {
+            Button {
                 showingEditJournal = true
-            }) {
+            } label: {
                 Label("Edit", systemImage: "gearshape")
             }
             .tint(.gray)
@@ -2981,6 +3038,7 @@ struct JournalBookView: View {
     var onDelete: (() -> Void)? = nil
     var onMoveToCollection: ((String) -> Void)? = nil
     var onRemoveFromCollection: (() -> Void)? = nil
+    var onReorder: (() -> Void)? = nil
     var availableCollections: [JournalFolder] = []
     var isInCollection: Bool = false
     @State private var showingEditJournal = false
@@ -3046,7 +3104,7 @@ struct JournalBookView: View {
                                                 )
                                                 .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
                                         }
-                                        .buttonStyle(PlainButtonStyle())
+                                        .buttonStyle(.plain)
                                         .padding(6)
                                     }
                                     Spacer()
@@ -3103,7 +3161,7 @@ struct JournalBookView: View {
                 }
             }
         }
-        .buttonStyle(PlainButtonStyle())
+        .buttonStyle(.plain)
         .contextMenu {
             if let newEntry = onNewEntry {
                 Button {
@@ -3149,9 +3207,15 @@ struct JournalBookView: View {
                 }
             }
 
-            if let onDelete = onDelete {
-                Divider()
+            Button {
+                onReorder?()
+            } label: {
+                Label("Reorder", systemImage: "arrow.up.arrow.down")
+            }
 
+            Divider()
+
+            if let onDelete = onDelete {
                 Button(role: .destructive) {
                     showingDeleteConfirmation = true
                 } label: {
@@ -3237,7 +3301,7 @@ struct RecentJournalBookView: View {
                                                 )
                                                 .shadow(color: .black.opacity(0.15), radius: 2, x: 0, y: 0)
                                         }
-                                        .buttonStyle(PlainButtonStyle())
+                                        .buttonStyle(.plain)
                                         .padding(6)
                                     }
                                     Spacer()
@@ -3249,7 +3313,7 @@ struct RecentJournalBookView: View {
                 // No entry count displayed
             }
         }
-        .buttonStyle(PlainButtonStyle())
+        .buttonStyle(.plain)
     }
 }
 
@@ -3537,7 +3601,7 @@ struct CompactAllEntriesCollectionRow: View {
                 // No disclosure toggle for All Entries
             }
         }
-        .buttonStyle(PlainButtonStyle())
+        .buttonStyle(.plain)
         .padding(.vertical, 0)
         .padding(.horizontal, 0)
     }
@@ -3586,7 +3650,7 @@ struct AllEntriesCollectionRow: View {
                     }
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(PlainButtonStyle())
+                .buttonStyle(.plain)
 
                 // No disclosure toggle for All Entries
             }
@@ -3633,7 +3697,7 @@ struct CompactTrashRow: View {
                 // No disclosure toggle for Trash
             }
         }
-        .buttonStyle(PlainButtonStyle())
+        .buttonStyle(.plain)
         .padding(.vertical, 0)
         .padding(.horizontal, 0)
     }
@@ -3671,7 +3735,7 @@ struct TrashRow: View {
                     }
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(PlainButtonStyle())
+                .buttonStyle(.plain)
 
                 // No disclosure toggle for Trash
             }

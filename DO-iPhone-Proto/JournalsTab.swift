@@ -376,6 +376,9 @@ struct JournalsTabPagedView: View {
         // Update journalItems
         journalItems = updatedItems
 
+        // Expand the new collection before scrolling
+        expandedFolders.insert(newFolderId)
+
         // Scroll to the new collection
         scrollToId = newFolderId
     }

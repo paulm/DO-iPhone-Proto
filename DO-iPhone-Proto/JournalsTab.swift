@@ -4914,17 +4914,24 @@ struct CreateJournalView: View {
     @State private var journalName = "Journal"
     @State private var isPersonal = true
     @State private var selectedColor = Color(hex: "44C0FF")
+    @State private var pendingColor: Color?
     @State private var showingColorPicker = false
+    @State private var colorPickerRotation: Double = 0
+    @State private var nameChangeRotation: Double = 0
     @FocusState private var isNameFocused: Bool
 
-    // Day One color palette
+    // Day One color palette (colors from populated journals)
     private let colors = [
-        Color(hex: "44C0FF"), Color(hex: "FFC107"), Color(hex: "2DCC71"),
-        Color(hex: "3398DB"), Color(hex: "6A6DCD"), Color(hex: "607D8B"),
-        Color(hex: "C27BD2"), Color(hex: "FF983B"), Color(hex: "E91E63"),
-        Color(hex: "16D6D9"), Color(hex: "8BC34A"), Color(hex: "FF5722"),
-        Color(hex: "9C27B0"), Color(hex: "00BCD4"), Color(hex: "FFEB3B"),
-        Color(hex: "795548"), Color(hex: "F44336"), Color(hex: "4CAF50")
+        Color(hex: "44C0FF"), // DayOne Blue
+        Color(hex: "FFC107"), // Honey
+        Color(hex: "2DCC71"), // Green
+        Color(hex: "3398DB"), // Blue
+        Color(hex: "6A6DCD"), // Iris
+        Color(hex: "607D8B"), // Slate
+        Color(hex: "C27BD2"), // Lavender
+        Color(hex: "FF983B"), // Fire
+        Color(hex: "E91E63"), // Hot Pink
+        Color(hex: "16D6D9")  // Aqua
     ]
 
     // Name suggestions
@@ -4968,7 +4975,52 @@ struct CreateJournalView: View {
                                     Spacer()
                                 }
                             )
+                            .overlay(
+                                // Journal title overlay (bottom-left)
+                                VStack {
+                                    Spacer()
+                                    HStack {
+                                        Text(journalName)
+                                            .font(.body)
+                                            .fontWeight(.bold)
+                                            .foregroundStyle(.white.opacity(0.8))
+                                            .multilineTextAlignment(.leading)
+                                            .lineLimit(3)
+                                        Spacer()
+                                    }
+                                    .padding(.bottom, 8)
+                                    .padding(.leading, 8)
+                                }
+                            )
+                            .overlay(
+                                // Shared icon (top-left, only when Shared mode)
+                                VStack {
+                                    HStack {
+                                        if !isPersonal {
+                                            Text(DayOneIcon.users.rawValue)
+                                                .font(.custom("DayOneIcons", size: 20))
+                                                .foregroundStyle(.white)
+                                                .padding(8)
+                                        }
+                                        Spacer()
+                                    }
+                                    Spacer()
+                                }
+                            )
                             .shadow(color: selectedColor.opacity(0.4), radius: 8, x: 4, y: 6)
+                            .rotation3DEffect(
+                                .degrees(isPersonal ? 0 : 180),
+                                axis: (x: 0, y: 1, z: 0)
+                            )
+                            .rotation3DEffect(
+                                .degrees(colorPickerRotation),
+                                axis: (x: 0, y: 1, z: 0)
+                            )
+                            .rotation3DEffect(
+                                .degrees(nameChangeRotation),
+                                axis: (x: 0, y: 1, z: 0)
+                            )
+                            .accessibilityLabel(isPersonal ? "Personal journal book preview" : "Shared journal book preview")
 
                         // Painter palette button
                         Button(action: {
@@ -4987,6 +5039,7 @@ struct CreateJournalView: View {
                         .offset(x: 20, y: -20)
                     }
                     .padding(.bottom, 30)
+                    .animation(.spring(response: 0.6, dampingFraction: 0.75), value: isPersonal)
 
                     // Journal name text field
                     TextField("Journal", text: $journalName)
@@ -5001,7 +5054,17 @@ struct CreateJournalView: View {
                         HStack(spacing: 8) {
                             ForEach(nameSuggestions, id: \.self) { suggestion in
                                 Button(action: {
-                                    journalName = suggestion
+                                    // Start rotation
+                                    withAnimation(.spring(response: 0.6, dampingFraction: 0.75)) {
+                                        nameChangeRotation += 180
+                                    }
+                                    // Change name and color halfway through rotation
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                        journalName = suggestion
+                                        if let randomColor = colors.randomElement() {
+                                            selectedColor = randomColor
+                                        }
+                                    }
                                 }) {
                                     Text(suggestion)
                                         .font(.body)
@@ -5043,8 +5106,21 @@ struct CreateJournalView: View {
                 }
             }
             .sheet(isPresented: $showingColorPicker) {
-                ColorPickerSheet(selectedColor: $selectedColor, colors: colors)
+                ColorPickerSheet(selectedColor: $selectedColor, pendingColor: $pendingColor, colors: colors)
                     .presentationDetents([.height(280)])
+            }
+            .onChange(of: pendingColor) { oldValue, newValue in
+                if let newColor = newValue {
+                    // Start rotation
+                    withAnimation(.spring(response: 0.6, dampingFraction: 0.75)) {
+                        colorPickerRotation += 180
+                    }
+                    // Change color halfway through rotation
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        selectedColor = newColor
+                        pendingColor = nil
+                    }
+                }
             }
             .onAppear {
                 // Auto-focus the text field
@@ -5061,6 +5137,7 @@ struct CreateJournalView: View {
 struct ColorPickerSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var selectedColor: Color
+    @Binding var pendingColor: Color?
     let colors: [Color]
 
     let columns = Array(repeating: GridItem(.flexible(), spacing: 16), count: 6)
@@ -5086,7 +5163,7 @@ struct ColorPickerSheet: View {
             LazyVGrid(columns: columns, spacing: 16) {
                 ForEach(Array(colors.enumerated()), id: \.offset) { index, color in
                     Button(action: {
-                        selectedColor = color
+                        pendingColor = color
                         dismiss()
                     }) {
                         Circle()

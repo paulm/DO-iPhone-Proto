@@ -2552,11 +2552,29 @@ struct CompactFolderRow: View {
             // Folder icon and content - tappable to toggle expand/collapse
             Button(action: onToggle) {
                 HStack(spacing: 12) {
-                    // Folder icon
-                    Image("media-library-folder")
-                        .resizable()
-                        .frame(width: 20, height: 20)
-                        .foregroundStyle(Color(hex: "333B40"))
+                    // Layered folder icon with chevron
+                    ZStack(alignment: .center) {
+                        // Back layer (offset to the right)
+                        RoundedRectangle(cornerRadius: 3)
+                            .fill(Color(hex: "F0F0F0"))
+                            .frame(width: 20, height: 21)
+                            .shadow(color: Color.black.opacity(0.25), radius: 1.5, x: 0, y: 0)
+                            .offset(x: 2, y: 0)
+
+                        // Front layer
+                        RoundedRectangle(cornerRadius: 3)
+                            .fill(Color(hex: "F0F0F0"))
+                            .frame(width: 20, height: 27)
+                            .shadow(color: Color.black.opacity(0.25), radius: 1.5, x: 0, y: 0)
+                            .overlay(
+                                // Chevron icon
+                                Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                                    .font(.system(size: 8, weight: .medium))
+                                    .foregroundStyle(Color.gray)
+                            )
+                    }
+                    .frame(width: 22, height: 27)
+                    .animation(.easeInOut(duration: 0.2), value: isExpanded)
 
                     // Folder name
                     if isRenaming {
@@ -2692,11 +2710,29 @@ struct FolderRow: View {
                 // Folder icon and content - tappable to toggle expand/collapse
                 Button(action: onToggle) {
                     HStack(spacing: 16) {
-                        // Folder icon
-                        Image("media-library-folder")
-                            .resizable()
-                            .frame(width: 30, height: 30)
-                            .foregroundStyle(Color(hex: "333B40")) // Deep Blue
+                        // Layered folder icon with chevron
+                        ZStack(alignment: .center) {
+                            // Back layer (offset to the right)
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color(hex: "F0F0F0"))
+                                .frame(width: 30, height: 32)
+                                .shadow(color: Color.black.opacity(0.25), radius: 1.5, x: 0, y: 0)
+                                .offset(x: 3, y: 0)
+
+                            // Front layer
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color(hex: "F0F0F0"))
+                                .frame(width: 30, height: 40)
+                                .shadow(color: Color.black.opacity(0.25), radius: 1.5, x: 0, y: 0)
+                                .overlay(
+                                    // Chevron icon
+                                    Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundStyle(Color.gray)
+                                )
+                        }
+                        .frame(width: 33, height: 40)
+                        .animation(.easeInOut(duration: 0.2), value: isExpanded)
 
                         // Folder info
                         VStack(alignment: .leading, spacing: 2) {

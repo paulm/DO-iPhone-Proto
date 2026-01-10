@@ -2388,6 +2388,7 @@ struct CompactJournalRow: View {
                 Circle()
                     .fill(journal.color)
                     .frame(width: 12, height: 12)
+                    .offset(x: 0, y: 2)
 
                 // Journal name
                 if isRenaming {
@@ -2574,6 +2575,7 @@ struct CompactFolderRow: View {
                             )
                     }
                     .frame(width: 22, height: 27)
+                    .offset(x: -2, y: 2)
                     .animation(.easeInOut(duration: 0.2), value: isExpanded)
 
                     // Folder name
@@ -2732,6 +2734,7 @@ struct FolderRow: View {
                                 )
                         }
                         .frame(width: 33, height: 40)
+                        .offset(x: -2, y: 2)
                         .animation(.easeInOut(duration: 0.2), value: isExpanded)
 
                         // Folder info
@@ -2890,6 +2893,7 @@ struct JournalRow: View {
                                     }
                                 }
                             )
+                            .offset(x: 0, y: 2)
 
                         // Journal info
                         VStack(alignment: .leading, spacing: 4) {
@@ -3149,6 +3153,7 @@ struct JournalBookView: View {
                         }
                     )
                     .shadow(color: journal.color.opacity(0.3), radius: 4, x: 2, y: 4)
+                    .offset(x: 0, y: 2)
 
                 // Entry count (and journal count for "All Entries")
                 if let journalCount = journal.journalCount {
@@ -3605,11 +3610,23 @@ struct CompactAllEntriesCollectionRow: View {
     var body: some View {
         Button(action: onSelect) {
             HStack(spacing: 12) {
-                // All Entries icon (library icon)
-                Image("files-library-media-library")
-                    .resizable()
-                    .frame(width: 20, height: 20)
-                    .foregroundStyle(Color(hex: "333B40"))
+                // Layered All Entries icon (no chevron)
+                ZStack(alignment: .center) {
+                    // Back layer (offset to the right)
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(Color(hex: "D8D8D8"))
+                        .frame(width: 20, height: 21)
+                        .shadow(color: Color.black.opacity(0.40), radius: 1.5, x: 0, y: 0)
+                        .offset(x: 2, y: 0)
+
+                    // Front layer
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(Color(hex: "333B40"))
+                        .frame(width: 20, height: 27)
+                        .shadow(color: Color.black.opacity(0.40), radius: 1.5, x: 0, y: 0)
+                }
+                .frame(width: 22, height: 27)
+                .offset(x: -2, y: 2)
 
                 // All Entries text
                 Text("All Entries")
@@ -3654,11 +3671,23 @@ struct AllEntriesCollectionRow: View {
                 // All Entries icon and content - tappable to select
                 Button(action: onSelect) {
                     HStack(spacing: 16) {
-                        // All Entries icon (library icon)
-                        Image("files-library-media-library")
-                            .resizable()
-                            .frame(width: 30, height: 30)
-                            .foregroundStyle(Color(hex: "333B40"))
+                        // Layered All Entries icon (no chevron)
+                        ZStack(alignment: .center) {
+                            // Back layer (offset to the right)
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color(hex: "D8D8D8"))
+                                .frame(width: 30, height: 32)
+                                .shadow(color: Color.black.opacity(0.40), radius: 1.5, x: 0, y: 0)
+                                .offset(x: 3, y: 0)
+
+                            // Front layer
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color(hex: "333B40"))
+                                .frame(width: 30, height: 40)
+                                .shadow(color: Color.black.opacity(0.40), radius: 1.5, x: 0, y: 0)
+                        }
+                        .frame(width: 33, height: 40)
+                        .offset(x: -2, y: 2)
 
                         // All Entries info
                         VStack(alignment: .leading, spacing: 2) {

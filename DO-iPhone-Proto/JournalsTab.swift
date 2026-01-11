@@ -2022,7 +2022,7 @@ struct FolderRow: View {
                                     .fill(folder.journals[1].color)
                                     .frame(width: 30, height: 28)
                                     .shadow(color: Color.black.opacity(0.25), radius: 0.5, x: 0, y: 0)
-                                    .offset(x: 5, y: 0)
+                                    .offset(x: isExpanded ? 0 : 5, y: 0)
                             }
 
                             // Back layer 1 (first journal color, only if 1+ journals)
@@ -2031,7 +2031,7 @@ struct FolderRow: View {
                                     .fill(folder.journals[0].color)
                                     .frame(width: 30, height: 32)
                                     .shadow(color: Color.black.opacity(0.25), radius: 0.5, x: 0, y: 0)
-                                    .offset(x: 3, y: 0)
+                                    .offset(x: isExpanded ? 0 : 3, y: 0)
                             }
 
                             // Front layer (always shown)

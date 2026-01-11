@@ -2772,18 +2772,25 @@ struct FolderRow: View {
                     HStack(spacing: 16) {
                         // Layered folder icon with chevron
                         ZStack(alignment: .center) {
-                            // Back layer (offset to the right)
+                            // Back layer 2 (offset to the right)
                             RoundedRectangle(cornerRadius: 4)
-                                .fill(Color(hex: "F0F0F0"))
+                                .fill(Color(hex: "FFC107"))
+                                .frame(width: 30, height: 28)
+                                .shadow(color: Color.black.opacity(0.25), radius: 0.5, x: 0, y: 0)
+                                .offset(x: 5, y: 0)
+                            
+                            // Back layer 1 (offset to the right)
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color(hex: "44C0FF"))
                                 .frame(width: 30, height: 32)
-                                .shadow(color: Color.black.opacity(0.25), radius: 1.5, x: 0, y: 0)
+                                .shadow(color: Color.black.opacity(0.25), radius: 0.5, x: 0, y: 0)
                                 .offset(x: 3, y: 0)
 
                             // Front layer
                             RoundedRectangle(cornerRadius: 4)
                                 .fill(Color(hex: "F0F0F0"))
                                 .frame(width: 30, height: 40)
-                                .shadow(color: Color.black.opacity(0.25), radius: 1.5, x: 0, y: 0)
+                                .shadow(color: Color.black.opacity(0.25), radius: 0.5, x: 0, y: 0)
                                 .overlay(
                                     // Chevron icon
                                     Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
@@ -3672,14 +3679,14 @@ struct CompactAllEntriesCollectionRow: View {
                 ZStack(alignment: .center) {
                     // Back layer (offset to the right)
                     RoundedRectangle(cornerRadius: 3)
-                        .fill(Color(hex: "D8D8D8"))
+                        .fill(Color(hex: "D6D6D6"))
                         .frame(width: 20, height: 21)
                         .shadow(color: Color.black.opacity(0.40), radius: 1.5, x: 0, y: 0)
                         .offset(x: 2, y: 0)
 
                     // Front layer
                     RoundedRectangle(cornerRadius: 3)
-                        .fill(Color(hex: "333B40"))
+                        .fill(Color(hex: "F0F0F0"))
                         .frame(width: 20, height: 27)
                         .shadow(color: Color.black.opacity(0.40), radius: 1.5, x: 0, y: 0)
                 }
@@ -3733,16 +3740,16 @@ struct AllEntriesCollectionRow: View {
                         ZStack(alignment: .center) {
                             // Back layer (offset to the right)
                             RoundedRectangle(cornerRadius: 4)
-                                .fill(Color(hex: "D8D8D8"))
+                                .fill(Color(hex: "D6D6D6"))
                                 .frame(width: 30, height: 32)
-                                .shadow(color: Color.black.opacity(0.40), radius: 1.5, x: 0, y: 0)
-                                .offset(x: 3, y: 0)
+                                .shadow(color: Color.black.opacity(0.25), radius: 0.5, x: 0, y: 0)
+                                .offset(x: 4, y: 0)
 
                             // Front layer
                             RoundedRectangle(cornerRadius: 4)
-                                .fill(Color(hex: "333B40"))
+                                .fill(Color(hex: "F0F0F0"))
                                 .frame(width: 30, height: 40)
-                                .shadow(color: Color.black.opacity(0.40), radius: 1.5, x: 0, y: 0)
+                                .shadow(color: Color.black.opacity(0.25), radius: 0.5, x: 0, y: 0)
                         }
                         .frame(width: 33, height: 40)
                         .offset(x: -2, y: 2)

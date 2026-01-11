@@ -10,9 +10,8 @@ let toggleIconSize: CGFloat = 24
 // MARK: - View Mode Enum
 
 enum ViewMode: Int, CaseIterable {
-    case compact = 0
-    case list = 1
-    case grid = 2
+    case list = 0
+    case grid = 1
 }
 
 // MARK: - Journals Population Enum
@@ -518,9 +517,9 @@ struct JournalsTabPagedView: View {
         ZStack(alignment: .bottomTrailing) {
             NavigationStack {
                 Group {
-                    // List-based views (compact and list modes) use List which has built-in scrolling
+                    // List mode use List which has built-in scrolling
                     // Grid mode uses ScrollView with LazyVStack
-                    if viewMode == .list || viewMode == .compact {
+                    if viewMode == .list {
                         journalListContent
                     } else {
                         ScrollView {
@@ -609,8 +608,6 @@ struct JournalsTabPagedView: View {
 
                                 Menu {
                                     Picker("Journals View", selection: $viewMode) {
-                                        Label("Compact", systemImage: "list.bullet")
-                                            .tag(ViewMode.compact)
                                         Label("Regular", systemImage: "square.grid.3x3")
                                             .tag(ViewMode.list)
                                         Label("Books", systemImage: "books.vertical")
@@ -620,7 +617,7 @@ struct JournalsTabPagedView: View {
                                     HStack {
                                         Label("Journals View", systemImage: "square.grid.3x3")
                                         Spacer()
-                                        Text(viewMode == .compact ? "Compact" : viewMode == .list ? "Regular" : "Books")
+                                        Text(viewMode == .list ? "Regular" : "Books")
                                             .foregroundStyle(.secondary)
                                     }
                                 }
@@ -786,8 +783,6 @@ struct JournalsTabPagedView: View {
     @ViewBuilder
     private var journalListContent: some View {
         switch viewMode {
-        case .compact:
-            listModeView
         case .list:
             iconsModeView
         case .grid:

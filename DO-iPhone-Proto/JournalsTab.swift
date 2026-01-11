@@ -2020,18 +2020,18 @@ struct FolderRow: View {
                             if folder.journals.count >= 2 {
                                 RoundedRectangle(cornerRadius: 4)
                                     .fill(folder.journals[1].color)
-                                    .frame(width: 30, height: 28)
+                                    .frame(width: 20, height: 28)
                                     .shadow(color: Color.black.opacity(0.25), radius: 0.5, x: 0, y: 0)
-                                    .offset(x: isExpanded ? 0 : 5, y: 0)
+                                    .offset(x: isExpanded ? 0 : 10, y: 0)
                             }
 
                             // Back layer 1 (first journal color, only if 1+ journals)
                             if folder.journals.count >= 1 {
                                 RoundedRectangle(cornerRadius: 4)
                                     .fill(folder.journals[0].color)
-                                    .frame(width: 30, height: 32)
+                                    .frame(width: 20, height: 32)
                                     .shadow(color: Color.black.opacity(0.25), radius: 0.5, x: 0, y: 0)
-                                    .offset(x: isExpanded ? 0 : 3, y: 0)
+                                    .offset(x: isExpanded ? 0 : 8, y: 0)
                             }
 
                             // Front layer (always shown)
@@ -2041,14 +2041,15 @@ struct FolderRow: View {
                                 .shadow(color: Color.black.opacity(0.25), radius: 0.5, x: 0, y: 0)
                                 .overlay(
                                     // Chevron icon
-                                    Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                                    Image(systemName: "chevron.right")
                                         .font(.system(size: 12, weight: .medium))
                                         .foregroundStyle(Color.gray)
+                                        .rotationEffect(.degrees(isExpanded ? 90 : 0))
                                 )
                         }
                         .frame(width: 33, height: 40)
                         .offset(x: -2, y: 2)
-                        .animation(.easeInOut(duration: 0.2), value: isExpanded)
+                        .animation(.easeOut(duration: 0.35), value: isExpanded)
 
                         // Folder info
                         VStack(alignment: .leading, spacing: 2) {

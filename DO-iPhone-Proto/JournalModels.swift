@@ -290,8 +290,8 @@ extension Journal {
             Journal(name: "Daily", color: Color(hex: "2DCC71"), entryCount: 63), // Green
             // Work folder journals - different colors
             Journal(name: "Meeting Notes and Important Discussions from Weekly Team Syncs", color: Color(hex: "3398DB"), entryCount: 45), // Blue
-            Journal(name: "Product Docs", color: Color(hex: "6A6DCD"), entryCount: 28), // Iris
-            Journal(name: "Work Notes", color: Color(hex: "607D8B"), entryCount: 91), // Slate
+            Journal(name: "Product Docs", color: Color(hex: "16D6D9"), entryCount: 28), // Iris
+            Journal(name: "Work Notes", color: Color(hex: "FFC107"), entryCount: 91), // Slate
             // Standalone journals
             Journal(name: "Dreams", color: Color(hex: "C27BD2"), entryCount: 19, coverImage: "bike"), // Lavender
             Journal(name: "Fitness", color: Color(hex: "FF983B"), entryCount: 104), // Fire

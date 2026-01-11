@@ -1346,12 +1346,8 @@ struct JournalsTabPagedView: View {
                                         var updatedJournals = currentFolder.journals
                                         updatedJournals.removeAll(where: { $0.id == journal.id })
 
-                                        // Update or remove folder
-                                        if updatedJournals.isEmpty {
-                                            journalItems.remove(at: folderIndex)
-                                        } else {
-                                            journalItems[folderIndex] = Journal.MixedJournalItem(folder: currentFolder.withJournals(updatedJournals))
-                                        }
+                                        // Keep the collection even if empty
+                                        journalItems[folderIndex] = Journal.MixedJournalItem(folder: currentFolder.withJournals(updatedJournals))
 
                                         // Add journal as standalone item
                                         journalItems.append(Journal.MixedJournalItem(journal: journal))
@@ -1573,11 +1569,10 @@ struct JournalsTabPagedView: View {
                                    let currentFolder = journalItems[folderIndex].folder {
                                     var updatedJournals = currentFolder.journals
                                     updatedJournals.removeAll(where: { $0.id == journal.id })
-                                    if updatedJournals.isEmpty {
-                                        journalItems.remove(at: folderIndex)
-                                    } else {
-                                        journalItems[folderIndex] = Journal.MixedJournalItem(folder: currentFolder.withJournals(updatedJournals))
-                                    }
+
+                                    // Keep the collection even if empty
+                                    journalItems[folderIndex] = Journal.MixedJournalItem(folder: currentFolder.withJournals(updatedJournals))
+
                                     journalItems.append(Journal.MixedJournalItem(journal: journal))
                                 }
                             },
@@ -1840,11 +1835,10 @@ struct JournalsTabPagedView: View {
                                            let currentFolder = journalItems[folderIndex].folder {
                                             var updatedJournals = currentFolder.journals
                                             updatedJournals.removeAll(where: { $0.id == journal.id })
-                                            if updatedJournals.isEmpty {
-                                                journalItems.remove(at: folderIndex)
-                                            } else {
-                                                journalItems[folderIndex] = Journal.MixedJournalItem(folder: currentFolder.withJournals(updatedJournals))
-                                            }
+
+                                            // Keep the collection even if empty
+                                            journalItems[folderIndex] = Journal.MixedJournalItem(folder: currentFolder.withJournals(updatedJournals))
+
                                             journalItems.append(Journal.MixedJournalItem(journal: journal))
                                         }
                                     },
@@ -2608,14 +2602,25 @@ struct CompactFolderRow: View {
                 HStack(spacing: 12) {
                     // Layered folder icon with chevron
                     ZStack(alignment: .center) {
-                        // Back layer (offset to the right)
-                        RoundedRectangle(cornerRadius: 3)
-                            .fill(Color(hex: "F0F0F0"))
-                            .frame(width: 20, height: 21)
-                            .shadow(color: Color.black.opacity(0.25), radius: 1.5, x: 0, y: 0)
-                            .offset(x: 2, y: 0)
+                        // Back layer 2 (second journal color, only if 2+ journals)
+                        if folder.journals.count >= 2 {
+                            RoundedRectangle(cornerRadius: 3)
+                                .fill(folder.journals[1].color)
+                                .frame(width: 20, height: 18)
+                                .shadow(color: Color.black.opacity(0.25), radius: 1.5, x: 0, y: 0)
+                                .offset(x: 4, y: 0)
+                        }
 
-                        // Front layer
+                        // Back layer 1 (first journal color, only if 1+ journals)
+                        if folder.journals.count >= 1 {
+                            RoundedRectangle(cornerRadius: 3)
+                                .fill(folder.journals[0].color)
+                                .frame(width: 20, height: 21)
+                                .shadow(color: Color.black.opacity(0.25), radius: 1.5, x: 0, y: 0)
+                                .offset(x: 2, y: 0)
+                        }
+
+                        // Front layer (always shown)
                         RoundedRectangle(cornerRadius: 3)
                             .fill(Color(hex: "F0F0F0"))
                             .frame(width: 20, height: 27)
@@ -2767,21 +2772,25 @@ struct FolderRow: View {
                     HStack(spacing: 16) {
                         // Layered folder icon with chevron
                         ZStack(alignment: .center) {
-                            // Back layer 2 (offset to the right)
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(Color(hex: "FFC107"))
-                                .frame(width: 30, height: 28)
-                                .shadow(color: Color.black.opacity(0.25), radius: 0.5, x: 0, y: 0)
-                                .offset(x: 5, y: 0)
-                            
-                            // Back layer 1 (offset to the right)
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(Color(hex: "44C0FF"))
-                                .frame(width: 30, height: 32)
-                                .shadow(color: Color.black.opacity(0.25), radius: 0.5, x: 0, y: 0)
-                                .offset(x: 3, y: 0)
+                            // Back layer 2 (second journal color, only if 2+ journals)
+                            if folder.journals.count >= 2 {
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(folder.journals[1].color)
+                                    .frame(width: 30, height: 28)
+                                    .shadow(color: Color.black.opacity(0.25), radius: 0.5, x: 0, y: 0)
+                                    .offset(x: 5, y: 0)
+                            }
 
-                            // Front layer
+                            // Back layer 1 (first journal color, only if 1+ journals)
+                            if folder.journals.count >= 1 {
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(folder.journals[0].color)
+                                    .frame(width: 30, height: 32)
+                                    .shadow(color: Color.black.opacity(0.25), radius: 0.5, x: 0, y: 0)
+                                    .offset(x: 3, y: 0)
+                            }
+
+                            // Front layer (always shown)
                             RoundedRectangle(cornerRadius: 4)
                                 .fill(Color(hex: "F0F0F0"))
                                 .frame(width: 30, height: 40)

@@ -2023,7 +2023,8 @@ struct FolderRow: View {
                                     .frame(width: isExpanded ? 1 : 10, height: 28)
                                     .shadow(color: Color.black.opacity(0.25), radius: 0.5, x: 0, y: 0)
                                     .offset(x: isExpanded ? 14 : 17, y: 0)
-                                    .animation(.easeOut(duration: 0.4), value: isExpanded)
+                                    .opacity(isExpanded ? 0 : 1)
+                                    .animation(.easeInOut(duration: 0.5), value: isExpanded)
                             }
 
                             // Back layer 1 (first journal color, only if 1+ journals)
@@ -2033,7 +2034,8 @@ struct FolderRow: View {
                                     .frame(width: isExpanded ? 1 : 10, height: 32)
                                     .shadow(color: Color.black.opacity(0.25), radius: 0.5, x: 0, y: 0)
                                     .offset(x: isExpanded ? 11 : 14, y: 0)
-                                    .animation(.easeOut(duration: 0.2), value: isExpanded)
+                                    .opacity(isExpanded ? 0 : 1)
+                                    .animation(.easeInOut(duration: 0.3), value: isExpanded)
                             }
 
                             // Front layer (always shown - NO ANIMATION)
@@ -2048,7 +2050,7 @@ struct FolderRow: View {
                                 .font(.system(size: 12, weight: .medium))
                                 .foregroundStyle(Color.gray)
                                 .rotationEffect(.degrees(isExpanded ? 90 : 0))
-                                .animation(.easeInOut(duration: 0.2), value: isExpanded)
+                                .animation(.easeInOut(duration: 0.3), value: isExpanded)
                         }
                         .frame(width: 33, height: 40)
                         .offset(x: -2, y: 2)

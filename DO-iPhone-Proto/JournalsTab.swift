@@ -4514,7 +4514,7 @@ struct CreateCollectionView: View {
     let journalItems: [Journal.MixedJournalItem]
     let onCreate: (String, [String]) -> Void
 
-    @State private var collectionName = "Collection"
+    @State private var collectionName = ""
     @State private var selectedJournalIds: Set<String> = []
     @State private var showJournalsInOtherCollections = false
     @FocusState private var isNameFocused: Bool
@@ -4674,7 +4674,7 @@ struct CreateCollectionView: View {
                         onCreate(collectionName, Array(selectedJournalIds))
                     } label: {
                         Text("Create")
-                            .foregroundColor(Color(hex: "44C0FF"))
+                            .foregroundColor(collectionName.isEmpty ? Color.gray.opacity(0.4) : Color(hex: "44C0FF"))
                             .fontWeight(.semibold)
                     }
                     .disabled(collectionName.isEmpty)

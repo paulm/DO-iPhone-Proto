@@ -1167,16 +1167,9 @@ struct JournalsTabPagedView: View {
                                         var updatedJournals = currentFolder.journals
                                         updatedJournals.removeAll(where: { $0.id == journal.id })
 
-                                        if updatedJournals.isEmpty {
-                                            // If folder is now empty, remove the folder
-                                            journalItems.remove(at: folderIndex)
-                                        } else {
-                                            // Create new folder with updated journals array
-                                            let updatedFolder = currentFolder.withJournals(updatedJournals)
-
-                                            // Replace folder in journalItems
-                                            journalItems[folderIndex] = Journal.MixedJournalItem(folder: updatedFolder)
-                                        }
+                                        // Keep the collection even if empty
+                                        let updatedFolder = currentFolder.withJournals(updatedJournals)
+                                        journalItems[folderIndex] = Journal.MixedJournalItem(folder: updatedFolder)
                                     }
                                 },
                                 onMoveToCollection: { targetFolderId in
@@ -1194,12 +1187,8 @@ struct JournalsTabPagedView: View {
                                         var updatedTargetJournals = targetFolder.journals
                                         updatedTargetJournals.append(journal)
 
-                                        // Update both folders
-                                        if updatedSourceJournals.isEmpty {
-                                            journalItems.remove(at: sourceFolderIndex)
-                                        } else {
-                                            journalItems[sourceFolderIndex] = Journal.MixedJournalItem(folder: sourceFolder.withJournals(updatedSourceJournals))
-                                        }
+                                        // Update both folders - keep source even if empty
+                                        journalItems[sourceFolderIndex] = Journal.MixedJournalItem(folder: sourceFolder.withJournals(updatedSourceJournals))
                                         journalItems[targetFolderIndex] = Journal.MixedJournalItem(folder: targetFolder.withJournals(updatedTargetJournals))
                                     }
                                 },
@@ -1406,11 +1395,8 @@ struct JournalsTabPagedView: View {
                                    let currentFolder = journalItems[folderIndex].folder {
                                     var updatedJournals = currentFolder.journals
                                     updatedJournals.removeAll(where: { $0.id == journal.id })
-                                    if updatedJournals.isEmpty {
-                                        journalItems.remove(at: folderIndex)
-                                    } else {
-                                        journalItems[folderIndex] = Journal.MixedJournalItem(folder: currentFolder.withJournals(updatedJournals))
-                                    }
+                                    // Keep the collection even if empty
+                                    journalItems[folderIndex] = Journal.MixedJournalItem(folder: currentFolder.withJournals(updatedJournals))
                                 }
                             },
                             onMoveToCollection: { targetFolderId in
@@ -1422,11 +1408,8 @@ struct JournalsTabPagedView: View {
                                     updatedSourceJournals.removeAll(where: { $0.id == journal.id })
                                     var updatedTargetJournals = targetFolder.journals
                                     updatedTargetJournals.append(journal)
-                                    if updatedSourceJournals.isEmpty {
-                                        journalItems.remove(at: sourceFolderIndex)
-                                    } else {
-                                        journalItems[sourceFolderIndex] = Journal.MixedJournalItem(folder: sourceFolder.withJournals(updatedSourceJournals))
-                                    }
+                                    // Keep source collection even if empty
+                                    journalItems[sourceFolderIndex] = Journal.MixedJournalItem(folder: sourceFolder.withJournals(updatedSourceJournals))
                                     journalItems[targetFolderIndex] = Journal.MixedJournalItem(folder: targetFolder.withJournals(updatedTargetJournals))
                                 }
                             },
@@ -3092,13 +3075,13 @@ struct CollectionNode: Identifiable, Equatable {
 
 // Display node union type for rendering
 enum DisplayNode: Identifiable, Equatable {
-    case journal(JournalNode, isNested: Bool = false)
+    case journal(JournalNode, isNested: Bool = false, parentCollectionId: String? = nil)
     case collection(CollectionNode)
     case dropZone
 
     var id: String {
         switch self {
-        case .journal(let journal, _): return journal.id
+        case .journal(let journal, _, _): return journal.id
         case .collection(let collection): return collection.id
         case .dropZone: return "dropZone"
         }
@@ -3179,10 +3162,11 @@ struct JournalsReorderView: View {
                     List {
                         ForEach(cachedDisplayedItems) { item in
                         switch item {
-                        case .journal(let journalNode, let isNested):
+                        case .journal(let journalNode, let isNested, let parentCollectionId):
                             JournalReorderRow(
                                 journalNode: journalNode,
                                 isNested: isNested,
+                                parentCollectionId: parentCollectionId,
                                 orderedCollections: cachedOrderedCollections,
                                 accentColor: accentColor,
                                 isFlashing: flashingJournalId == journalNode.id,
@@ -3356,6 +3340,34 @@ struct JournalsReorderView: View {
                 rootItems.append(.journal(journalNode, isNested: false))
             }
         }
+
+        // Auto-expand all collections if fewer than 20 journals total
+        let totalJournals = rootItems.reduce(0) { count, item in
+            switch item {
+            case .journal:
+                return count + 1
+            case .collection(let collection):
+                return count + collection.contents.count
+            case .dropZone:
+                return count
+            }
+        }
+
+        if totalJournals < 20 {
+            for (id, var collection) in collections {
+                collection.isExpanded = true
+                collections[id] = collection
+            }
+
+            // Update rootItems with expanded collections
+            rootItems = rootItems.map { item in
+                if case .collection(let collection) = item,
+                   let updatedCollection = collections[collection.id] {
+                    return .collection(updatedCollection)
+                }
+                return item
+            }
+        }
     }
 
     // MARK: - Cache Management
@@ -3365,7 +3377,7 @@ struct JournalsReorderView: View {
         for item in rootItems {
             result.append(item)
             if case .collection(let collection) = item, collection.isExpanded {
-                result.append(contentsOf: collection.contents.map { .journal($0, isNested: true) })
+                result.append(contentsOf: collection.contents.map { .journal($0, isNested: true, parentCollectionId: collection.id) })
             }
         }
         cachedDisplayedItems = result
@@ -3410,15 +3422,15 @@ struct JournalsReorderView: View {
         withAnimation {
             // Find journal in root items
             if let index = rootItems.firstIndex(where: {
-                if case .journal(let node, _) = $0, node.id == id {
+                if case .journal(let node, _, _) = $0, node.id == id {
                     return true
                 }
                 return false
-            }), case .journal(let node, let isNested) = rootItems[index] {
+            }), case .journal(let node, let isNested, let parentCollectionId) = rootItems[index] {
                 // Create new journal with updated name
                 let updatedJournal = node.journal.withName(newName)
                 let updatedNode = JournalNode(id: node.id, journal: updatedJournal)
-                rootItems[index] = .journal(updatedNode, isNested: isNested)
+                rootItems[index] = .journal(updatedNode, isNested: isNested, parentCollectionId: parentCollectionId)
                 rebuildCache()
                 applyChangesLive()
                 return
@@ -3445,7 +3457,7 @@ struct JournalsReorderView: View {
         withAnimation {
             // Find and remove journal from root items
             if let index = rootItems.firstIndex(where: {
-                if case .journal(let node, _) = $0, node.id == id {
+                if case .journal(let node, _, _) = $0, node.id == id {
                     return true
                 }
                 return false
@@ -3587,7 +3599,7 @@ struct JournalsReorderView: View {
         var existingNames = Set<String>()
         for item in rootItems {
             switch item {
-            case .journal(let journalNode, _):
+            case .journal(let journalNode, _, _):
                 existingNames.insert(journalNode.name)
             case .collection(let collection):
                 for journalNode in collection.contents {
@@ -3614,7 +3626,7 @@ struct JournalsReorderView: View {
 
         for item in rootItems {
             switch item {
-            case .journal(let journalNode, _):
+            case .journal(let journalNode, _, _):
                 // Root-level journal - use the journal stored in the node
                 updatedItems.append(Journal.MixedJournalItem(journal: journalNode.journal))
 
@@ -3717,7 +3729,7 @@ struct JournalsReorderView: View {
 
     func removeJournalFromSource(_ journal: JournalNode) {
         if let index = rootItems.firstIndex(where: {
-            if case .journal(let j, _) = $0, j.id == journal.id { return true }
+            if case .journal(let j, _, _) = $0, j.id == journal.id { return true }
             return false
         }) {
             rootItems.remove(at: index)
@@ -3773,7 +3785,7 @@ struct JournalsReorderView: View {
             return .collectionMove(fromRootIndex: rootIndex, toRootIndex: destRootIndex)
         }
 
-        guard case .journal(let journal, _) = movedItem else { return .invalid }
+        guard case .journal(let journal, _, _) = movedItem else { return .invalid }
 
         let sourceContext = getItemContext(at: sourceIndex)
         var destinationContext = getItemContext(at: destination)
@@ -3915,6 +3927,7 @@ struct JournalsReorderView: View {
 struct JournalReorderRow: View {
     let journalNode: JournalNode
     let isNested: Bool
+    let parentCollectionId: String?
     let orderedCollections: [CollectionNode]
     let accentColor: Color
     let isFlashing: Bool
@@ -3931,6 +3944,14 @@ struct JournalReorderRow: View {
     @State private var editedName = ""
     @FocusState private var isNameFieldFocused: Bool
     @State private var showingDeleteConfirmation = false
+
+    // Filter out the current collection from available collections
+    private var availableCollections: [CollectionNode] {
+        if let parentId = parentCollectionId {
+            return orderedCollections.filter { $0.id != parentId }
+        }
+        return orderedCollections
+    }
 
     private enum Layout {
         static let iconSize: CGFloat = 12
@@ -4015,9 +4036,9 @@ struct JournalReorderRow: View {
                     }
                 }
 
-                if !orderedCollections.isEmpty {
+                if !availableCollections.isEmpty {
                     Menu {
-                        ForEach(orderedCollections, id: \.id) { collection in
+                        ForEach(availableCollections, id: \.id) { collection in
                             Button {
                                 onMoveToCollection(collection.id)
                             } label: {

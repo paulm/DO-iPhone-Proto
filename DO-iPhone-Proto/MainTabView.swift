@@ -214,8 +214,6 @@ struct MainTabView: View {
             }
         }
         .tint(.black)
-        // Attach the search field to the container so the Search tab can expand it
-        .searchable(text: $searchQuery, prompt: "Search everything")
     }
 
     @ViewBuilder

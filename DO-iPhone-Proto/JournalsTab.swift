@@ -640,6 +640,7 @@ struct JournalsTabPagedView: View {
 
                         // BOTTOM TOOLBAR - Native iOS 26 style
                         ToolbarItemGroup(placement: .bottomBar) {
+                            // Left: "Move to..." menu
                             Menu {
                                 ForEach(availableCollections.reversed(), id: \.id) { collection in
                                     Button(action: {
@@ -649,10 +650,13 @@ struct JournalsTabPagedView: View {
                                     }
                                 }
                             } label: {
-                                Image(systemName: "folder")
+                                Text("Move to...")
                             }
                             .disabled(selectedJournalIds.isEmpty)
 
+                            Spacer()
+
+                            // Center: ellipsis menu
                             Menu {
                                 Button(action: {
                                     // TODO: Export
@@ -666,12 +670,13 @@ struct JournalsTabPagedView: View {
                                     Label("Preview Book", systemImage: "book")
                                 }
                             } label: {
-                                Image(systemName: "ellipsis.circle.fill")
+                                Image(systemName: "ellipsis")
                             }
                             .disabled(selectedJournalIds.isEmpty)
 
                             Spacer()
 
+                            // Right: "View" button
                             Button("View", action: viewSelectedJournals)
                                 .disabled(selectedJournalIds.isEmpty)
                         }
@@ -1368,6 +1373,11 @@ struct JournalsTabPagedView: View {
                                 onReorder: {
                                     showingReorderModal = true
                                 },
+                                onEnterSelectMode: {
+                                    // Enter Select Mode and select this journal
+                                    isSelectMode = true
+                                    selectedJournalIds = [journal.id]
+                                },
                                 availableCollections: availableCollections.filter { $0.id != folder.id },
                                 isInCollection: true
                             )
@@ -1418,6 +1428,11 @@ struct JournalsTabPagedView: View {
                                 // Now remove the standalone journal
                                 journalItems.removeAll(where: { $0.id == journal.id })
                             }
+                        },
+                        onEnterSelectMode: {
+                            // Enter Select Mode and select this journal
+                            isSelectMode = true
+                            selectedJournalIds = [journal.id]
                         },
                         availableCollections: availableCollections,
                         isInCollection: false
@@ -2319,6 +2334,7 @@ struct JournalRow: View {
     var onMoveToCollection: ((String) -> Void)? = nil
     var onRemoveFromCollection: (() -> Void)? = nil
     var onReorder: (() -> Void)? = nil
+    var onEnterSelectMode: (() -> Void)? = nil
     var availableCollections: [JournalFolder] = []
     var isInCollection: Bool = false
     @State private var showingEditJournal = false
@@ -2469,6 +2485,7 @@ struct JournalRow: View {
             onMoveToCollection: onMoveToCollection,
             onRemoveFromCollection: onRemoveFromCollection,
             onReorder: onReorder,
+            onEnterSelectMode: onEnterSelectMode,
             onDelete: { showingDeleteConfirmation = true },
             availableCollections: availableCollections,
             isInCollection: isInCollection
@@ -2497,6 +2514,7 @@ struct JournalRowContextModifier: ViewModifier {
     let onMoveToCollection: ((String) -> Void)?
     let onRemoveFromCollection: (() -> Void)?
     let onReorder: (() -> Void)?
+    let onEnterSelectMode: (() -> Void)?
     let onDelete: (() -> Void)?
     let availableCollections: [JournalFolder]
     let isInCollection: Bool
@@ -2555,6 +2573,12 @@ struct JournalRowContextModifier: ViewModifier {
                         onReorder?()
                     } label: {
                         Label("Reorder", systemImage: "arrow.up.arrow.down")
+                    }
+
+                    Button {
+                        onEnterSelectMode?()
+                    } label: {
+                        Label("Select", systemImage: "checkmark.circle")
                     }
 
                     Divider()

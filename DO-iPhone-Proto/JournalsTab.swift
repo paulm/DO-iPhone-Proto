@@ -1026,14 +1026,30 @@ struct JournalsTabPagedView: View {
 
     private var iconsModeView: some View {
         ScrollViewReader { proxy in
-            List(selection: isSelectMode ? $selectedJournalIds : .constant(Set<String>())) {
-                // Render sections in custom order
-                ForEach(sectionOrder, id: \.self) { sectionType in
-                    iconsSectionView(for: sectionType)
-                }
+            Group {
+                if isSelectMode {
+                    // Select Mode: List with selection enabled
+                    List(selection: $selectedJournalIds) {
+                        // Render sections in custom order
+                        ForEach(sectionOrder, id: \.self) { sectionType in
+                            iconsSectionView(for: sectionType)
+                        }
 
-                // Fixed items that don't reorder
-                tipKitSection
+                        // Fixed items that don't reorder
+                        tipKitSection
+                    }
+                } else {
+                    // Normal Mode: List without selection parameter
+                    List {
+                        // Render sections in custom order
+                        ForEach(sectionOrder, id: \.self) { sectionType in
+                            iconsSectionView(for: sectionType)
+                        }
+
+                        // Fixed items that don't reorder
+                        tipKitSection
+                    }
+                }
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
@@ -2446,6 +2462,7 @@ struct JournalRow: View {
 
             Spacer()
         }
+        .contentShape(Rectangle())
     }
 
     var body: some View {
@@ -2461,7 +2478,6 @@ struct JournalRow: View {
                         rowContent
                     }
                     .buttonStyle(.plain)
-                    .contentShape(Rectangle())
                 }
             }
             .padding(.vertical, 7)

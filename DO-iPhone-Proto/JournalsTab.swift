@@ -641,7 +641,7 @@ struct JournalsTabPagedView: View {
                         // BOTTOM TOOLBAR - Native iOS 26 style
                         ToolbarItemGroup(placement: .bottomBar) {
                             Menu {
-                                ForEach(availableCollections, id: \.id) { collection in
+                                ForEach(availableCollections.reversed(), id: \.id) { collection in
                                     Button(action: {
                                         moveJournalsToCollection(collection.id)
                                     }) {
@@ -1238,6 +1238,7 @@ struct JournalsTabPagedView: View {
                         }
                     )
                     .id(folder.id)
+                    .selectionDisabled()
                     .contextMenu {
                         Button {
                             selectedFolder = folder

@@ -85,6 +85,10 @@ struct JournalsTabPagedView: View {
     @State private var showingCreateJournal = false
     @State private var showingCreateCollection = false
 
+    // Select Mode state
+    @State private var isSelectMode = false
+    @State private var selectedJournalIds: Set<String> = []
+
     // New Journal button style
     enum NewJournalButtonStyle: String, CaseIterable {
         case fab = "FAB"
@@ -126,6 +130,19 @@ struct JournalsTabPagedView: View {
     // Get all available collections (folders) for collection management menu
     private var availableCollections: [JournalFolder] {
         journalItems.compactMap { $0.folder }
+    }
+
+    // Select Mode computed properties
+    private var selectedJournals: [Journal] {
+        filteredJournals.filter { selectedJournalIds.contains($0.id) }
+    }
+
+    private var totalSelectedEntryCount: Int {
+        selectedJournals.compactMap { $0.entryCount }.reduce(0, +)
+    }
+
+    private var selectModeNavigationTitle: String {
+        selectedJournalIds.isEmpty ? "Journals" : "\(selectedJournalIds.count) Selected"
     }
 
     private var filteredFolders: [JournalFolder] {
@@ -382,6 +399,56 @@ struct JournalsTabPagedView: View {
         scrollToId = newFolderId
     }
 
+    // Move selected journals to a collection (Select Mode)
+    private func moveJournalsToCollection(_ collectionId: String) {
+        guard let targetFolderIndex = journalItems.firstIndex(where: { $0.id == collectionId }),
+              let targetFolder = journalItems[targetFolderIndex].folder else { return }
+
+        let journalsToMove = selectedJournals
+
+        // First, update all folders (remove journals from source folders, add to target)
+        for i in 0..<journalItems.count {
+            if let folder = journalItems[i].folder {
+                if folder.id == collectionId {
+                    // This is the target - add journals
+                    let updatedFolder = folder.withJournals(folder.journals + journalsToMove)
+                    journalItems[i] = Journal.MixedJournalItem(folder: updatedFolder)
+                } else {
+                    // This is a source folder - remove journals
+                    let updatedJournals = folder.journals.filter { !selectedJournalIds.contains($0.id) }
+                    if updatedJournals.count != folder.journals.count {
+                        journalItems[i] = Journal.MixedJournalItem(folder: folder.withJournals(updatedJournals))
+                    }
+                }
+            }
+        }
+
+        // Then remove standalone journals
+        journalItems.removeAll { item in
+            if let journal = item.journal {
+                return selectedJournalIds.contains(journal.id)
+            }
+            return false
+        }
+
+        // Expand the target collection
+        expandedFolders.insert(collectionId)
+
+        // Deselect moved journals but remain in Select Mode
+        selectedJournalIds.removeAll()
+    }
+
+    // View selected journals in detail view (Select Mode)
+    private func viewSelectedJournals() {
+        // Create temporary folder from selected journals
+        let tempFolder = JournalFolder(
+            id: "temp-selection",
+            name: "\(selectedJournalIds.count) Selected",
+            journals: selectedJournals
+        )
+        selectedFolder = tempFolder
+    }
+
     // Generate unique name for new journals
     private func generateNewJournalName() -> String {
         // Get all journal names from both standalone and folders
@@ -531,11 +598,88 @@ struct JournalsTabPagedView: View {
                         }
                     }
                 }
-                .navigationTitle("Journals")
-                .navigationBarTitleDisplayMode(.large)
+                .navigationTitle(isSelectMode ? selectModeNavigationTitle : "Journals")
+                .navigationBarTitleDisplayMode(isSelectMode ? .inline : .large)
                 .toolbar {
-                    // Reorder button (arrows icon)
-                    ToolbarItem(placement: .navigationBarLeading) {
+                    if isSelectMode {
+                        // SELECT MODE TOOLBAR
+
+                        // Leading: Select All / Deselect All
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button(selectedJournalIds.count == filteredJournals.count ? "Deselect All" : "Select All") {
+                                if selectedJournalIds.count == filteredJournals.count {
+                                    selectedJournalIds.removeAll()
+                                } else {
+                                    selectedJournalIds = Set(filteredJournals.map { $0.id })
+                                }
+                            }
+                        }
+
+                        // Trailing: X exit button
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button(action: {
+                                isSelectMode = false
+                                selectedJournalIds.removeAll()
+                            }) {
+                                Image(systemName: "xmark")
+                            }
+                        }
+
+                        // Custom title with subtitle when items are selected
+                        if !selectedJournalIds.isEmpty {
+                            ToolbarItem(placement: .principal) {
+                                VStack(spacing: 2) {
+                                    Text(selectModeNavigationTitle)
+                                        .font(.headline)
+                                    Text("\(totalSelectedEntryCount) Entries")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+
+                        // BOTTOM TOOLBAR - Native iOS 26 style
+                        ToolbarItemGroup(placement: .bottomBar) {
+                            Menu {
+                                ForEach(availableCollections, id: \.id) { collection in
+                                    Button(action: {
+                                        moveJournalsToCollection(collection.id)
+                                    }) {
+                                        Label(collection.name, systemImage: "folder")
+                                    }
+                                }
+                            } label: {
+                                Image(systemName: "folder")
+                            }
+                            .disabled(selectedJournalIds.isEmpty)
+
+                            Menu {
+                                Button(action: {
+                                    // TODO: Export
+                                }) {
+                                    Label("Export", systemImage: "square.and.arrow.up")
+                                }
+
+                                Button(action: {
+                                    // TODO: Preview book
+                                }) {
+                                    Label("Preview Book", systemImage: "book")
+                                }
+                            } label: {
+                                Image(systemName: "ellipsis.circle.fill")
+                            }
+                            .disabled(selectedJournalIds.isEmpty)
+
+                            Spacer()
+
+                            Button("View", action: viewSelectedJournals)
+                                .disabled(selectedJournalIds.isEmpty)
+                        }
+
+                    } else {
+                        // NORMAL MODE TOOLBAR
+                        // Reorder button (arrows icon)
+                        ToolbarItem(placement: .navigationBarLeading) {
                         Button(action: {
                             showingReorderModal = true
                         }) {
@@ -577,6 +721,13 @@ struct JournalsTabPagedView: View {
                                 showingReorderModal = true
                             }) {
                                 Label("Reorder", systemImage: "arrow.up.arrow.down")
+                            }
+
+                            Button(action: {
+                                isSelectMode = true
+                                selectedJournalIds.removeAll()
+                            }) {
+                                Label("Select", systemImage: "checkmark.circle")
                             }
 
                             Divider()
@@ -672,6 +823,7 @@ struct JournalsTabPagedView: View {
                                 )
                         }
                     }
+                    } // end else (normal mode toolbar)
                 }
                 .navigationDestination(item: $selectedJournal) { journal in
                     JournalDetailPagedView(journal: journal, journalViewModel: journalViewModel, sheetRegularPosition: sheetRegularPosition)
@@ -714,8 +866,8 @@ struct JournalsTabPagedView: View {
                 })
             }
             .overlay(alignment: .bottomTrailing) {
-                // New Journal FAB - only shown when FAB style is selected
-                if newJournalButtonStyle == .fab {
+                // New Journal FAB - only shown when FAB style is selected and not in select mode
+                if newJournalButtonStyle == .fab && !isSelectMode {
                     Button(action: {
                         addNewJournal()
                     }) {
@@ -869,7 +1021,7 @@ struct JournalsTabPagedView: View {
 
     private var iconsModeView: some View {
         ScrollViewReader { proxy in
-            List {
+            List(selection: isSelectMode ? $selectedJournalIds : .constant(Set<String>())) {
                 // Render sections in custom order
                 ForEach(sectionOrder, id: \.self) { sectionType in
                     iconsSectionView(for: sectionType)
@@ -880,10 +1032,8 @@ struct JournalsTabPagedView: View {
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
-            .environment(\.editMode, .constant(isEditMode ? .active : .inactive))
-            .safeAreaInset(edge: .bottom) {
-                Spacer().frame(height: 70)
-            }
+            .environment(\.editMode, .constant((isEditMode || isSelectMode) ? .active : .inactive))
+            .toolbar(isSelectMode ? .hidden : .visible, for: .tabBar)
             .onChange(of: scrollToId) { _, newId in
                 if let id = newId {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
@@ -1015,16 +1165,18 @@ struct JournalsTabPagedView: View {
 
     @ViewBuilder
     private var iconsJournalsSection: some View {
-        // All Entries collection-style row at the top
-            if let allEntries = allEntriesJournal {
-                AllEntriesCollectionRow(
-                    totalJournalCount: allEntries.journalCount ?? 0,
-                    totalEntryCount: allEntries.entryCount ?? 0,
-                    onSelect: {
-                        journalViewModel.selectJournal(allEntries)
-                        selectedJournal = allEntries
-                    }
-                )
+        // All Entries collection-style row at the top (hidden in Select Mode)
+            if !isSelectMode {
+                if let allEntries = allEntriesJournal {
+                    AllEntriesCollectionRow(
+                        totalJournalCount: allEntries.journalCount ?? 0,
+                        totalEntryCount: allEntries.entryCount ?? 0,
+                        onSelect: {
+                            journalViewModel.selectJournal(allEntries)
+                            selectedJournal = allEntries
+                        }
+                    )
+                }
             }
 
             ForEach(filteredMixedJournalItems) { item in
@@ -1033,6 +1185,7 @@ struct JournalsTabPagedView: View {
                         folder: folder,
                         isExpanded: expandedFolders.contains(folder.id),
                         isEditMode: isEditMode,
+                        isSelectMode: isSelectMode,
                         onToggle: {
                             withAnimation {
                                 if expandedFolders.contains(folder.id) {
@@ -1132,9 +1285,12 @@ struct JournalsTabPagedView: View {
                                 journal: journal,
                                 isSelected: journal.id == journalViewModel.selectedJournal.id,
                                 isEditMode: isEditMode,
+                                isSelectMode: isSelectMode,
                                 onSelect: {
-                                    journalViewModel.selectJournal(journal)
-                                    selectedJournal = journal
+                                    if !isSelectMode {
+                                        journalViewModel.selectJournal(journal)
+                                        selectedJournal = journal
+                                    }
                                 },
                                 onNewEntry: {
                                     journalViewModel.selectJournal(journal)
@@ -1215,6 +1371,7 @@ struct JournalsTabPagedView: View {
                                 isInCollection: true
                             )
                             .padding(.leading, 20)
+                            .tag(journal.id)
                         }
                     }
                 } else if let journal = item.journal {
@@ -1222,9 +1379,12 @@ struct JournalsTabPagedView: View {
                         journal: journal,
                         isSelected: journal.id == journalViewModel.selectedJournal.id,
                         isEditMode: isEditMode,
+                        isSelectMode: isSelectMode,
                         onSelect: {
-                            journalViewModel.selectJournal(journal)
-                            selectedJournal = journal
+                            if !isSelectMode {
+                                journalViewModel.selectJournal(journal)
+                                selectedJournal = journal
+                            }
                         },
                         onNewEntry: {
                             journalViewModel.selectJournal(journal)
@@ -1261,11 +1421,12 @@ struct JournalsTabPagedView: View {
                         availableCollections: availableCollections,
                         isInCollection: false
                     )
+                    .tag(journal.id)
                 }
             }
 
-        // Trash row at the bottom
-        if trashCount > 0 {
+        // Trash row at the bottom (hidden in Select Mode)
+        if trashCount > 0 && !isSelectMode {
             TrashRow(
                 itemCount: trashCount,
                 onSelect: {
@@ -1980,6 +2141,7 @@ struct FolderRow: View {
     let folder: JournalFolder
     let isExpanded: Bool
     let isEditMode: Bool
+    var isSelectMode: Bool = false
     let onToggle: () -> Void
     let onSelectFolder: () -> Void
     var isRenaming: Bool = false
@@ -2080,32 +2242,34 @@ struct FolderRow: View {
                 }
                 .buttonStyle(.plain)
 
-                // Ellipsis menu
-                Menu {
-                    Button {
-                        onSelectFolder()
-                    } label: {
-                        Label("View", systemImage: "square.grid.2x2")
-                    }
+                // Ellipsis menu - hidden in Select Mode
+                if !isSelectMode {
+                    Menu {
+                        Button {
+                            onSelectFolder()
+                        } label: {
+                            Label("View", systemImage: "square.grid.2x2")
+                        }
 
-                    Button {
-                        onRename?()
-                    } label: {
-                        Label("Rename", systemImage: "character.cursor.ibeam")
-                    }
+                        Button {
+                            onRename?()
+                        } label: {
+                            Label("Rename", systemImage: "character.cursor.ibeam")
+                        }
 
-                    Button(role: .destructive) {
-                        showingDeleteConfirmation = true
+                        Button(role: .destructive) {
+                            showingDeleteConfirmation = true
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
                     } label: {
-                        Label("Delete", systemImage: "trash")
+                        Image(systemName: "ellipsis")
+                            .foregroundStyle(.secondary)
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
                     }
-                } label: {
-                    Image(systemName: "ellipsis")
-                        .foregroundStyle(.secondary)
-                        .frame(width: 44, height: 44)
-                        .contentShape(Rectangle())
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
             .padding(.vertical, 7)
             .padding(.horizontal, 0)
@@ -2146,6 +2310,7 @@ struct JournalRow: View {
     let journal: Journal
     let isSelected: Bool
     let isEditMode: Bool
+    var isSelectMode: Bool = false
     let onSelect: () -> Void
     var onNewEntry: (() -> Void)? = nil
     var onRename: ((String) -> Void)? = nil
@@ -2161,114 +2326,126 @@ struct JournalRow: View {
     @State private var showingDeleteConfirmation = false
     @FocusState private var isNameFieldFocused: Bool
 
+    // Extracted row content to allow conditional Button wrapper
+    @ViewBuilder
+    private var rowContent: some View {
+        HStack(spacing: 16) {
+            // Color square
+            RoundedRectangle(cornerRadius: 4)
+                .fill(journal.color)
+                .frame(width: 30, height: 40)
+                .overlay(
+                    // Vertical line inset 2pt from left
+                    GeometryReader { geometry in
+                        Rectangle()
+                            .fill(Color.black.opacity(0.1))
+                            .frame(width: 1)
+                            .offset(x: 3)
+                    }
+                )
+                .overlay(
+                    // Shared or Concealed icon
+                    Group {
+                        if journal.isShared == true {
+                            Text(DayOneIcon.users.rawValue)
+                                .font(.custom("DayOneIcons", size: 16))
+                                .foregroundStyle(.white)
+                        } else if journal.isConcealed == true {
+                            Text(DayOneIcon.eye_cross.rawValue)
+                                .font(.custom("DayOneIcons", size: 16))
+                                .foregroundStyle(.white)
+                        }
+                    }
+                )
+                .offset(x: 0, y: 2)
+
+            // Journal info
+            VStack(alignment: .leading, spacing: 4) {
+                if isRenaming {
+                    TextField("Journal Name", text: $editedName)
+                        .font(.headline)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                        .focused($isNameFieldFocused)
+                        .onSubmit {
+                            if !editedName.isEmpty {
+                                onRename?(editedName)
+                            }
+                            isRenaming = false
+                        }
+                        .submitLabel(.done)
+                } else {
+                    Text(journal.name)
+                        .font(.headline)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                        .lineLimit(2)
+                        .truncationMode(.tail)
+                }
+
+                // Show journal count for "All Entries"
+                if let journalCount = journal.journalCount {
+                    HStack(spacing: 4) {
+                        Text("\(journalCount) journals")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        Text("•")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        if let entryCount = journal.entryCount {
+                            Text("\(entryCount) entries")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+
+                            if journal.isShared == true, let memberCount = journal.memberCount {
+                                Text("•")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                Text("\(memberCount) members")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                } else if let count = journal.entryCount {
+                    HStack(spacing: 4) {
+                        Text("\(count) entries")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        if journal.isShared == true, let memberCount = journal.memberCount {
+                            Text("•")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Text("\(memberCount) members")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
+
+            Spacer()
+        }
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 16) {
-                // Main content - tappable to select
-                Button(action: onSelect) {
-                    HStack(spacing: 16) {
-                        // Color square
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(journal.color)
-                            .frame(width: 30, height: 40)
-                            .overlay(
-                                // Vertical line inset 2pt from left
-                                GeometryReader { geometry in
-                                    Rectangle()
-                                        .fill(Color.black.opacity(0.1))
-                                        .frame(width: 1)
-                                        .offset(x: 3)
-                                }
-                            )
-                            .overlay(
-                                // Shared or Concealed icon
-                                Group {
-                                    if journal.isShared == true {
-                                        Text(DayOneIcon.users.rawValue)
-                                            .font(.custom("DayOneIcons", size: 16))
-                                            .foregroundStyle(.white)
-                                    } else if journal.isConcealed == true {
-                                        Text(DayOneIcon.eye_cross.rawValue)
-                                            .font(.custom("DayOneIcons", size: 16))
-                                            .foregroundStyle(.white)
-                                    }
-                                }
-                            )
-                            .offset(x: 0, y: 2)
-
-                        // Journal info
-                        VStack(alignment: .leading, spacing: 4) {
-                            if isRenaming {
-                                TextField("Journal Name", text: $editedName)
-                                    .font(.headline)
-                                    .fontWeight(.medium)
-                                    .foregroundStyle(.primary)
-                                    .focused($isNameFieldFocused)
-                                    .onSubmit {
-                                        if !editedName.isEmpty {
-                                            onRename?(editedName)
-                                        }
-                                        isRenaming = false
-                                    }
-                                    .submitLabel(.done)
-                            } else {
-                                Text(journal.name)
-                                    .font(.headline)
-                                    .fontWeight(.medium)
-                                    .foregroundStyle(.primary)
-                                    .lineLimit(2)
-                                    .truncationMode(.tail)
-                            }
-
-                            // Show journal count for "All Entries"
-                            if let journalCount = journal.journalCount {
-                                HStack(spacing: 4) {
-                                    Text("\(journalCount) journals")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-
-                                    Text("•")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-
-                                    if let entryCount = journal.entryCount {
-                                        Text("\(entryCount) entries")
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
-
-                                        if journal.isShared == true, let memberCount = journal.memberCount {
-                                            Text("•")
-                                                .font(.caption)
-                                                .foregroundStyle(.secondary)
-                                            Text("\(memberCount) members")
-                                                .font(.caption)
-                                                .foregroundStyle(.secondary)
-                                        }
-                                    }
-                                }
-                            } else if let count = journal.entryCount {
-                                HStack(spacing: 4) {
-                                    Text("\(count) entries")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-
-                                    if journal.isShared == true, let memberCount = journal.memberCount {
-                                        Text("•")
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
-                                        Text("\(memberCount) members")
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
-                                    }
-                                }
-                            }
-                        }
-
-                        Spacer()
+                // Conditionally wrap content in Button only when NOT in Select Mode
+                if isSelectMode {
+                    // Select Mode: No Button wrapper - allows native List selection
+                    rowContent
+                } else {
+                    // Normal Mode: Button wrapper for tap handling
+                    Button(action: onSelect) {
+                        rowContent
                     }
+                    .buttonStyle(.plain)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
             }
             .padding(.vertical, 7)
             .padding(.horizontal, 0)
@@ -2277,67 +2454,24 @@ struct JournalRow: View {
             Divider()
                 .padding(.leading, 0)
         }
-        .contextMenu {
-            if let newEntry = onNewEntry {
-                Button {
-                    newEntry()
-                } label: {
-                    Label("New Entry", systemImage: "plus")
-                }
-            }
-
-            Button {
-                showingEditJournal = true
-            } label: {
-                Label("Edit Journal", systemImage: "gearshape")
-            }
-
-            Button {
+        // Only show contextMenu and swipeActions when NOT in Select Mode
+        .modifier(JournalRowContextModifier(
+            isSelectMode: isSelectMode,
+            journal: journal,
+            onNewEntry: onNewEntry,
+            onEditJournal: { showingEditJournal = true },
+            onRename: {
                 editedName = journal.name
                 isRenaming = true
                 isNameFieldFocused = true
-            } label: {
-                Label("Rename", systemImage: "character.cursor.ibeam")
-            }
-
-            if !availableCollections.isEmpty {
-                Menu {
-                    ForEach(availableCollections, id: \.id) { collection in
-                        Button {
-                            onMoveToCollection?(collection.id)
-                        } label: {
-                            Label(collection.name, systemImage: "folder")
-                        }
-                    }
-                } label: {
-                    Label("Move to Collection", systemImage: "plus.square.fill")
-                }
-            }
-
-            if isInCollection {
-                Button {
-                    onRemoveFromCollection?()
-                } label: {
-                    Label("Remove from Collection", systemImage: "minus.square.fill")
-                }
-            }
-
-            Button {
-                onReorder?()
-            } label: {
-                Label("Reorder", systemImage: "arrow.up.arrow.down")
-            }
-
-            Divider()
-
-            if let onDelete = onDelete {
-                Button(role: .destructive) {
-                    showingDeleteConfirmation = true
-                } label: {
-                    Label("Delete", systemImage: "trash")
-                }
-            }
-        }
+            },
+            onMoveToCollection: onMoveToCollection,
+            onRemoveFromCollection: onRemoveFromCollection,
+            onReorder: onReorder,
+            onDelete: { showingDeleteConfirmation = true },
+            availableCollections: availableCollections,
+            isInCollection: isInCollection
+        ))
         .alert("Delete Journal", isPresented: $showingDeleteConfirmation) {
             Button("Cancel", role: .cancel) { }
             Button("Delete", role: .destructive) {
@@ -2346,27 +2480,112 @@ struct JournalRow: View {
         } message: {
             Text("Are you sure you want to delete \"\(journal.name)\"? This action cannot be undone.")
         }
-        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-            // New Entry (journal color)
-            if let newEntry = onNewEntry {
-                Button {
-                    newEntry()
-                } label: {
-                    Label("New Entry", systemImage: "plus")
-                }
-                .tint(journal.color)
-            }
-
-            // Edit Journal (gray)
-            Button {
-                showingEditJournal = true
-            } label: {
-                Label("Edit", systemImage: "gearshape")
-            }
-            .tint(.gray)
-        }
         .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
         .listRowSeparator(.hidden)
+    }
+}
+
+// MARK: - JournalRow Context Modifier
+
+struct JournalRowContextModifier: ViewModifier {
+    let isSelectMode: Bool
+    let journal: Journal
+    let onNewEntry: (() -> Void)?
+    let onEditJournal: () -> Void
+    let onRename: () -> Void
+    let onMoveToCollection: ((String) -> Void)?
+    let onRemoveFromCollection: (() -> Void)?
+    let onReorder: (() -> Void)?
+    let onDelete: (() -> Void)?
+    let availableCollections: [JournalFolder]
+    let isInCollection: Bool
+
+    func body(content: Content) -> some View {
+        if isSelectMode {
+            // Select Mode: No contextMenu or swipeActions
+            content
+        } else {
+            // Normal Mode: Full contextMenu and swipeActions
+            content
+                .contextMenu {
+                    if let newEntry = onNewEntry {
+                        Button {
+                            newEntry()
+                        } label: {
+                            Label("New Entry", systemImage: "plus")
+                        }
+                    }
+
+                    Button {
+                        onEditJournal()
+                    } label: {
+                        Label("Edit Journal", systemImage: "gearshape")
+                    }
+
+                    Button {
+                        onRename()
+                    } label: {
+                        Label("Rename", systemImage: "character.cursor.ibeam")
+                    }
+
+                    if !availableCollections.isEmpty {
+                        Menu {
+                            ForEach(availableCollections, id: \.id) { collection in
+                                Button {
+                                    onMoveToCollection?(collection.id)
+                                } label: {
+                                    Label(collection.name, systemImage: "folder")
+                                }
+                            }
+                        } label: {
+                            Label("Move to Collection", systemImage: "plus.square.fill")
+                        }
+                    }
+
+                    if isInCollection {
+                        Button {
+                            onRemoveFromCollection?()
+                        } label: {
+                            Label("Remove from Collection", systemImage: "minus.square.fill")
+                        }
+                    }
+
+                    Button {
+                        onReorder?()
+                    } label: {
+                        Label("Reorder", systemImage: "arrow.up.arrow.down")
+                    }
+
+                    Divider()
+
+                    if onDelete != nil {
+                        Button(role: .destructive) {
+                            onDelete?()
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
+                }
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    // New Entry (journal color)
+                    if let newEntry = onNewEntry {
+                        Button {
+                            newEntry()
+                        } label: {
+                            Label("New Entry", systemImage: "plus")
+                        }
+                        .tint(journal.color)
+                    }
+
+                    // Edit Journal (gray)
+                    Button {
+                        onEditJournal()
+                    } label: {
+                        Label("Edit", systemImage: "gearshape")
+                    }
+                    .tint(.gray)
+                }
+        }
     }
 }
 

@@ -1902,7 +1902,7 @@ struct PagedJournalSheetContent: View {
                 case 0:
                     PagedCoverTabView(journal: journal)
                 case 1:
-                    ListTabView(journal: journal, useLargeListDates: useLargeListDates)
+                    ListTabView(journal: journal, useLargeListDates: useLargeListDates, populatedEntries: [])
                 case 2:
                     CalendarTabView(journal: journal)
                 case 3:
@@ -1910,7 +1910,7 @@ struct PagedJournalSheetContent: View {
                 case 4:
                     MapTabView()
                 default:
-                    ListTabView(journal: journal, useLargeListDates: useLargeListDates)
+                    ListTabView(journal: journal, useLargeListDates: useLargeListDates, populatedEntries: [])
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -3041,7 +3041,7 @@ struct FolderDetailView: View, StyleComputedProperties {
                 case .book:
                     PagedCoverTabView(journal: folder.journals.first ?? Journal(name: folder.name, color: folder.color, entryCount: folder.entryCount))
                 case .timeline:
-                    ListTabView(journal: folder.journals.first ?? Journal(name: folder.name, color: folder.color, entryCount: folder.entryCount), useLargeListDates: useLargeListDates)
+                    ListTabView(journal: folder.journals.first ?? Journal(name: folder.name, color: folder.color, entryCount: folder.entryCount), useLargeListDates: useLargeListDates, populatedEntries: [])
                 case .calendar:
                     CalendarTabView(journal: folder.journals.first ?? Journal(name: folder.name, color: folder.color, entryCount: folder.entryCount))
                 case .media:

@@ -13,6 +13,7 @@ struct JournalDetailPagedView: View, StyleComputedProperties {
     @State private var useLargeListDates = false
     @AppStorage("journalDetailStyle") var selectedStyle: JournalDetailStyle = .colored
     @AppStorage("mediaViewSize") var mediaViewSize: MediaViewSize = .medium
+    @State private var populatedEntries: [PopulatedEntry] = []
 
     // StyleComputedProperties requirement
     var color: Color { journal.color }
@@ -67,7 +68,10 @@ struct JournalDetailPagedView: View, StyleComputedProperties {
                         showCoverImage: $showCoverImage,
                         useLargeListDates: $useLargeListDates,
                         selectedStyle: $selectedStyle,
-                        mediaViewSize: $mediaViewSize
+                        mediaViewSize: $mediaViewSize,
+                        onPopulateEntries: { count in
+                            populateEntries(count: count)
+                        }
                     )
                 } label: {
                     Circle()
@@ -95,6 +99,28 @@ struct JournalDetailPagedView: View, StyleComputedProperties {
         }
         .sheet(isPresented: $showingSettings) {
             AppSettingsView()
+        }
+    }
+
+    // MARK: - Populate Entries
+    private func populateEntries(count: Int) {
+        let calendar = Calendar.current
+        let today = Date()
+
+        if count == 0 {
+            // Clear all entries
+            populatedEntries = []
+        } else {
+            // Generate entries working backwards from today
+            populatedEntries = (0..<count).map { index in
+                let entryDate = calendar.date(byAdding: .day, value: -index, to: today) ?? today
+                return PopulatedEntry(
+                    id: UUID().uuidString,
+                    date: entryDate,
+                    title: "Entry \(index + 1)",
+                    content: "This is populated entry \(index + 1) from \(entryDate.formatted(date: .abbreviated, time: .omitted))"
+                )
+            }
         }
     }
 
@@ -145,7 +171,7 @@ struct JournalDetailPagedView: View, StyleComputedProperties {
                     case .book:
                         PagedCoverTabView(journal: journal)
                     case .timeline:
-                        ListTabView(journal: journal, useLargeListDates: useLargeListDates)
+                        ListTabView(journal: journal, useLargeListDates: useLargeListDates, populatedEntries: populatedEntries)
                     case .calendar:
                         CalendarTabView(journal: journal)
                     case .media:

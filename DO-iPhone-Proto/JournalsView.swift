@@ -129,6 +129,7 @@ struct ListTabView: View {
     @Environment(\.dismiss) private var dismiss
     let journal: Journal?
     let useLargeListDates: Bool
+    let populatedEntries: [PopulatedEntry]
     
     // Sample entry data
     private let marchEntries = [
@@ -154,21 +155,68 @@ struct ListTabView: View {
          preview: "Finally finished organizing the garage. Found so many things I forgot I had...",
          time: "4:20 PM CST", month: 2, year: 2025)
     ]
-    
+
+    // Convert PopulatedEntry to tuple format grouped by month
+    private var entriesByMonth: [(monthYear: String, entries: [(day: String, date: String, title: String, preview: String, time: String, month: Int, year: Int)])] {
+        guard !populatedEntries.isEmpty else { return [] }
+
+        let calendar = Calendar.current
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MMMM yyyy"
+        let dayFormatter = DateFormatter()
+        dayFormatter.dateFormat = "EEE"
+        let timeFormatter = DateFormatter()
+        timeFormatter.dateFormat = "h:mm a"
+
+        // Group by month/year
+        let grouped = Dictionary(grouping: populatedEntries) { entry -> String in
+            dateFormatter.string(from: entry.date)
+        }
+
+        // Convert to tuple format and sort by date (newest first)
+        return grouped.map { monthYear, entries in
+            let tuples = entries.map { entry -> (day: String, date: String, title: String, preview: String, time: String, month: Int, year: Int) in
+                let components = calendar.dateComponents([.day, .month, .year], from: entry.date)
+                let day = dayFormatter.string(from: entry.date).uppercased()
+                let dateStr = "\(components.day!)"
+                let preview = String(entry.content.prefix(100)) + (entry.content.count > 100 ? "..." : "")
+                let time = timeFormatter.string(from: entry.date)
+
+                return (day: day, date: dateStr, title: entry.title, preview: preview, time: time, month: components.month!, year: components.year!)
+            }
+            return (monthYear: monthYear, entries: tuples.sorted { Int($0.date)! > Int($1.date)! })
+        }.sorted { first, second in
+            // Sort months by date (newest first)
+            let firstDate = first.entries.first?.month ?? 0
+            let secondDate = second.entries.first?.month ?? 0
+            return firstDate > secondDate
+        }
+    }
+
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
-                // March 2025 Section
-                Section(header: MonthHeaderView(monthYear: "March 2025")) {
-                    VStack(spacing: 0) {
-                        renderEntries(marchEntries)
+                if !populatedEntries.isEmpty {
+                    // Use populated entries
+                    ForEach(entriesByMonth, id: \.monthYear) { monthData in
+                        Section(header: MonthHeaderView(monthYear: monthData.monthYear)) {
+                            VStack(spacing: 0) {
+                                renderEntries(monthData.entries)
+                            }
+                        }
                     }
-                }
-                
-                // February 2025 Section
-                Section(header: MonthHeaderView(monthYear: "February 2025")) {
-                    VStack(spacing: 0) {
-                        renderEntries(februaryEntries)
+                } else {
+                    // Use sample data
+                    Section(header: MonthHeaderView(monthYear: "March 2025")) {
+                        VStack(spacing: 0) {
+                            renderEntries(marchEntries)
+                        }
+                    }
+
+                    Section(header: MonthHeaderView(monthYear: "February 2025")) {
+                        VStack(spacing: 0) {
+                            renderEntries(februaryEntries)
+                        }
                     }
                 }
             }
@@ -588,6 +636,14 @@ struct MapTabView: View {
     }
 }
 
+
+// MARK: - Populated Entry Model
+struct PopulatedEntry: Identifiable {
+    let id: String
+    let date: Date
+    let title: String
+    let content: String
+}
 
 #Preview {
     JournalsView()

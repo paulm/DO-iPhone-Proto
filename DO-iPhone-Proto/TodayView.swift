@@ -2305,7 +2305,7 @@ struct TodayView: View {
             AppSettingsView()
         }
         .sheet(isPresented: $showingEnableAIModal) {
-            EnableAIFeaturesModal(isPresented: $showingEnableAIModal, dailyChatEnabled: $dailyChatEnabled)
+            EnableAIFeaturesModal(isPresented: $showingEnableAIModal, dailyChatEnabled: $dailyChatEnabled, showingDailyChat: $showingDailyChat)
                 .presentationDetents([.medium])
                 .presentationDragIndicator(.visible)
         }
@@ -2851,6 +2851,7 @@ struct MomentOption: View {
 struct EnableAIFeaturesModal: View {
     @Binding var isPresented: Bool
     @Binding var dailyChatEnabled: Bool
+    @Binding var showingDailyChat: Bool
     @AppStorage("aiFeaturesEnabled") private var aiFeaturesEnabled = false
     @AppStorage("entryAIFeaturesEnabled") private var entryAIFeaturesEnabled = false
     @State private var currentFeatureIndex = 0
@@ -2865,13 +2866,19 @@ struct EnableAIFeaturesModal: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 24) {
+            VStack(spacing: 5) {
+                // Title
+                Text("AI Features")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .padding(.top, 12)
+
                 // Carousel of AI Features
                 TabView(selection: $currentFeatureIndex) {
                     ForEach(Array(aiFeatures.enumerated()), id: \.offset) { index, feature in
-                        VStack(spacing: 12) {
+                        VStack(spacing: 22) {
                             // Feature info
-                            VStack(spacing: 8) {
+                            VStack(spacing: 14) {
                                 Text(feature.title)
                                     .font(.headline)
                                     .fontWeight(.semibold)
@@ -2883,14 +2890,13 @@ struct EnableAIFeaturesModal: View {
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                         }
-                        .padding(.horizontal, 32)
+                        .padding(.horizontal, 52)
                         .tag(index)
                     }
                 }
                 .tabViewStyle(.page)
                 .indexViewStyle(.page(backgroundDisplayMode: .always))
-                .frame(height: 160)
-                .padding(.top, 32)
+                .frame(height: 150)
 
                 // Privacy notice
                 Text("Some AI features use a 3rd party server hosted LLM, and some use Apple's on-device AI. We follow best practices: your data is always encrypted and never used for training.")
@@ -2899,8 +2905,9 @@ struct EnableAIFeaturesModal: View {
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 24)
+                    .padding(.bottom, 24)
 
-                Spacer()
+               // Spacer()
 
                 // Buttons
                 VStack(spacing: 16) {
@@ -2910,6 +2917,8 @@ struct EnableAIFeaturesModal: View {
                         dailyChatEnabled = true
                         entryAIFeaturesEnabled = true
                         isPresented = false
+                        // Open Daily Chat after enabling AI
+                        showingDailyChat = true
                     }) {
                         Text("Continue")
                             .font(.body)
@@ -2922,6 +2931,7 @@ struct EnableAIFeaturesModal: View {
                     }
 
                     Button(action: {
+                        // Just dismiss without enabling AI
                         isPresented = false
                     }) {
                         Text("Disable AI")
@@ -2941,5 +2951,5 @@ struct EnableAIFeaturesModal: View {
 }
 
 #Preview("Enable AI Modal") {
-    EnableAIFeaturesModal(isPresented: .constant(true), dailyChatEnabled: .constant(false))
+    EnableAIFeaturesModal(isPresented: .constant(true), dailyChatEnabled: .constant(false), showingDailyChat: .constant(false))
 }

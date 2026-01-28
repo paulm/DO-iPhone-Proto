@@ -18,16 +18,17 @@ struct LabsSettingsView: View {
     @State private var aiFeatureNotificationRequested = false
 
     // Individual Labs feature toggles
-    @State private var aiFeatures = false
+    @AppStorage("aiFeaturesEnabled") private var aiFeaturesEnabled = false
     @State private var aiEntryChat = false
     @State private var aiSummaries = false
+    @State private var showingAIFeaturesSettings = false
 
     // Labs Newsletter toggle
     @AppStorage("labsNewsletterEnabled") private var labsNewsletterEnabled = false
 
     // Helper function to disable all Labs features
     private func disableAllLabsFeatures() {
-        aiFeatures = false
+        aiFeaturesEnabled = false
         aiEntryChat = false
         aiSummaries = false
     }
@@ -181,23 +182,25 @@ struct LabsSettingsView: View {
 
                 // AI Features Section (always show)
                 Section {
-                    HStack {
-                        Text("AI Features")
-                            .font(.body)
-                            .foregroundStyle(!dayOneLabsEnabled ? .secondary : .primary)
-                        
-                        Spacer()
-                        
-                        Toggle("", isOn: $aiFeatures)
-                            .labelsHidden()
-                            .tint(Color(hex: "44C0FF"))
-                            .disabled(!dayOneLabsEnabled || aiFeatureAvailability == .full)
-                            .onChange(of: aiFeatures) { oldValue, newValue in
-                                if !newValue {
-                                    disableAISubFeatures()
-                                }
-                            }
+                    Button(action: {
+                        showingAIFeaturesSettings = true
+                    }) {
+                        HStack {
+                            Text("AI Features")
+                                .font(.body)
+                                .foregroundStyle(.primary)
+
+                            Spacer()
+
+                            Text(aiFeaturesEnabled ? "On" : "Off")
+                                .foregroundStyle(.secondary)
+
+                            Image(systemName: "chevron.right")
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                        }
                     }
+                    .buttonStyle(.plain)
                     
                     // Warning row when AI Features is full
                     if aiFeatureAvailability == .full {
@@ -265,27 +268,27 @@ struct LabsSettingsView: View {
                     HStack {
                         Text("AI Entry Chat")
                             .font(.body)
-                            .foregroundStyle(!dayOneLabsEnabled || !aiFeatures || aiFeatureAvailability == .full ? .secondary : .primary)
+                            .foregroundStyle(!dayOneLabsEnabled || !aiFeaturesEnabled || aiFeatureAvailability == .full ? .secondary : .primary)
 
                         Spacer()
 
                         Toggle("", isOn: $aiEntryChat)
                             .labelsHidden()
                             .tint(Color(hex: "44C0FF"))
-                            .disabled(!dayOneLabsEnabled || !aiFeatures || aiFeatureAvailability == .full)
+                            .disabled(!dayOneLabsEnabled || !aiFeaturesEnabled || aiFeatureAvailability == .full)
                     }
 
                     HStack {
                         Text("AI Summaries")
                             .font(.body)
-                            .foregroundStyle(!dayOneLabsEnabled || !aiFeatures || aiFeatureAvailability == .full ? .secondary : .primary)
+                            .foregroundStyle(!dayOneLabsEnabled || !aiFeaturesEnabled || aiFeatureAvailability == .full ? .secondary : .primary)
 
                         Spacer()
 
                         Toggle("", isOn: $aiSummaries)
                             .labelsHidden()
                             .tint(Color(hex: "44C0FF"))
-                            .disabled(!dayOneLabsEnabled || !aiFeatures || aiFeatureAvailability == .full)
+                            .disabled(!dayOneLabsEnabled || !aiFeaturesEnabled || aiFeatureAvailability == .full)
                     }
                 } footer: {
                     VStack(alignment: .leading, spacing: 8) {
@@ -371,10 +374,13 @@ struct LabsSettingsView: View {
         }
         .sheet(isPresented: $showingLabsConfirmation) {
             LabsConfirmationView(
-                isPresented: $showingLabsConfirmation, 
+                isPresented: $showingLabsConfirmation,
                 labsEnabled: $dayOneLabsEnabled,
                 isEnablingFromConfirmation: $isEnablingFromConfirmation
             )
+        }
+        .sheet(isPresented: $showingAIFeaturesSettings) {
+            AIFeaturesSettingsView()
         }
     }
 }

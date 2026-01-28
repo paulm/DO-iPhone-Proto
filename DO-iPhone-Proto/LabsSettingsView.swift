@@ -11,41 +11,31 @@ struct LabsSettingsView: View {
     @State private var dayOneLabsEnabled = false
     @State private var isEnablingFromConfirmation = false
     @State private var labsAvailability: LabsAvailability = .open
-    @State private var promptPacksAvailability: LabsAvailability = .open
     @State private var aiFeatureAvailability: LabsAvailability = .open
-    
+
     // Notification request states
     @State private var labsNotificationRequested = false
-    @State private var promptPacksNotificationRequested = false
     @State private var aiFeatureNotificationRequested = false
-    
+
     // Individual Labs feature toggles
-    @State private var promptPacks = false
     @State private var aiFeatures = false
-    @State private var aiEntrySummary = false
-    @State private var aiImageGeneration = false
-    @State private var aiMultiEntrySummary = false
-    @State private var aiTitleSuggestions = false
-    @State private var goDeeper = false
-    
+    @State private var aiEntryChat = false
+    @State private var aiSummaries = false
+
+    // Labs Newsletter toggle
+    @AppStorage("labsNewsletterEnabled") private var labsNewsletterEnabled = false
+
     // Helper function to disable all Labs features
     private func disableAllLabsFeatures() {
-        promptPacks = false
         aiFeatures = false
-        aiEntrySummary = false
-        aiImageGeneration = false
-        aiMultiEntrySummary = false
-        aiTitleSuggestions = false
-        goDeeper = false
+        aiEntryChat = false
+        aiSummaries = false
     }
-    
+
     // Helper function to disable AI sub-features
     private func disableAISubFeatures() {
-        aiEntrySummary = false
-        aiImageGeneration = false
-        aiMultiEntrySummary = false
-        aiTitleSuggestions = false
-        goDeeper = false
+        aiEntryChat = false
+        aiSummaries = false
     }
     
     var body: some View {
@@ -60,15 +50,26 @@ struct LabsSettingsView: View {
                             Text("Share Feedback")
                                 .font(.body)
                                 .foregroundStyle(Color(hex: "44C0FF"))
-                            
+
                             Spacer()
-                            
+
                             Image(systemName: "chevron.right")
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                         }
                     }
                     .buttonStyle(.plain)
+
+                    HStack {
+                        Text("Labs Newsletter")
+                            .font(.body)
+
+                        Spacer()
+
+                        Toggle("", isOn: $labsNewsletterEnabled)
+                            .labelsHidden()
+                            .tint(Color(hex: "44C0FF"))
+                    }
                 }
                 
                 // Header Section with Icon  
@@ -177,80 +178,7 @@ struct LabsSettingsView: View {
                         .buttonStyle(.plain)
                     }
                 }
-                
-                // Prompt Packs Section (always show)
-                Section {
-                    HStack {
-                        Text("Prompt Packs")
-                            .font(.body)
-                            .foregroundStyle(!dayOneLabsEnabled ? .secondary : .primary)
-                        
-                        Spacer()
-                        
-                        Toggle("", isOn: $promptPacks)
-                            .labelsHidden()
-                            .tint(Color(hex: "44C0FF"))
-                            .disabled(!dayOneLabsEnabled || promptPacksAvailability == .full)
-                    }
-                    
-                    // Warning row when Prompt Packs is full
-                    if promptPacksAvailability == .full {
-                        HStack(spacing: 12) {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundStyle(.orange)
-                                .font(.body)
-                            
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Prompt Packs is currently full")
-                                    .font(.body)
-                                    .fontWeight(.medium)
-                                
-                                Text("Get notified by email when we open up additional Prompt Packs slots.")
-                                    .font(.footnote)
-                                    .foregroundStyle(.secondary)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                            
-                            Spacer()
-                        }
-                        .padding(.vertical, 8)
-                        
-                        // Notify Me row
-                        Button {
-                            promptPacksNotificationRequested = true
-                        } label: {
-                            HStack {
-                                if promptPacksNotificationRequested {
-                                    HStack(spacing: 8) {
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .foregroundStyle(.green)
-                                        Text("We'll notify you when Prompt Packs opens up")
-                                            .foregroundStyle(.primary)
-                                    }
-                                } else {
-                                    Text("Notify Me")
-                                        .foregroundStyle(.blue)
-                                }
-                                Spacer()
-                            }
-                        }
-                        .buttonStyle(.plain)
-                    }
-                } header: {
-                    Text("Features")
-                } footer: {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Access curated collections of writing prompts to inspire your journaling.")
-                            .font(.footnote)
-                        
-                        Button("Learn More") {
-                            // TODO: Implement learn more action
-                        }
-                        .font(.footnote)
-                        .padding(.top, 4)
-                    }
-                }
-                
+
                 // AI Features Section (always show)
                 Section {
                     HStack {
@@ -335,65 +263,26 @@ struct LabsSettingsView: View {
                 // Individual AI Feature Toggles (always show but dim when disabled)
                 Section {
                     HStack {
-                        Text("AI Entry Summary")
+                        Text("AI Entry Chat")
                             .font(.body)
                             .foregroundStyle(!dayOneLabsEnabled || !aiFeatures || aiFeatureAvailability == .full ? .secondary : .primary)
-                        
+
                         Spacer()
-                        
-                        Toggle("", isOn: $aiEntrySummary)
+
+                        Toggle("", isOn: $aiEntryChat)
                             .labelsHidden()
                             .tint(Color(hex: "44C0FF"))
                             .disabled(!dayOneLabsEnabled || !aiFeatures || aiFeatureAvailability == .full)
                     }
-                    
+
                     HStack {
-                        Text("AI Image Generation")
+                        Text("AI Summaries")
                             .font(.body)
                             .foregroundStyle(!dayOneLabsEnabled || !aiFeatures || aiFeatureAvailability == .full ? .secondary : .primary)
-                        
+
                         Spacer()
-                        
-                        Toggle("", isOn: $aiImageGeneration)
-                            .labelsHidden()
-                            .tint(Color(hex: "44C0FF"))
-                            .disabled(!dayOneLabsEnabled || !aiFeatures || aiFeatureAvailability == .full)
-                    }
-                    
-                    HStack {
-                        Text("AI Multi Entry Summary")
-                            .font(.body)
-                            .foregroundStyle(!dayOneLabsEnabled || !aiFeatures || aiFeatureAvailability == .full ? .secondary : .primary)
-                        
-                        Spacer()
-                        
-                        Toggle("", isOn: $aiMultiEntrySummary)
-                            .labelsHidden()
-                            .tint(Color(hex: "44C0FF"))
-                            .disabled(!dayOneLabsEnabled || !aiFeatures || aiFeatureAvailability == .full)
-                    }
-                    
-                    HStack {
-                        Text("AI Title Suggestions")
-                            .font(.body)
-                            .foregroundStyle(!dayOneLabsEnabled || !aiFeatures || aiFeatureAvailability == .full ? .secondary : .primary)
-                        
-                        Spacer()
-                        
-                        Toggle("", isOn: $aiTitleSuggestions)
-                            .labelsHidden()
-                            .tint(Color(hex: "44C0FF"))
-                            .disabled(!dayOneLabsEnabled || !aiFeatures || aiFeatureAvailability == .full)
-                    }
-                    
-                    HStack {
-                        Text("Go Deeper")
-                            .font(.body)
-                            .foregroundStyle(!dayOneLabsEnabled || !aiFeatures || aiFeatureAvailability == .full ? .secondary : .primary)
-                        
-                        Spacer()
-                        
-                        Toggle("", isOn: $goDeeper)
+
+                        Toggle("", isOn: $aiSummaries)
                             .labelsHidden()
                             .tint(Color(hex: "44C0FF"))
                             .disabled(!dayOneLabsEnabled || !aiFeatures || aiFeatureAvailability == .full)
@@ -402,7 +291,7 @@ struct LabsSettingsView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Individual AI features can be toggled on or off. Learn more about each feature in our documentation.")
                             .font(.footnote)
-                        
+
                         Button("Learn More") {
                             // TODO: Implement learn more action
                         }
@@ -428,7 +317,7 @@ struct LabsSettingsView: View {
                                     }
                                 }
                             }
-                            
+
                             Button {
                                 labsAvailability = .full
                             } label: {
@@ -440,32 +329,7 @@ struct LabsSettingsView: View {
                                 }
                             }
                         }
-                        
-                        Section("Prompt Packs") {
-                            Button {
-                                promptPacksAvailability = .open
-                                promptPacksNotificationRequested = false
-                            } label: {
-                                HStack {
-                                    Text("Available")
-                                    if promptPacksAvailability == .open {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                            
-                            Button {
-                                promptPacksAvailability = .full
-                            } label: {
-                                HStack {
-                                    Text("Full")
-                                    if promptPacksAvailability == .full {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                        }
-                        
+
                         Section("AI Features") {
                             Button {
                                 aiFeatureAvailability = .open

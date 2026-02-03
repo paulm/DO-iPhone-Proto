@@ -335,42 +335,13 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                                         VStack(spacing: 0) {
                                             if !showingGoDeeperPrompts {
                                                 HStack(spacing: 18) {
-                                                // AI Sparkle menu
-                                                Menu {
-                                                        Button {
-                                                            textEditorFocused = false
-                                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                                                showingTitleSuggestions = true
-                                                            }
-                                                        } label: {
-                                                            Label("AI Title Suggestions", systemImage: "textformat.abc")
-                                                        }
-
-                                                        Button {
-                                                            withAnimation(.easeInOut(duration: 0.2)) {
-                                                                showingGoDeeperPrompts = true
-                                                            }
-                                                        } label: {
-                                                            Label("Go Deeper Prompts", systemImage: "bubble.left.and.bubble.right")
-                                                        }
-                                                        
-                                                        Button {
-                                                            // Entry Highlights action
-                                                        } label: {
-                                                            Label("Entry Highlights", systemImage: "doc.text")
-                                                        }
-                                                        
-                                                        Button {
-                                                            textEditorFocused = false
-                                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                                                showingImageGeneration = true
-                                                            }
-                                                        } label: {
-                                                            Label("Generate Image", systemImage: "photo.badge.plus")
-                                                        }
-                                                        
-                                                        
-                                                    } label: {
+                                                // AI Sparkle button
+                                                Button {
+                                                    textEditorFocused = false
+                                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                                        showingJournalingTools = true
+                                                    }
+                                                } label: {
                                                     Text(DayOneIcon.sparkles.rawValue)
                                                         .font(Font.custom("DayOneIcons", size: 20))
                                                         .foregroundColor(.primary)
@@ -1019,6 +990,16 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
             .sheet(isPresented: $showingImageGeneration) {
                 ImageGenerationView()
             }
+            .sheet(isPresented: $showingJournalingTools) {
+                JournalingToolsModal(
+                    isPresented: $showingJournalingTools,
+                    showingTitleSuggestions: $showingTitleSuggestions,
+                    showingGoDeeperPrompts: $showingGoDeeperPrompts,
+                    showingImageGeneration: $showingImageGeneration
+                )
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.visible)
+            }
         }
     }
     
@@ -1225,6 +1206,130 @@ struct GoDeeperPromptsView: View {
             }
         }
         .frame(height: 80)
+    }
+}
+
+// MARK: - Journaling Tools Modal
+
+struct JournalingToolsModal: View {
+    @Binding var isPresented: Bool
+    @Binding var showingTitleSuggestions: Bool
+    @Binding var showingGoDeeperPrompts: Bool
+    @Binding var showingImageGeneration: Bool
+    @State private var selectedAIMode: AIMode = .dayOneAI
+
+    enum AIMode: String, CaseIterable {
+        case dayOneAI = "Day One AI"
+        case onDeviceAI = "On-Device AI"
+    }
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 24) {
+                // Segmented Control
+                Picker("AI Mode", selection: $selectedAIMode) {
+                    ForEach(AIMode.allCases, id: \.self) { mode in
+                        Text(mode.rawValue).tag(mode)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+
+                // Title
+                HStack {
+                    Text("Journaling Tools")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                    Spacer()
+                }
+                .padding(.horizontal, 16)
+
+                // Tools Grid
+                LazyVGrid(columns: [
+                    GridItem(.flexible(), spacing: 16),
+                    GridItem(.flexible(), spacing: 16)
+                ], spacing: 16) {
+                    ToolCard(
+                        icon: "textformat",
+                        title: "AI Title Suggestions",
+                        subtitle: selectedAIMode == .onDeviceAI ? "(on-device)" : nil
+                    ) {
+                        isPresented = false
+                        showingTitleSuggestions = true
+                    }
+
+                    ToolCard(
+                        icon: "doc.text.fill",
+                        title: "AI Go Deeper Prompts",
+                        subtitle: selectedAIMode == .onDeviceAI ? "(on-device)" : nil
+                    ) {
+                        isPresented = false
+                        showingGoDeeperPrompts = true
+                    }
+
+                    ToolCard(
+                        icon: "sparkles",
+                        title: "Entry Highlights",
+                        subtitle: selectedAIMode == .onDeviceAI ? "(on-device)" : nil
+                    ) {
+                        isPresented = false
+                        // Entry Highlights action
+                    }
+
+                    ToolCard(
+                        icon: "photo.badge.plus",
+                        title: "Generate Image",
+                        subtitle: selectedAIMode == .dayOneAI ? nil : "(on-device)"
+                    ) {
+                        isPresented = false
+                        showingImageGeneration = true
+                    }
+                }
+                .padding(.horizontal, 16)
+
+                Spacer()
+            }
+            .padding(.top, 16)
+        }
+    }
+}
+
+// MARK: - Tool Card
+
+struct ToolCard: View {
+    let icon: String
+    let title: String
+    let subtitle: String?
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 16) {
+                Image(systemName: icon)
+                    .font(.system(size: 40))
+                    .foregroundStyle(.primary)
+
+                VStack(spacing: 4) {
+                    Text(title)
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .multilineTextAlignment(.center)
+                        .foregroundStyle(.primary)
+
+                    if let subtitle = subtitle {
+                        Text(subtitle)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 160)
+            .background(Color(.systemGray6))
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+        }
+        .buttonStyle(.plain)
     }
 }
 

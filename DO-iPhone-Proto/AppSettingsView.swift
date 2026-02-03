@@ -278,6 +278,7 @@ struct AIFeaturesSettingsView: View {
     @AppStorage("aiFeaturesEnabled") private var aiFeaturesEnabled = false
     @AppStorage("dailyChatEnabled") private var dailyChatEnabled = false
     @AppStorage("entryAIFeaturesEnabled") private var entryAIFeaturesEnabled = false
+    @State private var showingPrivacyAlert = false
 
     var body: some View {
         NavigationStack {
@@ -290,70 +291,60 @@ struct AIFeaturesSettingsView: View {
 
                         Spacer()
 
-                        Toggle("", isOn: $aiFeaturesEnabled)
-                            .labelsHidden()
-                            .tint(Color(hex: "44C0FF"))
-                            .onChange(of: aiFeaturesEnabled) { oldValue, newValue in
+                        Toggle("", isOn: Binding(
+                            get: { aiFeaturesEnabled },
+                            set: { newValue in
                                 if newValue {
-                                    // Enable Daily Chat and Entry AI Features by default when main toggle is on
-                                    dailyChatEnabled = true
-                                    entryAIFeaturesEnabled = true
+                                    // Show privacy alert when enabling
+                                    showingPrivacyAlert = true
                                 } else {
-                                    // Disable AI sub-features when main toggle is off
+                                    // Disable directly
+                                    aiFeaturesEnabled = false
                                     dailyChatEnabled = false
                                     entryAIFeaturesEnabled = false
                                 }
                             }
+                        ))
+                            .labelsHidden()
+                            .tint(Color(hex: "44C0FF"))
                     }
                 } footer: {
-                    Text("Enable AI-powered features to enhance your journaling experience with intelligent assistance and suggestions.")
+                    Text("Enable Day One AI features to enhance your journaling experience. [Learn more](https://dayoneapp.com/labs/ai-features/)")
                         .font(.footnote)
                 }
 
                 // Features Section - Informational
                 Section {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("AI Features includes:")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
+
 
                         VStack(alignment: .leading, spacing: 8) {
                             FeatureListItem(text: "Daily Chat - Natural conversations about your day")
-                            FeatureListItem(text: "Go-Deeper Prompts - Thoughtful follow-up questions")
-                            FeatureListItem(text: "Title Suggestions - AI-powered entry titles")
+                            FeatureListItem(text: "Entry Go-Deeper Prompts - Thoughtful follow-up questions")
+                            FeatureListItem(text: "Entry Title Suggestions - AI-powered entry titles")
                             FeatureListItem(text: "Entry Highlights - Identify key moments")
-                            FeatureListItem(text: "Image Generation - Create beautiful AI images")
-                        }
+                            FeatureListItem(text: "Entry Image Generation - Create beautiful AI images")
+                        
                     }
                     .padding(.vertical, 8)
                 } header: {
-                    Text("Features")
-                } footer: {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("AI features use a 3rd party server hosted LLM at OpenAI. We follow best practices: no chat data is stored unencrypted and your data is never used for training.")
-                            .font(.footnote)
-                    }
+                    Text("Day One AI Features")
                 }
 
                 // Apple Intelligence Section - Informational
                 Section {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Apple Intelligence Entry features:")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
 
                         VStack(alignment: .leading, spacing: 8) {
                             FeatureListItem(text: "Go-Deeper Prompts")
                             FeatureListItem(text: "Title Suggestions")
                             FeatureListItem(text: "Entry Highlights")
-                        }
+                        
                     }
                     .padding(.vertical, 8)
                 } header: {
                     Text("Apple Intelligence")
                 } footer: {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Apple Intelligence features use on-device AI for enhanced privacy and performance. Your data stays on your device and is processed locally.")
+                        Text("These features use Apple Intelligence to process everything directly on your device. No data is sent to servers.")
                             .font(.footnote)
                     }
                 }
@@ -369,6 +360,16 @@ struct AIFeaturesSettingsView: View {
                     .labelStyle(.titleAndIcon)
                     .tint(Color(hex: "44C0FF"))
                 }
+            }
+            .alert("AI Features Privacy", isPresented: $showingPrivacyAlert) {
+                Button("Cancel", role: .cancel) { }
+                Button("I Agree") {
+                    aiFeaturesEnabled = true
+                    dailyChatEnabled = true
+                    entryAIFeaturesEnabled = true
+                }
+            } message: {
+                Text("By enabling AI features, you consent to sharing content with our AI partner for processing.\n\n• Our AI partner does not store or train on your data\n• Used solely to generate content within Day One\n• You can disable AI features anytime\n\nThis ensures your privacy while providing AI-powered features to enhance your journaling experience.")
             }
         }
     }

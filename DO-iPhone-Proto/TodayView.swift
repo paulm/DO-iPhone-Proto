@@ -134,6 +134,8 @@ struct TodayView: View {
     @State private var showingProfileMenu = false
     @State private var showingEnableAIModal = false
     @AppStorage("dailyChatEnabled") private var dailyChatEnabled = false
+    @AppStorage("aiFeaturesEnabled") private var aiFeaturesEnabled = false
+    @AppStorage("entryAIFeaturesEnabled") private var entryAIFeaturesEnabled = false
     @State private var isGeneratingPreview = false
     @State private var summaryGenerated = false
     @State private var hasInteractedWithChat = false
@@ -2304,10 +2306,16 @@ struct TodayView: View {
         .sheet(isPresented: $showingSettings) {
             AppSettingsView()
         }
-        .sheet(isPresented: $showingEnableAIModal) {
-            EnableAIFeaturesModal(isPresented: $showingEnableAIModal, dailyChatEnabled: $dailyChatEnabled, showingDailyChat: $showingDailyChat)
-                .presentationDetents([.medium])
-                .presentationDragIndicator(.visible)
+        .alert("AI Features Privacy", isPresented: $showingEnableAIModal) {
+            Button("Cancel", role: .cancel) { }
+            Button("I Agree") {
+                aiFeaturesEnabled = true
+                dailyChatEnabled = true
+                entryAIFeaturesEnabled = true
+                showingDailyChat = true
+            }
+        } message: {
+            Text("By enabling AI features, you consent to sharing content with our AI partner for processing.\n\n• Our AI partner does not store or train on your data\n• Used solely to generate content within Day One\n• You can disable AI features anytime\n\nThis ensures your privacy while providing AI-powered features to enhance your journaling experience.")
         }
         .onChange(of: showingPreviewEntry) { oldValue, newValue in
             // When sheet is dismissed, check if summary was generated
@@ -2846,110 +2854,6 @@ struct MomentOption: View {
     }
 }
 
-// MARK: - Enable AI Features Modal
-
-struct EnableAIFeaturesModal: View {
-    @Binding var isPresented: Bool
-    @Binding var dailyChatEnabled: Bool
-    @Binding var showingDailyChat: Bool
-    @AppStorage("aiFeaturesEnabled") private var aiFeaturesEnabled = false
-    @AppStorage("entryAIFeaturesEnabled") private var entryAIFeaturesEnabled = false
-    @State private var currentFeatureIndex = 0
-
-    private let aiFeatures: [(title: String, description: String, icon: String)] = [
-        ("Daily Chat", "Have natural conversations about your day and automatically create journal entries", "message.fill"),
-        ("Go-Deeper Prompts", "Get thoughtful follow-up questions to explore your entries more deeply", "arrow.down.circle.fill"),
-        ("Title Suggestions", "AI-powered suggestions for perfect entry titles based on your content", "text.cursor"),
-        ("Entry Highlights", "Automatically identify and highlight key moments from your entries", "star.fill"),
-        ("Image Generation", "Create beautiful AI-generated images to complement your journal entries", "photo.fill")
-    ]
-
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 5) {
-                // Title
-                Text("AI Features")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .padding(.top, 12)
-
-                // Carousel of AI Features
-                TabView(selection: $currentFeatureIndex) {
-                    ForEach(Array(aiFeatures.enumerated()), id: \.offset) { index, feature in
-                        VStack(spacing: 22) {
-                            // Feature info
-                            VStack(spacing: 14) {
-                                Text(feature.title)
-                                    .font(.headline)
-                                    .fontWeight(.semibold)
-
-                                Text(feature.description)
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                                    .multilineTextAlignment(.center)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                        }
-                        .padding(.horizontal, 52)
-                        .tag(index)
-                    }
-                }
-                .tabViewStyle(.page)
-                .indexViewStyle(.page(backgroundDisplayMode: .always))
-                .frame(height: 150)
-
-                // Privacy notice
-                Text("Some AI features use a 3rd party server hosted LLM, and some use Apple's on-device AI. We follow best practices: your data is always encrypted and never used for training.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, 24)
-                    .padding(.bottom, 24)
-
-               // Spacer()
-
-                // Buttons
-                VStack(spacing: 16) {
-                    Button(action: {
-                        // Enable AI Features and Daily Chat
-                        aiFeaturesEnabled = true
-                        dailyChatEnabled = true
-                        entryAIFeaturesEnabled = true
-                        isPresented = false
-                        // Open Daily Chat after enabling AI
-                        showingDailyChat = true
-                    }) {
-                        Text("Continue")
-                            .font(.body)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
-                            .background(Color(hex: "44C0FF"))
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
-
-                    Button(action: {
-                        // Just dismiss without enabling AI
-                        isPresented = false
-                    }) {
-                        Text("Disable AI")
-                            .font(.body)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 32)
-            }
-        }
-    }
-}
-
 #Preview {
     TodayView()
-}
-
-#Preview("Enable AI Modal") {
-    EnableAIFeaturesModal(isPresented: .constant(true), dailyChatEnabled: .constant(false), showingDailyChat: .constant(false))
 }

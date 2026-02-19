@@ -203,6 +203,9 @@ struct TodayView: View {
     @AppStorage("showTrackers") private var showTrackers = true
     @AppStorage("showInputs") private var showInputs = true
     @AppStorage("showBioSection") private var showBioSection = false
+    @AppStorage("showGoldSection") private var showGoldSection = true
+    @State private var showGoldCelebration = false
+    @State private var showSilverCelebration = false
 
     // Section expansion states
     @State private var dailyEntryExpanded = false
@@ -1477,6 +1480,57 @@ struct TodayView: View {
         }
     }
 
+    // MARK: - Gold Upgrade Section
+    @ViewBuilder
+    private var goldSection: some View {
+        Section {
+            HStack(spacing: 10) {
+                Button(action: {
+                    showGoldCelebration = true
+                }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "crown.fill")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(Color(hex: "F0B805"))
+
+                        Text("Gold Upgraded")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(.primary)
+                    }
+                    .padding(.horizontal, 14)
+                    .frame(height: 44)
+                    .frame(maxWidth: .infinity)
+                    .background(Color(hex: "FAF0D7"))
+                    .clipShape(RoundedRectangle(cornerRadius: 22))
+                }
+                .buttonStyle(PlainButtonStyle())
+
+                Button(action: {
+                    showSilverCelebration = true
+                }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "shield.fill")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(Color(hex: "B8C2C9"))
+
+                        Text("Silver Upgraded")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(.primary)
+                    }
+                    .padding(.horizontal, 14)
+                    .frame(height: 44)
+                    .frame(maxWidth: .infinity)
+                    .background(Color(hex: "E8ECF0"))
+                    .clipShape(RoundedRectangle(cornerRadius: 22))
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+        }
+        .listRowInsets(EdgeInsets(top: todaySectionSpacing, leading: 16, bottom: todaySectionSpacing, trailing: 16))
+        .listRowBackground(Color.clear)
+        .listRowSeparator(.hidden)
+    }
+
     // Extract Bio section as computed property
     @ViewBuilder
     private var bioSection: some View {
@@ -1789,6 +1843,10 @@ struct TodayView: View {
         case "bio":
             if showBioSection {
                 bioSection
+            }
+        case "gold":
+            if showGoldSection {
+                goldSection
             }
         default:
             EmptyView()
@@ -2113,6 +2171,18 @@ struct TodayView: View {
             .frame(width: 0, height: 0)
         )
         } // End NavigationStack
+        .sheet(isPresented: $showGoldCelebration) {
+            GoldCelebrationView()
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.visible)
+                .presentationCornerRadius(28)
+        }
+        .sheet(isPresented: $showSilverCelebration) {
+            SilverCelebrationView()
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.visible)
+                .presentationCornerRadius(28)
+        }
         .sheet(isPresented: $showingDatePicker) {
             NavigationStack {
                 DatePicker("Select Date", selection: Binding(

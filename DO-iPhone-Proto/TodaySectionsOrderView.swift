@@ -15,7 +15,8 @@ struct SectionItem: Identifiable, Codable, Equatable {
         SectionItem(id: "bio", name: "Bio"),
         SectionItem(id: "moments", name: "Moments"),
         SectionItem(id: "trackers", name: "Trackers"),
-        SectionItem(id: "inputs", name: "Inputs")
+        SectionItem(id: "inputs", name: "Inputs"),
+        SectionItem(id: "gold", name: "Gold")
     ]
 }
 
@@ -38,6 +39,7 @@ struct TodaySectionsOrderView: View {
     @AppStorage("showTrackers") private var showTrackers = true
     @AppStorage("showInputs") private var showInputs = true
     @AppStorage("showBioSection") private var showBioSection = false
+    @AppStorage("showGoldSection") private var showGoldSection = true
 
     @State private var sections: [SectionItem] = []
 
@@ -108,6 +110,7 @@ struct TodaySectionsOrderView: View {
         case "trackers": return showTrackers
         case "inputs": return showInputs
         case "bio": return showBioSection
+        case "gold": return showGoldSection
         default: return false
         }
     }
@@ -124,6 +127,7 @@ struct TodaySectionsOrderView: View {
         case "trackers": showTrackers.toggle()
         case "inputs": showInputs.toggle()
         case "bio": showBioSection.toggle()
+        case "gold": showGoldSection.toggle()
         default: break
         }
     }

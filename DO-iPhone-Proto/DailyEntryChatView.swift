@@ -393,9 +393,6 @@ struct DailyEntryChatView: View {
                     // Reset the updating state
                     isUpdatingEntry = false
 
-                    // Post notification to refresh the UI
-                    NotificationCenter.default.post(name: NSNotification.Name("DailyEntryUpdatedStatusChanged"), object: selectedDate)
-
                     // Automatically open the entry after update
                     let entryContent = getSampleEntryContent(for: selectedDate)
                     let data = EntryView.EntryData(

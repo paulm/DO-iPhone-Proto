@@ -57,7 +57,6 @@ struct TodayView: View {
     @State private var showingEntry = false
     @State private var entryData: EntryView.EntryData? = nil
     @State private var isGeneratingEntry = false
-    @State private var chatUpdateTrigger = false
     @State private var showingJournalSelectionAlert = false
     @State private var showingJournalPicker = false
     @AppStorage("hasShownFirstTimeJournalAlert") private var hasShownFirstTimeJournalAlert = false
@@ -1702,7 +1701,6 @@ struct TodayView: View {
                     showStreak: false
                 )
                 .padding(.horizontal, DatePickerConstants.horizontalPadding)
-                .id(chatUpdateTrigger)
                 .background(Color.clear)
                 .listRowBackground(showGuides ? Color.indigo.opacity(0.2) : Color.clear)
                 .listRowSeparator(.hidden)
@@ -1717,7 +1715,6 @@ struct TodayView: View {
                     showingChatCalendar: $showingChatCalendar
                 )
                 .padding(.vertical, 10)
-                .id(chatUpdateTrigger)
                 .background(Color.clear)
                 .listRowBackground(showGuides ? Color.mint.opacity(0.2) : Color.clear)
                 .listRowSeparator(.hidden)
@@ -2140,9 +2137,6 @@ struct TodayView: View {
                     chatMessageCount = 0
                     hasInteractedWithChat = false
                 }
-
-                // Force view refresh
-                chatUpdateTrigger.toggle()
             }
         }) {
             DailyChatView(
@@ -2415,28 +2409,11 @@ struct TodayView: View {
         .sheet(isPresented: $shouldPresentWelcomeSheet) {
             WelcomeToTodaySheet()
         }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ChatMessagesUpdated"))) { _ in
-            // Force view update when chat messages change
-            DispatchQueue.main.async {
-                chatUpdateTrigger.toggle()
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("DailyEntryUpdatedStatusChanged"))) { notification in
-            // Force view update when entry is updated
-            if let date = notification.object as? Date,
-               Calendar.current.isDate(date, inSameDayAs: selectedDate) {
-                DispatchQueue.main.async {
-                    chatUpdateTrigger.toggle()
-                }
-            }
-        }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("DataPopulationChanged"))) { _ in
-            // Force UI update when data is re-populated
+            // Re-pull local cached state when fixtures are re-seeded;
+            // @Observable manager state propagates the rest.
             DispatchQueue.main.async {
-                // Update current date state
                 updateCurrentDateState()
-                // Force view refresh
-                chatUpdateTrigger.toggle()
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("SectionOrderChanged"))) { _ in

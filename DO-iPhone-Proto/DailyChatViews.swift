@@ -428,7 +428,6 @@ struct DailyChatView: View {
                                 onRemove: {
                                     ChatSessionManager.shared.removeMessage(withId: message.id, for: selectedDate)
                                     messages = ChatSessionManager.shared.getMessages(for: selectedDate)
-                                    NotificationCenter.default.post(name: NSNotification.Name("ChatMessagesUpdated"), object: nil)
                                 },
                                 onToggleIgnore: {
                                     ChatSessionManager.shared.toggleIgnoreStatus(withId: message.id, for: selectedDate)
@@ -747,8 +746,6 @@ struct DailyChatView: View {
                 chatSessionManager.saveMessages(newMessages, for: selectedDate)
                 // Update message count
                 onMessageCountChanged(userMessageCount)
-                // Post notification to update FAB state
-                NotificationCenter.default.post(name: NSNotification.Name("ChatMessagesUpdated"), object: nil)
             }
         }
         .sheet(isPresented: $showingEntry) {
@@ -798,9 +795,6 @@ struct DailyChatView: View {
 
                     // Update local state
                     entryCreated = true
-
-                    // Post notification to refresh the UI
-                    NotificationCenter.default.post(name: NSNotification.Name("DailyEntryUpdatedStatusChanged"), object: selectedDate)
 
                     // Automatically open the entry after update
                     let formatter = DateFormatter()

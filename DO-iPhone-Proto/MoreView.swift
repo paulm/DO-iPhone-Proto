@@ -3,15 +3,6 @@ import SwiftUI
 /// More tab view with Quick Start, On This Day, and Daily Prompt
 struct MoreView: View {
     @State private var showingSettings = false
-
-    var body: some View {
-        MoreTabOriginalView(showingSettings: $showingSettings)
-    }
-}
-
-/// Original More tab layout
-struct MoreTabOriginalView: View {
-    @Binding var showingSettings: Bool
     @State private var quickStartExpanded = true
     @State private var onThisDayExpanded = true
     @State private var dailyPromptExpanded = true

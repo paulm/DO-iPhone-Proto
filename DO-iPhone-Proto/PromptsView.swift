@@ -14,16 +14,6 @@ struct PromptPack: Identifiable {
 struct PromptsView: View {
     @State private var selectedTab = 0
     @State private var showingSettings = false
-
-    var body: some View {
-        PromptsTabOriginalView(selectedTab: $selectedTab, showingSettings: $showingSettings)
-    }
-}
-
-/// Original Prompts tab layout - Updated with iOS standard patterns
-struct PromptsTabOriginalView: View {
-    @Binding var selectedTab: Int
-    @Binding var showingSettings: Bool
     @State private var selectedPromptPack: PromptPack?
     @State private var currentPromptIndex = 0
     

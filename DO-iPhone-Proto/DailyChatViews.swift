@@ -15,45 +15,40 @@ class DailyContentManager {
     private init() {
         // Data will be loaded from JSON via TodayDataManager
     }
-    
-    private func dateKey(for date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.string(from: date)
-    }
-    
+
+
     func hasEntry(for date: Date) -> Bool {
-        let key = dateKey(for: date)
+        let key = date.dateKey
         return dailyEntries[key] ?? false
     }
     
     func setHasEntry(_ hasEntry: Bool, for date: Date) {
-        let key = dateKey(for: date)
+        let key = date.dateKey
         dailyEntries[key] = hasEntry
     }
     
     func hasSummary(for date: Date) -> Bool {
-        let key = dateKey(for: date)
+        let key = date.dateKey
         return summaries[key] ?? false
     }
     
     func setHasSummary(_ hasSummary: Bool, for date: Date) {
-        let key = dateKey(for: date)
+        let key = date.dateKey
         summaries[key] = hasSummary
     }
     
     func setEntryMessageCount(_ count: Int, for date: Date) {
-        let key = dateKey(for: date)
+        let key = date.dateKey
         entryMessageCounts[key] = count
     }
     
     func getEntryMessageCount(for date: Date) -> Int {
-        let key = dateKey(for: date)
+        let key = date.dateKey
         return entryMessageCounts[key] ?? 0
     }
     
     func hasNewMessagesSinceEntry(for date: Date) -> Bool {
-        let key = dateKey(for: date)
+        let key = date.dateKey
         let entryMessageCount = entryMessageCounts[key] ?? 0
         let currentMessages = ChatSessionManager.shared.getMessages(for: date)
         let currentUserMessageCount = currentMessages.filter { $0.isUser }.count
@@ -61,12 +56,12 @@ class DailyContentManager {
     }
     
     func setEntryUpdateDate(_ updateDate: Date, for date: Date) {
-        let key = dateKey(for: date)
+        let key = date.dateKey
         entryUpdateDates[key] = updateDate
     }
     
     func getEntryUpdateDate(for date: Date) -> Date? {
-        let key = dateKey(for: date)
+        let key = date.dateKey
         return entryUpdateDates[key]
     }
 }
@@ -80,31 +75,26 @@ class ChatSessionManager {
     private init() {
         // Data will be loaded from JSON via TodayDataManager
     }
-    
-    private func dateKey(for date: Date = Date()) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.string(from: date)
-    }
-    
+
+
     func getMessages(for date: Date = Date()) -> [DailyChatMessage] {
-        let key = dateKey(for: date)
+        let key = date.dateKey
         return sessions[key] ?? []
     }
     
     func saveMessages(_ messages: [DailyChatMessage], for date: Date = Date()) {
-        let key = dateKey(for: date)
+        let key = date.dateKey
         sessions[key] = messages
     }
     
     func clearSession(for date: Date = Date()) {
-        let key = dateKey(for: date)
+        let key = date.dateKey
         sessions.removeValue(forKey: key)
         summariesGenerated.removeValue(forKey: key)
     }
     
     func removeMessage(withId messageId: UUID, for date: Date = Date()) {
-        let key = dateKey(for: date)
+        let key = date.dateKey
         if var messages = sessions[key] {
             messages.removeAll { $0.id == messageId }
             sessions[key] = messages
@@ -112,7 +102,7 @@ class ChatSessionManager {
     }
     
     func toggleIgnoreStatus(withId messageId: UUID, for date: Date = Date()) {
-        let key = dateKey(for: date)
+        let key = date.dateKey
         if var messages = sessions[key] {
             if let index = messages.firstIndex(where: { $0.id == messageId }) {
                 messages[index].isIgnoredInEntry.toggle()
@@ -122,12 +112,12 @@ class ChatSessionManager {
     }
     
     func isSummaryGenerated(for date: Date = Date()) -> Bool {
-        let key = dateKey(for: date)
+        let key = date.dateKey
         return summariesGenerated[key] ?? false
     }
     
     func setSummaryGenerated(_ generated: Bool, for date: Date = Date()) {
-        let key = dateKey(for: date)
+        let key = date.dateKey
         summariesGenerated[key] = generated
     }
     

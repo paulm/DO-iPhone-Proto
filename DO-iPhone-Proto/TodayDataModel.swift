@@ -40,7 +40,7 @@ class TodayDataManager {
             
             for dayData in loadedData?.dailyData ?? [] {
                 if let date = calendar.date(byAdding: .day, value: -dayData.daysAgo, to: today) {
-                    let key = dateKey(for: date)
+                    let key = date.dateKey
                     dataByDate[key] = dayData
                 }
             }
@@ -53,12 +53,6 @@ class TodayDataManager {
         } catch {
             print("Failed to load DailyData.json: \(error)")
         }
-    }
-    
-    private func dateKey(for date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.string(from: date)
     }
     
     private func updateChatData() {
@@ -115,7 +109,7 @@ class TodayDataManager {
     }
     
     func getDayData(for date: Date) -> DayData? {
-        let key = dateKey(for: date)
+        let key = date.dateKey
         return dataByDate[key]
     }
     

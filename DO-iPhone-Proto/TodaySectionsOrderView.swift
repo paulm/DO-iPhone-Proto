@@ -164,7 +164,7 @@ struct TodaySectionsOrderView: View {
         if let encoded = try? encoder.encode(sections) {
             sectionOrderData = encoded
             // Post notification to update TodayView
-            NotificationCenter.default.post(name: NSNotification.Name("SectionOrderChanged"), object: nil)
+            NotificationCenter.default.post(name: .sectionOrderChanged, object: nil)
         }
     }
 }

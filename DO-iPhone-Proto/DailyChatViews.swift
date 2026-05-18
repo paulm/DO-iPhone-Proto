@@ -980,7 +980,7 @@ struct DailyChatView: View {
             entryCreated = true
             
             // Post notification to update UI
-            NotificationCenter.default.post(name: NSNotification.Name("DailyEntryCreatedStatusChanged"), object: selectedDate)
+            NotificationCenter.default.post(name: .dailyEntryCreatedStatusChanged, object: selectedDate)
             
             // Open the entry view directly
             showingEntry = true

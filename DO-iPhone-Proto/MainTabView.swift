@@ -84,7 +84,7 @@ struct MainTabView: View {
             hasResumedChat = false
             messageCountAtResume = 0
         }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("OpenEntryView"))) { _ in
+        .onReceive(NotificationCenter.default.publisher(for: .openEntryView)) { _ in
             showingEntry = true
         }
     }
@@ -179,7 +179,7 @@ struct MainTabView: View {
                                     messageCountAtResume = messages.filter { $0.isUser }.count
                                 }
                                 // Send notification to trigger Daily Chat
-                                NotificationCenter.default.post(name: NSNotification.Name("TriggerDailyChat"), object: nil)
+                                NotificationCenter.default.post(name: .triggerDailyChat, object: nil)
                             }
                         }
                         if showEntryFAB {

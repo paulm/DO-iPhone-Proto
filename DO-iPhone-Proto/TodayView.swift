@@ -493,7 +493,7 @@ struct TodayView: View {
             // Update local state
             entryCreated = true
             // Post notification to update FAB
-            NotificationCenter.default.post(name: NSNotification.Name("DailyEntryCreatedStatusChanged"), object: selectedDate)
+            NotificationCenter.default.post(name: .dailyEntryCreatedStatusChanged, object: selectedDate)
         }
     }
 
@@ -652,7 +652,7 @@ struct TodayView: View {
                         // Priority 1: Update Entry (when entry exists and there are new messages)
                         Button(action: {
                             NotificationCenter.default.post(
-                                name: NSNotification.Name("TriggerEntryGeneration"),
+                                name: .triggerEntryGeneration,
                                 object: selectedDate
                             )
                         }) {
@@ -694,7 +694,7 @@ struct TodayView: View {
                         Button(action: {
                             if !isGeneratingEntry {
                                 NotificationCenter.default.post(
-                                    name: NSNotification.Name("TriggerEntryGeneration"),
+                                    name: .triggerEntryGeneration,
                                     object: selectedDate
                                 )
                             }
@@ -796,7 +796,7 @@ struct TodayView: View {
                             Button(action: {
                                 // Post notification to trigger entry generation
                                 NotificationCenter.default.post(
-                                    name: NSNotification.Name("TriggerEntryGeneration"),
+                                    name: .triggerEntryGeneration,
                                     object: selectedDate
                                 )
                             }) {
@@ -821,7 +821,7 @@ struct TodayView: View {
                         Button(action: {
                             if !isGeneratingEntry {
                                 NotificationCenter.default.post(
-                                    name: NSNotification.Name("TriggerEntryGeneration"),
+                                    name: .triggerEntryGeneration,
                                     object: selectedDate
                                 )
                             }
@@ -2203,7 +2203,7 @@ struct TodayView: View {
             DateManager.shared.selectedDate = newValue
 
             // Post notification for date change
-            NotificationCenter.default.post(name: NSNotification.Name("SelectedDateChanged"), object: newValue)
+            NotificationCenter.default.post(name: .selectedDateChanged, object: newValue)
 
             // Reset daily activities state when date changes
             chatCompleted = false
@@ -2354,11 +2354,11 @@ struct TodayView: View {
                 }
             )
         }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("TriggerDailyChat"))) { _ in
+        .onReceive(NotificationCenter.default.publisher(for: .triggerDailyChat)) { _ in
             // Only respond to Daily Chat trigger if this variant supports it
             openDailyChatIfEnabled()
         }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("SummaryGeneratedStatusChanged"))) { notification in
+        .onReceive(NotificationCenter.default.publisher(for: .summaryGeneratedStatusChanged)) { notification in
             // Update summaryGenerated state when notification is received
             if let date = notification.object as? Date,
                Calendar.current.isDate(date, inSameDayAs: selectedDate) {
@@ -2368,7 +2368,7 @@ struct TodayView: View {
                 }
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("DailyEntryCreatedStatusChanged"))) { notification in
+        .onReceive(NotificationCenter.default.publisher(for: .dailyEntryCreatedStatusChanged)) { notification in
             // Update entryCreated state when notification is received
             if let date = notification.object as? Date,
                Calendar.current.isDate(date, inSameDayAs: selectedDate) {
@@ -2376,7 +2376,7 @@ struct TodayView: View {
                 entryCreated = DailyContentManager.shared.hasEntry(for: selectedDate)
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("TriggerEntryGeneration"))) { notification in
+        .onReceive(NotificationCenter.default.publisher(for: .triggerEntryGeneration)) { notification in
             // Handle entry generation trigger
             if let date = notification.object as? Date,
                Calendar.current.isDate(date, inSameDayAs: selectedDate) {
@@ -2409,14 +2409,14 @@ struct TodayView: View {
         .sheet(isPresented: $shouldPresentWelcomeSheet) {
             WelcomeToTodaySheet()
         }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("DataPopulationChanged"))) { _ in
+        .onReceive(NotificationCenter.default.publisher(for: .dataPopulationChanged)) { _ in
             // Re-pull local cached state when fixtures are re-seeded;
             // @Observable manager state propagates the rest.
             DispatchQueue.main.async {
                 updateCurrentDateState()
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("SectionOrderChanged"))) { _ in
+        .onReceive(NotificationCenter.default.publisher(for: .sectionOrderChanged)) { _ in
             // Reload section order when it changes
             DispatchQueue.main.async {
                 loadSectionOrder()
@@ -2522,7 +2522,7 @@ struct TodayView: View {
         chatMessageCount = 0
 
         // Post notification to update UI
-        NotificationCenter.default.post(name: NSNotification.Name("DataPopulationChanged"), object: nil)
+        NotificationCenter.default.post(name: .dataPopulationChanged, object: nil)
     }
 
     private func populatePast2WeeksData() {
@@ -2581,7 +2581,7 @@ struct TodayView: View {
         updateCurrentDateState()
 
         // Post notification to update UI
-        NotificationCenter.default.post(name: NSNotification.Name("DataPopulationChanged"), object: nil)
+        NotificationCenter.default.post(name: .dataPopulationChanged, object: nil)
     }
 
     private func populate2MonthsData() {
@@ -2647,7 +2647,7 @@ struct TodayView: View {
         updateCurrentDateState()
 
         // Post notification to update UI
-        NotificationCenter.default.post(name: NSNotification.Name("DataPopulationChanged"), object: nil)
+        NotificationCenter.default.post(name: .dataPopulationChanged, object: nil)
     }
 
     private func addPlacesData() {

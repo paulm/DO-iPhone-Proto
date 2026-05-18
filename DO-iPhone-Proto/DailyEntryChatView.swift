@@ -262,7 +262,7 @@ struct DailyEntryChatView: View {
                             // Post notification to TodayView to handle entry generation
                             // This allows for centralized journal selection logic
                             NotificationCenter.default.post(
-                                name: NSNotification.Name("TriggerEntryGeneration"),
+                                name: .triggerEntryGeneration,
                                 object: selectedDate,
                                 userInfo: ["source": "DailyEntryChatView"]
                             )

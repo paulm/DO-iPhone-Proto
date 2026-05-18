@@ -5,6 +5,7 @@ import UIKit
 // Extracted from TodayView.swift for better organization
 
 // MARK: - Daily Content Manager
+@Observable
 class DailyContentManager {
     static let shared = DailyContentManager()
     private var dailyEntries: [String: Bool] = [:]
@@ -67,6 +68,7 @@ class DailyContentManager {
 }
 
 // MARK: - Chat Session Manager
+@Observable
 class ChatSessionManager {
     static let shared = ChatSessionManager()
     private var sessions: [String: [DailyChatMessage]] = [:]

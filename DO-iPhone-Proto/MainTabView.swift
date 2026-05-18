@@ -7,7 +7,6 @@ struct MainTabView: View {
     @AppStorage("showChatFAB") private var showChatFAB = false
     @AppStorage("showEntryFAB") private var showEntryFAB = false
     private var dateManager = DateManager.shared
-    @State private var chatCompleted = false
 
     private var selectedDate: Date {
         dateManager.selectedDate
@@ -15,8 +14,6 @@ struct MainTabView: View {
     @State private var showingEntry = false
     @State private var hasResumedChat = false
     @State private var messageCountAtResume = 0
-    @State private var updateTrigger = false
-    @State private var showUpdateEntry = false
     @State private var journalViewModel = JournalSelectionViewModel()
 
     enum AppTab: Hashable {
@@ -81,69 +78,13 @@ struct MainTabView: View {
                 startInEditMode: true
             )
         }
-        .onAppear {
-            // Check for chat messages on appear
-            chatCompleted = hasChatMessages
-        }
-        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
-            // Refresh chat status when app comes to foreground
-            chatCompleted = hasChatMessages
-        }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ChatMessagesUpdated"))) { _ in
-            // Refresh chat status when messages are updated
-            DispatchQueue.main.async {
-                chatCompleted = hasChatMessages
-                // Check if Update Entry should show
-                if hasResumedChat && hasEntry {
-                    let messages = ChatSessionManager.shared.getMessages(for: selectedDate)
-                    let currentUserMessageCount = messages.filter { $0.isUser }.count
-                    let shouldShowUpdate = currentUserMessageCount > messageCountAtResume
-                    showUpdateEntry = shouldShowUpdate
-                }
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
-            // Also check when app becomes active
-            DispatchQueue.main.async {
-                chatCompleted = hasChatMessages
-            }
-        }
-        .onReceive(Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()) { _ in
-            // Check every half second for chat updates
-            let hasMessages = hasChatMessages
-            if chatCompleted != hasMessages {
-                chatCompleted = hasMessages
-            }
-            // Also trigger update for message count changes
-            if hasResumedChat && hasEntry {
-                let messages = ChatSessionManager.shared.getMessages(for: selectedDate)
-                let currentUserMessageCount = messages.filter { $0.isUser }.count
-                let shouldShowUpdate = currentUserMessageCount > messageCountAtResume
-                if shouldShowUpdate != showUpdateEntry {
-                    showUpdateEntry = shouldShowUpdate
-                }
-            }
-        }
-        .onChange(of: selectedDate) { oldValue, newValue in
-            // Reset state when date changes
+        .onChange(of: selectedDate) { _, _ in
+            // Reset resume state when date changes; @Observable propagates
+            // chat/entry status automatically.
             hasResumedChat = false
             messageCountAtResume = 0
-            showUpdateEntry = false
-            // Check for messages on the new date immediately
-            let messages = ChatSessionManager.shared.getMessages(for: newValue)
-            chatCompleted = !messages.isEmpty && messages.contains { $0.isUser }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("DailyEntryCreatedStatusChanged"))) { _ in
-            // Force UI update when entry status changes
-            DispatchQueue.main.async {
-                // Trigger a view update by modifying state
-                let currentState = chatCompleted
-                chatCompleted = !currentState
-                chatCompleted = currentState
-            }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("OpenEntryView"))) { _ in
-            // Open Entry view when notification is received
             showingEntry = true
         }
     }
@@ -227,11 +168,11 @@ struct MainTabView: View {
                         Spacer()
                         if showChatFAB {
                             DailyChatFAB(
-                                text: chatCompleted ? "Resume Chat" : "Start Daily Chat",
-                                backgroundColor: chatCompleted ? .white : Color(hex: "44C0FF")
+                                text: hasChatMessages ? "Resume Chat" : "Start Daily Chat",
+                                backgroundColor: hasChatMessages ? .white : Color(hex: "44C0FF")
                             ) {
                                 // Set hasResumedChat to true when Resume Chat is tapped on a day with an entry
-                                if chatCompleted && hasEntry {
+                                if hasChatMessages && hasEntry {
                                     hasResumedChat = true
                                     // Track current message count when resuming
                                     let messages = ChatSessionManager.shared.getMessages(for: selectedDate)

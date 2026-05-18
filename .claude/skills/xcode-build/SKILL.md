@@ -15,7 +15,7 @@ Run from the repo root (`/Users/paulmayne/Repos/DO-iPhone-Proto`):
 xcodebuild \
   -project DO-iPhone-Proto.xcodeproj \
   -scheme DO-iPhone-Proto \
-  -destination 'platform=iOS Simulator,name=iPhone 16' \
+  -destination 'platform=iOS Simulator,name=iPhone 17' \
   -configuration Debug \
   -quiet \
   build 2>&1
@@ -33,7 +33,7 @@ If `xcodebuildmcp` is available as an MCP server, prefer its `build_sim` / `buil
 
 If the default destination is unavailable, retry in this order:
 
-1. `'platform=iOS Simulator,name=iPhone 16'`
+1. `'platform=iOS Simulator,name=iPhone 17'`
 2. `'platform=iOS Simulator,name=iPhone 15'`
 3. `'generic/platform=iOS Simulator'`
 

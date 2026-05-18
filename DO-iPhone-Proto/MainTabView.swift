@@ -46,9 +46,7 @@ struct MainTabView: View {
     private var hasNewMessagesSinceResume: Bool {
         let messages = ChatSessionManager.shared.getMessages(for: selectedDate)
         let currentUserMessageCount = messages.filter { $0.isUser }.count
-        let hasNew = currentUserMessageCount > messageCountAtResume
-        print("DEBUG: hasEntry=\(hasEntry), hasResumedChat=\(hasResumedChat), messageCountAtResume=\(messageCountAtResume), currentCount=\(currentUserMessageCount), hasNew=\(hasNew)")
-        return hasNew
+        return currentUserMessageCount > messageCountAtResume
     }
 
     var body: some View {

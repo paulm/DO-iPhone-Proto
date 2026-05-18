@@ -16,31 +16,18 @@ public enum DayOneIconFont {
     /// This method verifies the font is available
     public static func register() {
         guard !didRegister else { return }
-        
-        // List all available fonts for debugging
-        let fontFamilies = UIFont.familyNames
-        for family in fontFamilies {
-            if family.lowercased().contains("day") || family.lowercased().contains("icon") {
-                print("Found font family: \(family)")
-                let fontNames = UIFont.fontNames(forFamilyName: family)
-                for fontName in fontNames {
-                    print("  Font name: \(fontName)")
-                }
-            }
-        }
-        
+
         // Try different possible font names
         let possibleFontNames = ["DayOneIcons", "DayOne Icons", "DayOneIcons-Regular", "DayOne-Icons"]
         var foundFontName: String?
-        
+
         for fontName in possibleFontNames {
             if UIFont(name: fontName, size: 12) != nil {
                 foundFontName = fontName
-                print("✅ Found Day One Icons font with name: \(fontName)")
                 break
             }
         }
-        
+
         if foundFontName == nil {
             print("⚠️ DayOneIcons font not found - checking bundle...")
             

@@ -26,10 +26,8 @@ final class ImageGenerationViewWrapper: NSObject {
         if error != nil {
             print("Error saving image: \(String(describing: error))")
             // In a real app: show error alert
-        } else {
-            print("Image saved successfully")
-            // In a real app: show success message
         }
+        // In a real app: show success message on the else branch
     }
 }
 

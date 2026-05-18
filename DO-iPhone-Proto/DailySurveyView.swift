@@ -253,7 +253,5 @@ struct SurveyQuestionsEditor: View {
 }
 
 #Preview {
-    DailySurveyView(onCompletion: {
-        print("Survey completed")
-    })
+    DailySurveyView(onCompletion: {})
 }

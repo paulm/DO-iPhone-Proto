@@ -13,10 +13,8 @@ struct TodayView: View {
     @State private var showingSettings = false
     @State private var showingSectionsOrder = false
     @State private var showingDatePicker = false
-    @State private var showingDailySurvey = false
     @State private var showingTrackers = false
     @State private var selectedDate = DateManager.shared.selectedDate
-    @State private var surveyCompleted = false
 
     // Trackers state
     @State private var moodRating = 0
@@ -33,14 +31,11 @@ struct TodayView: View {
     @State private var openChatInLogMode = false
     @State private var openDailyChatInLogMode = false
     @State private var chatMessageCount = 0
-    @State private var momentsCompleted = false
-    @State private var trackersCompleted = false
     @State private var showingProfileMenu = false
     @State private var showingEnableAIModal = false
     @AppStorage("dailyChatEnabled") private var dailyChatEnabled = false
     @AppStorage("aiFeaturesEnabled") private var aiFeaturesEnabled = false
     @AppStorage("entryAIFeaturesEnabled") private var entryAIFeaturesEnabled = false
-    @State private var isGeneratingPreview = false
     @State private var summaryGenerated = false
     @State private var hasInteractedWithChat = false
     @State private var hasViewedSummary = false
@@ -80,14 +75,8 @@ struct TodayView: View {
     @State private var selectedPrompt: String? = nil
 
     // Moments visibility toggles
-    @State private var showMomentsVisits = true
-    @State private var showMomentsEvents = true
-    @State private var showMomentsMedia = true
 
     // Daily Entry Chat Context toggles
-    @State private var includeBio = true
-    @State private var includePreviousChats = true
-    @State private var includeJournal = true
 
     // TipKit
     private let journalingTip = JournalingMadeEasyTip()
@@ -362,11 +351,6 @@ struct TodayView: View {
             return ""
         }
         return "\(chatMessageCount) interaction\(chatMessageCount == 1 ? "" : "s")."
-    }
-
-    private var chatSubtitleWithResume: String {
-        let interactionCount = Int.random(in: 1...55)
-        return "\(interactionCount) interactions Resume"
     }
 
     private func relativeDateText(for date: Date) -> String {
@@ -2204,7 +2188,6 @@ struct TodayView: View {
 
             // Reset daily activities state when date changes
             chatCompleted = false
-            isGeneratingPreview = false
             summaryGenerated = false
             hasInteractedWithChat = false
             hasViewedSummary = false
@@ -2451,17 +2434,6 @@ struct TodayView: View {
             }
         } else {
             sectionOrder = SectionItem.allSections
-        }
-    }
-
-    private func generateSummary() {
-        // Start loading state
-        isGeneratingPreview = true
-
-        // Simulate AI processing delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + Double.random(in: 2.0...4.0)) {
-            isGeneratingPreview = false
-            summaryGenerated = true
         }
     }
 

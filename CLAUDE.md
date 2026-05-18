@@ -32,7 +32,6 @@ This is a Day One iOS prototype built with SwiftUI that explores different UI ap
 
 ### Core Components
 - **MainTabView.swift**: Root tab navigation with 4 main sections (Today, Journals, Prompts, More)
-- **MainTabViewiOS26.swift**: Alternate iOS 26-styled tab shell
 - **DO_iPhone_ProtoApp.swift**: App entry point
 - **RootViewModel.swift**: Root-level state management
 
@@ -309,7 +308,6 @@ List {
 DO-iPhone-Proto/
 ├── DO_iPhone_ProtoApp.swift        # App entry point
 ├── MainTabView.swift               # Root tab navigation
-├── MainTabViewiOS26.swift          # iOS 26 tab shell variant
 ├── RootViewModel.swift             # Root state management
 ├── JournalSelectionViewModel.swift # Journal selection logic
 ├── ColorExtension.swift            # Custom color utilities

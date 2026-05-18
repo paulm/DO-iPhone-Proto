@@ -317,7 +317,7 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
                                     .padding(.horizontal, 11) // Reduced from 16 to 11 (5pt less)
                                     .frame(minHeight: 250) // Reasonable minimum height
                                     .id("textEditor")
-                                    .onChange(of: entryText) { _ in
+                                    .onChange(of: entryText) {
                                         // Auto-scroll to keep cursor visible when text changes
                                         // Only scroll if there's substantial content (more than 500 characters)
                                         if textEditorFocused && entryText.count > 500 {
@@ -1105,9 +1105,8 @@ So, I'm sitting here at Stewart Falls, and I just... I can't even put into words
             return Text(firstLine)
                 .fontWeight(.semibold)
         } else {
-            return Text(firstLine)
-                .fontWeight(.semibold) +
-            Text("\n" + remainingText)
+            let header = Text(firstLine).fontWeight(.semibold)
+            return Text("\(header)\n\(remainingText)")
         }
     }
 

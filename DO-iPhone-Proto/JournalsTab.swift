@@ -354,7 +354,7 @@ struct JournalsTabPagedView: View {
     // Move selected journals to a collection (Select Mode)
     private func moveJournalsToCollection(_ collectionId: String) {
         guard let targetFolderIndex = journalItems.firstIndex(where: { $0.id == collectionId }),
-              let targetFolder = journalItems[targetFolderIndex].folder else { return }
+              journalItems[targetFolderIndex].folder != nil else { return }
 
         let journalsToMove = selectedJournals
 
@@ -473,12 +473,12 @@ struct JournalsTabPagedView: View {
 
             var journalCounter = 1
 
-            for (index, collectionName) in collectionNames.enumerated() {
+            for (_, collectionName) in collectionNames.enumerated() {
                 // 10-15 journals per collection
                 let journalsInCollection = (10...15).randomElement() ?? 12
                 var collectionJournals: [Journal] = []
 
-                for i in 0..<journalsInCollection {
+                for _ in 0..<journalsInCollection {
                     let color = colors[journalCounter % colors.count]
                     let entryCount = Int.random(in: 0...150)
 

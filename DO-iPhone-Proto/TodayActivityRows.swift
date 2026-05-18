@@ -268,15 +268,13 @@ struct TodayActivityRowWithMomentsSubtitle: View {
 
     private var subtitleText: Text {
         if selectedCount == 0 {
-            return Text("Select media, places, and events from ")
-                .foregroundStyle(.secondary) +
-            Text(relativeDateText)
-                .foregroundStyle(Color(hex: "44C0FF"))
+            let prefix = Text("Select media, places, and events from ").foregroundStyle(.secondary)
+            let date = Text(relativeDateText).foregroundStyle(Color(hex: "44C0FF"))
+            return Text("\(prefix)\(date)")
         } else {
-            return Text("\(selectedCount) selected. ")
-                .foregroundStyle(.secondary) +
-            Text("Select more")
-                .foregroundStyle(Color(hex: "44C0FF"))
+            let prefix = Text("\(selectedCount) selected. ").foregroundStyle(.secondary)
+            let action = Text("Select more").foregroundStyle(Color(hex: "44C0FF"))
+            return Text("\(prefix)\(action)")
         }
     }
 

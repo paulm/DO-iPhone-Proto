@@ -384,7 +384,7 @@ struct JournalsReorderView: View {
             }
 
             // Find journal in collections
-            for (collectionId, var collection) in collections {
+            for (_, var collection) in collections {
                 if let journalIndex = collection.contents.firstIndex(where: { $0.id == id }) {
                     // Create new journal with updated name
                     let updatedJournal = collection.contents[journalIndex].journal.withName(newName)
@@ -416,7 +416,7 @@ struct JournalsReorderView: View {
             }
 
             // Find and remove journal from collections
-            for (collectionId, var collection) in collections {
+            for (_, var collection) in collections {
                 if let journalIndex = collection.contents.firstIndex(where: { $0.id == id }) {
                     collection.contents.remove(at: journalIndex)
                     updateCollection(collection)

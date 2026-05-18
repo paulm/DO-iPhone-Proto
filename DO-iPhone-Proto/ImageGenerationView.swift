@@ -399,7 +399,7 @@ struct ImageCarouselRow: View {
     // Save image to photo library
     private func saveImageToPhotoLibrary(index: Int) {
         guard index < images.count,
-              let image = images[index].image,
+              images[index].image != nil,
               let uiImage = convertImageToUIImage(index: index) else { return }
 
         UIImageWriteToSavedPhotosAlbum(uiImage, ImageGenerationViewWrapper.shared, #selector(ImageGenerationViewWrapper.image(_:didFinishSavingWithError:contextInfo:)), nil)

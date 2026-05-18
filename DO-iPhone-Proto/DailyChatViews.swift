@@ -42,8 +42,7 @@ struct DailyChatView: View {
     
     private var relativeDateString: String {
         let calendar = Calendar.current
-        let today = Date()
-        
+
         if calendar.isDateInToday(selectedDate) {
             return "Today"
         } else if calendar.isDateInTomorrow(selectedDate) {

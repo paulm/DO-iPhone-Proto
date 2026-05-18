@@ -155,7 +155,7 @@ struct MainTabView: View {
         return TabView {
             // Regular tabs using iOS 26 Tab API with Day One Icons
             Tab {
-                TimelineView()
+                TodayView()
                     .onAppear { selectedTab = .today }
             } label: {
                 Label {

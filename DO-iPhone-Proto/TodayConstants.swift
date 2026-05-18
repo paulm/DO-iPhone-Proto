@@ -2,6 +2,9 @@ import SwiftUI
 
 // MARK: - Shared Constants
 
+/// Size for toggle disclosure icons (arrow-right-circle) used across Today section headers.
+let todayToggleIconSize: CGFloat = 24
+
 // Photo colors for thumbnails used across Today views
 let photoColors: [Color] = [
     Color(hex: "44C0FF").opacity(0.3),

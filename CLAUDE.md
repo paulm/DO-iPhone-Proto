@@ -354,7 +354,7 @@ The app includes an AI-powered journaling chat system:
 2. Select target device (Simulator or physical device)
 3. Press Cmd+R or click the Run button
 4. For debugging: Use Xcode's debug console and breakpoints
-5. For headless build verification, use the `/xcode-build` skill — runs `xcodebuild` against the `DO-iPhone-Proto` scheme and surfaces compile errors without leaving the chat.
+5. For headless build, run, test, simulator, and UI-automation tasks, use the `flowdeck` skill. The project is preconfigured (`flowdeck config get`) so bare commands work: `flowdeck build`, `flowdeck run`, `flowdeck test`. The skill also covers UI automation (`flowdeck ui simulator session/tap/swipe/...`) so Claude can visually verify changes in the simulator without round-tripping through Xcode.
 
 ### Modifying Chat Features
 - Chat messages stored in `ChatSessionManager.messages`

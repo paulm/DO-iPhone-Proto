@@ -597,39 +597,6 @@ struct ImagePickerPlaceholder: View {
     }
 }
 
-struct BioBasicsView: View {
-    @State private var bioData = BioData.shared
-    
-    var body: some View {
-        Form {
-            Section {
-                TextField("Name", text: $bioData.name)
-                DatePicker("Birthdate", selection: $bioData.birthdate, displayedComponents: .date)
-                TextField("Gender", text: $bioData.gender)
-                TextField("Home Location", text: $bioData.homeLocation)
-                TextField("Marital Status", text: $bioData.maritalStatus)
-            } header: {
-                Text("Personal Information")
-            }
-            
-            Section {
-                TextField("Job", text: $bioData.job, axis: .vertical)
-                    .lineLimit(3, reservesSpace: false)
-                
-                TextField("Hobbies", text: $bioData.hobbies, axis: .vertical)
-                    .lineLimit(3, reservesSpace: false)
-                
-                TextField("Family & Friends", text: $bioData.familyFriends, axis: .vertical)
-                    .lineLimit(3, reservesSpace: false)
-            } header: {
-                Text("About You")
-            }
-        }
-        .navigationTitle("Basics")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-}
-
 struct BioPhysicalAttributesView: View {
     @State private var bioData = BioData.shared
     

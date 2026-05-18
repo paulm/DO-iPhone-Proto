@@ -79,12 +79,12 @@ struct TodayView: View {
     // Daily Entry Chat Context toggles
 
     // TipKit
-    private let journalingTip = JournalingMadeEasyTip()
+    let journalingTip = JournalingMadeEasyTip()
 
     // Layout Constants
-    private let momentsSectionSpacing: CGFloat = 8
-    private let todaySectionSpacing: CGFloat = 16
-    private let todayInterSectionSpacing: CGFloat = 24 // Spacing between major sections
+    let momentsSectionSpacing: CGFloat = 8
+    let todaySectionSpacing: CGFloat = 16
+    let todayInterSectionSpacing: CGFloat = 24 // Spacing between major sections
 
     @AppStorage("showChatFAB") var showChatFAB = false
     @AppStorage("showEntryFAB") var showEntryFAB = false
@@ -116,11 +116,11 @@ struct TodayView: View {
     @State var shouldPresentWelcomeSheet = false
     @State var sectionOrder: [SectionItem] = SectionItem.allSections
 
-    private var hasMomentsSelected: Bool {
+    var hasMomentsSelected: Bool {
         !selectedMomentsPlaces.isEmpty || !selectedMomentsEvents.isEmpty || !selectedMomentsPhotos.isEmpty
     }
 
-    private var dateRange: [Date] {
+    var dateRange: [Date] {
         let calendar = Calendar.current
         var dates: [Date] = []
         let today = Date()
@@ -145,65 +145,9 @@ struct TodayView: View {
         return dates
     }
 
-    private var dailyEntryChatPromptText: String {
-        let calendar = Calendar.current
-
-        // Get day of week for the selected date
-        let formatter = DateFormatter()
-        formatter.dateFormat = "EEEE" // Full day name (e.g., "Monday")
-        let dayOfWeek = formatter.string(from: selectedDate)
-
-        // Check special cases first
-        if calendar.isDateInToday(selectedDate) {
-            // For today, we could use time-based but keeping it simple
-            return "How is your \(dayOfWeek)?"
-        }
-
-        if calendar.isDateInYesterday(selectedDate) {
-            return "How was your \(dayOfWeek)?"
-        }
-
-        if calendar.isDateInTomorrow(selectedDate) {
-            return "What's happening on \(dayOfWeek)?"
-        }
-
-        // For other dates, calculate the difference
-        let now = Date()
-        let startOfToday = calendar.startOfDay(for: now)
-        let startOfSelectedDate = calendar.startOfDay(for: selectedDate)
-
-        // This gives us the number of days between dates
-        // Positive = future, Negative = past
-        let daysDifference = calendar.dateComponents([.day], from: startOfToday, to: startOfSelectedDate).day ?? 0
-
-        if daysDifference < 0 {
-            // Past dates
-            let daysAgo = abs(daysDifference)
-
-            if daysAgo <= 7 {
-                // Within past week
-                return "How was your \(dayOfWeek)?"
-            } else {
-                // Older than a week
-                return "How was this day?"
-            }
-        } else if daysDifference > 0 {
-            // Future dates
-            if daysDifference <= 7 {
-                // Within next week
-                return "What's happening on \(dayOfWeek)?"
-            } else {
-                // More than a week away
-                return "What's happening on this \(dayOfWeek)?"
-            }
-        } else {
-            // Fallback (shouldn't get here)
-            return "Tell me about this day."
-        }
-    }
 
     // Helper function to check AI features before opening daily chat
-    private func openDailyChatIfEnabled() {
+    func openDailyChatIfEnabled() {
         if dailyChatEnabled {
             showingDailyChat = true
         } else {
@@ -211,7 +155,7 @@ struct TodayView: View {
         }
     }
 
-    private var trackersSummaryText: String {
+    var trackersSummaryText: String {
         let completedCount = [
             moodRating > 0 ? 1 : 0,
             energyRating > 0 ? 1 : 0,
@@ -225,7 +169,7 @@ struct TodayView: View {
         return "\(completedCount) of 7 completed"
     }
 
-    private var hasTrackerData: Bool {
+    var hasTrackerData: Bool {
         moodRating > 0 || energyRating > 0 || stressRating > 0 ||
         !foodInput.isEmpty || !prioritiesInput.isEmpty || !mediaInput.isEmpty || !peopleInput.isEmpty
     }
@@ -233,7 +177,7 @@ struct TodayView: View {
     // MARK: - Moments Collapsed State Helpers
 
     // Generate realistic moment counts based on date (allows zeros)
-    private func momentCount(for date: Date, type: String, maxCount: Int) -> Int {
+    func momentCount(for date: Date, type: String, maxCount: Int) -> Int {
         guard maxCount > 0 else { return 0 }
 
         let calendar = Calendar.current
@@ -273,19 +217,19 @@ struct TodayView: View {
         }
     }
 
-    private var availablePhotosCount: Int {
+    var availablePhotosCount: Int {
         momentCount(for: selectedDate, type: "photos", maxCount: 12)
     }
 
-    private var dynamicPlacesCount: Int {
+    var dynamicPlacesCount: Int {
         momentCount(for: selectedDate, type: "places", maxCount: 6)
     }
 
-    private var dynamicEventsCount: Int {
+    var dynamicEventsCount: Int {
         momentCount(for: selectedDate, type: "events", maxCount: 5)
     }
 
-    private var momentsCollapsedSummary: String {
+    var momentsCollapsedSummary: String {
         let totalSelected = selectedMomentsPhotos.count + selectedMomentsPlaces.count + selectedMomentsEvents.count
         if totalSelected == 0 {
             return "Select..."
@@ -294,21 +238,21 @@ struct TodayView: View {
         }
     }
 
-    private var momentsButtonColor: Color {
+    var momentsButtonColor: Color {
         let totalSelected = selectedMomentsPhotos.count + selectedMomentsPlaces.count + selectedMomentsEvents.count
         return totalSelected == 0 ? Color(hex: "44C0FF") : Color(hex: "34C759")
     }
 
-    private var hasTrackersData: Bool {
+    var hasTrackersData: Bool {
         return !selectedMomentsTrackers.isEmpty
     }
 
-    private var trackerTimeOfDay: String {
+    var trackerTimeOfDay: String {
         let hour = Calendar.current.component(.hour, from: Date())
         return hour < 12 ? "AM" : "PM"
     }
 
-    private var currentEntryTitle: String {
+    var currentEntryTitle: String {
         guard DailyContentManager.shared.hasEntry(for: selectedDate) else {
             return "Daily Entry"
         }
@@ -328,159 +272,35 @@ struct TodayView: View {
         return firstLine.isEmpty ? "Untitled Entry" : firstLine
     }
 
-    private var currentDayName: String {
+    var currentDayName: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "EEEE"
         return formatter.string(from: selectedDate)
     }
 
-    private var backgroundColor: Color {
+    var backgroundColor: Color {
         return .white
     }
 
-    private var cellBackgroundColor: Color {
+    var cellBackgroundColor: Color {
         return Color(UIColor.secondarySystemGroupedBackground)
     }
 
-    private var dailyChatTitle: String {
+    var dailyChatTitle: String {
         return "\(currentDayName) Chat"
     }
 
-    private var chatInteractionsText: String {
+    var chatInteractionsText: String {
         if chatMessageCount == 0 {
             return ""
         }
         return "\(chatMessageCount) interaction\(chatMessageCount == 1 ? "" : "s")."
     }
 
-    private func relativeDateText(for date: Date) -> String {
-        let calendar = Calendar.current
-
-        if calendar.isDateInToday(date) {
-            return "Today"
-        } else if calendar.isDateInYesterday(date) {
-            return "Yesterday"
-        } else if calendar.isDateInTomorrow(date) {
-            return "Tomorrow"
-        } else {
-            // For all other dates, show the day of the week
-            let formatter = DateFormatter()
-            formatter.dateFormat = "EEEE" // Full weekday name (Monday, Tuesday, etc.)
-            return formatter.string(from: date)
-        }
-    }
-
-    private func formattedDateForNavigation(_ date: Date) -> String {
-        let calendar = Calendar.current
-
-        // Check if it's Today, Yesterday, or Tomorrow
-        if calendar.isDateInToday(date) ||
-           calendar.isDateInYesterday(date) ||
-           calendar.isDateInTomorrow(date) {
-            // Show full format with weekday for these special days
-            return date.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day().year())
-        } else {
-            // For all other dates, exclude the weekday but add relative time
-            let baseDate = date.formatted(.dateTime.month(.abbreviated).day().year())
-            let relativeTime = getRelativeTimeText(for: date)
-            return "\(baseDate) (\(relativeTime))"
-        }
-    }
-
-    private func getRelativeTimeText(for date: Date) -> String {
-        let calendar = Calendar.current
-        let now = Date()
-        let days = calendar.dateComponents([.day], from: date, to: now).day ?? 0
-
-        if days > 0 {
-            // Past dates
-            if days == 1 {
-                return "1 day ago"
-            } else if days < 7 {
-                return "\(days) days ago"
-            } else if days == 7 {
-                return "1 week ago"
-            } else if days < 14 {
-                return "\(days) days ago"
-            } else if days < 30 {
-                let weeks = days / 7
-                return weeks == 1 ? "1 week ago" : "\(weeks) weeks ago"
-            } else if days < 60 {
-                return "1 month ago"
-            } else if days < 365 {
-                let months = days / 30
-                return months == 1 ? "1 month ago" : "\(months) months ago"
-            } else {
-                let years = days / 365
-                return years == 1 ? "1 year ago" : "\(years) years ago"
-            }
-        } else if days < 0 {
-            // Future dates
-            let futureDays = abs(days)
-            if futureDays == 1 {
-                return "in 1 day"
-            } else if futureDays < 7 {
-                return "in \(futureDays) days"
-            } else if futureDays == 7 {
-                return "in 1 week"
-            } else if futureDays < 14 {
-                return "in \(futureDays) days"
-            } else if futureDays < 30 {
-                let weeks = futureDays / 7
-                return weeks == 1 ? "in 1 week" : "in \(weeks) weeks"
-            } else if futureDays < 60 {
-                return "in 1 month"
-            } else if futureDays < 365 {
-                let months = futureDays / 30
-                return months == 1 ? "in 1 month" : "in \(months) months"
-            } else {
-                let years = futureDays / 365
-                return years == 1 ? "in 1 year" : "in \(years) years"
-            }
-        } else {
-            return "today"
-        }
-    }
-
-    private func navigateToPreviousDay() {
-        if let newDate = Calendar.current.date(byAdding: .day, value: -1, to: selectedDate) {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                selectedDate = newDate
-            }
-        }
-    }
-
-    private func navigateToNextDay() {
-        if let newDate = Calendar.current.date(byAdding: .day, value: 1, to: selectedDate) {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                selectedDate = newDate
-            }
-        }
-    }
-
-    private func generateEntry() {
-        // Start generating entry
-        isGeneratingEntry = true
-
-        // After 1 second, mark entry as created and open it
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            isGeneratingEntry = false
-            // Mark entry as created
-            DailyContentManager.shared.setHasEntry(true, for: selectedDate)
-            // Track current message count when entry is created
-            let messages = ChatSessionManager.shared.getMessages(for: selectedDate)
-            let userMessageCount = messages.filter { $0.isUser }.count
-            DailyContentManager.shared.setEntryMessageCount(userMessageCount, for: selectedDate)
-            // Update local state
-            entryCreated = true
-            // Post notification to update FAB
-            NotificationCenter.default.post(name: .dailyEntryCreatedStatusChanged, object: selectedDate)
-        }
-    }
 
     // Daily Chat section - collapsible
     @ViewBuilder
-    private var dailyChatSection: some View {
+    var dailyChatSection: some View {
         // Header
         Section {
             HStack(spacing: 12) {
@@ -598,7 +418,7 @@ struct TodayView: View {
 
     // Daily Entry section - collapsible
     @ViewBuilder
-    private var dailyEntrySection: some View {
+    var dailyEntrySection: some View {
         // Header
         Section {
             HStack(alignment: .top, spacing: 12) {
@@ -857,15 +677,10 @@ struct TodayView: View {
     }
 
     // Helper method for formatting time
-    private func formatTime(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "h:mm a"
-        return formatter.string(from: date)
-    }
 
     // Moments Section - Photos
     @ViewBuilder
-    private var momentsPhotosSection: some View {
+    var momentsPhotosSection: some View {
         Section {
             Button(action: {
                 showingMomentsSelector = true
@@ -934,7 +749,7 @@ struct TodayView: View {
 
     // Moments Section - Places
     @ViewBuilder
-    private var momentsPlacesSection: some View {
+    var momentsPlacesSection: some View {
         Section {
             Button(action: {
                 showingMomentsSelector = true
@@ -993,7 +808,7 @@ struct TodayView: View {
 
     // Moments Section - Events
     @ViewBuilder
-    private var momentsEventsSection: some View {
+    var momentsEventsSection: some View {
         Section {
             Button(action: {
                 showingMomentsSelector = true
@@ -1052,7 +867,7 @@ struct TodayView: View {
 
     // Moments Section - Trackers
     @ViewBuilder
-    private var momentsTrackersSection: some View {
+    var momentsTrackersSection: some View {
         Section {
             Button(action: {
                 showingMomentsTrackersSheet = true
@@ -1113,7 +928,7 @@ struct TodayView: View {
 
     // Moments Section - Inputs
     @ViewBuilder
-    private var momentsInputsSection: some View {
+    var momentsInputsSection: some View {
         Section {
             Button(action: {
                 showingMomentsInputsSheet = true
@@ -1170,11 +985,11 @@ struct TodayView: View {
         .listRowBackground(showGuides ? Color.yellow.opacity(0.2) : cellBackgroundColor)
     }
 
-    private var hasInputsData: Bool {
+    var hasInputsData: Bool {
         !foodInput.isEmpty || !dailyIntentionInput.isEmpty || !prioritiesInput.isEmpty || !mediaInput.isEmpty || !peopleInput.isEmpty
     }
 
-    private var completedInputsCount: Int {
+    var completedInputsCount: Int {
         var count = 0
         if !foodInput.isEmpty { count += 1 }
         if !dailyIntentionInput.isEmpty { count += 1 }
@@ -1184,7 +999,7 @@ struct TodayView: View {
         return count
     }
 
-    private var completedInputsList: String {
+    var completedInputsList: String {
         var inputs: [String] = []
         if !foodInput.isEmpty { inputs.append(foodInput) }
         if !dailyIntentionInput.isEmpty { inputs.append(dailyIntentionInput) }
@@ -1195,7 +1010,7 @@ struct TodayView: View {
     }
 
     @ViewBuilder
-    private var entryLinksSection: some View {
+    var entryLinksSection: some View {
         let entryCount = TodayDataManager.shared.getEntryCount(for: selectedDate)
         let onThisDayCount = TodayDataManager.shared.getOnThisDayCount(for: selectedDate)
 
@@ -1294,7 +1109,7 @@ struct TodayView: View {
 
     // Extract Date Navigation section as computed property
     @ViewBuilder
-    private var dateNavigationSection: some View {
+    var dateNavigationSection: some View {
         if showDateNavigation {
             Section {
                 HStack {
@@ -1369,7 +1184,7 @@ struct TodayView: View {
 
     // MARK: - Gold Upgrade Section
     @ViewBuilder
-    private var goldSection: some View {
+    var goldSection: some View {
         Section {
             HStack(spacing: 10) {
                 Button(action: {
@@ -1420,7 +1235,7 @@ struct TodayView: View {
 
     // Extract Bio section as computed property
     @ViewBuilder
-    private var bioSection: some View {
+    var bioSection: some View {
         Section {
             VStack(alignment: .leading, spacing: 12) {
                 // Header content (title and subtitle outside the rounded rect)
@@ -1479,7 +1294,7 @@ struct TodayView: View {
 
     // Moments section - collapsible (Events, Places, Photos only)
     @ViewBuilder
-    private var momentsCollapsibleSection: some View {
+    var momentsCollapsibleSection: some View {
         // Header
         Section {
             HStack(spacing: 12) {
@@ -1561,7 +1376,7 @@ struct TodayView: View {
 
     // Trackers section - collapsible
     @ViewBuilder
-    private var trackersCollapsibleSection: some View {
+    var trackersCollapsibleSection: some View {
         // Header
         Section {
             HStack(spacing: 12) {
@@ -1630,7 +1445,7 @@ struct TodayView: View {
 
     // Inputs section - collapsible
     @ViewBuilder
-    private var inputsCollapsibleSection: some View {
+    var inputsCollapsibleSection: some View {
         // Header
         Section {
             Button(action: {
@@ -1667,7 +1482,7 @@ struct TodayView: View {
 
     // Helper method to render sections in custom order
     @ViewBuilder
-    private func sectionView(for sectionId: String) -> some View {
+    func sectionView(for sectionId: String) -> some View {
         switch sectionId {
         case "dateNavigation":
             dateNavigationSection
@@ -2410,74 +2225,6 @@ struct TodayView: View {
         }
     }
 
-    private func loadSectionOrder() {
-        let decoder = JSONDecoder()
-        if let decodedSections = try? decoder.decode([SectionItem].self, from: sectionOrderData) {
-            // Merge with allSections to add any new sections that don't exist yet
-            var mergedSections = decodedSections
-
-            // Find sections in allSections that aren't in decodedSections
-            let existingIds = Set(decodedSections.map { $0.id })
-            let newSections = SectionItem.allSections.filter { !existingIds.contains($0.id) }
-
-            // Add new sections to the end
-            mergedSections.append(contentsOf: newSections)
-
-            sectionOrder = mergedSections
-
-            // If we added new sections, save the updated order
-            if !newSections.isEmpty {
-                let encoder = JSONEncoder()
-                if let encoded = try? encoder.encode(mergedSections) {
-                    sectionOrderData = encoded
-                }
-            }
-        } else {
-            sectionOrder = SectionItem.allSections
-        }
-    }
-
-    private func formatRelativeDate(_ date: Date) -> String {
-        let now = Date()
-        let calendar = Calendar.current
-        let components = calendar.dateComponents([.minute, .hour, .day], from: date, to: now)
-
-        if let days = components.day, days > 0 {
-            if days == 1 {
-                return "yesterday"
-            } else {
-                return "\(days) days ago"
-            }
-        } else if let hours = components.hour, hours > 0 {
-            if hours == 1 {
-                return "1 hour ago"
-            } else {
-                return "\(hours) hours ago"
-            }
-        } else if let minutes = components.minute, minutes > 0 {
-            if minutes == 1 {
-                return "1 minute ago"
-            } else {
-                return "\(minutes) minutes ago"
-            }
-        } else {
-            return "just now"
-        }
-    }
-
-    private func updateCurrentDateState() {
-        // Check if there are existing chat messages for the current date
-        let existingMessages = ChatSessionManager.shared.getMessages(for: selectedDate)
-        if !existingMessages.isEmpty {
-            hasInteractedWithChat = true
-            chatCompleted = true
-            chatMessageCount = existingMessages.filter { $0.isUser }.count
-        }
-
-        // Check if entry exists for current date
-        entryCreated = DailyContentManager.shared.hasEntry(for: selectedDate)
-        summaryGenerated = DailyContentManager.shared.hasSummary(for: selectedDate)
-    }
 }
 
 

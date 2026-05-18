@@ -3,7 +3,7 @@ import SwiftUI
 // MARK: - Data Population Methods
 
 extension TodayView {
-    private func populateNewUserData() {
+    func populateNewUserData() {
         // Clear all existing data for a brand new user experience
         ChatSessionManager.shared.clearAllSessions()
 
@@ -30,7 +30,7 @@ extension TodayView {
         NotificationCenter.default.post(name: .dataPopulationChanged, object: nil)
     }
 
-    private func populatePast2WeeksData() {
+    func populatePast2WeeksData() {
         // This recreates the current default behavior - past 2 weeks of data
         ChatSessionManager.shared.clearAllSessions()
 
@@ -89,7 +89,7 @@ extension TodayView {
         NotificationCenter.default.post(name: .dataPopulationChanged, object: nil)
     }
 
-    private func populate2MonthsData() {
+    func populate2MonthsData() {
         // Populate 2 months of consecutive usage
         ChatSessionManager.shared.clearAllSessions()
 
@@ -155,7 +155,7 @@ extension TodayView {
         NotificationCenter.default.post(name: .dataPopulationChanged, object: nil)
     }
 
-    private func addPlacesData() {
+    func addPlacesData() {
         // Generate places based on dynamic count
         let placesCount = dynamicPlacesCount
         if placesCount > 0 {
@@ -166,7 +166,7 @@ extension TodayView {
         }
     }
 
-    private func addEventsData() {
+    func addEventsData() {
         // Generate events based on dynamic count
         let eventsCount = dynamicEventsCount
         if eventsCount > 0 {
@@ -183,7 +183,7 @@ extension TodayView {
         }
     }
 
-    private func updateMomentsDataForSelectedDate() {
+    func updateMomentsDataForSelectedDate() {
         // Generate data for all dates based on dynamic counts
         let placesCount = dynamicPlacesCount
         let eventsCount = dynamicEventsCount
@@ -211,7 +211,7 @@ extension TodayView {
         }
     }
 
-    private func generateSampleResponse(for daysAgo: Int) -> String {
+    func generateSampleResponse(for daysAgo: Int) -> String {
         let responses = [
             "Had a great day today! Finished some important work and feeling accomplished.",
             "Today was productive. Got through my todo list and even had time for a walk.",
@@ -232,7 +232,7 @@ extension TodayView {
         return responses[min(daysAgo % responses.count, responses.count - 1)]
     }
 
-    private func generateFollowUpQuestion(for index: Int) -> String {
+    func generateFollowUpQuestion(for index: Int) -> String {
         let questions = [
             "What was the highlight of your day?",
             "How are you feeling about tomorrow?",
@@ -243,7 +243,7 @@ extension TodayView {
         return questions[index % questions.count]
     }
 
-    private func generateFollowUpResponse(for daysAgo: Int, index: Int) -> String {
+    func generateFollowUpResponse(for daysAgo: Int, index: Int) -> String {
         let responses = [
             "The highlight was definitely completing that presentation I've been working on.",
             "Looking forward to tomorrow! Have some exciting meetings planned.",

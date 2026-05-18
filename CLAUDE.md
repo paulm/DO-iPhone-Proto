@@ -4,11 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Day One iOS prototype built with SwiftUI that explores different UI approaches for journaling apps. The key architectural feature is a runtime experiments system that allows switching between different UI variants without rebuilding the app.
+This is a Day One iOS prototype built with SwiftUI that explores different UI approaches for journaling apps.
 
 **Key Features:**
 - AI-powered conversational journaling with chat interface
-- Runtime UI experimentation framework
 - Modern SwiftUI architecture targeting iOS 18.5+
 - TipKit integration for user guidance
 
@@ -33,29 +32,18 @@ This is a Day One iOS prototype built with SwiftUI that explores different UI ap
 
 ### Core Components
 - **MainTabView.swift**: Root tab navigation with 4 main sections (Today, Journals, Prompts, More)
-- **ExperimentsManager.swift**: Global singleton managing UI variant switching across app sections
+- **MainTabViewiOS26.swift**: Alternate iOS 26-styled tab shell
 - **DO_iPhone_ProtoApp.swift**: App entry point
 - **RootViewModel.swift**: Root-level state management
 
-### Experiments System
-The app uses an `@Observable` ExperimentsManager singleton to control UI variants:
-- Each AppSection can have multiple ExperimentVariant options
-- Variants can be switched globally or per-section via Settings → Experiments
-- Tab re-selection cycles through available variants for that section
-- Available variants are defined per section in `ExperimentsManager.availableVariants(for:)`
-
 ### State Management
 - Uses SwiftUI's `@Observable` macro for reactive state management
-- **ExperimentsManager**: Global UI variant state
 - **RootViewModel**: Root-level UI state (modals, sheets)
 - **JournalSelectionViewModel**: Journal selection and theming state
 - **ChatSessionManager**: Chat message persistence and state
 - **DailyContentManager**: Entry and summary tracking
-- **DailyDataManager**: JSON data loading and caching
 
 ### UI Patterns
-- **Variant Architecture**: Each major view has multiple implementation variants
-- **Tab Cycling**: Tap active tab to cycle through UI experiments
 - **Modal Navigation**: Mix of sheets and push navigation
 - **Color Theming**: Custom Color extension with hex support (`Color(hex: "44C0FF")`)
 
@@ -63,8 +51,6 @@ The app uses an `@Observable` ExperimentsManager singleton to control UI variant
 - **Journal**: Full-featured journal with settings, features, and appearance
 - **DailyChatMessage**: Chat message with user flag and log mode support
 - **DayData**: Daily activity data loaded from JSON
-- **AppSection**: Enum defining experiment-capable app sections
-- **ExperimentVariant**: Enum defining available UI variants (original, appleSettings, v1i2, paged, grid)
 
 ## Layout Architecture
 
@@ -321,34 +307,25 @@ List {
 
 ```
 DO-iPhone-Proto/
-├── MainTabView.swift           # Root tab navigation
-├── ExperimentsManager.swift    # UI variant management system
-├── RootViewModel.swift         # Root state management
+├── DO_iPhone_ProtoApp.swift        # App entry point
+├── MainTabView.swift               # Root tab navigation
+├── MainTabViewiOS26.swift          # iOS 26 tab shell variant
+├── RootViewModel.swift             # Root state management
 ├── JournalSelectionViewModel.swift # Journal selection logic
-├── ColorExtension.swift        # Custom color utilities
-├── TodayView.swift            # Today tab variants
-├── JournalsView.swift         # Journals tab variants  
-├── PromptsView.swift          # Prompts tab variants
-├── MoreView.swift             # More tab variants
-└── *TabVariants.swift         # Variant implementations per section
+├── ColorExtension.swift            # Custom color utilities
+├── BrandColors.swift               # Day One brand palette
+├── TodayView.swift                 # Today tab
+├── Today*.swift                    # Today tab supporting views and models
+├── JournalsView.swift              # Journals tab
+├── JournalsTab.swift               # Journals tab content
+├── PromptsView.swift               # Prompts tab
+├── PromptsTabVariants.swift        # Prompts tab variant layouts
+├── MoreView.swift                  # More tab
+├── ChatSessionManager.swift        # Chat persistence (referenced from many files)
+├── DailyContentManager.swift       # Entry/summary tracking
+├── DateManager.swift               # Current-date singleton
+└── *.json                          # journals.json, DailyData.json, day-one-colors.json
 ```
-
-## Development Workflow
-
-1. **Adding New UI Variants**: 
-   - Add variant to `ExperimentVariant` enum
-   - Update `ExperimentsManager.availableVariants(for:)` for target sections
-   - Implement variant logic in respective view files
-
-2. **Adding New Sections**: 
-   - Add to `AppSection` enum
-   - Define available variants in ExperimentsManager
-   - Implement view with variant switching logic
-
-3. **Testing Experiments**: 
-   - Use Settings → Experiments for full control
-   - Tap active tabs to quickly cycle variants
-   - Global variants apply to all compatible sections
 
 ## AI Chat Features
 
@@ -379,12 +356,7 @@ The app includes an AI-powered journaling chat system:
 2. Select target device (Simulator or physical device)
 3. Press Cmd+R or click the Run button
 4. For debugging: Use Xcode's debug console and breakpoints
-
-### Working with Experiments
-- To add a new variant: Update `ExperimentVariant` enum in ExperimentsManager.swift
-- To enable variant for a section: Modify `availableVariants(for:)` method
-- Default variants set in `ExperimentsManager.init()`
-- User can override via Settings → Experiments
+5. For headless build verification, use the `/xcode-build` skill — runs `xcodebuild` against the `DO-iPhone-Proto` scheme and surfaces compile errors without leaving the chat.
 
 ### Modifying Chat Features
 - Chat messages stored in `ChatSessionManager.messages`

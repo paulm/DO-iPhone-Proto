@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=$(jq -r '.tool_input.file_path // empty'); case \"$f\" in *xcuserdata/*|*.xcuserstate|*.pbxuser) echo 'Blocked: Xcode user-state files are gitignored and must not be edited.' >&2; exit 2;; esac; exit 0"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=$(jq -r '.tool_input.file_path // empty'); case \"$f\" in *.swift) ;; *) exit 0;; esac; out=$(xcrun swiftc -parse \"$f\" 2>&1); [ -z \"$out\" ] && exit 0; echo \"swiftc -parse reported issues in $f:\" >&2; echo \"$out\" | head -20 >&2; exit 2"
+          }
+        ]
+      }
+    ]
+  }
+}

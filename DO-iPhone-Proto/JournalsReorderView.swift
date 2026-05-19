@@ -973,7 +973,7 @@ struct JournalReorderRow: View {
                     }
                 }
 
-                if let onRename = onRename {
+                if onRename != nil {
                     Button {
                         editedName = journalNode.name
                         isRenaming = true
@@ -1023,7 +1023,7 @@ struct JournalReorderRow: View {
                     }
                 }
 
-                if let onDelete = onDelete {
+                if onDelete != nil {
                     Divider()
 
                     Button(role: .destructive) {
@@ -1138,7 +1138,7 @@ struct CollectionReorderRow: View {
 
                 Divider()
 
-                if let onRename = onRename {
+                if onRename != nil {
                     Button {
                         editedName = collection.name
                         isRenaming = true
@@ -1164,7 +1164,7 @@ struct CollectionReorderRow: View {
                     }
                 }
 
-                if let onDelete = onDelete {
+                if onDelete != nil {
                     Divider()
 
                     Button(role: .destructive) {

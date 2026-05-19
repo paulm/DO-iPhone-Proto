@@ -187,7 +187,7 @@ struct JournalBookView: View {
 
             Divider()
 
-            if let onDelete = onDelete {
+            if onDelete != nil {
                 Button(role: .destructive) {
                     showingDeleteConfirmation = true
                 } label: {

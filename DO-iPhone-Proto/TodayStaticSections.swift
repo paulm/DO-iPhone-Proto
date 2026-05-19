@@ -14,7 +14,7 @@ extension TodayView {
 
         // Calculate how many dates we need based on screen width
         // Account for horizontal padding (16pt on each side)
-        let approximateWidth = UIScreen.main.bounds.width - (DatePickerConstants.horizontalPadding * 2)
+        let approximateWidth = screenWidth - (DatePickerConstants.horizontalPadding * 2)
         let columnsPerRow = Int((approximateWidth + DatePickerConstants.spacing) / (DatePickerConstants.circleSize + DatePickerConstants.spacing))
         let totalDates = columnsPerRow * DatePickerConstants.numberOfRows
 

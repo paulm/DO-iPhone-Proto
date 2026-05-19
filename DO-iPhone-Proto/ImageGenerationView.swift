@@ -254,7 +254,7 @@ struct ImageCarouselRow: View {
                         RoundedRectangle(cornerRadius: 12)
                             .fill(Color.gray.opacity(0.2))
                             .aspectRatio(1, contentMode: .fit)
-                            .frame(width: UIScreen.main.bounds.width * 0.48)
+                            .frame(width: screenWidth * 0.48)
 
                         if imageItem.isLoading {
                             ProgressView()
@@ -262,7 +262,7 @@ struct ImageCarouselRow: View {
                             image
                                 .resizable()
                                 .scaledToFill()
-                                .frame(width: UIScreen.main.bounds.width * 0.48, height: UIScreen.main.bounds.width * 0.48)
+                                .frame(width: screenWidth * 0.48, height: screenWidth * 0.48)
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
                                 .overlay(alignment: .bottomTrailing) {
                                     // Down arrow button on bottom right
@@ -322,7 +322,7 @@ struct ImageCarouselRow: View {
             }
             .id(images.count) // Force TabView to reinitialize when number of items changes
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-            .frame(height: UIScreen.main.bounds.width * 0.48)
+            .frame(height: screenWidth * 0.48)
             .onChange(of: currentPage) { oldValue, newValue in
                 // Delay to allow animation to complete
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {

@@ -240,7 +240,7 @@ struct GoldCelebrationView: View {
 
     private func emitConfetti(count: Int) {
         let colors: [Color] = [gold, lightGold, paleGold, deepGold, darkGold, Color(hex: "44C0FF")]
-        let screenWidth = UIScreen.main.bounds.width
+        let screenWidth = screenWidth
         let cx = screenWidth / 2
         let cy: CGFloat = 80
 

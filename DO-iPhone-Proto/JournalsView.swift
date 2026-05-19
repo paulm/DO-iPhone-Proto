@@ -552,7 +552,7 @@ struct CalendarTabView: View {
 
 struct MediaTabView: View {
     let mediaViewSize: MediaViewSize
-    @State private var availableWidth: CGFloat = UIScreen.main.bounds.width
+    @State private var availableWidth: CGFloat = screenWidth
 
     private let spacing: CGFloat = 1
 

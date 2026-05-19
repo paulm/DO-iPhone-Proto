@@ -134,17 +134,18 @@ struct EntryDetailView: View {
                             .foregroundColor(.secondary)
                     }
                     
-                    Map(coordinateRegion: .constant(
-                        MKCoordinateRegion(
+                    Map(
+                        initialPosition: .region(MKCoordinateRegion(
                             center: entryLocation,
                             span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
-                        )
-                    ), annotationItems: [entryLocation]) { location in
-                        MapMarker(coordinate: location, tint: journalColor)
+                        )),
+                        interactionModes: []
+                    ) {
+                        Marker("", coordinate: entryLocation)
+                            .tint(journalColor)
                     }
                     .frame(height: 200)
                     .cornerRadius(12)
-                    .disabled(true)
                 }
                 .padding()
                 
@@ -244,13 +245,6 @@ struct EntryDetailView: View {
                 .padding(.horizontal, 12)
             }
         }
-    }
-}
-
-// Extension to use CLLocationCoordinate2D as annotation item
-extension CLLocationCoordinate2D: Identifiable {
-    public var id: String {
-        "\(latitude),\(longitude)"
     }
 }
 

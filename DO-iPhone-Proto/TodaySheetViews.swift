@@ -14,7 +14,7 @@ struct VisitsSheetView: View {
     var isForChat: Bool = false
     @Binding var selectedMomentsPlaces: Set<String>
     @State private var selectedVisitIDs: Set<UUID> = []
-    @State private var mapRegion: MKCoordinateRegion
+    @State private var mapCameraPosition: MapCameraPosition
 
     init(visits: Binding<[Visit]>,
          selectedDate: Binding<Date>,
@@ -26,11 +26,11 @@ struct VisitsSheetView: View {
         self.onAddPlaces = onAddPlaces
         self.isForChat = isForChat
         self._selectedMomentsPlaces = selectedPlacesForChat
-        // Initialize map region centered on Salt Lake City
-        self._mapRegion = State(initialValue: MKCoordinateRegion(
+        // Initialize map camera centered on Salt Lake City
+        self._mapCameraPosition = State(initialValue: .region(MKCoordinateRegion(
             center: CLLocationCoordinate2D(latitude: 40.7608, longitude: -111.8910),
             span: MKCoordinateSpan(latitudeDelta: 0.5, longitudeDelta: 0.5)
-        ))
+        )))
     }
 
     var body: some View {
@@ -38,16 +38,17 @@ struct VisitsSheetView: View {
             VStack(alignment: .leading, spacing: 0) {
                 // Map view
                 if !visits.isEmpty {
-                    Map(coordinateRegion: $mapRegion, annotationItems: visits) { visit in
-                        MapAnnotation(coordinate: CLLocationCoordinate2D(latitude: visit.latitude, longitude: visit.longitude)) {
-                            Circle()
-                                .fill(selectedVisitIDs.contains(visit.id) ? Color.white : Color.white.opacity(0.4))
-                                .frame(width: 12, height: 12)
-                                .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                    Map(position: $mapCameraPosition, interactionModes: []) {
+                        ForEach(visits) { visit in
+                            Annotation("", coordinate: CLLocationCoordinate2D(latitude: visit.latitude, longitude: visit.longitude)) {
+                                Circle()
+                                    .fill(selectedVisitIDs.contains(visit.id) ? Color.white : Color.white.opacity(0.4))
+                                    .frame(width: 12, height: 12)
+                                    .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                            }
                         }
                     }
                     .frame(height: 150)
-                    .disabled(true)
                 }
 
                 // Header text

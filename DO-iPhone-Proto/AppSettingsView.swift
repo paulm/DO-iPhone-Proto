@@ -143,7 +143,16 @@ struct AppSettingsView: View {
 
                 // Support Section
                 Section {
-                    SettingsRow(icon: "lifepreserver", title: "Support")
+                    NavigationLink {
+                        SupportView()
+                    } label: {
+                        HStack {
+                            Image(systemName: "lifepreserver")
+                                .frame(width: 24)
+                                .foregroundStyle(.primary)
+                            Text("Support")
+                        }
+                    }
                     NavigationLink {
                         LabsSettingsView()
                     } label: {

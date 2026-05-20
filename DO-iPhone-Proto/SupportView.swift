@@ -11,6 +11,7 @@ struct SupportView: View {
     @State private var conversation: [SupportChatMessage] = []
     @State private var isThinking = false
     @State private var hasShownWelcome = false
+    @State private var humanHandoffRequested = false
     @FocusState private var inputFocused: Bool
 
     // Stub account snapshot used in the opening greeting.
@@ -71,6 +72,12 @@ struct SupportView: View {
             if !conversation.contains(where: { $0.isUser }) {
                 trendingChips
             }
+
+            // Escape hatch to a human appears after the user has sent at
+            // least two messages without finding a resolution.
+            if shouldOfferHumanHandoff {
+                humanHandoffOffer
+            }
         }
         .padding(18)
         .background(Color(.systemBackground))
@@ -123,6 +130,35 @@ struct SupportView: View {
                     }
                 }
             }
+        }
+    }
+
+    private var shouldOfferHumanHandoff: Bool {
+        !humanHandoffRequested
+            && conversation.filter(\.isUser).count >= 2
+    }
+
+    private var humanHandoffOffer: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Still need help?")
+                .font(.caption)
+                .fontWeight(.medium)
+                .foregroundStyle(.secondary)
+
+            Button(action: requestHumanHandoff) {
+                HStack(spacing: 8) {
+                    Image(systemName: "person.crop.circle")
+                        .font(.system(size: 16))
+                    Text("Talk to a human")
+                        .font(.subheadline)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .background(Color(hex: "44C0FF").opacity(0.12))
+                .foregroundStyle(Color(hex: "44C0FF"))
+                .clipShape(Capsule())
+            }
+            .buttonStyle(PlainButtonStyle())
         }
     }
 
@@ -197,6 +233,17 @@ struct SupportView: View {
 
     private func stubReply(for question: String) -> String {
         "Thanks for reaching out. Support content for “\(question)” will appear here once the assistant is wired up."
+    }
+
+    private func requestHumanHandoff() {
+        inputFocused = false
+        withAnimation(.easeOut(duration: 0.2)) {
+            humanHandoffRequested = true
+            conversation.append(SupportChatMessage(
+                text: "Connecting you with a support agent — someone from the Day One team will be with you shortly.",
+                isUser: false
+            ))
+        }
     }
 
     @MainActor

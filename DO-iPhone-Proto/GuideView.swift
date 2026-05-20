@@ -32,6 +32,9 @@ struct GuideView: View {
                 markdown: guide.body,
                 baseURL: guide.fileURL
             )
+            .textual.headingStyle(.guideMinimal)
+            .textual.blockQuoteStyle(.guide)
+            .textual.inlineStyle(.guide)
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
             .frame(maxWidth: .infinity, alignment: .leading)

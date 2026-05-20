@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		70915CDA2FBE447800224139 /* Textual in Frameworks */ = {isa = PBXBuildFile; productRef = 7E000001000000000000A004 /* Textual */; };
 		7E000001000000000000A002 /* guides in Resources */ = {isa = PBXBuildFile; fileRef = 7E000001000000000000A001 /* guides */; };
 /* End PBXBuildFile section */
 
@@ -41,6 +42,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				70915CDA2FBE447800224139 /* Textual in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

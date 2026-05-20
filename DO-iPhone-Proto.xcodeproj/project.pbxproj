@@ -6,8 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		7E000001000000000000A002 /* guides in Resources */ = {isa = PBXBuildFile; fileRef = 7E000001000000000000A001 /* guides */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		700B2CE32DEF9D4D001FDCA4 /* DO-iPhone-Proto.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "DO-iPhone-Proto.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		7E000001000000000000A001 /* guides */ = {isa = PBXFileReference; lastKnownFileType = folder; name = guides; path = "/Users/paulmayne/Projects/DayOne-Support/guides"; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -46,6 +51,7 @@
 			isa = PBXGroup;
 			children = (
 				700B2CE52DEF9D4D001FDCA4 /* DO-iPhone-Proto */,
+				7E000001000000000000A001 /* guides */,
 				700B2CE42DEF9D4D001FDCA4 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -78,6 +84,7 @@
 			);
 			name = "DO-iPhone-Proto";
 			packageProductDependencies = (
+				7E000001000000000000A004 /* Textual */,
 			);
 			productName = "DO-iPhone-Proto";
 			productReference = 700B2CE32DEF9D4D001FDCA4 /* DO-iPhone-Proto.app */;
@@ -107,6 +114,9 @@
 			);
 			mainGroup = 700B2CDA2DEF9D4D001FDCA4;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				7E000001000000000000A003 /* XCRemoteSwiftPackageReference "textual" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 700B2CE42DEF9D4D001FDCA4 /* Products */;
 			projectDirPath = "";
@@ -122,6 +132,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7E000001000000000000A002 /* guides in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -353,6 +364,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		7E000001000000000000A003 /* XCRemoteSwiftPackageReference "textual" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/gonzalezreal/textual";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.3.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		7E000001000000000000A004 /* Textual */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7E000001000000000000A003 /* XCRemoteSwiftPackageReference "textual" */;
+			productName = Textual;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 700B2CDB2DEF9D4D001FDCA4 /* Project object */;
 }

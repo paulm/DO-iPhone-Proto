@@ -225,7 +225,7 @@ struct SupportView: View {
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
                 ForEach(SupportCategory.all) { category in
                     NavigationLink {
-                        SupportCategoryPlaceholderView(category: category)
+                        GuideView(relativePath: "\(category.id)/index.md")
                     } label: {
                         VStack(spacing: 10) {
                             Image(systemName: category.systemImage)
@@ -392,27 +392,6 @@ private struct SupportThinkingDots: View {
         .onReceive(timer) { _ in
             phase = (phase + 1) % 3
         }
-    }
-}
-
-private struct SupportCategoryPlaceholderView: View {
-    let category: SupportCategory
-
-    var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: category.systemImage)
-                .font(.system(size: 56))
-                .foregroundStyle(.secondary)
-            Text(category.title)
-                .font(.title2)
-                .fontWeight(.medium)
-            Text("Guide content coming soon.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .navigationTitle(category.title)
-        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

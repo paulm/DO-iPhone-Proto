@@ -40,6 +40,9 @@ fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
 
+# FlowDeck automation artifacts (UI session captures, etc.)
+.flowdeck/
+
 # Code Injection
 *.xccheckout
 *.xcscmblueprint
@@ -48,3 +51,4 @@ DO-iPhone-Proto.xcodeproj/project.xcworkspace/xcuserdata/paulm.xcuserdatad/UserI
 /DO-iPhone-Proto.xcodeproj/project.xcworkspace/xcuserdata
 /DO-iPhone-Proto.xcodeproj/project.xcworkspace/xcuserdata
 /DO-iPhone-Proto.xcodeproj
+

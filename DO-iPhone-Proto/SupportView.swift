@@ -4,6 +4,7 @@ struct SupportView: View {
     @State private var draftText: String = ""
     @State private var conversation: [SupportChatMessage] = []
     @State private var isThinking = false
+    @State private var hasShownWelcome = false
     @FocusState private var inputFocused: Bool
 
     private let suggestedIssues = [
@@ -12,6 +13,18 @@ struct SupportView: View {
         "I can't sign in"
     ]
 
+    // Stub account snapshot used in the opening greeting.
+    // TODO: replace with real values when the support assistant is wired up.
+    private let userFirstName = "Paul"
+    private let encryptedJournalCount = 16
+    private let recentlyActiveDeviceCount = 3
+
+    private var welcomeMessage: String {
+        """
+        Hi \(userFirstName), I'm Day One's customer help chat. I see you have \(encryptedJournalCount) encrypted journals and you've been active on \(recentlyActiveDeviceCount) devices recently. All your data appears synced up as expected.
+        """
+    }
+
     var body: some View {
         List {
             chatForHelpSection
@@ -19,6 +32,7 @@ struct SupportView: View {
         }
         .navigationTitle("Support")
         .navigationBarTitleDisplayMode(.inline)
+        .task { await showWelcomeIfNeeded() }
     }
 
     // MARK: - Chat for Help
@@ -27,18 +41,18 @@ struct SupportView: View {
     private var chatForHelpSection: some View {
         Section {
             VStack(alignment: .leading, spacing: 12) {
-                if !conversation.isEmpty {
-                    ForEach(conversation) { message in
-                        SupportChatBubble(message: message)
-                    }
-                    if isThinking {
-                        SupportThinkingDots()
-                    }
+                ForEach(conversation) { message in
+                    SupportChatBubble(message: message)
+                }
+                if isThinking {
+                    SupportThinkingDots()
                 }
 
                 chatInputRow
 
-                if conversation.isEmpty {
+                // Suggestions remain visible until the user sends their first
+                // message; the seeded welcome from the assistant doesn't count.
+                if !conversation.contains(where: { $0.isUser }) {
                     suggestedIssuesGroup
                 }
             }
@@ -156,6 +170,21 @@ struct SupportView: View {
 
     private func stubReply(for question: String) -> String {
         "Thanks for reaching out. Support content for “\(question)” will appear here once the assistant is wired up."
+    }
+
+    @MainActor
+    private func showWelcomeIfNeeded() async {
+        guard !hasShownWelcome else { return }
+        hasShownWelcome = true
+        withAnimation(.easeOut(duration: 0.2)) {
+            isThinking = true
+        }
+        try? await Task.sleep(nanoseconds: 600_000_000)
+        guard !Task.isCancelled else { return }
+        withAnimation(.easeOut(duration: 0.2)) {
+            isThinking = false
+            conversation.append(SupportChatMessage(text: welcomeMessage, isUser: false))
+        }
     }
 }
 

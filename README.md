@@ -1,91 +1,74 @@
 # Day One iPhone Prototype
 
-A modern iOS journaling app prototype built with SwiftUI, featuring AI-powered daily chat, smart entry generation, and dynamic UI experiments.
+A SwiftUI prototype for Day One that explores AI-driven journaling, smart entry generation from chat, an in-app support chat, and several live UI prototypes used to evaluate alternative layouts before committing.
 
 ## Overview
 
-This prototype reimagines the journaling experience with conversational AI interactions, automated entry creation from chat conversations, and a flexible UI system that allows runtime experimentation with different design approaches.
+The app is an iOS 26 SwiftUI prototype targeting iPhone. It pairs a polished journaling surface with throwaway UI variants that can be cycled at runtime so design directions can be compared against each other on real data, not in isolated mockups.
 
 ## Key Features
 
-### 💬 Daily Chat & AI Integration
-- **Conversational Journaling** - Chat with AI about your day in a natural, conversational format
-- **Smart Entry Generation** - Automatically create journal entries from your chat conversations
-- **Chat Modes** - Switch between "Chat" mode for conversations and "Log" mode for quick notes
-- **Contextual Prompts** - AI asks relevant follow-up questions based on your responses
-- **Update Workflow** - Resume chats and update existing entries with new insights
+### Daily Chat & AI Integration
+- **Conversational Journaling** — Chat with the AI about the day in natural language.
+- **Smart Entry Generation** — Turn a chat into a journal entry with a single tap; an entry preview is shown before saving.
+- **Chat / Log Modes** — Switch between conversational chat and a quick-note log mode.
+- **Resume + Update Workflow** — Resume an existing daily chat and surface any new messages that should update the saved entry.
 
-### 📅 Smart Date Management
-- **Visual Date Grid** - See your journaling streak and activity at a glance
-- **Activity Indicators** - Days with chat interactions show in dark gray, entries marked with visual indicators
-- **Streak Tracking** - Automatic calculation of consecutive journaling days
-- **Entry Links** - Quick access to daily entries and "On This Day" memories
-- **Haptic Feedback** - Smooth date selection with tactile response
+### Today Tab
+- Sectioned scroll with date strip, Daily Entry, Daily Chat, Moments, Trackers, Inputs.
+- Section ordering and per-section visibility persisted via `@AppStorage`.
+- Horizontal swipe on the page navigates between days.
 
-### 📝 Intelligent Entry System
-- **Auto-Generation** - Create entries from chat conversations with one tap
-- **Entry Preview** - Review and edit AI-generated summaries before saving
-- **Update Detection** - System tracks when entries need updates based on new chat messages
-- **Direct Access** - Jump straight to entries or preview for editing
+### Journals Tab
+- Multiple view modes for browsing journals (list, icon grid, books grid).
+- Per-row swipe actions for new entry / select / edit.
 
-### 🎯 Floating Action Buttons (FABs)
-- **Context-Aware** - FABs change based on daily activity state
-- **Start Daily Chat** - Begin a new conversation for the day
-- **Resume Chat** - Continue existing conversations
-- **View/Update Entry** - Smart button that appears only when relevant
-- **Visual States** - Different colors and text indicate current status
+### Prompts Tab
+- Curated prompts with a journal scope filter.
 
-### 📊 Data-Driven Experience
-- **JSON Configuration** - Daily data populated from centralized source
-- **Entry Counts** - Dynamic display of entries per day
-- **Memory Integration** - "On This Day" shows historical entries
-- **State Persistence** - Chat sessions and entries saved across app launches
+### More Tab
+- Quick-Start capture options, On This Day, Daily Prompt, and recent entries.
 
-### 🧪 UI Experiments System
-- **Runtime Switching** - Change UI layouts without restarting
-- **Multiple Variants** - Each section has different design approaches
-- **Tab Cycling** - Quick variant switching by tapping active tabs
-- **Settings Control** - Fine-grained control over each UI element
+### Settings → Support
+- In-app help chat with a personalized welcome message that references account context.
+- Trending issues as tap-to-send suggestions.
+- After two user messages the chat offers to hand the conversation off to a human, clearing the chat and confirming the email it will continue at.
+- Browse Guides list with the same top-level categories used by the Day One support guides repo.
 
-### 🎨 Modern UI Components
-- **TipKit Integration** - Native iOS tooltips for user guidance
-- **Bio Management** - Personal profile integration with daily chats
-- **Weather Widget** - Optional weather display for context
-- **Entry Links** - Smart buttons that show/hide based on content
-- **Adaptive Layouts** - Responsive design for different screen sizes
+## Live UI prototypes (DEBUG only)
+
+Three tabs currently render through a prototype dispatcher that swaps in alternative layouts. A small floating bar at the bottom cycles between variants via left/right chevrons; the bar is compiled out of release builds.
+
+| Tab     | Variants                                                                                                                   | File                          |
+|---------|----------------------------------------------------------------------------------------------------------------------------|-------------------------------|
+| Today   | A Sectioned scroll · B Hero CTA + chips · C Timeline · D Dashboard grid · E Chat-led · F Calendar workspace · G Story pager | `TodayViewPrototype.swift`    |
+| More    | A Stacked cards · B Tabs · C Dashboard grid · D Hero + rows · E Action-led list · F Toolbar + workspace · G Magazine        | `MoreView.swift`              |
+| Prompts | A List (current) · B Featured + Grid · C Daily ritual                                                                       | `PromptsView.swift`           |
+
+Selection is stored in `@AppStorage("<tab>PrototypeVariant")`. The shared switcher lives in `PrototypeSwitcher.swift`.
+
+When a variant wins it is folded into the production view and the rest (plus the switcher dispatch) are deleted.
 
 ## Technical Architecture
 
-- **SwiftUI & iOS 17+** - Latest Apple frameworks and design patterns
-- **@Observable Macro** - Modern state management
-- **Singleton Managers** - ChatSessionManager and DailyContentManager for data
-- **NotificationCenter** - Cross-view communication for real-time updates
-- **JSON Data Store** - Flexible data population system
+- **SwiftUI on iOS 26** — built against the iOS 26 SDK, using Liquid Glass defaults, the iOS 26 `Tab` API (including the separated `.search` role), and SF Symbols throughout.
+- **`@Observable` state managers** — `ChatSessionManager`, `DailyContentManager`, and `DateManager` are `@Observable` singletons that views read directly; SwiftUI invalidates on mutation. A handful of typed `NotificationCenter` names in `Notification+App.swift` remain for cross-view triggers.
+- **Day One icon font** — custom SF-Symbol-style icon set used via `Image(dayOneIcon:)`.
+- **JSON-backed data** — `journals.json`, `DailyData.json`, and `day-one-colors.json` are loaded on launch.
 
-## User Experience Flow
+## Repository conventions
 
-1. **Start Your Day** - Open the app to see your journaling history
-2. **Begin Chat** - Tap "Start Daily Chat" to begin a conversation
-3. **Natural Conversation** - Chat about your day, thoughts, and experiences
-4. **Generate Entry** - Create a journal entry from your chat with one tap
-5. **Review & Edit** - Preview the generated entry and make adjustments
-6. **Track Progress** - See your streak and browse past entries
-
-## Smart Features
-
-- **Contextual FABs** - Buttons appear only when actions are available
-- **Loading States** - Visual feedback during entry generation
-- **Automatic Opening** - Entries open automatically after creation
-- **Update Detection** - System knows when entries need refreshing
-- **State Tracking** - Differentiates between chat interactions and generated entries
+- Project guidance lives in `AGENTS.md`; `CLAUDE.md` is a one-line include of it so the same content is picked up by tools that look for either filename.
+- MCP config for the project (context7, cupertino) is versioned at `.mcp.json` so tooling is consistent across machines.
+- Day One org repos (`DO-*`, `DayOne-*`) prefer HTTPS over SSH for git operations.
 
 ## Getting Started
 
-1. Open `DO-iPhone-Proto.xcodeproj` in Xcode
-2. Build and run on iOS Simulator or device
-3. Tap "Start Daily Chat" to begin journaling
-4. Explore different UI variants in Settings → Experiments
+1. Open `DO-iPhone-Proto.xcodeproj` in Xcode.
+2. Build and run on an iOS 26 simulator or device (Cmd+R).
+3. Optional headless workflow: with [Flowdeck](https://flowdeck.studio) installed, `flowdeck build` / `flowdeck run` / `flowdeck ui simulator session start` work without arguments — the project is preconfigured.
+4. In a DEBUG build, use the floating bar at the bottom of the Today, More, or Prompts tabs to cycle layout variants.
 
 ---
 
-*This prototype demonstrates the future of journaling through AI-powered conversations and intelligent entry management.*
+*This prototype is a sandbox for design and AI-product exploration. Code under the `*Prototype*` and `Variant` names is intentionally throwaway and will be deleted as decisions land.*

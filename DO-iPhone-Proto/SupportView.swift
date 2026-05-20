@@ -12,11 +12,13 @@ struct SupportView: View {
     @State private var isThinking = false
     @State private var hasShownWelcome = false
     @State private var humanHandoffRequested = false
+    @State private var handoffConfirmed = false
     @FocusState private var inputFocused: Bool
 
     // Stub account snapshot used in the opening greeting.
     // TODO: replace with real values when the support assistant is wired up.
     private let userFirstName = "Paul"
+    private let userEmail = "paul.mayne@a8c.com"
     private let encryptedJournalCount = 16
     private let recentlyActiveDeviceCount = 3
 
@@ -56,6 +58,20 @@ struct SupportView: View {
                 .tracking(1)
                 .foregroundStyle(Color(hex: "44C0FF"))
 
+            if handoffConfirmed {
+                handoffConfirmationPanel
+            } else {
+                chatExperience
+            }
+        }
+        .padding(18)
+        .background(Color(.systemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 4)
+    }
+
+    private var chatExperience: some View {
+        VStack(alignment: .leading, spacing: 14) {
             VStack(alignment: .leading, spacing: 10) {
                 ForEach(conversation) { message in
                     SupportChatBubble(message: message)
@@ -79,10 +95,45 @@ struct SupportView: View {
                 humanHandoffOffer
             }
         }
-        .padding(18)
-        .background(Color(.systemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 20))
-        .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 4)
+    }
+
+    private var handoffConfirmationPanel: some View {
+        VStack(spacing: 14) {
+            Image(systemName: "envelope.fill")
+                .font(.system(size: 32))
+                .foregroundStyle(Color(hex: "44C0FF"))
+                .padding(.top, 4)
+
+            VStack(spacing: 6) {
+                Text("We'll continue by email")
+                    .font(.headline)
+
+                (Text("A Day One support agent will reach out at ")
+                    + Text(userEmail).fontWeight(.semibold)
+                    + Text(" shortly to follow up on your question."))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+
+            Button(action: startNewChat) {
+                HStack(spacing: 6) {
+                    Image(systemName: "arrow.counterclockwise")
+                        .font(.system(size: 14))
+                    Text("Start a new chat")
+                        .font(.subheadline)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .background(Color(hex: "44C0FF").opacity(0.12))
+                .foregroundStyle(Color(hex: "44C0FF"))
+                .clipShape(Capsule())
+            }
+            .buttonStyle(PlainButtonStyle())
+            .padding(.top, 4)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 6)
     }
 
     private var chatInputRow: some View {
@@ -237,13 +288,25 @@ struct SupportView: View {
 
     private func requestHumanHandoff() {
         inputFocused = false
-        withAnimation(.easeOut(duration: 0.2)) {
+        withAnimation(.easeOut(duration: 0.25)) {
             humanHandoffRequested = true
-            conversation.append(SupportChatMessage(
-                text: "Connecting you with a support agent — someone from the Day One team will be with you shortly.",
-                isUser: false
-            ))
+            handoffConfirmed = true
+            conversation.removeAll()
+            isThinking = false
+            draftText = ""
         }
+    }
+
+    private func startNewChat() {
+        withAnimation(.easeOut(duration: 0.25)) {
+            handoffConfirmed = false
+            humanHandoffRequested = false
+            hasShownWelcome = false
+            conversation.removeAll()
+            isThinking = false
+            draftText = ""
+        }
+        Task { await showWelcomeIfNeeded() }
     }
 
     @MainActor

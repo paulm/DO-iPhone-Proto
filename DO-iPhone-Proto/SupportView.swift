@@ -226,9 +226,13 @@ private struct SupportChatBubble: View {
             Text(message.text)
                 .font(.subheadline)
                 .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(message.isUser ? Color(hex: "44C0FF") : Color(.tertiarySystemGroupedBackground))
+                .padding(.vertical, 10)
+                .background(message.isUser ? Color(hex: "44C0FF") : Color(.systemBackground))
                 .foregroundStyle(message.isUser ? .white : .primary)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(Color.gray.opacity(message.isUser ? 0 : 0.2), lineWidth: 1)
+                )
                 .clipShape(RoundedRectangle(cornerRadius: 14))
             if !message.isUser { Spacer(minLength: 40) }
         }

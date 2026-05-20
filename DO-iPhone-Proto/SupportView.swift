@@ -68,7 +68,7 @@ struct SupportView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
-        .background(.regularMaterial)
+        .background(Color(.systemBackground))
         .overlay(
             RoundedRectangle(cornerRadius: 18)
                 .stroke(Color.gray.opacity(0.2), lineWidth: 1)

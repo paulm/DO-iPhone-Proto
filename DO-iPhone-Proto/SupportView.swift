@@ -362,7 +362,7 @@ private struct SupportChatBubble: View {
                 .font(.subheadline)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 10)
-                .background(message.isUser ? Color(hex: "44C0FF") : Color(.systemBackground))
+                .background(message.isUser ? Color(hex: "44C0FF") : Color(.systemGray6))
                 .foregroundStyle(message.isUser ? .white : .primary)
                 .overlay(
                     RoundedRectangle(cornerRadius: 14)

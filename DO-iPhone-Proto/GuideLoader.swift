@@ -46,6 +46,55 @@ enum Guides {
         return LoadedGuide(title: title, body: cleanedBody, fileURL: fileURL)
     }
 
+    /// Builds a short, markdown-free preview snippet of a bundled guide's
+    /// body — suitable for a card's secondary text. Strips heading lines,
+    /// blockquote `> ` markers, link syntax (`[label](url)` → `label`),
+    /// emphasis (`**bold**`, `_italic_`, `*italic*`), inline code backticks,
+    /// and horizontal rules. Lines are joined with single spaces; the caller
+    /// applies `.lineLimit` to clip the rendered output.
+    ///
+    /// Returns nil if the guide can't be loaded.
+    static func previewSnippet(forRelativePath relativePath: String) -> String? {
+        guard let guide = try? load(relativePath: relativePath) else { return nil }
+
+        var pieces: [String] = []
+        for rawLine in guide.body.split(separator: "\n", omittingEmptySubsequences: false) {
+            var line = String(rawLine).trimmingCharacters(in: .whitespaces)
+            if line.isEmpty { continue }
+            if line.hasPrefix("#") { continue }                  // heading
+            if line == "---" || line == "***" { continue }       // horizontal rule
+            if line.hasPrefix("> ") { line = String(line.dropFirst(2)) }
+            else if line.hasPrefix(">") { line = String(line.dropFirst()) }
+            line = stripInlineMarkdown(line)
+            if !line.isEmpty { pieces.append(line) }
+            if pieces.joined(separator: " ").count > 400 { break }
+        }
+        let snippet = pieces.joined(separator: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return snippet.isEmpty ? nil : snippet
+    }
+
+    private static func stripInlineMarkdown(_ input: String) -> String {
+        var s = input
+        // Links: [label](url) → label
+        if let linkRegex = try? NSRegularExpression(pattern: #"\[([^\]]+)\]\([^)]+\)"#) {
+            let range = NSRange(s.startIndex..., in: s)
+            s = linkRegex.stringByReplacingMatches(in: s, range: range, withTemplate: "$1")
+        }
+        // Bold/italic markers: **x**, __x__, *x*, _x_ → x
+        for marker in ["**", "__"] {
+            s = s.replacingOccurrences(of: marker, with: "")
+        }
+        // Single * and _ used as emphasis — strip when surrounded by non-spaces.
+        if let emRegex = try? NSRegularExpression(pattern: #"(?<!\w)[\*_](\S(?:.*?\S)?)[\*_](?!\w)"#) {
+            let range = NSRange(s.startIndex..., in: s)
+            s = emRegex.stringByReplacingMatches(in: s, range: range, withTemplate: "$1")
+        }
+        // Inline code: `code` → code
+        s = s.replacingOccurrences(of: "`", with: "")
+        return s.trimmingCharacters(in: .whitespaces)
+    }
+
     /// Resolves a URL produced by Textual's link handling against the bundled
     /// guides root. Returns a relative path (e.g. `"organizing/index.md"`) when
     /// the URL points at a real markdown file or a folder under the bundle;

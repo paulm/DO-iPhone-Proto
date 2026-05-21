@@ -32,10 +32,17 @@ struct SupportView: View {
         "Hi \(userFirstName), I'm Day One's customer help chat. I see you have \(encryptedJournalCount) encrypted journals and you've been active on \(recentlyActiveDeviceCount) devices recently. All your data appears synced up as expected."
     }
 
+    private var hasUserSentMessage: Bool {
+        conversation.contains(where: { $0.isUser })
+    }
+
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
                 heroCard
+                if hasUserSentMessage && !handoffConfirmed {
+                    suggestedGuidesSection
+                }
                 browseGrid
             }
             .padding(.horizontal, 16)
@@ -213,6 +220,39 @@ struct SupportView: View {
         }
     }
 
+    // MARK: - Suggested Guides
+
+    /// Hardcoded for now; will eventually be driven by the user's message.
+    private let suggestedGuidePaths: [String] = [
+        "sync-and-backup/index.md",
+        "sync-and-backup/solving-sync-troubles.md",
+        "sync-and-backup/day-one-sync-faq.md"
+    ]
+
+    private var suggestedGuidesSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Suggested Guides")
+                .font(.title3)
+                .fontWeight(.semibold)
+                .padding(.horizontal, 4)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(suggestedGuidePaths, id: \.self) { path in
+                        NavigationLink {
+                            GuideView(relativePath: path)
+                        } label: {
+                            SupportSuggestedGuideCard(relativePath: path)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                }
+                .padding(.horizontal, 16)
+            }
+            .padding(.horizontal, -16) // bleed past the parent VStack's 16pt padding
+        }
+    }
+
     // MARK: - Browse Guides
 
     private var browseGrid: some View {
@@ -371,6 +411,35 @@ private struct SupportChatBubble: View {
                 .clipShape(RoundedRectangle(cornerRadius: 14))
             if !message.isUser { Spacer(minLength: 40) }
         }
+    }
+}
+
+private struct SupportSuggestedGuideCard: View {
+    let relativePath: String
+
+    var body: some View {
+        let title = (try? Guides.load(relativePath: relativePath))?.title ?? "Guide"
+        let snippet = Guides.previewSnippet(forRelativePath: relativePath) ?? ""
+
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundStyle(.primary)
+                .lineLimit(2)
+            Text(snippet)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(5)
+                .multilineTextAlignment(.leading)
+        }
+        .frame(width: 260, alignment: .topLeading)
+        .padding(14)
+        .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.gray.opacity(0.12), lineWidth: 1)
+        )
     }
 }
 
